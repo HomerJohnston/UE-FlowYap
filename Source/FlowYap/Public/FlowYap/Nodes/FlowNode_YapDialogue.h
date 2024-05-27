@@ -1,71 +1,48 @@
 #pragma once
 
-#include "Nodes/FlowNode.h"
-#include "FlowYap/FlowYapCharacterMood.h"
+#include "FlowNode_YapSpeechBase.h"
 #include "FlowYap/FlowYapFragment.h"
 #include "FlowNode_YapDialogue.generated.h"
 
 class UFlowYapCharacter;
 
+enum class EFlowNode_YapDialogue_Settings : uint8;
+
 UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "event"))
-class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
+class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode_YapSpeechBase
 {
 	GENERATED_BODY()
 public:
 	UFlowNode_YapDialogue();
 
-	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UFlowYapCharacter> Character;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FFlowYapFragment Fragment;
+	UPROPERTY(EditAnywhere)
+	bool bTimed = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName PortraitKey;
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
+	bool bUseAudioAssetLength = false;
+	
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", ClampMin = 0.0, UIMin = 0.0, UIMax = 30.0))
+	double Time = 0.0;
+	
+	UPROPERTY(EditAnywhere)
+	bool bUserInterruptible = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	
-	
-	// API
 public:
-	FText GetSpeakerName() const;
+	bool GetTimed() const;
 
-	FLinearColor GetSpeakerColor() const;
+	bool GetUseAudioAssetLength() const;
 
-	const UTexture2D* GetDefaultSpeakerPortrait() const;
+	double GetTime() const;
 
-	const UTexture2D* GetSpeakerPortrait(const FName& RequestedPortraitKey) const;
+	bool GetUserInterruptible() const;
 
-	const FFlowYapFragment& GetFragment() const;
+public:
+	void SetTimed(bool NewValue);
 
-	FText GetTitleText() const;
+	void SetUseAudioAssetLength(bool NewValue);
 
-	FText GetDialogueText() const;
+	void SetTime(double NewValue);
 
-	// TODO soft pointer support for audio
-	UAkAudioEvent* GetDialogueAudio() const;
-	
-	FText GetNodeTitle() const override;
-
-	void SetPortraitKey(const FName& NewValue);
-	
-	FName GetPortraitKey() const;
-	
-#if WITH_EDITOR
-	void SetDialogueText(const FText& CommittedText);
-
-	void SetTitleText(const FText& CommittedText);
-
-	//void UpdateColor();
-
-	bool GetDynamicTitleColor(FLinearColor& OutColor) const override;
-	
-	bool CanUserAddOutput() const override { return true; }
-	
-	FSlateBrush* GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const;
-	
-	void SetDialogueAudioAsset(const FAssetData& AssetData);
-#endif
+	void SetUserInterruptible(bool NewValue);
 };

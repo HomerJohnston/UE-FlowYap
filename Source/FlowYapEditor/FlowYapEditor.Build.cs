@@ -9,7 +9,7 @@ public class FlowYapEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
+                "Core", "Slate",
             }
         );
 
@@ -38,6 +38,7 @@ public class FlowYapEditor : ModuleRules
                 "AkAudio",
                 
                 "EditorSubsystem",
+                "InputCore",
             }
         );
     }

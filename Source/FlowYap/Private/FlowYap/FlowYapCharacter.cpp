@@ -1,6 +1,5 @@
 #include "FlowYap/FlowYapCharacter.h"
 
-#include "FlowYap/FlowYapCharacterMood.h"
 #include "FlowYap/FlowYapProjectSettings.h"
 #include "Engine/Texture2D.h"
 
@@ -8,24 +7,21 @@
 
 UFlowYapCharacter::UFlowYapCharacter()
 {
-	for (EFlowYapCharacterMood Mood : TEnumRange<EFlowYapCharacterMood>())
-	{
-		const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
 
-		// TODO I need a details customization to add a button to "rebuild" the portraits array
-		// TODO I need validation code to check if the character's portrait keys array matches the project or not
-		if (Portraits.Num() == 0)
+	// TODO I need a details customization to add a button to "rebuild" the portraits array
+	// TODO I need validation code to check if the character's portrait keys array matches the project or not
+	if (Portraits.Num() == 0)
+	{
+		for (FName PortraitKey : Settings->GetPortraitKeys())
 		{
-			for (FName PortraitKey : Settings->GetPortraitKeys())
+			if (PortraitKey == NAME_None)
 			{
-				if (PortraitKey == NAME_None)
-				{
-					UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
-					continue;
-				}
-				
-				Portraits.Add(PortraitKey, nullptr);
+				UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
+				continue;
 			}
+			
+			Portraits.Add(PortraitKey, nullptr);
 		}
 	}
 }
@@ -89,7 +85,8 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 		if (Portrait)
 		{
 			PortraitBrush.SetResourceObject(Portrait);
-			PortraitBrush.SetUVRegion(FBox2D(FVector2D(0.125,0), FVector2D(0.875,1)));
+			//PortraitBrush.SetUVRegion(FBox2D(FVector2D(0.125,0), FVector2D(0.875,1)));
+			PortraitBrush.SetUVRegion(FBox2D(FVector2D(0,0), FVector2D(1,1)));
 			PortraitBrush.DrawAs = ESlateBrushDrawType::Box;
 			PortraitBrush.Margin = 0;
 		}
