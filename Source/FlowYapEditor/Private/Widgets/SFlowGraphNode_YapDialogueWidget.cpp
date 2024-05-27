@@ -4,6 +4,7 @@
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Layout/SSeparator.h"
 
 
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
@@ -48,34 +49,10 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		.AutoWidth()
 		[
 			SNew(SCheckBox)
-			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
+			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
-			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetUserInterruptibleEnabled)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleInterruptibleChanged)
-			[
-				SNew(SBox)
-				[
-					SNew(SImage)
-					.ColorAndOpacity(FSlateColor::UseForeground())
-					.Image(TAttribute<const FSlateBrush*>::Create(
-					TAttribute<const FSlateBrush*>::FGetter::CreateLambda([InterruptibleIconBrush](){return InterruptibleIconBrush->GetSlateBrush();})))
-				]
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.0)
-		[
-			SNew(SSpacer)
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SCheckBox)
-			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
-			.Padding(FMargin(4, 2))
-			.CheckBoxContentUsesAutoWidth(true)
-			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetTimedEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetTimed)
 			.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleTimedChanged)
 			[
 				SNew(SImage)
@@ -88,7 +65,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		.AutoWidth()
 		[
 			SNew(SSpacer)
-			.Size(1)
+			.Size(2)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -107,7 +84,28 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		.AutoWidth()
 		[
 			SNew(SSpacer)
-			.Size(1)
+			.Size(2)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SCheckBox)
+			.IsEnabled(this, &SFlowGraphNode_YapDialogueWidget::GetUseAutoTimeEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetUseAutoTime)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleUseAutoTimeChanged)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.IsEnabled(this, &SFlowGraphNode_YapDialogueWidget::GetUseAutoTimeEnabled)
+			.Text(INVTEXT("Auto"))
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0)
+		[
+			SNew(SSpacer)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -123,21 +121,67 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		[
 			SNew(STextBlock)
 			.IsEnabled(this, &SFlowGraphNode_YapDialogueWidget::GetUseAudioLengthEnabled)
-			.Text(INVTEXT("Use Audio Length"))
+			.Text(INVTEXT("Audio Length"))
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(1.0)
+		[
+			SNew(SSpacer)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SCheckBox)
+			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
+			.Padding(FMargin(4, 3))
+			.CheckBoxContentUsesAutoWidth(true)
+			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetUserInterruptibleEnabled)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleInterruptibleChanged)
+			[
+				SNew(SBox)
+				[
+					SNew(SImage)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Image(TAttribute<const FSlateBrush*>::Create(
+					TAttribute<const FSlateBrush*>::FGetter::CreateLambda([InterruptibleIconBrush](){return InterruptibleIconBrush->GetSlateBrush();})))
+				]
+			]
 		]
 	];
 
 	return Box.ToSharedRef(); 
 }
 
-bool SFlowGraphNode_YapDialogueWidget::GetTimeEntryEnabled() const
+// ----------------------------------
+
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetUserInterruptibleEnabled() const
 {
-	return FlowNode_YapDialogue->GetTimed() && (!FlowNode_YapDialogue->GetUseAudioAssetLength() || !FlowNode_YapDialogue->GetDialogueAudio());
+	return FlowNode_YapDialogue->GetUserInterruptible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetTimedEnabled() const
+bool SFlowGraphNode_YapDialogueWidget::GetTimeEntryEnabled() const
 {
-	return FlowNode_YapDialogue->GetTimed() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	if (!FlowNode_YapDialogue->GetTimed())
+	{
+		return false;
+	}
+
+	if (FlowNode_YapDialogue->GetUseAutoTime())
+	{
+		return false;
+	}
+
+	if (FlowNode_YapDialogue->GetUseAudioAssetLength() && FlowNode_YapDialogue->GetDialogueAudio())
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+bool SFlowGraphNode_YapDialogueWidget::GetUseAutoTimeEnabled() const
+{
+	return FlowNode_YapDialogue->GetTimed();
 }
 
 bool SFlowGraphNode_YapDialogueWidget::GetUseAudioLengthEnabled() const
@@ -145,21 +189,18 @@ bool SFlowGraphNode_YapDialogueWidget::GetUseAudioLengthEnabled() const
 	return FlowNode_YapDialogue->GetTimed() && FlowNode_YapDialogue->GetDialogueAudio();
 }
 
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetUseAudioLength() const
-{
-	return (FlowNode_YapDialogue->GetUseAudioAssetLength() && FlowNode_YapDialogue->GetDialogueAudio()) ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-}
+// ----------------------------------
 
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetUserInterruptibleEnabled() const
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetTimed() const
 {
-	return FlowNode_YapDialogue->GetUserInterruptible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return FlowNode_YapDialogue->GetTimed() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 TOptional<double> SFlowGraphNode_YapDialogueWidget::GetTime() const
 {
 	TOptional<double> Value;
 
-	if (FlowNode_YapDialogue->GetTimed() && !FlowNode_YapDialogue->GetUseAudioAssetLength())
+	if (FlowNode_YapDialogue->GetTimed() && !FlowNode_YapDialogue->GetUseAudioAssetLength() && !FlowNode_YapDialogue->GetUseAutoTime())
 	{
 		Value = FlowNode_YapDialogue->GetTime();
 	}
@@ -171,14 +212,26 @@ TOptional<double> SFlowGraphNode_YapDialogueWidget::GetTime() const
 	return Value;
 }
 
-void SFlowGraphNode_YapDialogueWidget::HandleTimedChanged(ECheckBoxState CheckBoxState)
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetUseAutoTime() const
 {
-	FlowNode_YapDialogue->SetTimed(CheckBoxState == ECheckBoxState::Checked ? true : false);
+	return FlowNode_YapDialogue->GetUseAutoTime() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
+
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetUseAudioLength() const
+{
+	return (FlowNode_YapDialogue->GetUseAudioAssetLength() && FlowNode_YapDialogue->GetDialogueAudio()) ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+// ----------------------------------
 
 void SFlowGraphNode_YapDialogueWidget::HandleInterruptibleChanged(ECheckBoxState CheckBoxState)
 {
 	FlowNode_YapDialogue->SetUserInterruptible(CheckBoxState == ECheckBoxState::Checked ? true : false);
+}
+
+void SFlowGraphNode_YapDialogueWidget::HandleTimedChanged(ECheckBoxState CheckBoxState)
+{
+	FlowNode_YapDialogue->SetTimed(CheckBoxState == ECheckBoxState::Checked ? true : false);
 }
 
 void SFlowGraphNode_YapDialogueWidget::HandleTimeChanged(double NewValue, ETextCommit::Type CommitType)
@@ -194,8 +247,22 @@ void SFlowGraphNode_YapDialogueWidget::HandleTimeChanged(double NewValue, ETextC
 	}
 }
 
+void SFlowGraphNode_YapDialogueWidget::HandleUseAutoTimeChanged(ECheckBoxState CheckBoxState)
+{
+	FlowNode_YapDialogue->SetUseAutoTime(CheckBoxState == ECheckBoxState::Checked ? true : false);
+
+	if (CheckBoxState == ECheckBoxState::Checked)
+	{
+		FlowNode_YapDialogue->SetUseAudioAssetLength(false);
+	}
+}
+
 void SFlowGraphNode_YapDialogueWidget::HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState)
 {
 	FlowNode_YapDialogue->SetUseAudioAssetLength(CheckBoxState == ECheckBoxState::Checked ? true : false);
+	
+	if (CheckBoxState == ECheckBoxState::Checked)
+	{
+		FlowNode_YapDialogue->SetUseAutoTime(false);
+	}
 }
-

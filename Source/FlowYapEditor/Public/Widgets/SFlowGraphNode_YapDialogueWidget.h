@@ -19,26 +19,34 @@ protected:
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
-public:
+protected:
 	TSharedRef<SBox> GetAdditionalOptionsWidget() override;
+
+protected:
+	ECheckBoxState GetUserInterruptibleEnabled() const;
 
 	bool GetTimeEntryEnabled() const;
 
-	ECheckBoxState GetTimedEnabled() const;
+	bool GetUseAutoTimeEnabled() const;
 
 	bool GetUseAudioLengthEnabled() const;
 
-	ECheckBoxState GetUseAudioLength() const;
-
-	ECheckBoxState GetUserInterruptibleEnabled() const;
-
+	ECheckBoxState GetTimed() const;
+	
 	TOptional<double> GetTime() const;
 	
-	void HandleTimedChanged(ECheckBoxState CheckBoxState);
+	ECheckBoxState GetUseAutoTime() const;
 
+	ECheckBoxState GetUseAudioLength() const;
+
+protected:
 	void HandleInterruptibleChanged(ECheckBoxState CheckBoxState);
 
+	void HandleTimedChanged(ECheckBoxState CheckBoxState);
+
 	void HandleTimeChanged(double NewValue, ETextCommit::Type CommitType);
+
+	void HandleUseAutoTimeChanged(ECheckBoxState CheckBoxState);
 
 	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
 

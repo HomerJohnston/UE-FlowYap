@@ -464,7 +464,7 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FNa
 FVector2D SFlowGraphNode_YapSpeechBaseWidget::CalculateOutputPinVerticalOffset() const
 {
 	int NumPins = FlowGraphNode_YapSpeechBase->OutputPins.Num();
-	int FreePins = 3;
+	int FreePins = 3000;
 
 	NumPins = FMath::Max(NumPins - FreePins, 0);
 
@@ -473,7 +473,7 @@ FVector2D SFlowGraphNode_YapSpeechBaseWidget::CalculateOutputPinVerticalOffset()
 
 	int Offset = FMath::Max(BaseOffset - NumPins * OffsetPerPin, 0);
 	
-	return FVector2D(0, Offset);
+	return FVector2D(0, 4 /*Offset*/);
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateNodeContentArea()
@@ -494,10 +494,21 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateNodeContentArea()
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
+				.VAlign(VAlign_Top)
 				.AutoWidth()
 				[
-					SAssignNew(LeftNodeBox, SVerticalBox)
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SSpacer)
+						.Size(4)
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SAssignNew(LeftNodeBox, SVerticalBox)
+					]
 				]
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Center)
@@ -534,7 +545,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateNodeContentArea()
 			.AutoHeight()
 			[
 				SNew(SSpacer)
-				.Size(this, &SFlowGraphNode_YapSpeechBaseWidget::CalculateOutputPinVerticalOffset)
+				.Size(4)
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()

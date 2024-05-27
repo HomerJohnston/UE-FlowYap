@@ -20,6 +20,9 @@ protected:
 	bool bTimed = true;
 
 	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
+	bool bUseAutoTime = true;
+	
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
 	bool bUseAudioAssetLength = false;
 	
 	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", ClampMin = 0.0, UIMin = 0.0, UIMax = 30.0))
@@ -31,6 +34,8 @@ protected:
 public:
 	bool GetTimed() const;
 
+	bool GetUseAutoTime() const;
+	
 	bool GetUseAudioAssetLength() const;
 
 	double GetTime() const;
@@ -40,6 +45,8 @@ public:
 public:
 	void SetTimed(bool NewValue);
 
+	void SetUseAutoTime(bool NewValue);
+	
 	void SetUseAudioAssetLength(bool NewValue);
 
 	void SetTime(double NewValue);

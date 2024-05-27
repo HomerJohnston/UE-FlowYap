@@ -15,6 +15,11 @@ bool UFlowNode_YapDialogue::GetTimed() const
 	return bTimed;
 }
 
+bool UFlowNode_YapDialogue::GetUseAutoTime() const
+{
+	return bUseAutoTime;
+}
+
 bool UFlowNode_YapDialogue::GetUseAudioAssetLength() const
 {
 	if (!bTimed)
@@ -38,6 +43,11 @@ bool UFlowNode_YapDialogue::GetUserInterruptible() const
 void UFlowNode_YapDialogue::SetTimed(bool NewValue)
 {
 	bTimed = NewValue;
+}
+
+void UFlowNode_YapDialogue::SetUseAutoTime(bool NewValue)
+{
+	bUseAutoTime = NewValue;
 }
 
 void UFlowNode_YapDialogue::SetUseAudioAssetLength(bool NewValue)
