@@ -197,3 +197,58 @@ void UFlowNode_YapSpeechBase::SetDialogueAudioAsset(const FAssetData& AssetData)
 	//EndModify();
 }
 #endif
+
+bool UFlowNode_YapSpeechBase::GetTimed() const
+{
+	return bTimed;
+}
+
+bool UFlowNode_YapSpeechBase::GetUseAutoTime() const
+{
+	return bUseAutoTime;
+}
+
+bool UFlowNode_YapSpeechBase::GetUseAudioAssetLength() const
+{
+	if (!bTimed)
+	{
+		return false;
+	}
+	
+	return bUseAudioAssetLength;
+}
+
+double UFlowNode_YapSpeechBase::GetTime() const
+{
+	return Time;
+}
+
+bool UFlowNode_YapSpeechBase::GetUserInterruptible() const
+{
+	return bUserInterruptible;
+}
+
+void UFlowNode_YapSpeechBase::SetTimed(bool NewValue)
+{
+	bTimed = NewValue;
+}
+
+void UFlowNode_YapSpeechBase::SetUseAutoTime(bool NewValue)
+{
+	bUseAutoTime = NewValue;
+}
+
+void UFlowNode_YapSpeechBase::SetUseAudioAssetLength(bool NewValue)
+{
+	bUseAudioAssetLength = NewValue;
+}
+
+void UFlowNode_YapSpeechBase::SetTime(double NewValue)
+{
+	Time = NewValue;
+}
+
+void UFlowNode_YapSpeechBase::SetUserInterruptible(bool NewValue)
+{
+	bUserInterruptible = NewValue;
+}

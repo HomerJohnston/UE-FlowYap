@@ -20,6 +20,7 @@ public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
 protected:
+	
 	TSharedRef<SBox> GetAdditionalOptionsWidget() override;
 
 protected:
@@ -50,4 +51,5 @@ protected:
 
 	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
 
+	FCheckBoxStyle Style;
 };

@@ -1,8 +1,10 @@
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 
+#include "FlowYapColors.h"
 #include "FlowYapEditorSubsystem.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
+#include "Styling/StyleColors.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Layout/SSeparator.h"
 
@@ -21,21 +23,27 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 	TSharedPtr<SBox> Box;
 	
 	UTexture2D* TimedIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetDialogueTimerIco();
-	
 	FSlateBrush TimedBrush;
 	TimedBrush.ImageSize = FVector2D(16, 16);
 	TimedBrush.SetResourceObject(TimedIcon);
-		
 	TSharedRef<FDeferredCleanupSlateBrush> TimedIconBrush = FDeferredCleanupSlateBrush::CreateBrush(TimedBrush);
 
 	UTexture2D* UserInterruptibleIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetDialogueUserInterruptIco();
-	
 	FSlateBrush InterruptibleBrush;
 	InterruptibleBrush.ImageSize = FVector2D(16, 16);
 	InterruptibleBrush.SetResourceObject(UserInterruptibleIcon);
-	
 	TSharedRef<FDeferredCleanupSlateBrush> InterruptibleIconBrush = FDeferredCleanupSlateBrush::CreateBrush(InterruptibleBrush);
 
+	FSlateIcon ProjectSettingsIcon(FAppStyle::GetAppStyleSetName(), "ProjectSettings.TabIcon");
+	const FSlateBrush* ProjectSettingsIconBrush = ProjectSettingsIcon.GetIcon();
+	TSharedRef<FDeferredCleanupSlateBrush> ProjectSettingsBrush = FDeferredCleanupSlateBrush::CreateBrush(*ProjectSettingsIconBrush);
+
+	Style = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
+	//Style.SetCheckedForegroundColor(FSlateColor(FLinearColor::Red));
+	Style.CheckedImage.TintColor = FLinearColor(FlowYapColors::Orange);
+	Style.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColors::OrangeHovered);
+	Style.CheckedPressedImage.TintColor = FLinearColor(FlowYapColors::OrangePressed);
+	
 	SAssignNew(Box, SBox)
 	[
 		SNew(SHorizontalBox)
@@ -44,6 +52,29 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		[
 			SNew(SSpacer)
 			.Size(1)
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SCheckBox)
+			//.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
+			.Style(&Style)
+			.Padding(FMargin(4, 3))
+			.CheckBoxContentUsesAutoWidth(true)
+			//.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetTimed)
+			//.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleTimedChanged)
+			[
+				SNew(SImage)
+				.ColorAndOpacity(FSlateColor::UseForeground())
+				.Image(TAttribute<const FSlateBrush*>::Create(
+				TAttribute<const FSlateBrush*>::FGetter::CreateLambda([ProjectSettingsBrush](){return ProjectSettingsBrush->GetSlateBrush();})))
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		[
+			SNew(SSpacer)
+			.Size(2)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -74,8 +105,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 			.IsEnabled(this, &SFlowGraphNode_YapDialogueWidget::GetTimeEntryEnabled)
 			.Delta(0.1)
 			.MinValue(0.0)
-			.MaxSliderValue(30.0)
-			.MinDesiredValueWidth(40)
+			.MinDesiredValueWidth(26)
 			.Value(this, &SFlowGraphNode_YapDialogueWidget::GetTime)
 			.Justification(ETextJustify::Center)
 			.OnValueCommitted(this, &SFlowGraphNode_YapDialogueWidget::HandleTimeChanged)
@@ -121,7 +151,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::GetAdditionalOptionsWidget()
 		[
 			SNew(STextBlock)
 			.IsEnabled(this, &SFlowGraphNode_YapDialogueWidget::GetUseAudioLengthEnabled)
-			.Text(INVTEXT("Audio Length"))
+			.Text(INVTEXT("Match Audio"))
 		]
 		+ SHorizontalBox::Slot()
 		.FillWidth(1.0)

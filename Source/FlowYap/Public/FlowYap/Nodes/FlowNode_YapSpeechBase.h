@@ -24,6 +24,29 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bUseProjectSettings;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	bool bTimed = true;
+
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", ClampMin = 0.0, UIMin = 0.0, UIMax = 30.0))
+	double Time = 0.0;
+	
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
+	bool bUseAutoTime = true;
+	
+	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
+	bool bUseAudioAssetLength = false;
+	
+	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
+	UPROPERTY(EditAnywhere)
+	float EndPaddingTime;
+	
+	UPROPERTY(EditAnywhere)
+	bool bUserInterruptible = true;
+	
 	// STATE
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
@@ -78,4 +101,26 @@ public:
 	
 	void SetDialogueAudioAsset(const FAssetData& AssetData);
 #endif
+	
+public:
+	bool GetTimed() const;
+
+	bool GetUseAutoTime() const;
+	
+	bool GetUseAudioAssetLength() const;
+
+	double GetTime() const;
+
+	bool GetUserInterruptible() const;
+
+public:
+	void SetTimed(bool NewValue);
+
+	void SetUseAutoTime(bool NewValue);
+	
+	void SetUseAudioAssetLength(bool NewValue);
+
+	void SetTime(double NewValue);
+
+	void SetUserInterruptible(bool NewValue);
 };

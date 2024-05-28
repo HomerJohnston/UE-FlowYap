@@ -232,7 +232,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateDialogueContentAre
 		.AutoWidth()
 		.Padding(2.f, 5.f, 5.f, 2.f)
 		[
-			GetPortraitWidget()
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			[
+				GetPortraitWidget()
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Bottom)
+			.Padding(FMargin(0, 0, 2, 2))
+			[
+				GetPortraitKeySelectorWidget()
+			]
 		]
 		// ===================
 		// DIALOGUE SETTINGS (RIGHT SIDE)
@@ -245,23 +256,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateDialogueContentAre
 		[
 			SNew(SVerticalBox)
 			// ===================
-			// PORTRAIT KEY (MOOD) SELECTOR
-			// ===================
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				GetPortraitKeySelectorWidget()
-			]
-			// ===================
-			// SPACER
-			// ===================
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SSpacer)
-				.Size(4.f)
-			]
-			// ===================
 			// TITLE TEXT
 			// ===================
 			+ SVerticalBox::Slot()
@@ -269,7 +263,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateDialogueContentAre
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
-				.MaxWidth(270)
+				.AutoWidth()
+				.HAlign(HAlign_Fill)
 				[
 					SNew(SEditableTextBox)
 					.Text(this, &SFlowGraphNode_YapSpeechBaseWidget::GetTitleText)
@@ -362,26 +357,7 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::GetPortraitKeySelectorWidge
 {
 	TSharedPtr<SBox> Box;
 	
-	TSharedPtr<SSegmentedControl<FName>> PortraitSelector;
-
-	SAssignNew(Box, SBox)
-	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SAssignNew(PortraitSelector, SSegmentedControl<FName>)
-			.SupportsMultiSelection(false)
-			.Value(this, &SFlowGraphNode_YapSpeechBaseWidget::GetPortraitKey)
-			.OnValueChanged(this, &SFlowGraphNode_YapSpeechBaseWidget::HandlePortraitKeyChanged)
-			.UniformPadding(2.f)
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SSpacer)
-		]
-	];
+	FMenuBuilder MenuBuilder(true, NULL);
 	
 	FName SelectedPortraitKey = SFlowGraphNode_YapSpeechBaseWidget::GetPortraitKey();
 
@@ -394,14 +370,52 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::GetPortraitKeySelectorWidge
 		}
 		
 		bool bSelected = PortraitKey == SelectedPortraitKey;
-		PortraitSelector->AddSlot(PortraitKey, true)
-		.AttachWidget(CreatePortraitKeyButton(PortraitKey, bSelected));
+		MenuBuilder.AddWidget(CreatePortraitKeyButton(PortraitKey, bSelected), FText::GetEmpty());
 	}
 
+	TSharedPtr<SImage> PortraitIconImage;
+	
+	FString IconPath = GetDefault<UFlowYapProjectSettings>()->GetPortraitIconPath(GetPortraitKey());
+
+	// TODO this is kind of uggers, can I maybe store FSlateIcons in the subsystem instead?
+	UTexture2D* PortraitKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetPortraitKeyIcon(GetPortraitKey());
+	
+	FSlateBrush Brush;
+	Brush.ImageSize = FVector2D(16, 16);
+	Brush.SetResourceObject(PortraitKeyIcon);
+		
+	TSharedRef<FDeferredCleanupSlateBrush> PortraitKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
+	
+	SAssignNew(Box, SBox)
+	[
+		SNew(SComboButton)
+		.HasDownArrow(false)
+		.ContentPadding(FMargin(0.f, 0.f))
+		.MenuPlacement(MenuPlacement_CenteredBelowAnchor)
+		.ButtonColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.75f)))
+		.HAlign(HAlign_Center)
+		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+		.ButtonContent()
+		[
+			SNew(SBox)
+			.Padding(4, 4)
+			[
+				SAssignNew(PortraitIconImage, SImage)
+				.ColorAndOpacity(FSlateColor::UseForeground())
+				.Image(TAttribute<const FSlateBrush*>::Create(
+							TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
+			]
+		]
+		.MenuContent()
+		[
+			MenuBuilder.MakeWidget()
+		]
+	];
+	
 	return Box.ToSharedRef();
 }
 
-TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FName InIconName, bool bSelected, const FText& InLabel, FName InTextStyle)
+TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FName InIconName, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
 	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
 		
@@ -411,7 +425,7 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FNa
 		
 	FString IconPath = ProjectSettings->GetPortraitIconPath(InIconName);
 
-	// TODO this is going to become slow for large graphs, since it's loading the same thing every time. Need to load all portrait icons up front, build grayscale/colorized variants, store and use cached versions.
+	// TODO this is kind of uggers, can I maybe store FSlateIcons in the subsystem instead?
 	UTexture2D* PortraitKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetPortraitKeyIcon(InIconName);
 	
 	FSlateBrush Brush;
@@ -428,22 +442,17 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FNa
 		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Center)
 		[
-			SNew(SBox)
-			.Padding(1.0, 0.0)
-			[
-				SAssignNew(PortraitIconImage, SImage)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Image(TAttribute<const FSlateBrush*>::Create(
-						TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
-			]
+			SAssignNew(PortraitIconImage, SImage)
+			.ColorAndOpacity(FSlateColor::UseForeground())
+			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
 		];
 	}
-		
+	
 	if (!InLabel.IsEmpty())
 	{
 		HBox->AddSlot()	
 		 .VAlign(VAlign_Center)
-		.Padding(0.f, 0.5f, 0.f, 0.f)
+		.Padding(0.f, 0.f, 0.f, 0.f)
 		.AutoWidth()
 		[
 			SNew(STextBlock)
@@ -452,12 +461,19 @@ TSharedRef<SBox> SFlowGraphNode_YapSpeechBaseWidget::CreatePortraitKeyButton(FNa
 			.Text(InLabel)
 		];
 	}
-
-	return SNew(SBox)
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
+	
+	return SNew(SButton)
+	.ContentPadding(FMargin(4, 4))
+	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+	.ButtonColorAndOpacity(FLinearColor(1,1,1,0.25))
+	.ClickMethod(EButtonClickMethod::MouseDown)
+	.OnClicked(this, &SFlowGraphNode_YapSpeechBaseWidget::HandlePortraitKeyChanged, InIconName)
 	[
-		HBox.ToSharedRef()
+		//HBox.ToSharedRef()
+		SAssignNew(PortraitIconImage, SImage)
+				.ColorAndOpacity(FSlateColor::UseForeground())
+				.Image(TAttribute<const FSlateBrush*>::Create(
+						TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
 	];
 }
 
@@ -477,7 +493,7 @@ FVector2D SFlowGraphNode_YapSpeechBaseWidget::CalculateOutputPinVerticalOffset()
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateNodeContentArea()
-{
+{	
 	return SNew(SBorder)
 	.BorderImage(FAppStyle::GetBrush("NoBorder"))
 	.HAlign(HAlign_Fill)
@@ -523,11 +539,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapSpeechBaseWidget::CreateNodeContentArea()
 				SNew(SBox)
 				.HAlign(HAlign_Fill)
 				.VAlign(VAlign_Top)
-				.MaxDesiredHeight(100.f)
-				.MaxDesiredWidth(421.f)
+				.MaxDesiredHeight(this, &SFlowGraphNode_YapSpeechBaseWidget::GetMaxDialogueWidgetHeight)
+				.MaxDesiredWidth(this, &SFlowGraphNode_YapSpeechBaseWidget::GetMaxDialogueWidgetWidth)
 				.Padding(4.f)
 				[
-					SNew(SMultiLineEditableTextBox)
+					SAssignNew(DialogueBox, SMultiLineEditableTextBox)
 					.Text(this, &SFlowGraphNode_YapSpeechBaseWidget::GetDialogueText)
 					.OnTextCommitted(this, &SFlowGraphNode_YapSpeechBaseWidget::HandleDialogueTextCommitted)
 					.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
@@ -634,10 +650,14 @@ void SFlowGraphNode_YapSpeechBaseWidget::HandleDialogueAudioAssetChanged(const F
 	FlowNode_YapSpeechBase->SetDialogueAudioAsset(InAssetData);
 }
 
-void SFlowGraphNode_YapSpeechBaseWidget::HandlePortraitKeyChanged(FName NewValue)
+FReply SFlowGraphNode_YapSpeechBaseWidget::HandlePortraitKeyChanged(FName NewValue)
 {
 	FlowNode_YapSpeechBase->SetPortraitKey(NewValue);
+
+	// TODO is this working?
 	Invalidate(EInvalidateWidgetReason::Layout);
+
+	return FReply::Handled();
 }
 
 void SFlowGraphNode_YapSpeechBaseWidget::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
@@ -735,6 +755,27 @@ void SFlowGraphNode_YapSpeechBaseWidget::AddPinButton(TSharedPtr<SVerticalBox> O
 			AddPinButton
 		];
 }
+
+FOptionalSize SFlowGraphNode_YapSpeechBaseWidget::GetMaxDialogueWidgetHeight() const
+{
+	int16 Deadspace = 15;
+	int16 LineHeight = 15;
+
+	int16 UnfocusedLines = 6;
+	int16 FocusedLines = 8;
+	
+	if (!DialogueBox.Get())
+	{
+		return Deadspace + UnfocusedLines * LineHeight;
+	}
+	
+	if (DialogueBox->HasKeyboardFocus())
+	{
+		return Deadspace + FocusedLines * LineHeight;
+	}
+
+	return Deadspace + UnfocusedLines * LineHeight;
+}
 #pragma endregion
 
 void SFlowGraphNode_YapSpeechBaseWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
@@ -751,6 +792,23 @@ void SFlowGraphNode_YapSpeechBaseWidget::Construct(const FArguments& InArgs, UFl
 	check(FlowNode_YapSpeechBase);
 
 	//SetCursor(EMouseCursor::CardinalCross);
+}
+
+FOptionalSize SFlowGraphNode_YapSpeechBaseWidget::GetMaxDialogueWidgetWidth() const
+{
+	if (!DialogueBox.Get())
+	{
+		return 421;
+	}
+	
+	if (DialogueBox->HasKeyboardFocus())
+	{
+		// It feels weird to have the graph morphing around. Don't permit any stretching.
+		// TODO can I draw a whole new multiline widget over top of everything somehow eventually?
+		return 421;
+	}
+
+	return 421;
 }
 
 #undef LOCTEXT_NAMESPACE

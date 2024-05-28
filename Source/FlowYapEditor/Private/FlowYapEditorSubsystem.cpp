@@ -12,7 +12,7 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 
 	const TArray<FName>& PortraitKeys = ProjectSettings->GetPortraitKeys();
 
-	PortraitKeyIcons.Empty(PortraitKeys.Num());
+	PortraitKeyIconTextures.Empty(PortraitKeys.Num());
 
 	for (const FName& PortraitKey : PortraitKeys)
 	{
@@ -29,7 +29,10 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 			continue;
 		}
 
-		PortraitKeyIcons.Add(PortraitKey, PortraitKeyIcon);
+		PortraitKeyIconTextures.Add(PortraitKey, PortraitKeyIcon);
+
+		// TODO can I store something smarter than texture2d?
+		//FSlateIcon Icon()
 	}
 }
 #endif
@@ -37,7 +40,7 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 #if WITH_EDITOR
 UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
 {
-	UTexture2D** Texture = PortraitKeyIcons.Find(PortraitKey);
+	UTexture2D** Texture = PortraitKeyIconTextures.Find(PortraitKey);
 
 	if (Texture)
 	{

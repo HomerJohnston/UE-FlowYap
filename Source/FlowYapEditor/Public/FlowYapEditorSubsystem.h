@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Textures/SlateIcon.h"
+
 #include "FlowYapEditorSubsystem.generated.h"
 
 class UFlowYapCharacter;
@@ -14,8 +16,10 @@ private:
 	// TODO make this an FSlateBrush to avoid making tons of new brushes in my graph
 	// TODO caveat: I need to store the loaded UTexture2D in a UPROPERTY
 	UPROPERTY()
-	TMap<FName, UTexture2D*> PortraitKeyIcons;
+	TMap<FName, UTexture2D*> PortraitKeyIconTextures;
 
+	TMap<FName, FSlateIcon> PortraitKeyIcons;
+	
 	UPROPERTY()
 	UTexture2D* DialogueTimerIco;
 

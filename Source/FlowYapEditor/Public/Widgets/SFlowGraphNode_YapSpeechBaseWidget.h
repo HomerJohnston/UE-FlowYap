@@ -9,6 +9,7 @@
 class UFlowNode_YapSpeechBase;
 class UFlowGraphNode_YapDialogueBase;
 
+class SMultiLineEditableTextBox;
 /**
  *
  */
@@ -24,13 +25,17 @@ protected:
 	
 	TSharedRef<SBox> GetPortraitKeySelectorWidget();
 	
-	TSharedRef<SBox> CreatePortraitKeyButton(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+	TSharedRef<SWidget> CreatePortraitKeyButton(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
 	virtual TSharedRef<SBox> GetAdditionalOptionsWidget() = 0;
 
 	FVector2D CalculateOutputPinVerticalOffset() const;
 
 	virtual void AddPinButton(TSharedPtr<SVerticalBox> OutputBox, TSharedRef<SWidget> ButtonContent, const EEdGraphPinDirection Direction, FString DocumentationExcerpt = FString(), TSharedPtr<SToolTip> CustomTooltip = nullptr);
+
+	FOptionalSize GetMaxDialogueWidgetHeight() const;
+	
+	FOptionalSize GetMaxDialogueWidgetWidth() const;
 	
 	TSharedRef<SWidget> CreateNodeContentArea() override;
 	
@@ -54,7 +59,7 @@ protected:
 
 	void HandleDialogueAudioAssetChanged(const FAssetData& InAssetData);
 
-	void HandlePortraitKeyChanged(FName NewValue);
+	FReply HandlePortraitKeyChanged(FName NewValue);
 
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
 
@@ -72,4 +77,7 @@ protected:
 	UFlowGraphNode_YapSpeechBase* FlowGraphNode_YapSpeechBase = nullptr;
 	
 	UFlowNode_YapSpeechBase* FlowNode_YapSpeechBase = nullptr;
+
+	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
+	
 };
