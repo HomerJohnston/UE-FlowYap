@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FlowYap/FlowYapFragment.h"
 #include "Textures/SlateIcon.h"
 
 #include "FlowYapEditorSubsystem.generated.h"
@@ -18,7 +19,7 @@ private:
 	UPROPERTY()
 	TMap<FName, UTexture2D*> PortraitKeyIconTextures;
 
-	TMap<FName, FSlateIcon> PortraitKeyIcons;
+	TMap<FName, TSharedPtr<FSlateBrush>> PortraitKeyBrushes;
 	
 	UPROPERTY()
 	UTexture2D* DialogueTimerIco;
@@ -33,6 +34,8 @@ public:
 	void UpdatePortraitKeyIconsMap();
 	
 	UTexture2D* GetPortraitKeyIcon(FName PortraitKey);
+
+	const FSlateBrush* GetPortraitKeyBrush(FName Name);
 
 	UTexture2D* GetDialogueTimerIco();
 	

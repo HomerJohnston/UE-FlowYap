@@ -40,5 +40,5 @@ protected:
 	FReply AddFragment();
 
 public:
-	void DeleteFragment(int64 FragmentID);
+	FReply DeleteFragment(int64 FragmentID);
 };

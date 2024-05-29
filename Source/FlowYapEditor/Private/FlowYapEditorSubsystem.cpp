@@ -31,8 +31,12 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 
 		PortraitKeyIconTextures.Add(PortraitKey, PortraitKeyIcon);
 
-		// TODO can I store something smarter than texture2d?
-		//FSlateIcon Icon()
+		TSharedPtr<FSlateBrush> PortraitKeyBrush = MakeShareable(new FSlateBrush);
+
+		PortraitKeyBrush->SetResourceObject(PortraitKeyIcon);
+		PortraitKeyBrush->SetImageSize({16, 16});
+		
+		PortraitKeyBrushes.Add(PortraitKey, PortraitKeyBrush);
 	}
 }
 #endif
@@ -48,6 +52,13 @@ UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
 	}
 
 	return nullptr;
+}
+
+const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
+{
+	TSharedPtr<FSlateBrush>* Brush = PortraitKeyBrushes.Find(Name);
+
+	return Brush ? Brush->Get() : nullptr;
 }
 
 UTexture2D* UFlowYapEditorSubsystem::GetDialogueTimerIco()

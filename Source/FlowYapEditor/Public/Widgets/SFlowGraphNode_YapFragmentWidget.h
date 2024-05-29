@@ -40,8 +40,6 @@ protected:
 	
 	TSharedRef<SWidget> CreatePortraitKeyButton(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FVector2D CalculateOutputPinVerticalOffset() const;
-
 	FOptionalSize GetMaxDialogueWidgetHeight() const;
 	
 	FOptionalSize GetMaxDialogueWidgetWidth() const;
@@ -56,6 +54,8 @@ public:
 	FName GetPortraitKey() const;
 
 	const FSlateBrush* GetPortraitBrush() const;
+
+	const FSlateBrush* GetPortraitKeyBrush() const;
 	
 	EVisibility GetVisibilityForMissingPortraitText() const;
 
@@ -71,8 +71,6 @@ protected:
 	void HandleDialogueAudioAssetChanged(const FAssetData& InAssetData);
 
 	FReply HandlePortraitKeyChanged(FName NewValue);
-
-	void CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox);
 
 protected:
 	
@@ -109,7 +107,4 @@ protected:
 	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
 
 	FCheckBoxStyle Style;
-
-public:
-	FReply Delete();
 };

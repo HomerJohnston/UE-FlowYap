@@ -241,8 +241,8 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetPortraitKeySelectorWidget(
 			[
 				SAssignNew(PortraitIconImage, SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Image(TAttribute<const FSlateBrush*>::Create(
-							TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
+				//.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
+				.Image(this, &SFlowGraphNode_YapFragmentWidget::GetPortraitKeyBrush)
 			]
 		]
 		.MenuContent()
@@ -272,7 +272,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitKeyButton(FN
 	Brush.SetResourceObject(PortraitKeyIcon);
 		
 	TSharedRef<FDeferredCleanupSlateBrush> PortraitKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
-		
+	
 	if (!InIconName.IsNone())
 	{
 		HBox->AddSlot()
@@ -311,28 +311,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitKeyButton(FN
 		//HBox.ToSharedRef()
 		SAssignNew(PortraitIconImage, SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Image(TAttribute<const FSlateBrush*>::Create(
-						TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
+				.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([PortraitKeyBrush](){return PortraitKeyBrush->GetSlateBrush();})))
+				//.Image(this, &SFlowGraphNode_YapFragmentWidget::GetPortraitBrush)
 	];
 }
-
-FVector2D SFlowGraphNode_YapFragmentWidget::CalculateOutputPinVerticalOffset() const
-{
-	/*
-	int NumPins = FlowGraphNode_YapDialogue->OutputPins.Num();
-	int FreePins = 3000;
-
-	NumPins = FMath::Max(NumPins - FreePins, 0);
-
-	int BaseOffset = 43;
-	int OffsetPerPin = 24;
-
-	int Offset = FMath::Max(BaseOffset - NumPins * OffsetPerPin, 0);
-	
-	*/
-	return FVector2D(0, 4);
-}
-
 
 #pragma region Getters
 FText SFlowGraphNode_YapFragmentWidget::GetTitleText() const
@@ -366,27 +348,30 @@ FName SFlowGraphNode_YapFragmentWidget::GetPortraitKey() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::GetPortraitBrush() const
 {
-	/*
-	FSlateBrush* Brush = Fragment YapDialogue->GetSpeakerPortraitBrush(GetPortraitKey());
+	FSlateBrush* Brush = GetFlowNodeYapDialogue()->GetSpeakerPortraitBrush(GetPortraitKey());
 
 	if (Brush && Brush->GetResourceObject())
 	{
 		return Brush;
 	}
-	*/
+
 	return nullptr;
+}
+
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::GetPortraitKeyBrush() const
+{
+	return GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetPortraitKeyBrush(GetPortraitKey());
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::GetVisibilityForMissingPortraitText() const
 {
-	/*
-	FSlateBrush* Brush = YapDialogue->GetSpeakerPortraitBrush(GetPortraitKey());
+	FSlateBrush* Brush = GetFlowNodeYapDialogue()->GetSpeakerPortraitBrush(GetPortraitKey());
 
 	if (Brush)
 	{
 		return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 	}
-	*/
+	
 	return EVisibility::Visible;
 }
 
@@ -430,69 +415,6 @@ FReply SFlowGraphNode_YapFragmentWidget::HandlePortraitKeyChanged(FName NewValue
 	
 	return FReply::Handled();
 }
-
-void SFlowGraphNode_YapFragmentWidget::CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox)
-{
-	/*
-	if (FlowGraphNode->CanUserAddOutput())
-	{
-		TSharedPtr<SWidget> AddPinWidget;
-		SAssignNew(AddPinWidget, SHorizontalBox)
-		+SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(7,0,0,0)
-		[
-			SNew(SImage)
-			.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
-		];
-
-		AddPinButton(OutputBox, AddPinWidget.ToSharedRef(), EGPD_Output);
-	}
-	*/
-}
-
-/*
-void SFlowGraphNode_YapFragmentWidget::AddPinButton(TSharedPtr<SVerticalBox> OutputBox, const TSharedRef<SWidget> ButtonContent, const EEdGraphPinDirection Direction, const FString DocumentationExcerpt, const TSharedPtr<SToolTip> CustomTooltip)
-{
-	const FText PinTooltipText = (Direction == EEdGraphPinDirection::EGPD_Input) ? LOCTEXT("FlowNodeAddPinButton_InputTooltip", "Adds an input pin") : LOCTEXT("FlowNodeAddPinButton_OutputTooltip", "Adds an output pin");
-	TSharedPtr<SToolTip> Tooltip;
-
-	if (CustomTooltip.IsValid())
-	{
-		Tooltip = CustomTooltip;
-	}
-	else if (!DocumentationExcerpt.IsEmpty())
-	{
-		Tooltip = IDocumentation::Get()->CreateToolTip(PinTooltipText, nullptr, GraphNode->GetDocumentationLink(), DocumentationExcerpt);
-	}
-
-	const TSharedRef<SButton> AddPinButton = SNew(SButton)
-	.ContentPadding(0.0f)
-	.ButtonStyle(FAppStyle::Get(), "NoBorder")
-	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnAddFlowPin, Direction)
-	.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::IsNodeEditable)
-	.ToolTipText(PinTooltipText)
-	.ToolTip(Tooltip)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::IsAddPinButtonVisible)
-	[
-		ButtonContent
-	];
-
-	AddPinButton->SetCursor(EMouseCursor::Hand);
-
-	FMargin AddPinPadding = (Direction == EEdGraphPinDirection::EGPD_Input) ? Settings->GetInputPinPadding() : Settings->GetOutputPinPadding();
-	AddPinPadding.Top += 0.0f;
-
-	OutputBox->AddSlot()
-	.AutoHeight()
-	.VAlign(VAlign_Center)
-	.Padding(AddPinPadding)
-	[
-		AddPinButton
-	];
-}
-*/
 
 FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueWidgetHeight() const
 {
@@ -562,20 +484,13 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
 	
 	SAssignNew(Box, SBox)
 	[
-		SNew(SHorizontalBox)
+		SNew(SHorizontalBox)/*
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		[
 			SNew(SSpacer)
 			.Size(1)
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SButton)
-			.Text(INVTEXT("TEST"))
-			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::Delete)
-		]
+		]*/
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		[
@@ -826,13 +741,5 @@ void SFlowGraphNode_YapFragmentWidget::HandleUseAudioLengthChanged(ECheckBoxStat
 		Fragment.SetUseAutoTime(false);
 	}
 }
-
-FReply SFlowGraphNode_YapFragmentWidget::Delete()
-{
-	Owner->DeleteFragment(FragmentID);
-	
-	return FReply::Handled();
-}
-
 
 #undef LOCTEXT_NAMESPACE
