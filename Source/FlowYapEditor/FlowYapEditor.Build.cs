@@ -9,7 +9,7 @@ public class FlowYapEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "Slate",
+                "Core", "Slate", "FlowEditor",
             }
         );
 

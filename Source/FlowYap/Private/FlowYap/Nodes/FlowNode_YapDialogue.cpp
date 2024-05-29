@@ -7,6 +7,214 @@
 
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
-	NodeColor = FLinearColor::Black;
+	Category = TEXT("Yap");
+	NodeStyle = EFlowNodeStyle::Custom;
+
+	Fragments.Add(FFlowYapFragment());
+
+	InputPins.Empty();
+	
+	for (int Index = 0; Index <= 9; Index++)
+	{
+		InputPins.Add(Index);
+	}
 }
+
+void UFlowNode_YapDialogue::SetConversationName(FName Name)
+{
+	if (ConversationName != NAME_None)
+	{
+		return;
+	}
+
+	ConversationName = Name;
+}
+
+FText UFlowNode_YapDialogue::GetSpeakerName() const
+{
+	if (!Character)
+	{
+		return INVTEXT("NO CHARACTER SET");
+	}
+
+	return Character->GetEntityName();
+}
+
+FLinearColor UFlowNode_YapDialogue::GetSpeakerColor() const
+{
+	if (!Character)
+	{
+		return FLinearColor::Gray;
+	}
+	
+	return Character->GetEntityColor();
+}
+
+const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
+{
+	if (!Character)
+	{
+		return nullptr;
+	}
+
+	const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
+
+	if (Settings->GetPortraitKeys().Num() == 0)
+	{
+		return nullptr;
+	}
+
+	const FName& Key = Settings->GetPortraitKeys()[0];
+	
+	return GetSpeakerPortrait(Key);
+}
+
+const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& RequestedPortraitKey) const
+{
+	if (!Character)
+	{
+		return nullptr;
+	}
+
+	const TObjectPtr<UTexture2D>* Portrait = Character->GetPortraits().Find(RequestedPortraitKey);
+
+	if (Portrait)
+	{
+		return *Portrait;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+#if WITH_EDITOR
+FFlowYapFragment& UFlowNode_YapDialogue::GetFragment(int64 FragmentID)
+{
+	FFlowYapFragment* FoundFragment = Fragments.FindByPredicate(
+		[&](FFlowYapFragment& Fragment)
+	{
+		return Fragment.GetEditorID() == FragmentID;
+	});
+
+	check(FoundFragment);
+
+	return *FoundFragment;
+}
+#endif
+
+TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
+{
+	return Fragments;
+}
+
+FText UFlowNode_YapDialogue::GetNodeTitle() const
+{
+	if (!Character)
+	{
+		return Super::GetNodeTitle();
+	}
+	
+	return FText::Join(FText::FromString(": "), Super::GetNodeTitle(), GetSpeakerName());
+}
+
+void UFlowNode_YapDialogue::InitializeInstance()
+{
+	UE_LOG(FlowYap, Warning, TEXT("InitializeInstance"));
+
+	Super::InitializeInstance();
+}
+
+void UFlowNode_YapDialogue::OnActivate()
+{
+	UE_LOG(FlowYap, Warning, TEXT("OnActivate"));
+
+	Super::OnActivate();
+}
+
+void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
+{
+	UE_LOG(FlowYap, Warning, TEXT("ExecuteInput, conversation: %s"), *ConversationName.ToString());
+
+	Super::ExecuteInput(PinName);
+}
+
+void UFlowNode_YapDialogue::AddFragment()
+{
+	Fragments.Add(FFlowYapFragment());
+
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+void UFlowNode_YapDialogue::RemoveFragment(int64 EditorID)
+{
+	Fragments.RemoveAll(
+		[&]
+		(FFlowYapFragment& Fragment)
+		{
+			if (Fragments.Num() <= 1)
+			{
+				return false;
+			}
+			
+			return Fragment.GetEditorID() == EditorID;
+		}
+	);
+	
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+#if WITH_EDITOR
+
+bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
+{
+	if (!Character)
+	{
+		return Super::GetDynamicTitleColor(OutColor);
+	}
+
+	OutColor = Character->GetEntityColor();
+
+	return true;
+}
+
+bool UFlowNode_YapDialogue::SupportsContextPins() const
+{
+	UE_LOG(FlowYap, Warning, TEXT("Dummy"));
+	return true;
+}
+
+TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
+{
+	InputPins.Empty();
+	
+	TArray<FFlowPin> ContextInputPins;
+
+	uint8 Index = 0;
+	
+	for (FFlowYapFragment& Fragment : Fragments)
+	{
+		ContextInputPins.Add(Index++);
+	}
+
+	return ContextInputPins;
+}
+
+void UFlowNode_YapDialogue::PostLoad()
+{
+	Super::PostLoad();
+	
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const
+{
+	if (Character)
+	{
+		return Character->GetPortraitBrush(RequestedPortraitKey);
+	}
+
+	return nullptr;
+}
+#endif
 

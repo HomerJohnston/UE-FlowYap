@@ -25,5 +25,13 @@ public:
 	
 #if WITH_EDITOR
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	bool SupportsContextPins() const override { return true; };
+
+	TArray<FFlowPin> GetContextInputs() override;
+	
+	TArray<FFlowPin> GetContextOutputs() override;
+
+	bool CanRefreshContextPinsOnLoad() const override { return true; };
 #endif
 };

@@ -74,3 +74,27 @@ void UFlowNode_YapConversationStart::PostEditChangeProperty(FPropertyChangedEven
 
 	UE_LOG(FlowYap, Warning, TEXT("PECP on start node"));
 }
+
+TArray<FFlowPin> UFlowNode_YapConversationStart::GetContextInputs()
+{
+	// refresh Params, just in case function argument type was changed
+	
+	TArray<FFlowPin> Pins = {};
+
+	for (const FName& NameTest : {FName("One"), FName("Two"), FName("Three")})
+	{
+		if (InputPins.Contains(NameTest))
+		{
+			continue;
+		}
+		
+		Pins.Emplace(NameTest);
+	}
+
+	return Pins;
+}
+
+TArray<FFlowPin> UFlowNode_YapConversationStart::GetContextOutputs()
+{
+	return {0, 1, 3, 4, 5};
+}

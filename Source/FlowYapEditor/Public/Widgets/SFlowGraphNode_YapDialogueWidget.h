@@ -1,55 +1,44 @@
 #pragma once
-
-#pragma once
-
-#include "CoreMinimal.h"
-#include "SFlowGraphNode_YapSpeechBaseWidget.h"
-#include "GraphNodes/FlowGraphNode_YapResponse.h"
 #include "Graph/Widgets/SFlowGraphNode.h"
-#include "Widgets/SCompoundWidget.h"
+#include "Widgets/SUserWidget.h"
 
+class SFlowGraphNode_YapFragmentWidget;
 class UFlowNode_YapDialogue;
-enum class EFlowNode_YapDialogue_Settings : uint8;
+class UFlowGraphNode_YapDialogue;
 
-class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode_YapSpeechBaseWidget
+class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 {
 protected:
-	UFlowNode_YapDialogue* FlowNode_YapDialogue = nullptr;
+	// TODO: Is this safe?
+	UFlowGraphNode_YapDialogue* FlowGraphNode_YapDialogue = nullptr;
 
+	TSharedPtr<SVerticalBox> FragmentBox;
+	
+	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
+
+	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
+	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
-protected:
+	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
 	
-	TSharedRef<SBox> GetAdditionalOptionsWidget() override;
-
-protected:
-	ECheckBoxState GetUserInterruptibleEnabled() const;
-
-	bool GetTimeEntryEnabled() const;
-
-	bool GetUseAutoTimeEnabled() const;
-
-	bool GetUseAudioLengthEnabled() const;
-
-	ECheckBoxState GetTimed() const;
-	
-	TOptional<double> GetTime() const;
-	
-	ECheckBoxState GetUseAutoTime() const;
-
-	ECheckBoxState GetUseAudioLength() const;
 
 protected:
-	void HandleInterruptibleChanged(ECheckBoxState CheckBoxState);
+	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
 
-	void HandleTimedChanged(ECheckBoxState CheckBoxState);
+	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd);
 
-	void HandleTimeChanged(double NewValue, ETextCommit::Type CommitType);
+	void AddInputPin(const TSharedRef<SGraphPin>& PinToAdd);
 
-	void HandleUseAutoTimeChanged(ECheckBoxState CheckBoxState);
+	void AddOutputPin(const TSharedRef<SGraphPin>& PinToAdd);
 
-	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
+	/*
+	virtual FReply OnAddFlowPin(const EEdGraphPinDirection Direction);
+	*/
+	
+	FReply AddFragment();
 
-	FCheckBoxStyle Style;
+public:
+	void DeleteFragment(int64 FragmentID);
 };
