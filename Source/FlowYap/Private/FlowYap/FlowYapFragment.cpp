@@ -47,44 +47,29 @@ void FFlowYapFragment::SetDialogueAudio(UAkAudioEvent* NewAudio)
 	DialogueAudio = NewAudio;
 }
 
-bool FFlowYapFragment::GetIsTimed() const
+EFlowYapTimedMode FFlowYapFragment::GetTimedMode() const
 {
-	return SharedSettings.bIsTimed;
+	return SharedSettings.TimedMode;
 }
 
-void FFlowYapFragment::SetIsTimed(bool bNewValue)
+void FFlowYapFragment::SetTimedMode(EFlowYapTimedMode NewValue)
 {
-	SharedSettings.bIsTimed = bNewValue;
+	SharedSettings.TimedMode = NewValue;
 }
 
-double FFlowYapFragment::GetTimeManualValue() const
+void FFlowYapFragment::UnsetTimedMode(EFlowYapTimedMode NewValue)
 {
-	return SharedSettings.TimeManual;
+	SetTimedMode(EFlowYapTimedMode::None);
 }
 
-void FFlowYapFragment::SetTimeManualValue(double NewValue)
+double FFlowYapFragment::GetTimeEnteredValue() const
 {
-	SharedSettings.TimeManual = NewValue;
+	return SharedSettings.EnteredTime;
 }
 
-bool FFlowYapFragment::GetUseAutoTime() const
+void FFlowYapFragment::SetEnteredTimeValue(double NewValue)
 {
-	return SharedSettings.bUseAutoTime;
-}
-
-void FFlowYapFragment::SetUseAutoTime(bool bNewValue)
-{
-	SharedSettings.bUseAutoTime = bNewValue;
-}
-
-bool FFlowYapFragment::GetUseAudioTime() const
-{
-	return SharedSettings.bUseAudioLength;
-}
-
-void FFlowYapFragment::SetUseAudioTime(bool bNewValue)
-{
-	SharedSettings.bUseAudioLength = bNewValue;
+	SharedSettings.EnteredTime = NewValue;
 }
 
 float FFlowYapFragment::GetEndPaddingTime() const
@@ -107,7 +92,7 @@ void FFlowYapFragment::SetUserInterruptible(bool bNewValue)
 	SharedSettings.bUserInterruptible = bNewValue;
 }
 
-double FFlowYapFragment::GetTimedValue() const
+double FFlowYapFragment::GetCalculatedTimedValue() const
 {
 	check(false);
 	return 0.0f;
@@ -135,23 +120,13 @@ FName FFlowYapFragment::GetPortraitKey() const
 	return PortraitKey;
 }
 
-void FFlowYapFragment::SetUseProjectSettings(bool bNewValue)
-{
-	bUseProjectSettings = bNewValue;
-}
-
-bool FFlowYapFragment::GetUseProjectSettings() const
-{
-	return bUseProjectSettings;
-}
-
 #if WITH_EDITOR
 void FFlowYapFragment::SetDialogueAudioFromAsset(const FAssetData& AssetData)
 {
 	DialogueAudio = Cast<UAkAudioEvent>(AssetData.GetAsset());
 }
 
-bool FFlowYapFragment::HasDialogueAudio() const
+bool FFlowYapFragment::HasDialogueAudioAsset() const
 {
 	return !!DialogueAudio;
 }

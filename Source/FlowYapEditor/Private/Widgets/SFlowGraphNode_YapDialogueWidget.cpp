@@ -200,9 +200,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SButton)
-			.Text(INVTEXT("Add"))
-			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::AddFragment)
+				SNew(SButton)
+				.Text(INVTEXT("Add"))
+				.HAlign(HAlign_Center)
+				.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::AddFragment)
 		]
 	];
 }

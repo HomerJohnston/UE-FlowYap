@@ -36,7 +36,7 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 		PortraitKeyBrush->SetResourceObject(PortraitKeyIcon);
 		PortraitKeyBrush->SetImageSize({16, 16});
 		
-		PortraitKeyBrushes.Add(PortraitKey, PortraitKeyBrush);
+		PortraitKeyIconBrushes.Add(PortraitKey, PortraitKeyBrush);
 	}
 }
 #endif
@@ -56,19 +56,9 @@ UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
 
 const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
 {
-	TSharedPtr<FSlateBrush>* Brush = PortraitKeyBrushes.Find(Name);
+	TSharedPtr<FSlateBrush>* Brush = PortraitKeyIconBrushes.Find(Name);
 
 	return Brush ? Brush->Get() : nullptr;
-}
-
-UTexture2D* UFlowYapEditorSubsystem::GetDialogueTimerIco()
-{
-	return DialogueTimerIco;
-}
-
-UTexture2D* UFlowYapEditorSubsystem::GetDialogueUserInterruptIco()
-{
-	return DialogueUserInterruptIco;
 }
 #endif
 
@@ -81,11 +71,19 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	UpdatePortraitKeyIconsMap();
 
-	FString DialogueNode_IconTimerPath = FFlowYapEngineUtils::GetFlowYapPluginDir() / "Resources/DialogueNodeIcons/Icon_Timer_16x16.png";
-	DialogueTimerIco = FImageUtils::ImportFileAsTexture2D(DialogueNode_IconTimerPath);
-	
-	FString DialogueNode_IconUserInterruptPath = FFlowYapEngineUtils::GetFlowYapPluginDir() / "Resources/DialogueNodeIcons/Icon_UserInterrupt_16x16.png";
-	DialogueUserInterruptIco = FImageUtils::ImportFileAsTexture2D(DialogueNode_IconUserInterruptPath);
+	LoadIcon("Resources/DialogueNodeIcons/Icon_Timer_16x16.png", TimerIcon, TimerBrush);
+	LoadIcon("Resources/DialogueNodeIcons/Icon_UserInterrupt_16x16.png", UserInterruptIcon, UserInterruptBrush);
+	LoadIcon("Resources/DialogueNodeIcons/Icon_TextTime_16x16.png", TextTimeIcon, TextTimeBrush);
+	LoadIcon("Resources/DialogueNodeIcons/Icon_AudioTime_16x16.png", AudioTimeIcon, AudioTimeBrush);
+}
+
+void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
+{
+	FString ResourcePath = FFlowYapEngineUtils::GetFlowYapPluginDir() / LocalResourcePath;
+	Texture = FImageUtils::ImportFileAsTexture2D(ResourcePath);
+
+	Brush.ImageSize = FVector2D(XYSize, XYSize);
+	Brush.SetResourceObject(Texture);
 }
 
 void UFlowYapEditorSubsystem::Deinitialize()

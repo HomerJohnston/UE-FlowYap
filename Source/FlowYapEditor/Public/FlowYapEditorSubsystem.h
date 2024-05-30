@@ -14,18 +14,25 @@ class UFlowYapEditorSubsystem : public UEditorSubsystem
 
 #if WITH_EDITORONLY_DATA
 private:
-	// TODO make this an FSlateBrush to avoid making tons of new brushes in my graph
-	// TODO caveat: I need to store the loaded UTexture2D in a UPROPERTY
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TMap<FName, UTexture2D*> PortraitKeyIconTextures;
-
-	TMap<FName, TSharedPtr<FSlateBrush>> PortraitKeyBrushes;
+	TMap<FName, TSharedPtr<FSlateBrush>> PortraitKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
 	
-	UPROPERTY()
-	UTexture2D* DialogueTimerIco;
+	UPROPERTY(Transient)
+	UTexture2D* TimerIcon;
+	FSlateBrush TimerBrush;
 
-	UPROPERTY()
-	UTexture2D* DialogueUserInterruptIco;
+	UPROPERTY(Transient)
+	UTexture2D* UserInterruptIcon;
+	FSlateBrush UserInterruptBrush;
+
+	UPROPERTY(Transient)
+	UTexture2D* TextTimeIcon;
+	FSlateBrush TextTimeBrush;
+	
+	UPROPERTY(Transient)
+	UTexture2D* AudioTimeIcon;
+	FSlateBrush AudioTimeBrush;
 	
 #endif
 
@@ -37,13 +44,22 @@ public:
 
 	const FSlateBrush* GetPortraitKeyBrush(FName Name);
 
-	UTexture2D* GetDialogueTimerIco();
+	const FSlateBrush* GetUserInterruptBrush() { return &UserInterruptBrush; }
 	
-	UTexture2D* GetDialogueUserInterruptIco();
+	const FSlateBrush* GetTimerBrush() { return &TimerBrush; }
+
+	const FSlateBrush* GetTextTimeBrush() { return &TextTimeBrush; }
+
+	const FSlateBrush* GetAudioTimeBrush() { return &AudioTimeBrush; }
+	
+
+	
 #endif
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	void LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize = 16);
+	
 	void Deinitialize() override;
 };

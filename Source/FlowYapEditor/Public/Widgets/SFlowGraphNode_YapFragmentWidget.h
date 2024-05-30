@@ -13,6 +13,7 @@ class UFlowGraphNode_YapDialogue;
 
 class SMultiLineEditableTextBox;
 
+enum class EFlowYapTimedMode : uint8;
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
@@ -28,91 +29,70 @@ protected:
 
 	int64 FragmentID = -1;
 
-protected:
-	TSharedRef<SBox> GetAdditionalOptionsWidget();
-	
-protected:
-	TSharedRef<SWidget> CreateDialogueContentArea();
-
-	TSharedRef<SBox> GetPortraitWidget();
-	
-	TSharedRef<SBox> GetPortraitKeySelectorWidget();
-	
-	TSharedRef<SWidget> CreatePortraitKeyButton(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
-
-	FOptionalSize GetMaxDialogueWidgetHeight() const;
-	
-	FOptionalSize GetMaxDialogueWidgetWidth() const;
-		
-public:
-	FText GetTitleText() const;
-
-	FText GetDialogueText() const;
-
-	FString GetSelectedDialogueAudioAssetPath() const;
-
-	FName GetPortraitKey() const;
-
-	const FSlateBrush* GetPortraitBrush() const;
-
-	const FSlateBrush* GetPortraitKeyBrush() const;
-	
-	EVisibility GetVisibilityForMissingPortraitText() const;
-
-	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
-
-	FFlowYapFragment& GetFragment() const;
-	
-protected:
-	void HandleTitleTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
-	
-	void HandleDialogueTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
-
-	void HandleDialogueAudioAssetChanged(const FAssetData& InAssetData);
-
-	FReply HandlePortraitKeyChanged(FName NewValue);
-
-protected:
-	
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 
 	SVerticalBox DialogueEntries;
 	
+	FCheckBoxStyle UseProjectDefaultsButtonStyle;
+
 protected:
-	ECheckBoxState GetUseProjectSettings() const;
+	TSharedRef<SWidget> CreateDialogueContentArea();
 
-	ECheckBoxState GetUserInterruptible() const;
+	TSharedRef<SBox> CreatePortraitWidget();
 
-	bool GetTimedButtonEnabled() const;
+	const FSlateBrush* GetPortraitBrush() const;
+
+	EVisibility GetVisibilityForMissingPortraitText() const;
 	
+	TSharedRef<SBox> CreatePortraitKeySelector();
+	
+	TSharedRef<SWidget> CreatePortraitKeyMenuEntry(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+
+	const FSlateBrush* GetPortraitKeyBrush() const;
+
+	TSharedRef<SBox> CreateFlowOptionsWidget();
+
+	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
+	
+	FOptionalSize GetMaxDialogueEditableTextWidgetWidth() const;
+
+protected:
+	FText GetTitleText() const;
+	void HandleTitleTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+
+	FText GetDialogueText() const;
+	void HandleDialogueTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+	
+	FString GetSelectedDialogueAudioAssetPath() const;
+	void HandleDialogueAudioAssetChanged(const FAssetData& InAssetData);
+
+	FName GetPortraitKey() const;
+	FReply HandlePortraitKeyChanged(FName NewValue);
+
+	bool GetIsNotTimedMode(EFlowYapTimedMode TimedMode) const;
+	ECheckBoxState GetIsTimedMode(EFlowYapTimedMode QueriedMode) const;
+	void HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimedMode FlowYapTimedMode);
+
+protected:
+
+	TOptional<double> GetEnteredTime() const;
+	void HandleEnteredTimeChanged(double NewValue, ETextCommit::Type CommitType);
+	
+	ECheckBoxState GetUserInterruptible() const;
+	void HandleUserInterruptibleChanged(ECheckBoxState CheckBoxState);
+
 	bool GetTimeEntryEnabled() const;
-
-	bool GetUseAutoTimeEnabled() const;
-
-	bool GetUseAudioLengthEnabled() const;
 
 	bool GetUserInterruptibleButtonEnabled() const; 
 
-	ECheckBoxState GetTimed() const;
-	
-	TOptional<double> GetTimeManualValue() const;
-	
-	ECheckBoxState GetUseAutoTime() const;
+	bool GetAutoFromAudioButtonEnabled() const;
 
-	ECheckBoxState GetUseAudioLength() const;
+	ECheckBoxState GetAutoFromAudioButtonIsChecked() const;
 
 protected:
-	void HandleUseProjectSettingsChanged(ECheckBoxState CheckBoxState);
 
-	void HandleInterruptibleChanged(ECheckBoxState CheckBoxState);
 
-	void HandleTimedChanged(ECheckBoxState CheckBoxState);
-
-	void HandleTimeChanged(double NewValue, ETextCommit::Type CommitType);
-
-	void HandleUseAutoTimeChanged(ECheckBoxState CheckBoxState);
-
-	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
-
-	FCheckBoxStyle ProjectSettingsButtonStyle;
+	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
+	
+	FFlowYapFragment& GetFragment() const;
 };

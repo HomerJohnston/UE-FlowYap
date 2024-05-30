@@ -26,9 +26,6 @@ protected:
 	// TODO soft pointer support for audio
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UAkAudioEvent> DialogueAudio;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bUseProjectSettings = true;
 	
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectSettings", EditConditionHides, ShowOnlyInnerProperties))
 	FFlowYapFragmentSharedSettings SharedSettings;
@@ -56,22 +53,16 @@ public:
 	const UAkAudioEvent* GetDialogueAudio() const;
 
 	void SetDialogueAudio(UAkAudioEvent* NewAudio);
+
+	EFlowYapTimedMode GetTimedMode() const;
+
+	void SetTimedMode(EFlowYapTimedMode NewValue);
+
+	void UnsetTimedMode(EFlowYapTimedMode RemovedValue);
 	
-	bool GetIsTimed() const;
-	
-	void SetIsTimed(bool bNewValue);
+	double GetTimeEnteredValue() const;
 
-	double GetTimeManualValue() const;
-
-	void SetTimeManualValue(double NewValue);
-
-	bool GetUseAutoTime() const;
-
-	void SetUseAutoTime(bool bNewValue);
-
-	bool GetUseAudioTime() const;
-
-	void SetUseAudioTime(bool bNewValue);
+	void SetEnteredTimeValue(double NewValue);
 
 	float GetEndPaddingTime() const;
 
@@ -81,20 +72,16 @@ public:
 
 	void SetUserInterruptible(bool bNewValue);
 	
-	double GetTimedValue() const;
+	double GetCalculatedTimedValue() const;
 
 	void SetPortraitKey(const FName& NewValue);
 	
 	FName GetPortraitKey() const;
 
-	void SetUseProjectSettings(bool bNewValue);
-
-	bool GetUseProjectSettings() const;
-	
 #if WITH_EDITOR
 public:
 	void SetDialogueAudioFromAsset(const FAssetData& AssetData);
 	
-	bool HasDialogueAudio() const;
+	bool HasDialogueAudioAsset() const;
 #endif
 };
