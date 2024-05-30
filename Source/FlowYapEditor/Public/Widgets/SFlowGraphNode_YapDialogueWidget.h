@@ -23,8 +23,13 @@ public:
 
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
 	
+	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
 protected:
+	EVisibility GetFragmentMovementVisibility() const;
+	
+	FReply MoveFragment(bool bUp, int64 Index);
+
 	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
 
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd);

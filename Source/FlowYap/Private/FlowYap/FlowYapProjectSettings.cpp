@@ -35,4 +35,9 @@ void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 		OnPortraitKeysChanged.Broadcast();
 	}
 }
+
+const FFlowYapFragmentSharedSettings& UFlowYapProjectSettings::GetSharedSettings() const
+{
+	return DefaultSharedSettings;
+}
 #endif

@@ -1,4 +1,5 @@
 #pragma once
+#include "FlowYapFragmentSharedSettings.h"
 
 #include "FlowYapFragment.generated.h"
 
@@ -25,39 +26,22 @@ protected:
 	// TODO soft pointer support for audio
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UAkAudioEvent> DialogueAudio;
-	
-protected:
-	UPROPERTY(EditAnywhere)
-	bool bIsTimed = true;
 
-	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", ClampMin = 0.0, UIMin = 0.0, UIMax = 30.0))
-	double TimeManual = 0.0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bUseProjectSettings = true;
 	
-	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
-	bool bUseAutoTime = true;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectSettings", EditConditionHides, ShowOnlyInnerProperties))
+	FFlowYapFragmentSharedSettings SharedSettings;
 	
-	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed", EditConditionHides))
-	bool bUseAudioTime = false;
-	
-	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
-	UPROPERTY(EditAnywhere)
-	float EndPaddingTime = 0.0f;
-	
-	UPROPERTY(EditAnywhere)
-	bool bUserInterruptible = true;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey = NAME_None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bUseProjectSettings = true;;
 
 #if WITH_EDITOR
 protected:
 	int64 EditorID = -1;
 
 public:
-	int64 GetEditorID();
+	int64 GetEditorID() const;
 #endif
 	
 public:
@@ -102,6 +86,10 @@ public:
 	void SetPortraitKey(const FName& NewValue);
 	
 	FName GetPortraitKey() const;
+
+	void SetUseProjectSettings(bool bNewValue);
+
+	bool GetUseProjectSettings() const;
 	
 #if WITH_EDITOR
 public:

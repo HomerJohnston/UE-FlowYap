@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FlowYapFragmentSharedSettings.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
 
@@ -17,22 +18,9 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TArray<FName> PortraitKeys;
 
-	UPROPERTY(EditAnywhere)
-	bool bTimed = true;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	FFlowYapFragmentSharedSettings DefaultSharedSettings;
 
-	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed"))
-	bool bUseAutoTime = true;
-
-	/** WARNING: This setting will supersede UseAutoTime when an audio asset is assigned. \n\nIf you are using audio assets that don't include the full dialogue, like just playing a generic laugh or groan on top of dialogue text, you may want to turn this off. */
-	UPROPERTY(EditAnywhere, meta = (EditCondition="bTimed"))
-	bool bUseAudioAssetLength = true;
-
-	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
-	UPROPERTY(EditAnywhere)
-	float EndPaddingTime = 0.25f;
-	
-	UPROPERTY(EditAnywhere)
-	bool bUserInterruptible = true;
 public:
 	TMulticastDelegate<void()> OnPortraitKeysChanged;
 	
@@ -55,4 +43,7 @@ public:
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+
+public:
+	const FFlowYapFragmentSharedSettings& GetSharedSettings() const;
 };

@@ -27,7 +27,7 @@ protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
 
 	int64 FragmentID = -1;
-	
+
 protected:
 	TSharedRef<SBox> GetAdditionalOptionsWidget();
 	
@@ -79,13 +79,19 @@ protected:
 	SVerticalBox DialogueEntries;
 	
 protected:
-	ECheckBoxState GetUserInterruptibleEnabled() const;
+	ECheckBoxState GetUseProjectSettings() const;
 
+	ECheckBoxState GetUserInterruptible() const;
+
+	bool GetTimedButtonEnabled() const;
+	
 	bool GetTimeEntryEnabled() const;
 
 	bool GetUseAutoTimeEnabled() const;
 
 	bool GetUseAudioLengthEnabled() const;
+
+	bool GetUserInterruptibleButtonEnabled() const; 
 
 	ECheckBoxState GetTimed() const;
 	
@@ -96,6 +102,8 @@ protected:
 	ECheckBoxState GetUseAudioLength() const;
 
 protected:
+	void HandleUseProjectSettingsChanged(ECheckBoxState CheckBoxState);
+
 	void HandleInterruptibleChanged(ECheckBoxState CheckBoxState);
 
 	void HandleTimedChanged(ECheckBoxState CheckBoxState);
@@ -106,5 +114,5 @@ protected:
 
 	void HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState);
 
-	FCheckBoxStyle Style;
+	FCheckBoxStyle ProjectSettingsButtonStyle;
 };

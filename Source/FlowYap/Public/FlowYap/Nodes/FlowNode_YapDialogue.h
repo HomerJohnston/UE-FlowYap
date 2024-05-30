@@ -46,6 +46,8 @@ public:
 	
 	TArray<FFlowYapFragment>& GetFragments();
 
+	int16 GetNumFragments() const;
+	
 	// -------------------
 
 	void InitializeInstance() override;

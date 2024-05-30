@@ -10,6 +10,7 @@
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "FlowYapEditorSubsystem.h"
+#include "FlowYapTransactions.h"
 #include "FlowYap/FlowYapLog.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
@@ -389,30 +390,45 @@ FFlowYapFragment& SFlowGraphNode_YapFragmentWidget::GetFragment() const
 #pragma region Input Handling
 void SFlowGraphNode_YapFragmentWidget::HandleTitleTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType)
 {
-	// TODO: transaction undo handling - see what they did in wwise?
+	FFlowYapTransactions::BeginModify(INVTEXT("Title Text Changed"), GetFlowNodeYapDialogue());
+	
 	if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
 	{
 		GetFragment().SetTitleText(CommittedText);
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleDialogueTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Dialogue Text Changed"), GetFlowNodeYapDialogue());
+
 	if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
 	{
 		GetFragment().SetDialogueText(CommittedText);
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleDialogueAudioAssetChanged(const FAssetData& InAssetData)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Audio Asset Changed"), GetFlowNodeYapDialogue());
+
 	GetFragment().SetDialogueAudio(Cast<UAkAudioEvent>(InAssetData.GetAsset()));
+
+	FFlowYapTransactions::EndModify();
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::HandlePortraitKeyChanged(FName NewValue)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Portrait Key Changed"), GetFlowNodeYapDialogue());
+
 	GetFragment().SetPortraitKey(NewValue);
-	
+
+	FFlowYapTransactions::EndModify();
+
 	return FReply::Handled();
 }
 
@@ -456,7 +472,7 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueWidgetWidth() cons
 }
 
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
-{	
+{
 	TSharedPtr<SBox> Box;
 	
 	UTexture2D* TimedIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetDialogueTimerIco();
@@ -476,32 +492,25 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
 	
 	TSharedRef<FDeferredCleanupSlateBrush> ProjectSettingsBrush = FDeferredCleanupSlateBrush::CreateBrush(*ProjectSettingsIconBrush);
 
-	Style = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
+	ProjectSettingsButtonStyle = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
 	//Style.SetCheckedForegroundColor(FSlateColor(FLinearColor::Red));
-	Style.CheckedImage.TintColor = FLinearColor(FlowYapColors::Orange);
-	Style.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColors::OrangeHovered);
-	Style.CheckedPressedImage.TintColor = FLinearColor(FlowYapColors::OrangePressed);
+	ProjectSettingsButtonStyle.CheckedImage.TintColor = FLinearColor(FlowYapColors::Orange);
+	ProjectSettingsButtonStyle.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColors::OrangeHovered);
+	ProjectSettingsButtonStyle.CheckedPressedImage.TintColor = FLinearColor(FlowYapColors::OrangePressed);
 	
 	SAssignNew(Box, SBox)
 	[
-		SNew(SHorizontalBox)/*
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SSpacer)
-			.Size(1)
-		]*/
+		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		[
 			SNew(SCheckBox)
-			//.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
-			.Style(&Style)
+			.Style(&ProjectSettingsButtonStyle)
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(INVTEXT("Test Test TODO"))
-			//.IsChecked(this, &SFlowGraphNode_YapSpeechBaseWidget::GetTimed)
-			//.OnCheckStateChanged(this, &SFlowGraphNode_YapSpeechBaseWidget::HandleTimedChanged)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUseProjectSettings)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleUseProjectSettingsChanged)
 			[
 				SNew(SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
@@ -522,6 +531,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
 			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetTimedButtonEnabled)
 			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetTimed)
 			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleTimedChanged)
 			[
@@ -604,7 +614,8 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
 			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleEnabled)
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleButtonEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUserInterruptible)
 			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleInterruptibleChanged)
 			[
 				SNew(SBox)
@@ -623,13 +634,38 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::GetAdditionalOptionsWidget()
 
 // ----------------------------------
 
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleEnabled() const
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseProjectSettings() const
 {
+	return GetFragment().GetUseProjectSettings() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUserInterruptible() const
+{
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return GetDefault<UFlowYapProjectSettings>()->GetSharedSettings().bUserInterruptible ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	
 	return GetFragment().GetUserInterruptible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+bool SFlowGraphNode_YapFragmentWidget::GetTimedButtonEnabled() const
+{
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return false;
+	}
+
+	return true;
 }
 
 bool SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return false;
+	}
+	
 	if (!GetFragment().GetIsTimed())
 	{
 		return false;
@@ -650,18 +686,43 @@ bool SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled() const
 
 bool SFlowGraphNode_YapFragmentWidget::GetUseAutoTimeEnabled() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return false;
+	}
+	
 	return GetFragment().GetIsTimed();
 }
 
 bool SFlowGraphNode_YapFragmentWidget::GetUseAudioLengthEnabled() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return false;
+	}
+	
 	return GetFragment().GetIsTimed() && GetFragment().HasDialogueAudio();
+}
+
+bool SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleButtonEnabled() const
+{
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return false;
+	}
+
+	return GetFragment().GetIsTimed();
 }
 
 // ----------------------------------
 
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetTimed() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return GetDefault<UFlowYapProjectSettings>()->GetSharedSettings().bIsTimed ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	
 	return GetFragment().GetIsTimed() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
@@ -669,7 +730,20 @@ TOptional<double> SFlowGraphNode_YapFragmentWidget::GetTimeManualValue() const
 {
 	TOptional<double> Value;
 
-	if (GetFragment().GetIsTimed() && !GetFragment().GetUseAudioTime() && !GetFragment().GetUseAutoTime())
+	if (GetFragment().GetUseProjectSettings())
+	{
+		const FFlowYapFragmentSharedSettings& Settings = GetDefault<UFlowYapProjectSettings>()->GetSharedSettings();
+
+		if (Settings.bIsTimed && !Settings.bUseAudioLength && !Settings.bUseAutoTime)
+		{
+			Value = Settings.TimeManual;
+		}
+		else
+		{
+			Value.Reset();
+		}
+	}
+	else if (GetFragment().GetIsTimed() && !GetFragment().GetUseAudioTime() && !GetFragment().GetUseAutoTime())
 	{
 		Value = GetFragment().GetTimeManualValue();
 	}
@@ -683,28 +757,57 @@ TOptional<double> SFlowGraphNode_YapFragmentWidget::GetTimeManualValue() const
 
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseAutoTime() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return GetDefault<UFlowYapProjectSettings>()->GetSharedSettings().bUseAutoTime ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	
 	return GetFragment().GetUseAutoTime() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseAudioLength() const
 {
+	if (GetFragment().GetUseProjectSettings())
+	{
+		return GetDefault<UFlowYapProjectSettings>()->GetSharedSettings().bUseAudioLength ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	
 	return (GetFragment().GetUseAudioTime() && GetFragment().HasDialogueAudio()) ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SFlowGraphNode_YapFragmentWidget::HandleUseProjectSettingsChanged(ECheckBoxState CheckBoxState)
+{
+	FFlowYapTransactions::BeginModify(INVTEXT("Use Project Settings Changed"), GetFlowNodeYapDialogue());
+
+	GetFragment().SetUseProjectSettings(CheckBoxState == ECheckBoxState::Checked ? true : false);
+
+	FFlowYapTransactions::EndModify();
 }
 
 // ----------------------------------
 
 void SFlowGraphNode_YapFragmentWidget::HandleInterruptibleChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Interruptible Changed"), GetFlowNodeYapDialogue());
+	
 	GetFragment().SetUserInterruptible(CheckBoxState == ECheckBoxState::Checked ? true : false);
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleTimedChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Timed Changed"), GetFlowNodeYapDialogue());
+
 	GetFragment().SetIsTimed(CheckBoxState == ECheckBoxState::Checked ? true : false);
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleTimeChanged(double NewValue, ETextCommit::Type CommitType)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Time Value Changed"), GetFlowNodeYapDialogue());
+
 	FFlowYapFragment& Fragment = GetFragment();
 	
 	if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
@@ -716,10 +819,14 @@ void SFlowGraphNode_YapFragmentWidget::HandleTimeChanged(double NewValue, ETextC
 	{
 		Fragment.SetTimeManualValue(0.0);
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleUseAutoTimeChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Use Auto Time Changed"), GetFlowNodeYapDialogue());
+
 	FFlowYapFragment& Fragment = GetFragment();
 	
 	Fragment.SetUseAutoTime(CheckBoxState == ECheckBoxState::Checked ? true : false);
@@ -728,10 +835,14 @@ void SFlowGraphNode_YapFragmentWidget::HandleUseAutoTimeChanged(ECheckBoxState C
 	{
 		Fragment.SetUseAudioTime(false);
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 void SFlowGraphNode_YapFragmentWidget::HandleUseAudioLengthChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(INVTEXT("Use Audio Length Changed"), GetFlowNodeYapDialogue());
+
 	FFlowYapFragment& Fragment = GetFragment();
 
 	Fragment.SetUseAudioTime(CheckBoxState == ECheckBoxState::Checked ? true : false);
@@ -740,6 +851,8 @@ void SFlowGraphNode_YapFragmentWidget::HandleUseAudioLengthChanged(ECheckBoxStat
 	{
 		Fragment.SetUseAutoTime(false);
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -12,7 +12,7 @@ FFlowYapFragment::FFlowYapFragment()
 }
 #endif
 
-int64 FFlowYapFragment::GetEditorID()
+int64 FFlowYapFragment::GetEditorID() const
 {
 	return EditorID;
 }
@@ -49,62 +49,62 @@ void FFlowYapFragment::SetDialogueAudio(UAkAudioEvent* NewAudio)
 
 bool FFlowYapFragment::GetIsTimed() const
 {
-	return bIsTimed;
+	return SharedSettings.bIsTimed;
 }
 
 void FFlowYapFragment::SetIsTimed(bool bNewValue)
 {
-	bIsTimed = bNewValue;
+	SharedSettings.bIsTimed = bNewValue;
 }
 
 double FFlowYapFragment::GetTimeManualValue() const
 {
-	return TimeManual;
+	return SharedSettings.TimeManual;
 }
 
 void FFlowYapFragment::SetTimeManualValue(double NewValue)
 {
-	TimeManual = NewValue;
+	SharedSettings.TimeManual = NewValue;
 }
 
 bool FFlowYapFragment::GetUseAutoTime() const
 {
-	return bUseAutoTime;
+	return SharedSettings.bUseAutoTime;
 }
 
 void FFlowYapFragment::SetUseAutoTime(bool bNewValue)
 {
-	bUseAutoTime = bNewValue;
+	SharedSettings.bUseAutoTime = bNewValue;
 }
 
 bool FFlowYapFragment::GetUseAudioTime() const
 {
-	return bUseAudioTime;
+	return SharedSettings.bUseAudioLength;
 }
 
 void FFlowYapFragment::SetUseAudioTime(bool bNewValue)
 {
-	bUseAudioTime = bNewValue;
+	SharedSettings.bUseAudioLength = bNewValue;
 }
 
 float FFlowYapFragment::GetEndPaddingTime() const
 {
-	return EndPaddingTime;
+	return SharedSettings.EndPaddingTime;
 }
 
 void FFlowYapFragment::SetEndPaddingTime(float NewValue)
 {
-	EndPaddingTime = NewValue;
+	SharedSettings.EndPaddingTime = NewValue;
 }
 
 bool FFlowYapFragment::GetUserInterruptible() const
 {
-	return bUserInterruptible;
+	return SharedSettings.bUserInterruptible;
 }
 
 void FFlowYapFragment::SetUserInterruptible(bool bNewValue)
 {
-	bUserInterruptible = bNewValue;
+	SharedSettings.bUserInterruptible = bNewValue;
 }
 
 double FFlowYapFragment::GetTimedValue() const
@@ -133,6 +133,16 @@ FName FFlowYapFragment::GetPortraitKey() const
 	}
 
 	return PortraitKey;
+}
+
+void FFlowYapFragment::SetUseProjectSettings(bool bNewValue)
+{
+	bUseProjectSettings = bNewValue;
+}
+
+bool FFlowYapFragment::GetUseProjectSettings() const
+{
+	return bUseProjectSettings;
 }
 
 #if WITH_EDITOR

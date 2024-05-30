@@ -108,6 +108,11 @@ TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
 	return Fragments;
 }
 
+int16 UFlowNode_YapDialogue::GetNumFragments() const
+{
+	return Fragments.Num();
+}
+
 FText UFlowNode_YapDialogue::GetNodeTitle() const
 {
 	if (!Character)
