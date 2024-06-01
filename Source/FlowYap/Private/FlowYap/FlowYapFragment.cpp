@@ -47,55 +47,129 @@ void FFlowYapFragment::SetDialogueAudio(UAkAudioEvent* NewAudio)
 	DialogueAudio = NewAudio;
 }
 
+bool FFlowYapFragment::GetUsesProjectDefaultTimeSettings() const
+{
+	return bUseProjectDefaultTimeSettings;
+}
+
+void FFlowYapFragment::SetUseProjectDefaultTimeSettings(bool NewValue)
+{
+	bUseProjectDefaultTimeSettings = NewValue;
+}
+
+const FFlowYapFragmentTimeSettings& FFlowYapFragment::GetTimeSettings() const
+{
+	return TimeSettings;
+}
+
 EFlowYapTimedMode FFlowYapFragment::GetTimedMode() const
 {
-	return SharedSettings.TimedMode;
+	return TimeSettings.TimedMode;
 }
 
 void FFlowYapFragment::SetTimedMode(EFlowYapTimedMode NewValue)
 {
-	SharedSettings.TimedMode = NewValue;
+	TimeSettings.TimedMode = NewValue;
 }
 
-void FFlowYapFragment::UnsetTimedMode(EFlowYapTimedMode NewValue)
+void FFlowYapFragment::UnsetTimedMode()
 {
 	SetTimedMode(EFlowYapTimedMode::None);
 }
 
-double FFlowYapFragment::GetTimeEnteredValue() const
+double FFlowYapFragment::GetEnteredTimeValue() const
 {
-	return SharedSettings.EnteredTime;
+	return TimeSettings.EnteredTime;
 }
 
 void FFlowYapFragment::SetEnteredTimeValue(double NewValue)
 {
-	SharedSettings.EnteredTime = NewValue;
+	TimeSettings.EnteredTime = NewValue;
 }
 
 float FFlowYapFragment::GetEndPaddingTime() const
 {
-	return SharedSettings.EndPaddingTime;
+	return TimeSettings.EndPaddingTime;
 }
 
 void FFlowYapFragment::SetEndPaddingTime(float NewValue)
 {
-	SharedSettings.EndPaddingTime = NewValue;
+	TimeSettings.EndPaddingTime = NewValue;
 }
 
 bool FFlowYapFragment::GetUserInterruptible() const
 {
-	return SharedSettings.bUserInterruptible;
+	return TimeSettings.bUserInterruptible;
 }
 
 void FFlowYapFragment::SetUserInterruptible(bool bNewValue)
 {
-	SharedSettings.bUserInterruptible = bNewValue;
+	TimeSettings.bUserInterruptible = bNewValue;
+}
+
+EFlowYapTimedMode FFlowYapFragment::GetRuntimeTimedMode() const
+{
+	const FFlowYapFragmentTimeSettings& TimeSettingsRef = GetRuntimeTimeSettings();
+
+	if (TimeSettingsRef.TimedMode == EFlowYapTimedMode::AutomaticFromAudio)
+	{
+		if (HasDialogueAudioAsset())
+		{
+			return EFlowYapTimedMode::AutomaticFromAudio;
+		}
+		else
+		{
+			return GetDefault<UFlowYapProjectSettings>()->GetAudioTimeFallbackTimedMode();
+		}
+	}
+
+	return TimeSettings.TimedMode;
 }
 
 double FFlowYapFragment::GetCalculatedTimedValue() const
 {
-	check(false);
-	return 0.0f;
+	const FFlowYapFragmentTimeSettings& RefTimeSettings = bUseProjectDefaultTimeSettings ? GetDefault<UFlowYapProjectSettings>()->GetDefaultTimeSettings() : TimeSettings;
+
+	switch (RefTimeSettings.TimedMode)
+	{
+	case EFlowYapTimedMode::None:
+		{
+			return 0.0;
+		}
+	case EFlowYapTimedMode::UseEnteredTime:
+		{
+			return RefTimeSettings.EnteredTime;
+		}
+	case EFlowYapTimedMode::AutomaticFromText:
+		{
+			return CalculateTimeFromText();
+		}
+	case EFlowYapTimedMode::AutomaticFromAudio:
+		{
+			return CalculateTimeFromAudio();
+		}
+	default:
+		{
+			return 0.0;
+		}
+	}
+}
+
+const FFlowYapFragmentTimeSettings& FFlowYapFragment::GetRuntimeTimeSettings() const
+{
+	return bUseProjectDefaultTimeSettings ? GetDefault<UFlowYapProjectSettings>()->GetDefaultTimeSettings() : TimeSettings;
+}
+
+double FFlowYapFragment::CalculateTimeFromText() const
+{
+	// TODO
+	return 1.0;
+}
+
+double FFlowYapFragment::CalculateTimeFromAudio() const
+{
+	// TODO
+	return 1.0;
 }
 
 void FFlowYapFragment::SetPortraitKey(const FName& NewValue)

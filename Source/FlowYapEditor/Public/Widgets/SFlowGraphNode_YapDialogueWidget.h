@@ -17,6 +17,7 @@ protected:
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
 
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
+	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
 	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
@@ -46,4 +47,6 @@ protected:
 
 public:
 	FReply DeleteFragment(int64 FragmentID);
+	
+	//TSharedPtr<SGraphPin> CreatePinWidget(UEdGraphPin* Pin) const override;
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include "FlowYapFragmentSharedSettings.h"
+#include "FlowYapFragmentTimeSettings.h"
 
 #include "FlowYapFragment.generated.h"
 
@@ -26,9 +26,16 @@ protected:
 	// TODO soft pointer support for audio
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UAkAudioEvent> DialogueAudio;
+
+	// TODO get rid of this
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UObject> GenericAudioTest;
+
+	UPROPERTY(EditAnywhere)
+	bool bUseProjectDefaultTimeSettings = true;
 	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectSettings", EditConditionHides, ShowOnlyInnerProperties))
-	FFlowYapFragmentSharedSettings SharedSettings;
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectDefaultTimeSettings", ShowOnlyInnerProperties))
+	FFlowYapFragmentTimeSettings TimeSettings;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey = NAME_None;
@@ -43,36 +50,45 @@ public:
 	
 public:
 	const FText& GetTitleText() const;
-
 	void SetTitleText(FText NewText);
 
 	const FText& GetDialogueText() const;
-
 	void SetDialogueText(FText NewText);
 	
 	const UAkAudioEvent* GetDialogueAudio() const;
-
 	void SetDialogueAudio(UAkAudioEvent* NewAudio);
 
+	bool GetUsesProjectDefaultTimeSettings() const;
+	void SetUseProjectDefaultTimeSettings(bool NewValue);
+
+	//	===============================================================================================
+#pragma region Timed Settings API group
+	//	-----------------------------------------------------------------------------------------------
+	const FFlowYapFragmentTimeSettings& GetTimeSettings() const;
+	
 	EFlowYapTimedMode GetTimedMode() const;
 
 	void SetTimedMode(EFlowYapTimedMode NewValue);
-
-	void UnsetTimedMode(EFlowYapTimedMode RemovedValue);
+	void UnsetTimedMode();
 	
-	double GetTimeEnteredValue() const;
-
+	double GetEnteredTimeValue() const;
 	void SetEnteredTimeValue(double NewValue);
 
 	float GetEndPaddingTime() const;
-
 	void SetEndPaddingTime(float NewValue);
 
 	bool GetUserInterruptible() const;
-
 	void SetUserInterruptible(bool bNewValue);
-	
+
+	EFlowYapTimedMode GetRuntimeTimedMode() const;
 	double GetCalculatedTimedValue() const;
+
+	const FFlowYapFragmentTimeSettings& GetRuntimeTimeSettings() const;
+	double CalculateTimeFromText() const;
+	double CalculateTimeFromAudio() const;
+	//	-----------------------------------------------------------------------------------------------
+#pragma endregion 
+	//	-----------------------------------------------------------------------------------------------
 
 	void SetPortraitKey(const FName& NewValue);
 	
@@ -83,5 +99,6 @@ public:
 	void SetDialogueAudioFromAsset(const FAssetData& AssetData);
 	
 	bool HasDialogueAudioAsset() const;
+	
 #endif
 };

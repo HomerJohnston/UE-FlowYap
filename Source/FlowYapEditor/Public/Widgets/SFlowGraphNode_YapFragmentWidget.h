@@ -33,7 +33,9 @@ protected:
 
 	SVerticalBox DialogueEntries;
 	
-	FCheckBoxStyle UseProjectDefaultsButtonStyle;
+	FCheckBoxStyle ToggleButtonCheckBox_Orange;
+
+	FCheckBoxStyle UseAudioTimeButtonStyle;
 
 protected:
 	TSharedRef<SWidget> CreateDialogueContentArea();
@@ -50,12 +52,14 @@ protected:
 
 	const FSlateBrush* GetPortraitKeyBrush() const;
 
-	TSharedRef<SBox> CreateFlowOptionsWidget();
+
+	TSharedRef<SBox> CreateTimeSettingsWidget();
 
 	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
 	
 	FOptionalSize GetMaxDialogueEditableTextWidgetWidth() const;
 
+	// Fragment settings
 protected:
 	FText GetTitleText() const;
 	void HandleTitleTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
@@ -73,21 +77,30 @@ protected:
 	ECheckBoxState GetIsTimedMode(EFlowYapTimedMode QueriedMode) const;
 	void HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimedMode FlowYapTimedMode);
 
+	// Time Settings
 protected:
-
+	bool IsUseEnteredTimeEnabled() const;
 	TOptional<double> GetEnteredTime() const;
 	void HandleEnteredTimeChanged(double NewValue, ETextCommit::Type CommitType);
-	
-	ECheckBoxState GetUserInterruptible() const;
+
+	bool IsUseTimeFromTextEnabled() const;
+
+	ECheckBoxState GetUserInterruptibleChecked() const;
 	void HandleUserInterruptibleChanged(ECheckBoxState CheckBoxState);
+
+	ECheckBoxState GetUseProjectDefaultTimeSettingsChecked() const;
+	void HandleUseProjectDefaultTimeSettingsChanged(ECheckBoxState CheckBoxState);
 
 	bool GetTimeEntryEnabled() const;
 
+
 	bool GetUserInterruptibleButtonEnabled() const; 
 
-	bool GetAutoFromAudioButtonEnabled() const;
+	bool IsUseTimeFromAudioEnabled() const;
 
-	ECheckBoxState GetAutoFromAudioButtonIsChecked() const;
+	ECheckBoxState GetUseTimeFromAudioChecked() const;
+	FSlateColor GetUseTimeFromAudioButtonColor() const;
+	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
 protected:
 

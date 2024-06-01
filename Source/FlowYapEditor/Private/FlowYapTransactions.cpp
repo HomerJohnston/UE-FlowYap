@@ -8,7 +8,7 @@ void FFlowYapTransactions::BeginModify(FText TransactionText, UObject* Object)
 	{
 		UTransBuffer* TransBuffer = CastChecked<UTransBuffer>(GEditor->Trans);
 		if (TransBuffer != nullptr)
-			TransBuffer->Begin(*FString("AkGeometry Acoustic Surfaces"), TransactionText);
+			TransBuffer->Begin(*FString("FlowYap"), TransactionText);
 	}
 
 	if (IsValid(Object))

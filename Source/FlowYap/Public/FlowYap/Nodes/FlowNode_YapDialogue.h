@@ -23,7 +23,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName ConversationName;
+
+#if WITH_EDITORONLY_DATA
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bMultipleInputs;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bMultipleOutputs;
+#endif
 	// API
 public:
 	void SetConversationName(FName Name);
@@ -68,9 +76,19 @@ public:
 
 	bool CanUserAddOutput() const override { return false; }
 
-	bool SupportsContextPins() const override;;
+	bool SupportsContextPins() const override;
+	
+	void ToggleMultipleInputs();
+	
+	bool UsesMultipleInputs();
+	
+	void ToggleMultipleOutputs();
+	
+	bool UsesMultipleOutputs();
 	
 	virtual TArray<FFlowPin> GetContextInputs() override;
+
+	virtual TArray<FFlowPin> GetContextOutputs() override;
 #endif
 
 	void PostLoad() override;

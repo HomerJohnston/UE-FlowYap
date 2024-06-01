@@ -13,11 +13,16 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	Fragments.Add(FFlowYapFragment());
 
 	InputPins.Empty();
+	OutputPins.Empty();
 	
 	for (int Index = 0; Index <= 9; Index++)
 	{
 		InputPins.Add(Index);
+		OutputPins.Add(Index);
 	}
+
+	bMultipleInputs = false;
+	bMultipleOutputs = false;
 }
 
 void UFlowNode_YapDialogue::SetConversationName(FName Name)
@@ -185,31 +190,78 @@ bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
 
 bool UFlowNode_YapDialogue::SupportsContextPins() const
 {
-	UE_LOG(FlowYap, Warning, TEXT("Dummy"));
 	return true;
+}
+
+void UFlowNode_YapDialogue::ToggleMultipleInputs()
+{
+	bMultipleInputs = !bMultipleInputs;
+
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+bool UFlowNode_YapDialogue::UsesMultipleInputs()
+{
+	return bMultipleInputs;
+}
+
+void UFlowNode_YapDialogue::ToggleMultipleOutputs()
+{
+	bMultipleOutputs = !bMultipleOutputs;
+
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+bool UFlowNode_YapDialogue::UsesMultipleOutputs()
+{
+	return bMultipleOutputs;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 {
 	InputPins.Empty();
-	
-	TArray<FFlowPin> ContextInputPins;
 
-	uint8 Index = 0;
-	
-	for (FFlowYapFragment& Fragment : Fragments)
+	if (bMultipleInputs)
 	{
-		ContextInputPins.Add(Index++);
+		TArray<FFlowPin> ContextInputPins;
+
+		uint8 Index = 0;
+	
+		for (FFlowYapFragment& Fragment : Fragments)
+		{
+			ContextInputPins.Add(Index++);
+		}
+
+		return ContextInputPins;	
 	}
 
-	return ContextInputPins;
+	return { 0 };
+}
+
+TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
+{
+	OutputPins.Empty();
+
+	if (bMultipleOutputs)
+	{
+		TArray<FFlowPin> ContextOutputPins;
+
+		uint8 Index = 0;
+
+		for (FFlowYapFragment& Fragment : Fragments)
+		{
+			ContextOutputPins.Add(Index++);
+		}
+	
+		return ContextOutputPins;
+	}
+
+	return { 0 };
 }
 
 void UFlowNode_YapDialogue::PostLoad()
 {
 	Super::PostLoad();
-	
-	OnReconstructionRequested.ExecuteIfBound();
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const

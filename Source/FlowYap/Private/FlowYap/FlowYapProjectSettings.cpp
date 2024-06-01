@@ -6,6 +6,8 @@
 UFlowYapProjectSettings::UFlowYapProjectSettings()
 {
 	PortraitKeyIconPath.Path = "";
+
+	AudioTimeFallbackTimedMode = EFlowYapTimedMode::None;
 }
 
 #if WITH_EDITOR
@@ -36,8 +38,13 @@ void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	}
 }
 
-const FFlowYapFragmentSharedSettings& UFlowYapProjectSettings::GetSharedSettings() const
+const FFlowYapFragmentTimeSettings& UFlowYapProjectSettings::GetDefaultTimeSettings() const
 {
-	return DefaultSharedSettings;
+	return DefaultTimeSettings;
+}
+
+EFlowYapTimedMode UFlowYapProjectSettings::GetAudioTimeFallbackTimedMode() const
+{
+	return AudioTimeFallbackTimedMode;
 }
 #endif

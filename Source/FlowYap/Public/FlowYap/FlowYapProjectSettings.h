@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FlowYapFragmentSharedSettings.h"
+#include "FlowYapFragmentTimeSettings.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
 
@@ -12,18 +12,21 @@ class FLOWYAP_API UFlowYapProjectSettings : public UDeveloperSettings
 	GENERATED_BODY()
 public:
 	UFlowYapProjectSettings();
-	
+
+public:
+	TMulticastDelegate<void()> OnPortraitKeysChanged;
+
 protected:
 	// TODO: editing this needs to tell you that you need to restart the editor somehow. Details customization with a big warning bar in slate surrounding these settings after they're modified??
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TArray<FName> PortraitKeys;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FFlowYapFragmentSharedSettings DefaultSharedSettings;
+	FFlowYapFragmentTimeSettings DefaultTimeSettings;
 
-public:
-	TMulticastDelegate<void()> OnPortraitKeysChanged;
-	
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	EFlowYapTimedMode AudioTimeFallbackTimedMode;
+
 #if WITH_EDITORONLY_DATA
 protected:
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\PortraitKeys", simply type "Resources\\PortraitKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\PortraitKeys" folder.*/
@@ -45,5 +48,7 @@ public:
 #endif
 
 public:
-	const FFlowYapFragmentSharedSettings& GetSharedSettings() const;
+	const FFlowYapFragmentTimeSettings& GetDefaultTimeSettings() const;
+
+	EFlowYapTimedMode GetAudioTimeFallbackTimedMode() const;
 };

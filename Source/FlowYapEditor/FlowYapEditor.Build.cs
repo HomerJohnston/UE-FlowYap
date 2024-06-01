@@ -39,6 +39,8 @@ public class FlowYapEditor : ModuleRules
                 
                 "EditorSubsystem",
                 "InputCore",
+                
+                "ToolMenus"
             }
         );
     }

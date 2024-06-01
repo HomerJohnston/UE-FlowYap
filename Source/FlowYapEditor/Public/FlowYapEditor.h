@@ -20,6 +20,7 @@ private:
     static EAssetTypeCategories::Type FlowYapAssetCategory;
 
 public:
+    void EnableMultipleInputs();
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
 
@@ -34,5 +35,5 @@ public:
 	
     void UnregisterAssetTypeActions(IAssetTools& AssetTools);
     
-    static EAssetTypeCategories::Type GetAssetCategory(); 
+    static EAssetTypeCategories::Type GetAssetCategory();
 };

@@ -2,6 +2,7 @@
 
 #include "AssetFactory_FlowYapCharacter.h"
 #include "AssetToolsModule.h"
+#include "FlowYapEditorCommands.h"
 
 #define LOCTEXT_NAMESPACE "FFlowYapEditorModule"
 
@@ -14,6 +15,11 @@ EAssetTypeCategories::Type FFlowYapEditorModule::FlowYapAssetCategory;
 #define UNREGISTER_PROP_CUSTOMIZATION(_MODULE_, _NAME_) _MODULE_##.UnregisterCustomPropertyTypeLayout("FlowYap" ###_NAME_##)
 #define UNREGISTER_CLASS_CUSTOMIZATION(_MODULE_, _NAME_) _MODULE_##.UnregisterCustomClassLayout("FlowYap" ###_NAME_##)
 #pragma endregion
+
+void FFlowYapEditorModule::EnableMultipleInputs()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Enable Multiple Inputs Command"));
+}
 
 void FFlowYapEditorModule::StartupModule()
 {

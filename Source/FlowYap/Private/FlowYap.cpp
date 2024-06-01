@@ -2,7 +2,7 @@
 
 #include "FlowYap.h"
 
-#define LOCTEXT_NAMESPACE "FFlowYapModule"
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 void FFlowYapModule::StartupModule()
 {

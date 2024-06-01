@@ -4,6 +4,7 @@
 
 #include "FlowGraphNode_YapDialogue.generated.h"
 
+class UFlowNode_YapDialogue;
 class UAkAudioEvent;
 class SGraphNode;
 struct FFlowYapFragment;
@@ -20,4 +21,8 @@ public:
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
 	bool ShowPaletteIconOnNode() const override;
+
+	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
+
+	UFlowNode_YapDialogue* GetFlowYapNode() const;
 };
