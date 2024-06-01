@@ -7,6 +7,7 @@
 #include "Widgets/SUserWidget.h"
 #include "Widgets/Input/SSegmentedControl.h"
 
+class SMultiLineEditableText;
 class SFlowGraphNode_YapDialogueWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
@@ -29,7 +30,8 @@ protected:
 
 	int64 FragmentID = -1;
 
-	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
+	//TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
+	TSharedPtr<SMultiLineEditableText> DialogueBox;
 
 	SVerticalBox DialogueEntries;
 	
@@ -39,11 +41,13 @@ protected:
 
 protected:
 	TSharedRef<SWidget> CreateDialogueContentArea();
-
+	
 	TSharedRef<SBox> CreatePortraitWidget();
 
 	const FSlateBrush* GetPortraitBrush() const;
 
+	FSlateColor GetNodeTitleColor() const;
+	
 	EVisibility GetVisibilityForMissingPortraitText() const;
 	
 	TSharedRef<SBox> CreatePortraitKeySelector();
@@ -99,12 +103,11 @@ protected:
 	bool IsUseTimeFromAudioEnabled() const;
 
 	ECheckBoxState GetUseTimeFromAudioChecked() const;
-	FSlateColor GetUseTimeFromAudioButtonColor() const;
+	
 	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
 protected:
-
-
+	
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
 	
 	FFlowYapFragment& GetFragment() const;

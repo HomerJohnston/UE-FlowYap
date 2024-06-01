@@ -80,7 +80,7 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 		UTexture2D* Portrait = PortraitsKVP.Value;
 
 		FSlateBrush PortraitBrush;
-		PortraitBrush.ImageSize = FVector2D(96,96);
+		PortraitBrush.ImageSize = FVector2D(64,64);
 		
 		if (Portrait)
 		{

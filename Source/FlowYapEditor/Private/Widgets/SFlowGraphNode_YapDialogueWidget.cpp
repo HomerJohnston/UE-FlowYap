@@ -6,6 +6,7 @@
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
+#include "Widgets/Layout/SSeparator.h"
 
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {
@@ -75,40 +76,54 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
 	SAssignNew(FragmentBox, SVerticalBox);
 
+	bool bFirstFragment = true;
+	
 	for (FFlowYapFragment& Fragment : GetFlowYapDialogueNode()->GetFragments())
 	{
 		TSharedPtr<SFlowGraphNode_YapFragmentWidget> NewFragmentWidget = MakeShared<SFlowGraphNode_YapFragmentWidget>();
 
 		FragmentWidgets.Add(NewFragmentWidget);
 
-		TSharedPtr<SVerticalBox> FragmentInputBox;
-		TSharedPtr<SVerticalBox> FragmentOutputBox;
+		TSharedPtr<SVerticalBox> LeftSide;
+		TSharedPtr<SVerticalBox> RightSide;
+
+		if (!bFirstFragment)
+		{
+			FragmentBox->AddSlot()
+			.AutoHeight()
+			[
+				SNew(SSeparator)
+				.Orientation(Orient_Horizontal)
+				.Thickness(10.0f)
+				.ColorAndOpacity(FLinearColor::White)
+			];
+		}
+
+		bFirstFragment = false;
 		
 		FragmentBox->AddSlot()
 		.AutoHeight()
 		[
 			SNew(SHorizontalBox)
+			// LEFT PANE
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				SAssignNew(FragmentInputBox, SVerticalBox)
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				.FillHeight(1.0)
+				SNew(SBox)
+				.MinDesiredWidth(40)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.FillWidth(0.5)
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					.VAlign(VAlign_Top)
 					[
-						SNew(SBox)
-						.WidthOverride(6)
+						SAssignNew(LeftSide, SVerticalBox)
 					]
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.HAlign(HAlign_Center)
+					+ SOverlay::Slot()
 					.VAlign(VAlign_Center)
 					[
+						// CONTROLS FOR UP/DELETE/DOWN
 						SNew(SVerticalBox)
+						// UP
 						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.VAlign(VAlign_Center)
@@ -125,6 +140,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 								.ColorAndOpacity(FLinearColor(1,1,1,0.2))
 							]
 						]
+						// DELETE
 						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.VAlign(VAlign_Center)
@@ -140,6 +156,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 								.ColorAndOpacity(FLinearColor(1,1,1,0.2))
 							]
 						]
+						// DOWN
 						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.VAlign(VAlign_Center)
@@ -157,39 +174,26 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 							]
 						]
 					]
-					+ SHorizontalBox::Slot()
-					.FillWidth(0.5)
-					[
-						SNew(SBox)
-						.WidthOverride(4)
-					]
 				]
 			]
+			// MIDDLE PANE
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.VAlign(VAlign_Top)
 			[
 				SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, &Fragment)
 			]
+			// RIGHT PANE
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.VAlign(VAlign_Top)
 			[
-				SAssignNew(FragmentOutputBox, SVerticalBox)
-				/*
-				+ SVerticalBox::Slot()
-				.FillHeight(1.0)
-				[
-					SNew(SBox)
-					[
-						//SNew(STextBlock)
-						//.Text(INVTEXT("Hello"))
-					]
-				]
-				*/
+				SAssignNew(RightSide, SVerticalBox)
 			]
 		];
 
-		FragmentInputBoxes.Add(FragmentInputBox);
-		FragmentOutputBoxes.Add(FragmentOutputBox);
+		FragmentInputBoxes.Add(LeftSide);
+		FragmentOutputBoxes.Add(RightSide);
 	};
 
 	return SNew(SBorder)
@@ -251,16 +255,11 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	{
 		FragmentInputBoxes[InputPins.Num()]->InsertSlot(0)
 		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Center)
+		.VAlign(VAlign_Top)
 		.AutoHeight()
 		.Padding(LeftMargins)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				PinToAdd
-			]
+			PinToAdd
 		];
 		InputPins.Add(PinToAdd);
 	}
@@ -268,16 +267,11 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	{
 		FragmentOutputBoxes[OutputPins.Num()]->InsertSlot(0)
 		.HAlign(HAlign_Right)
-		.VAlign(VAlign_Center)
+		.VAlign(VAlign_Top)
 		.AutoHeight()
 		.Padding(RightMargins)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				PinToAdd
-			]
+			PinToAdd
 		];
 		OutputPins.Add(PinToAdd);
 	}
