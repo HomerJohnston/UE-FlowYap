@@ -34,10 +34,6 @@ protected:
 
 	SVerticalBox DialogueEntries;
 	
-	FCheckBoxStyle ToggleButtonCheckBox_Orange;
-
-	FCheckBoxStyle UseAudioTimeButtonStyle;
-	
 	UClass* DialogueAssetClass = nullptr;
 
 protected:
@@ -69,16 +65,7 @@ protected:
 
 	const FSlateBrush* GetPortraitKeyBrush() const;
 
-
 	TSharedRef<SBox> CreateTimeSettingsWidget();
-
-	/*
-	FOptionalSize GetMinDialogueEditableTextWidgetWidth() const;
-
-	FOptionalSize GetMaxDialogueEditableTextWidgetWidth() const;
-
-	FOptionalSize GetMinDialogueEditableTextWidgetHeight() const;
-	*/
 	
 	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
 	
@@ -132,4 +119,6 @@ protected:
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
 	
 	FFlowYapFragment& GetFragment() const;
+
+	FFlowYapFragment& GetFragmentMutable();
 };

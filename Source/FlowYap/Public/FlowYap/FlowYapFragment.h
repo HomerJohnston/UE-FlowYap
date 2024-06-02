@@ -38,13 +38,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey = NAME_None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 ActivationLimit = 0;
 	
 	// State
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly) // TODO VisibleAnywhere
 	int32 ActivationCount = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 CachedWordCount = 0;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	double CachedAudioTime = 0;
 	
 #if WITH_EDITOR
 protected:
@@ -90,11 +96,14 @@ public:
 	void SetUserInterruptible(bool bNewValue);
 
 	EFlowYapTimedMode GetRuntimeTimedMode() const;
-	double GetCalculatedTimedValue() const;
+	double GetRuntimeTimedValue() const;
 
 	const FFlowYapFragmentTimeSettings& GetRuntimeTimeSettings() const;
-	double CalculateTimeFromText() const;
-	double CalculateTimeFromAudio() const;
+
+#if WITH_EDITOR
+	void CacheWordCountFromText();
+	void CacheTimeFromAudio();
+#endif
 	//	-----------------------------------------------------------------------------------------------
 #pragma endregion 
 	//	-----------------------------------------------------------------------------------------------

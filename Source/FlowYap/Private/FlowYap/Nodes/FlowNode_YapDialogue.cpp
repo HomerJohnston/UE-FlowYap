@@ -1,19 +1,29 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 
 #include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/FlowYapProjectSettings.h"
 
+#define LOCTEXT_NAMESPACE "FlowYap"
+
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
 	Category = TEXT("Yap");
 	NodeStyle = EFlowNodeStyle::Custom;
 
+	bIsPlayerPrompt = false;
+	NodeActivationLimit = 0;
+	MultipleInputBehavior = EFlowYapMultipleInputBehavior::Sequential;
+
+	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
 
 	InputPins.Empty();
 	OutputPins.Empty();
-	
+
+	// Workaround to "save" pins - putting them in the CDO causes some nuisance engine code to work correctly
 	for (int Index = 0; Index <= 9; Index++)
 	{
 		InputPins.Add(Index);
@@ -93,7 +103,7 @@ const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& Request
 }
 
 #if WITH_EDITOR
-FFlowYapFragment& UFlowNode_YapDialogue::GetFragment(int64 FragmentID)
+FFlowYapFragment& UFlowNode_YapDialogue::GetFragmentByID(int64 FragmentID)
 {
 	FFlowYapFragment* FoundFragment = Fragments.FindByPredicate(
 		[&](FFlowYapFragment& Fragment)
@@ -124,6 +134,8 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 		return Super::GetNodeTitle();
 	}
 
+	return GetSpeakerName();
+	/*
 	if (bIsPlayerPrompt)
 	{
 		return FText::Join(FText::FromString(" "), FText::FromString("(PROMPT)"), GetSpeakerName());
@@ -132,6 +144,7 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 	{
 		return GetSpeakerName();
 	}
+	*/
 }
 
 bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
@@ -172,12 +185,17 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 
 void UFlowNode_YapDialogue::AddFragment()
 {
+	if (Fragments.Num() >= 9)
+	{
+		return;
+	}
+	
 	Fragments.Add(FFlowYapFragment());
 
 	OnReconstructionRequested.ExecuteIfBound();
 }
 
-void UFlowNode_YapDialogue::RemoveFragment(int64 EditorID)
+void UFlowNode_YapDialogue::RemoveFragmentByID(int64 EditorID)
 {
 	Fragments.RemoveAll(
 		[&]
@@ -261,30 +279,26 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
+	// Workaround for annoying editor code, pins that aren't kept on the CDO do dumb things (see root engine class code).
 	OutputPins.Empty();
 
-	if (bMultipleOutputs)
-	{
-		TArray<FFlowPin> ContextOutputPins;
+	TArray<FFlowPin> ContextOutputPins;
 
-		uint8 Index = 0;
-
-		for (FFlowYapFragment& Fragment : Fragments)
-		{
-			ContextOutputPins.Add(Index++);
-		}
+	uint8 NumPins = bMultipleOutputs ? Fragments.Num() : 1;
 	
-		return ContextOutputPins;
+	for (uint8 Index = 0; Index < NumPins; ++Index)
+	{
+		ContextOutputPins.Add(Index);
 	}
-
-	return { 0 };
+	
+	ContextOutputPins.Add(FName("Bypass"));
+	
+	return ContextOutputPins;
 }
 
-void UFlowNode_YapDialogue::ToggleIsPlayerPrompt()
+void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
 {
-	bIsPlayerPrompt = !bIsPlayerPrompt;
-
-	OnReconstructionRequested.ExecuteIfBound();
+	bIsPlayerPrompt = NewValue;
 }
 
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
@@ -303,3 +317,4 @@ FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& Request
 }
 #endif
 
+#undef LOCTEXT_NAMESPACE

@@ -27,6 +27,15 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EFlowYapTimedMode AudioTimeFallbackTimedMode;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180))
+	int32 TextWordsPerMinute;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
+	double MinimumAutoTextTimeLength;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
+	double MinimumAutoAudioTimeLength;
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	UClass* DialogueAssetClass;
 	
@@ -67,4 +76,10 @@ public:
 	int32 GetDialogueWidthAdjustment() const;
 
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
+
+	int32 GetTextWordsPerMinute() const;
+
+	double GetMinimumAutoTextTimeLength() const;
+	
+	double GetMinimumAutoAudioTimeLength() const;
 };

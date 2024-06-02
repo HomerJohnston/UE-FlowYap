@@ -6,12 +6,18 @@
 
 class UFlowYapCharacter;
 
+UENUM(BlueprintType)
 enum class EFlowYapMultipleInputBehavior : uint8
 {
 	Sequential,
 	Random
 };
 
+// TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below.
+
+/**
+ * Emits a FlowYap Dialogue Fragment
+ */
 UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
@@ -31,10 +37,13 @@ protected:
 	FName ConversationName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsPlayerPrompt = false;
+	bool bIsPlayerPrompt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	int32 NodeActivationLimit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int32 NodeActivationLimit = 0;
+	EFlowYapMultipleInputBehavior MultipleInputBehavior;
 	
 	// STATE
 protected:
@@ -72,7 +81,7 @@ public:
 	int32 GetNodeActivationLimit() const;
 	
 #if WITH_EDITOR
-	FFlowYapFragment& GetFragment(int64 FragmentID);
+	FFlowYapFragment& GetFragmentByID(int64 FragmentID);
 #endif
 	
 	TArray<FFlowYapFragment>& GetFragments();
@@ -89,7 +98,7 @@ public:
 	
 	void AddFragment();
 
-	void RemoveFragment(int64 EditorID);
+	void RemoveFragmentByID(int64 EditorID);
 
 #if WITH_EDITOR
 public:
@@ -113,7 +122,7 @@ public:
 
 	virtual TArray<FFlowPin> GetContextOutputs() override;
 	
-	void ToggleIsPlayerPrompt();
+	void SetIsPlayerPrompt(bool NewValue);
 
 	void SetNodeActivationLimit(int32 NewValue);	
 #endif

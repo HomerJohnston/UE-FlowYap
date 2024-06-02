@@ -7,12 +7,20 @@
 
 class UFlowYapCharacter;
 
+struct FCheckBoxStyles
+{
+	FCheckBoxStyle ToggleButtonCheckBox_Red;
+	FCheckBoxStyle ToggleButtonCheckBox_Green;
+	FCheckBoxStyle ToggleButtonCheckBox_Blue;
+	FCheckBoxStyle ToggleButtonCheckBox_Orange;
+	FCheckBoxStyle ToggleButtonCheckBox_White;	
+};
+
 UCLASS()
 class UFlowYapEditorSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 
-#if WITH_EDITORONLY_DATA
 private:
 	UPROPERTY(Transient)
 	TMap<FName, UTexture2D*> PortraitKeyIconTextures;
@@ -33,10 +41,10 @@ private:
 	UPROPERTY(Transient)
 	UTexture2D* AudioTimeIcon;
 	FSlateBrush AudioTimeBrush;
-	
-#endif
 
-#if WITH_EDITOR
+protected:
+	static FCheckBoxStyles CheckBoxStyles;
+
 public:
 	void UpdatePortraitKeyIconsMap();
 	
@@ -51,10 +59,6 @@ public:
 	const FSlateBrush* GetTextTimeBrush() { return &TextTimeBrush; }
 
 	const FSlateBrush* GetAudioTimeBrush() { return &AudioTimeBrush; }
-	
-
-	
-#endif
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -62,4 +66,6 @@ public:
 	void LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize = 16);
 	
 	void Deinitialize() override;
+
+	static const FCheckBoxStyles& GetCheckBoxStyles();
 };

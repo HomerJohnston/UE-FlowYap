@@ -1,12 +1,11 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "AssetFactory_FlowYapCharacter.h"
 #include "FlowYap/FlowYapCharacter.h"
 
 #include "FlowYapEditor.h"
 
-#include "AssetTypeCategories.h"
-#include "Kismet2/KismetEditorUtilities.h"
-
-#define LOCTEXT_NAMESPACE "PLUGINNAME"
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 UAssetFactory_FlowYapCharacter::UAssetFactory_FlowYapCharacter()
 {

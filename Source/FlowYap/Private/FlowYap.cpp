@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 
 #include "FlowYap.h"
 

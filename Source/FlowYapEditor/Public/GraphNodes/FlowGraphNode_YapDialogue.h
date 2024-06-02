@@ -27,4 +27,6 @@ public:
 	UFlowNode_YapDialogue* GetFlowYapNode() const;
 
 	FLinearColor GetNodeBodyTintColor() const override;
+
+	FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
 };

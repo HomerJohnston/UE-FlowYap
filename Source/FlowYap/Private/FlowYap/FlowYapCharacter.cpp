@@ -1,9 +1,13 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYap/FlowYapCharacter.h"
 
 #include "FlowYap/FlowYapProjectSettings.h"
 #include "Engine/Texture2D.h"
 
 #include "FlowYap/FlowYapLog.h"
+
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 UFlowYapCharacter::UFlowYapCharacter()
 {
@@ -100,3 +104,5 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 	}
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

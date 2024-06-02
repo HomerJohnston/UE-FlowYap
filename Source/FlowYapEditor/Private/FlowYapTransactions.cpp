@@ -1,3 +1,7 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
+#define LOCTEXT_NAMESPACE "FlowYap"
+
 #include "FlowYapTransactions.h"
 
 #include "Editor/TransBuffer.h"
@@ -26,3 +30,5 @@ void FFlowYapTransactions::EndModify()
 			TransBuffer->End();
 	}
 }
+
+#undef LOCTEXT_NAMESPACE

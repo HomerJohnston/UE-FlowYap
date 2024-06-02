@@ -1,11 +1,16 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYapEditorSubsystem.h"
 
+#include "FlowYapColors.h"
 #include "FlowYap/FlowYapProjectSettings.h"
 #include "ImageUtils.h"
-#include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapEngineUtils.h"
 
-#if WITH_EDITOR
+#define LOCTEXT_NAMESPACE "FlowYap"
+
+FCheckBoxStyles UFlowYapEditorSubsystem::CheckBoxStyles;
+
 void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 {
 	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
@@ -39,9 +44,7 @@ void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
 		PortraitKeyIconBrushes.Add(PortraitKey, PortraitKeyBrush);
 	}
 }
-#endif
 
-#if WITH_EDITOR
 UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
 {
 	UTexture2D** Texture = PortraitKeyIconTextures.Find(PortraitKey);
@@ -60,7 +63,11 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
 
 	return Brush ? Brush->Get() : nullptr;
 }
-#endif
+
+#define INITALIZE_CHECKBOX_STYLE(Name, Color) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
+	CheckBoxStyles.Name##.CheckedImage.TintColor = FLinearColor(FlowYapColors::##Color##);\
+	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColors::##Color##Hovered);\
+	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FLinearColor(FlowYapColors::##Color##Pressed)\
 
 void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -75,6 +82,12 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	LoadIcon("Resources/DialogueNodeIcons/Icon_UserInterrupt_16x16.png", UserInterruptIcon, UserInterruptBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_TextTime_16x16.png", TextTimeIcon, TextTimeBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_AudioTime_16x16.png", AudioTimeIcon, AudioTimeBrush);
+	
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Green, Green);
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Orange, Orange);
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
 }
 
 void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
@@ -93,3 +106,10 @@ void UFlowYapEditorSubsystem::Deinitialize()
 	
 	Super::Deinitialize();
 }
+
+const FCheckBoxStyles& UFlowYapEditorSubsystem::GetCheckBoxStyles()
+{
+	return CheckBoxStyles;
+}
+
+#undef LOCTEXT_NAMESPACE

@@ -1,9 +1,13 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYap/Nodes/FlowNode_YapConversationStart.h"
 
 #include "FlowAsset.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Nodes/FlowNode_YapConversationEnd.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
+
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 UFlowNode_YapConversationStart::UFlowNode_YapConversationStart()
 {
@@ -74,3 +78,5 @@ void UFlowNode_YapConversationStart::PostEditChangeProperty(FPropertyChangedEven
 
 	UE_LOG(FlowYap, Warning, TEXT("PECP on start node"));
 }
+
+#undef LOCTEXT_NAMESPACE

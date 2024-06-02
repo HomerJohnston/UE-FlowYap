@@ -18,7 +18,10 @@ protected:
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
 
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
+	
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
+
+	TSharedPtr<SBox> BypassOutputBox;
 
 	FTextBlockStyle NormalText;
 	
@@ -46,15 +49,21 @@ protected:
 
 	FReply OnClickedActivationDot(FFlowYapFragment* Fragment, int ActivationIndex);
 	
-	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
+	TSharedRef<SWidget> CreateNodeContentArea() override;
 
+	ECheckBoxState GetIsUserPromptDialogue() const;
+
+	void HandleUserPromptDialogueChanged(ECheckBoxState CheckBoxState);
+	
+	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
+	
 	EVisibility GetAddFragmentButtonVisibility() const;
 	
 	FSlateColor GetAddFragmentButtonColor() const;
 	
-	FSlateColor GetAddFragmentTextColor() const;
-	
-	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd);
+	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+
+	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 	
 	FReply AddFragment();
 
@@ -62,4 +71,6 @@ public:
 	FReply DeleteFragment(int64 FragmentID);
 	
 	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
+	
+	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
 };

@@ -1,10 +1,11 @@
-﻿#include "FlowYapEditor.h"
+﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
+#include "FlowYapEditor.h"
 
 #include "AssetFactory_FlowYapCharacter.h"
 #include "AssetToolsModule.h"
-#include "FlowYapEditorCommands.h"
 
-#define LOCTEXT_NAMESPACE "FFlowYapEditorModule"
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 EAssetTypeCategories::Type FFlowYapEditorModule::FlowYapAssetCategory;
 

@@ -1,15 +1,11 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYapEditorCommands.h"
 
-#include "FlowEditorCommands.h"
-#include "FlowYapEditor.h"
 #include "FlowYapTransactions.h"
-#include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Graph/FlowGraphEditor.h"
-#include "Graph/FlowGraphUtils.h"
-#include "Graph/FlowGraph.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
-#include "Toolkits/GlobalEditorCommonCommands.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 

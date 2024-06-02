@@ -1,6 +1,10 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYap/FlowYapEngineUtils.h"
 
 #include "Interfaces/IPluginManager.h"
+
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 FString FFlowYapEngineUtils::GetFlowYapPluginDir()
 {
@@ -44,3 +48,5 @@ void FFlowYapEngineUtils::MakeTexture2DGrayscaleDestructive(UTexture2D* Texture)
 	Texture->GetPlatformData()->Mips[0].BulkData.Unlock();
 	Texture->UpdateResource();
 }
+
+#undef LOCTEXT_NAMESPACE

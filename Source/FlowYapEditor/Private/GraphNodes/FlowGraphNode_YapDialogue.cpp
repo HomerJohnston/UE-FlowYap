@@ -1,7 +1,7 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 
-#include "FlowEditorCommands.h"
-#include "FlowYapColors.h"
 #include "FlowYapEditorCommands.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
@@ -53,4 +53,10 @@ FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 
 	return FlowYapColors::Gray;
 	*/
+}
+
+FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
+{
+	// TODO
+	return FSlateIcon();
 }

@@ -1,7 +1,10 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+
 #include "FlowYap/FlowYapProjectSettings.h"
 
-#include "EngineUtils.h"
 #include "FlowYap/FlowYapEngineUtils.h"
+
+#define LOCTEXT_NAMESPACE "FlowYap"
 
 UFlowYapProjectSettings::UFlowYapProjectSettings()
 {
@@ -10,6 +13,12 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	AudioTimeFallbackTimedMode = EFlowYapTimedMode::None;
 	
 	DialogueWidthAdjustment = 0;
+
+	TextWordsPerMinute = 120;
+	
+	MinimumAutoTextTimeLength = 2.5;
+
+	MinimumAutoAudioTimeLength = 1.0;
 }
 
 #if WITH_EDITOR
@@ -64,4 +73,21 @@ bool UFlowYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const
 {
 	return bHideTitleTextOnNPCDialogueNodes;
 }
+
+int32 UFlowYapProjectSettings::GetTextWordsPerMinute() const
+{
+	return TextWordsPerMinute;
+}
+
+double UFlowYapProjectSettings::GetMinimumAutoTextTimeLength() const
+{
+	return MinimumAutoTextTimeLength;
+}
+
+double UFlowYapProjectSettings::GetMinimumAutoAudioTimeLength() const
+{
+	return MinimumAutoAudioTimeLength;
+}
 #endif
+
+#undef LOCTEXT_NAMESPACE
