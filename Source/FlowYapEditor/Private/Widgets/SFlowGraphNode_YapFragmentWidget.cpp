@@ -50,7 +50,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::GetTitleTextEntryVisibility() cons
 		return EVisibility::Visible;
 	}
 	
-	return GetDefault<UFlowYapProjectSettings>()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Hidden : EVisibility::Visible;
+	return GetDefault<UFlowYapProjectSettings>()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::OnClickPortrait()
@@ -141,6 +141,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 		[
 			SNew(SBox)
 			.WidthOverride(400)
+			.HeightOverride(52)
 			[
 				SNew(SVerticalBox)
 				// ===================

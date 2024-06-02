@@ -44,10 +44,13 @@ UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 
 FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
+	return UFlowGraphNode::GetNodeBodyTintColor();
+	/*
 	if (GetFlowYapNode()->GetIsPlayerPrompt())
 	{
 		return FLinearColor::White;
 	}
 
 	return FlowYapColors::Gray;
+	*/
 }

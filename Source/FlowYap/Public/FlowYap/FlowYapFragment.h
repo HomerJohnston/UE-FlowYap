@@ -43,6 +43,7 @@ protected:
 	
 	// State
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly) // TODO VisibleAnywhere
 	int32 ActivationCount = 0;
 	
 #if WITH_EDITOR

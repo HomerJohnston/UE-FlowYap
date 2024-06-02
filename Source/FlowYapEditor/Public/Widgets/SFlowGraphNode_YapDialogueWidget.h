@@ -20,6 +20,8 @@ protected:
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
 
+	FTextBlockStyle NormalText;
+	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
@@ -39,6 +41,10 @@ protected:
 	TOptional<int32> GetActivationLimit(FFlowYapFragment* Fragment) const;
 
 	void OnActivationLimitChanged(int32 NewValue, FFlowYapFragment* Fragment);
+
+	FSlateColor GetActivationDotColor(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
+
+	FReply OnClickedActivationDot(FFlowYapFragment* Fragment, int ActivationIndex);
 	
 	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
 
