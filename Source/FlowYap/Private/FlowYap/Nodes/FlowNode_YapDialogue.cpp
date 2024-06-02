@@ -1,6 +1,5 @@
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 
-#include "AkAudioEvent.h"
 #include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/FlowYapProjectSettings.h"
@@ -124,8 +123,30 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 	{
 		return Super::GetNodeTitle();
 	}
-	
-	return FText::Join(FText::FromString(": "), Super::GetNodeTitle(), GetSpeakerName());
+
+	if (bIsPlayerPrompt)
+	{
+		return FText::Join(FText::FromString(" "), FText::FromString("(PROMPT)"), GetSpeakerName());
+	}
+	else
+	{
+		return GetSpeakerName();
+	}
+}
+
+bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
+{
+	return bIsPlayerPrompt;
+}
+
+int32 UFlowNode_YapDialogue::GetNodeActivationCount() const
+{
+	return NodeActivationCount;
+}
+
+int32 UFlowNode_YapDialogue::GetNodeActivationLimit() const
+{
+	return NodeActivationLimit;
 }
 
 void UFlowNode_YapDialogue::InitializeInstance()
@@ -137,7 +158,7 @@ void UFlowNode_YapDialogue::InitializeInstance()
 
 void UFlowNode_YapDialogue::OnActivate()
 {
-	UE_LOG(FlowYap, Warning, TEXT("OnActivate"));
+	++NodeActivationCount;
 
 	Super::OnActivate();
 }
@@ -259,9 +280,16 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 	return { 0 };
 }
 
-void UFlowNode_YapDialogue::PostLoad()
+void UFlowNode_YapDialogue::ToggleIsPlayerPrompt()
 {
-	Super::PostLoad();
+	bIsPlayerPrompt = !bIsPlayerPrompt;
+
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
+{
+	NodeActivationLimit = NewValue;
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const

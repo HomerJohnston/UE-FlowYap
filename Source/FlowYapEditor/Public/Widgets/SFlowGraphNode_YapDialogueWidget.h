@@ -2,6 +2,7 @@
 #include "Graph/Widgets/SFlowGraphNode.h"
 #include "Widgets/SUserWidget.h"
 
+struct FFlowYapFragment;
 class SFlowGraphNode_YapFragmentWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
@@ -18,7 +19,7 @@ protected:
 
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
-	
+
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
@@ -28,25 +29,31 @@ public:
 
 protected:
 	EVisibility GetFragmentMovementVisibility() const;
-	
+
+	FSlateColor GetFragmentMovementControlsColor() const;
+
 	FReply MoveFragment(bool bUp, int64 Index);
 
+	FSlateColor GetFragmentSeparatorColor() const;
+
+	TOptional<int32> GetActivationLimit(FFlowYapFragment* Fragment) const;
+
+	void OnActivationLimitChanged(int32 NewValue, FFlowYapFragment* Fragment);
+	
 	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
 
+	EVisibility GetAddFragmentButtonVisibility() const;
+	
+	FSlateColor GetAddFragmentButtonColor() const;
+	
+	FSlateColor GetAddFragmentTextColor() const;
+	
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd);
-
-	void AddInputPin(const TSharedRef<SGraphPin>& PinToAdd);
-
-	void AddOutputPin(const TSharedRef<SGraphPin>& PinToAdd);
-
-	/*
-	virtual FReply OnAddFlowPin(const EEdGraphPinDirection Direction);
-	*/
 	
 	FReply AddFragment();
 
 public:
 	FReply DeleteFragment(int64 FragmentID);
 	
-	//TSharedPtr<SGraphPin> CreatePinWidget(UEdGraphPin* Pin) const override;
+	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
 };

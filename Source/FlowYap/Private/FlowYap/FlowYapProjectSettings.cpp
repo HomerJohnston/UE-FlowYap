@@ -8,6 +8,8 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	PortraitKeyIconPath.Path = "";
 
 	AudioTimeFallbackTimedMode = EFlowYapTimedMode::None;
+	
+	DialogueWidthAdjustment = 0;
 }
 
 #if WITH_EDITOR
@@ -46,5 +48,20 @@ const FFlowYapFragmentTimeSettings& UFlowYapProjectSettings::GetDefaultTimeSetti
 EFlowYapTimedMode UFlowYapProjectSettings::GetAudioTimeFallbackTimedMode() const
 {
 	return AudioTimeFallbackTimedMode;
+}
+
+UClass* UFlowYapProjectSettings::GetDialogueAssetClass() const
+{
+	return DialogueAssetClass;
+}
+
+int32 UFlowYapProjectSettings::GetDialogueWidthAdjustment() const
+{
+	return DialogueWidthAdjustment;
+}
+
+bool UFlowYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const
+{
+	return bHideTitleTextOnNPCDialogueNodes;
 }
 #endif

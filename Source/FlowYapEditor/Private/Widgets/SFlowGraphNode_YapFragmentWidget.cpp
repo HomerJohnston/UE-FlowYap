@@ -2,7 +2,6 @@
 
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
 
-#include "AkAudioEvent.h"
 #include "EditorStyleSet.h"
 #include "FlowYapColors.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
@@ -17,6 +16,7 @@
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "FlowYap/FlowYapFlowModes.h"
+#include "Widgets/Layout/SSeparator.h"
 
 #define LOCTEXT_NAMESPACE "PGFlowEditor"
 
@@ -25,55 +25,122 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 	Owner = InOwner;
 	FragmentID = InFragment->GetEditorID();
 
+	DialogueAssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
+	
 	ChildSlot
 	[
 		CreateDialogueContentArea()
 	];
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea()
+EVisibility SFlowGraphNode_YapFragmentWidget::GetPortraitWidgetVisibility() const
 {
-	return SNew(SVerticalBox)
-	// ===================
-	// TOP (PORTRAIT AND SETTINGS)
-	// ===================
-	+ SVerticalBox::Slot()
-	.AutoHeight()
+	if (DialogueBox->HasKeyboardFocus())
+	{
+		return EVisibility::Collapsed;
+	}
+
+	return EVisibility::Visible;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::GetTitleTextEntryVisibility() const
+{
+	if (GetFlowNodeYapDialogue()->GetIsPlayerPrompt())
+	{
+		return EVisibility::Visible;
+	}
+	
+	return GetDefault<UFlowYapProjectSettings>()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Hidden : EVisibility::Visible;
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::OnClickPortrait()
+{
+	GetFlowNodeYapDialogue()->ToggleIsPlayerPrompt();
+
+	return FReply::Handled();
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea()
+{	
+	return SNew(SBox)
+	.WidthOverride(this, &SFlowGraphNode_YapFragmentWidget::GetDialogueWidgetWidthAdjustment)
 	[
-		SNew(SHorizontalBox)
+		SNew(SVerticalBox)
 		// ===================
-		// PORTRAIT IMAGE (LEFT SIDE)
+		// TOP (PORTRAIT | DIALOGUE)
 		// ===================
-		+ SHorizontalBox::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Top)
-		.AutoWidth()
-		.Padding(2.f, 5.f, 5.f, 2.f)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
+			SNew(SBox)
+			.MinDesiredHeight(84)
 			[
-				CreatePortraitWidget()
-			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Right)
-			.VAlign(VAlign_Bottom)
-			.Padding(FMargin(0, 0, 2, 2))
-			[
-				CreatePortraitKeySelector()
+				SNew(SHorizontalBox)
+				// ===================
+				// PORTRAIT IMAGE (LEFT SIDE)
+				// ===================
+				+ SHorizontalBox::Slot()
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Top)
+				.AutoWidth()
+				.Padding(2.f, 5.f, 5.f, 5.f)
+				[
+					SNew(SOverlay)
+					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetPortraitWidgetVisibility)
+					+ SOverlay::Slot()
+					[
+						SNew(SButton)
+						.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+						.ContentPadding(0)
+						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClickPortrait)
+						[
+							CreatePortraitWidget()
+						]
+					]
+					+ SOverlay::Slot()
+					.HAlign(HAlign_Right)
+					.VAlign(VAlign_Bottom)
+					.Padding(FMargin(0, 0, 2, 2))
+					[
+						CreatePortraitKeySelector()
+					]
+				]
+				// ===================
+				// DIALOGUE (RIGHT SIDE)
+				// ===================
+				+ SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.FillWidth(1.0f)
+				.Padding(0.f, 5.0f, 0.0f, 5.0f)
+				[
+					SNew(SBox)
+					.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetHeight)
+					[
+						SAssignNew(DialogueBox, SMultiLineEditableTextBox)
+						//.AutoWrapText(true)
+						.Text(this, &SFlowGraphNode_YapFragmentWidget::GetDialogueText)
+						.ModiferKeyForNewLine(EModifierKey::Shift)
+						.HScrollBarPadding(FMargin(0))
+						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleDialogueTextCommitted)
+						.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
+						.HintText(INVTEXT("Enter full dialogue"))
+						.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetDialogueTextBackgroundColor)
+						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetDialogueTextColor)
+					]
+				]
 			]
 		]
 		// ===================
-		// DIALOGUE SETTINGS (RIGHT SIDE)
+		// BOTTOM (TITLE TEXT ABOVE, AUDIO | SETTINGS BELOW)
 		// ===================
-		+ SHorizontalBox::Slot()
+		+ SVerticalBox::Slot()
+		.AutoHeight()
 		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Top)
-		.FillWidth(1.0f)
-		.Padding(0.f, 5.0f, 0.0f, 0.0f)
+		.Padding(0, 0, 0, 4)
 		[
 			SNew(SBox)
-			.WidthOverride(320)
+			.WidthOverride(400)
 			[
 				SNew(SVerticalBox)
 				// ===================
@@ -85,6 +152,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 				.Padding(0, 0, 0, 2)
 				[
 					SNew(SEditableTextBox)
+					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetTitleTextEntryVisibility)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::GetTitleText)
 					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleTitleTextCommitted)
 					.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
@@ -100,62 +168,84 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 				.AutoHeight()
 				.Padding(0, 2, 0, 2)
 				[
-					SNew(SOverlay)
-					+ SOverlay::Slot()
-					.HAlign(HAlign_Fill)
-					.VAlign(VAlign_Fill)
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.Padding(0, 2, 0, 0)
 					[
-						SNew(SObjectPropertyEntryBox)
-						.DisplayBrowse(false)
-						.DisplayUseSelected(false)
-						.DisplayThumbnail(false)
-						.AllowedClass(UAkAudioEvent::StaticClass())
-						.EnableContentPicker(true)
-						.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetPath)
-						.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleDialogueAudioAssetChanged)
-						.ToolTipText(LOCTEXT("Test", "Test Test TODO"))
+						SNew(SOverlay)
+						+ SOverlay::Slot()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
+						[
+							SNew(SObjectPropertyEntryBox)
+							.DisplayBrowse(true)
+							.DisplayUseSelected(false)
+							.DisplayThumbnail(false)
+							.AllowedClass(DialogueAssetClass)
+							.EnableContentPicker(true)
+							.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetPath)
+							.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleDialogueAudioAssetChanged)
+							.ToolTipText(LOCTEXT("Test", "Test Test TODO"))
+						]
+						+ SOverlay::Slot()
+						.Padding(36,0,0,0)
+						.HAlign(HAlign_Left)
+						.VAlign(VAlign_Center)
+						[
+							SNew(SImage)
+							.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioButtonErrorState)
+							.Image(FAppStyle::GetBrush("Icons.Warning"))
+							.ColorAndOpacity(FlowYapColors::Orange)
+						]
+						+ SOverlay::Slot()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
+						[
+							SNew(SImage)
+							.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetIsValid)
+							.Image(FAppStyle::GetBrush("MarqueeSelection"))
+							.ColorAndOpacity(FLinearColor::Red)
+						]
 					]
-					+ SOverlay::Slot()
-					.Padding(36,0,0,0)
-					.HAlign(HAlign_Left)
-					.VAlign(VAlign_Center)
+					+ SHorizontalBox::Slot()
+					.Padding(0, 0, 1, 0)
+					.AutoWidth()
 					[
-						SNew(SImage)
-						.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioButtonErrorState)
-						.Image(FAppStyle::GetBrush(TEXT("Icons.Warning")))
-						.ColorAndOpacity(FLinearColor::Red)
+						SNew(SSeparator)
+						.SeparatorImage(FAppStyle::Get().GetBrush("Menu.Separator"))
+						.Orientation(Orient_Vertical)
+						.Thickness(1.0f)
+						.ColorAndOpacity(FLinearColor::Gray)
 					]
-				]
-				// ===================
-				// ADDITIONAL OPTIONS
-				// ===================
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				.HAlign(HAlign_Right)
-				.Padding(1,2,0,0)
-				[
-					CreateTimeSettingsWidget()
+					// ===================
+					// ADDITIONAL OPTIONS
+					// ===================
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.HAlign(HAlign_Right)
+					.Padding(6,2,0,0)
+					[
+						CreateTimeSettingsWidget()
+					]
 				]
 			]
 		]
-	]
-	+ SVerticalBox::Slot()
-	.AutoHeight()
-	.HAlign(HAlign_Fill)
-	[
-		SNew(SBox)
-		.MaxDesiredWidth(this, &SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetWidth)
-		.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetHeight)
-		.Padding(0.0f, 4.0f)
-		[
-			//SAssignNew(DialogueBox, SMultiLineEditableTextBox)
-			SAssignNew(DialogueBox, SMultiLineEditableText)
-			.Text(this, &SFlowGraphNode_YapFragmentWidget::GetDialogueText)
-			.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleDialogueTextCommitted)
-			.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
-			.HintText(INVTEXT("Enter full dialogue"))
-		]
 	];
+}
+
+FOptionalSize SFlowGraphNode_YapFragmentWidget::GetDialogueWidgetWidthAdjustment() const
+{
+	return 360 + GetDefault<UFlowYapProjectSettings>()->GetDialogueWidthAdjustment();
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::GetDialogueTextColor() const
+{
+	return GetFlowNodeYapDialogue()->GetIsPlayerPrompt() ? FLinearColor(0.8, 0.82, 1.0, 1.0) : FLinearColor(0.60, 0.60, 0.60, 1.0);
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::GetDialogueTextBackgroundColor() const
+{
+	return GetFlowNodeYapDialogue()->GetIsPlayerPrompt() ? FLinearColor::White : FLinearColor::Black;
 }
 
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
@@ -167,12 +257,11 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	.HeightOverride(74)
 	[
 		SNew(SBorder)
-		.ForegroundColor(FLinearColor::Red)
-		.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor)
+		//.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor)
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
 		.Padding(2.0f)
-		.BorderImage(FAppStyle::GetBrush("NotificationList.ItemBackground"))
+		.BorderImage(FAppStyle::Get().GetBrush("PropertyEditor.AssetThumbnailBorder"))
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
@@ -375,7 +464,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.AutoWidth()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		.Padding(0, 0, 0, 0)
+		.Padding(0, 0, 1, 0)
 		[
 			SNew(SCheckBox)
 			.Style(&ToggleButtonCheckBox_Orange)
@@ -395,7 +484,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.AutoWidth()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		.Padding(2, 0, 2, 0)
+		.Padding(1, 0, 1, 0)
 		[
 			SNew(SCheckBox)
 			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
@@ -414,7 +503,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.AutoWidth()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		.Padding(2, 0, 2, 0)
+		.Padding(1, 0, 1, 0)
 		[
 			SNew(SCheckBox)
 			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
@@ -435,7 +524,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.AutoWidth()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		.Padding(2, 0, 2, 0)
+		.Padding(1, 0, 1, 0)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
@@ -458,26 +547,31 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
-		.Padding(2, 0, 2, 0)
+		.Padding(1, 0, 1, 0)
+		.MaxWidth(51)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SNumericEntryBox<double>)
-				.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled)
-				.Delta(0.1)
-				.MinValue(0.0)
-				.MinDesiredValueWidth(48)
-				.Value(this, &SFlowGraphNode_YapFragmentWidget::GetEnteredTime)
-				.Justification(ETextJustify::Center)
-				.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleEnteredTimeChanged)
+				SNew(SBox)
+				[
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled)
+					.Delta(0.1)
+					.MinValue(0.0)
+					/* 8 pixels per side for border + 7 pixels per number... allow for 5 numbers */
+					.MinDesiredValueWidth(51)
+					.Value(this, &SFlowGraphNode_YapFragmentWidget::GetEnteredTime)
+					.Justification(ETextJustify::Center)
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleEnteredTimeChanged)
+				]
 			]
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(2, 0, 2, 0)
+		.Padding(1, 0, 2, 0)
 		[
 			SNew(SCheckBox)
 			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
@@ -499,12 +593,20 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 	return Box.ToSharedRef(); 
 }
 
+/*
+
+FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMinDialogueEditableTextWidgetWidth() const
+{
+	return 300;
+}
+*/
+
 FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetHeight() const
 {
 	int16 Deadspace = 15;
 	int16 LineHeight = 15;
 
-	int16 UnfocusedLines = 6;
+	int16 UnfocusedLines = 4;
 	int16 FocusedLines = 9;
 	
 	if (!DialogueBox.Get())
@@ -520,21 +622,27 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidget
 	return Deadspace + UnfocusedLines * LineHeight;
 }
 
+/*
 FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetWidth() const
 {
 	if (!DialogueBox.Get())
 	{
-		return 421;
+		return 300;
 	}
 	
 	if (DialogueBox->HasKeyboardFocus())
 	{
 		// TODO It feels weird to have the graph morphing around. Don't permit any stretching. Can I draw a whole new multiline widget over top of everything somehow eventually?
-		return 421;
+		return 300 + 74 + 5;
 	}
 
-	return 421;
+	return 300;
 }
+
+FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMinDialogueEditableTextWidgetHeight() const
+{
+}
+*/
 
 // -----------------------------------------------------------------------------------------------
 FText SFlowGraphNode_YapFragmentWidget::GetTitleText() const
@@ -575,7 +683,7 @@ void SFlowGraphNode_YapFragmentWidget::HandleDialogueTextCommitted(const FText& 
  // -----------------------------------------------------------------------------------------------
 FString SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetPath() const
 {
-	const UAkAudioEvent* Asset = GetFragment().GetDialogueAudio();
+	const UObject* Asset = GetFragment().GetDialogueAsset();
 
 	if (!Asset) { return ""; }
 
@@ -586,7 +694,7 @@ void SFlowGraphNode_YapFragmentWidget::HandleDialogueAudioAssetChanged(const FAs
 {
 	FFlowYapTransactions::BeginModify(INVTEXT("Audio Asset Changed"), GetFlowNodeYapDialogue());
 
-	GetFragment().SetDialogueAudio(Cast<UAkAudioEvent>(InAssetData.GetAsset()));
+	GetFragment().SetDialogueAudio(InAssetData.GetAsset());
 
 	FFlowYapTransactions::EndModify();
 }
@@ -803,6 +911,22 @@ EVisibility SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioButtonErrorStat
 	else
 	{
 		return EVisibility::Hidden;
+	}
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetIsValid() const
+{
+	UClass* AssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
+
+	const UObject* Asset = GetFragment().GetDialogueAsset();
+
+	if (Asset)
+	{
+		return (Asset->IsA(AssetClass)) ? EVisibility::Collapsed : EVisibility::HitTestInvisible;
+	}
+	else
+	{
+		return EVisibility::Collapsed;
 	}
 }
 

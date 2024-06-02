@@ -1,4 +1,5 @@
 #pragma once
+#include "FlowYapAssetWrapper.h"
 #include "FlowYapFragmentTimeSettings.h"
 
 #include "FlowYapFragment.generated.h"
@@ -15,7 +16,8 @@ struct FLOWYAP_API FFlowYapFragment
 	
 	FFlowYapFragment();
 #endif
-	
+
+	// Settings
 protected:
 	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
 	FText TitleText;
@@ -23,13 +25,9 @@ protected:
 	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
 	FText DialogueText;
 
-	// TODO soft pointer support for audio
+	// TODO soft pointer support for audio!
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UAkAudioEvent> DialogueAudio;
-
-	// TODO get rid of this
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UObject> GenericAudioTest;
+	TObjectPtr<UObject> DialogueAudio;
 
 	UPROPERTY(EditAnywhere)
 	bool bUseProjectDefaultTimeSettings = true;
@@ -40,6 +38,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey = NAME_None;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 ActivationLimit = 0;
+	
+	// State
+protected:
+	int32 ActivationCount = 0;
+	
 #if WITH_EDITOR
 protected:
 	int64 EditorID = -1;
@@ -54,9 +59,12 @@ public:
 
 	const FText& GetDialogueText() const;
 	void SetDialogueText(FText NewText);
+
+	template<class T>
+	const T* GetDialogueAsset() const { return Cast<T>(GetDialogueAsset()); };
 	
-	const UAkAudioEvent* GetDialogueAudio() const;
-	void SetDialogueAudio(UAkAudioEvent* NewAudio);
+	const UObject* GetDialogueAsset() const;
+	void SetDialogueAudio(UObject* NewAudio);
 
 	bool GetUsesProjectDefaultTimeSettings() const;
 	void SetUseProjectDefaultTimeSettings(bool NewValue);
@@ -94,11 +102,16 @@ public:
 	
 	FName GetPortraitKey() const;
 
+	int32 GetActivationCount() const;
+	
+	int32 GetActivationLimit() const;
+	
 #if WITH_EDITOR
 public:
 	void SetDialogueAudioFromAsset(const FAssetData& AssetData);
 	
 	bool HasDialogueAudioAsset() const;
-	
+
+	void SetActivationLimit(int32 NewValue);
 #endif
 };

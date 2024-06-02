@@ -3,7 +3,7 @@
 
 #include "FlowNode_YapConversationEnd.generated.h"
 
-UCLASS(NotBlueprintable, meta = (DisplayName = "Conversation End", Keywords = "event"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Conversation End", Keywords = "yap"))
 class FLOWYAP_API UFlowNode_YapConversationEnd : public UFlowNode
 {
 	GENERATED_BODY()

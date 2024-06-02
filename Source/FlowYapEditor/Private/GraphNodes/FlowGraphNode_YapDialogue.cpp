@@ -1,6 +1,7 @@
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 
 #include "FlowEditorCommands.h"
+#include "FlowYapColors.h"
 #include "FlowYapEditorCommands.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
@@ -39,4 +40,14 @@ void UFlowGraphNode_YapDialogue::GetNodeContextMenuActions(UToolMenu* Menu, UGra
 UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 {
 	return Cast<UFlowNode_YapDialogue>(GetFlowNode());
+}
+
+FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
+{
+	if (GetFlowYapNode()->GetIsPlayerPrompt())
+	{
+		return FLinearColor::White;
+	}
+
+	return FlowYapColors::Gray;
 }

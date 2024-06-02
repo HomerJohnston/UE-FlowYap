@@ -1,11 +1,16 @@
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #include "EdGraphUtilities.h"
+#include "FlowYapColors.h"
 #include "FlowYapTransactions.h"
 #include "GraphEditorSettings.h"
+#include "Blueprint/SlateBlueprintLibrary.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
+#include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Layout/SSeparator.h"
 
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
@@ -28,13 +33,18 @@ const UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogu
 }
 
 EVisibility SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility() const
-{
+{	
 	if (GetFlowYapDialogueNode()->GetNumFragments() > 1)
 	{
 		return EVisibility::Visible;
 	}
 
 	return EVisibility::Hidden;
+}
+
+FSlateColor SFlowGraphNode_YapDialogueWidget::GetFragmentMovementControlsColor() const
+{
+	return IsHovered() ? FlowYapColors::Gray : FlowYapColors::DarkGray;
 }
 
 FReply SFlowGraphNode_YapDialogueWidget::MoveFragment(bool bUp, int64 EditorID)
@@ -72,6 +82,23 @@ FReply SFlowGraphNode_YapDialogueWidget::MoveFragment(bool bUp, int64 EditorID)
 	return FReply::Handled();
 }
 
+FSlateColor SFlowGraphNode_YapDialogueWidget::GetFragmentSeparatorColor() const
+{
+	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? FLinearColor::Black : FlowYapColors::Gray;
+}
+
+TOptional<int32> SFlowGraphNode_YapDialogueWidget::GetActivationLimit(FFlowYapFragment* Fragment) const
+{
+	int32 Limit = Fragment->GetActivationLimit();
+
+	return Limit == 0 ? TOptional<int32>() : Limit;
+}
+
+void SFlowGraphNode_YapDialogueWidget::OnActivationLimitChanged(int32 NewValue, FFlowYapFragment* Fragment)
+{
+	Fragment->SetActivationLimit(NewValue);
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
 	SAssignNew(FragmentBox, SVerticalBox);
@@ -91,11 +118,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		{
 			FragmentBox->AddSlot()
 			.AutoHeight()
+			.Padding(0,8,0,9)
 			[
 				SNew(SSeparator)
+				.SeparatorImage(FAppStyle::Get().GetBrush("Menu.Separator"))
 				.Orientation(Orient_Horizontal)
-				.Thickness(10.0f)
-				.ColorAndOpacity(FLinearColor::White)
+				.Thickness(3.0f)
+				.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentSeparatorColor)
 			];
 		}
 
@@ -108,9 +137,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 			// LEFT PANE
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(0, 0, 0, 2)
+			.VAlign(VAlign_Fill)
 			[
 				SNew(SBox)
-				.MinDesiredWidth(40)
+				.WidthOverride(40)
 				[
 					SNew(SOverlay)
 					+ SOverlay::Slot()
@@ -120,59 +151,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 					]
 					+ SOverlay::Slot()
 					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Center)
 					[
-						// CONTROLS FOR UP/DELETE/DOWN
-						SNew(SVerticalBox)
-						// UP
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.VAlign(VAlign_Center)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SButton)
-							.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-							.ContentPadding(FMargin(8, 8))
-							.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
-							.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, true, Fragment.GetEditorID())
-							[
-								SNew(SImage)
-								.Image(FAppStyle::Get().GetBrush("Symbols.UpArrow"))
-								.ColorAndOpacity(FLinearColor(1,1,1,0.2))
-							]
-						]
-						// DELETE
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.VAlign(VAlign_Center)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SButton)
-							.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-							.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
-							.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::DeleteFragment, Fragment.GetEditorID())
-							[
-								SNew(SImage)
-								.Image(FAppStyle::GetBrush("Icons.Delete"))
-								.ColorAndOpacity(FLinearColor(1,1,1,0.2))
-							]
-						]
-						// DOWN
-						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.VAlign(VAlign_Center)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SButton)
-							.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-							.ContentPadding(FMargin(8, 8))
-							.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
-							.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, false, Fragment.GetEditorID())
-							[
-								SNew(SImage)
-								.Image(FAppStyle::Get().GetBrush("Symbols.DownArrow"))
-								.ColorAndOpacity(FLinearColor(1,1,1,0.2))
-							]
-						]
+						// ACTIVATION COUNT/LIMIT
+						SNew(SNumericEntryBox<int32>)
+						.OverrideTextMargin(FMargin(1, 3, 1, 3))
+						.MinDesiredValueWidth(30)
+						.Justification(ETextJustify::Center)
+						.Value(this, &SFlowGraphNode_YapDialogueWidget::GetActivationLimit, &Fragment)
+						.OnValueChanged(this, &SFlowGraphNode_YapDialogueWidget::OnActivationLimitChanged, &Fragment)
+						.EditableTextBoxStyle(FAppStyle::Get(), "SpecialEditableTextBox")
+						.BorderForegroundColor(FlowYapColors::Gray)
+						.BorderBackgroundColor(FLinearColor::Black)
 					]
 				]
 			]
@@ -186,9 +176,80 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 			// RIGHT PANE
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
-			.VAlign(VAlign_Top)
+			.VAlign(VAlign_Fill)
 			[
-				SAssignNew(RightSide, SVerticalBox)
+				SNew(SBox)
+				.MinDesiredWidth(40)
+				[
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SBox)
+						.VAlign(VAlign_Center)
+						.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+						[
+							// CONTROLS FOR UP/DELETE/DOWN
+							SNew(SVerticalBox)
+							// UP
+							+ SVerticalBox::Slot()
+							.AutoHeight()
+							.VAlign(VAlign_Center)
+							.HAlign(HAlign_Center)
+							.Padding(0, 2)
+							[
+								SNew(SButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.ContentPadding(FMargin(8, 8))
+								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, true, Fragment.GetEditorID())
+								[
+									SNew(SImage)
+									.Image(FAppStyle::Get().GetBrush("Symbols.UpArrow"))
+									.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementControlsColor)
+								]
+							]
+							// DELETE
+							+ SVerticalBox::Slot()
+							.AutoHeight()
+							.VAlign(VAlign_Center)
+							.HAlign(HAlign_Center)
+							.Padding(0, 2)
+							[
+								SNew(SButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::DeleteFragment, Fragment.GetEditorID())
+								[
+									SNew(SImage)
+									.Image(FAppStyle::GetBrush("Icons.Delete"))
+									.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementControlsColor)
+								]
+							]
+							// DOWN
+							+ SVerticalBox::Slot()
+							.AutoHeight()
+							.VAlign(VAlign_Center)
+							.HAlign(HAlign_Center)
+							.Padding(0, 2)
+							[
+								SNew(SButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.ContentPadding(FMargin(8, 8))
+								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, false, Fragment.GetEditorID())
+								[
+									SNew(SImage)
+									.Image(FAppStyle::Get().GetBrush("Symbols.DownArrow"))
+									.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementControlsColor)
+								]
+							]
+						]
+					]
+					+ SOverlay::Slot()
+					[
+						SAssignNew(RightSide, SVerticalBox)
+					]
+				]
 			]
 		];
 
@@ -223,9 +284,27 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 			SNew(SButton)
 			.Text(INVTEXT("Add"))
 			.HAlign(HAlign_Center)
+			//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetAddFragmentButtonVisibility)
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::AddFragment)
+			.ButtonColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::GetAddFragmentButtonColor)
+			.ForegroundColor(this, &SFlowGraphNode_YapDialogueWidget::GetAddFragmentTextColor)
 		]
 	];
+}
+
+EVisibility SFlowGraphNode_YapDialogueWidget::GetAddFragmentButtonVisibility() const
+{
+	return IsHovered() ? EVisibility::Visible : EVisibility::Hidden;
+}
+
+FSlateColor SFlowGraphNode_YapDialogueWidget::GetAddFragmentButtonColor() const
+{
+	return IsHovered() ? FLinearColor::White : 0.5 * FLinearColor::Gray;
+}
+
+FSlateColor SFlowGraphNode_YapDialogueWidget::GetAddFragmentTextColor() const
+{
+	return IsHovered() ? FLinearColor::White : 0.5 * FLinearColor::Gray;
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
@@ -303,35 +382,23 @@ FReply SFlowGraphNode_YapDialogueWidget::DeleteFragment(int64 FragmentID)
 	return FReply::Handled();
 }
 
-/*
-TSharedPtr<SGraphPin> SFlowGraphNode_YapDialogueWidget::CreatePinWidget(UEdGraphPin* Pin) const
+inline bool SFlowGraphNode_YapDialogueWidget::GetNormalisedMousePositionInGeometry(UObject* WorldContextObject, FGeometry Geometry, FVector2D& Position) const
 {
-	check(InPin != NULL);
-
-	// First give a shot to the registered pin factories
-	for (auto FactoryIt = FEdGraphUtilities::VisualPinFactories.CreateIterator(); FactoryIt; ++FactoryIt)
-	{
-		TSharedPtr<FGraphPanelPinFactory> FactoryPtr = *FactoryIt;
-		if (FactoryPtr.IsValid())
-		{
-			TSharedPtr<SGraphPin> ResultVisualPin = FactoryPtr->CreatePin(InPin);
-			if (ResultVisualPin.IsValid())
-			{
-				return ResultVisualPin;
-			}
-		}
-	}
-
-	if (const UEdGraphSchema_K2* K2Schema = Cast<const UEdGraphSchema_K2>(InPin->GetSchema()))
-	{
-		TSharedPtr<SGraphPin> K2PinWidget = CreateK2PinWidget(InPin);
-		if(K2PinWidget.IsValid())
-		{
-			return K2PinWidget;
-		}
-	}
 	
-	// If we didn't pick a custom pin widget, use an uncustomized basic pin
-	return SNew(SGraphPin, InPin);
+	FVector2D pixelPosition;
+	FVector2D viewportMinPosition;
+	FVector2D viewportMaxPosition;
+
+	// Get the top left and bottom right viewport positions
+	USlateBlueprintLibrary::LocalToViewport( WorldContextObject, Geometry, FVector2D( 0, 0 ), pixelPosition, viewportMinPosition );
+	USlateBlueprintLibrary::LocalToAbsolute(Geometry, pixelPosition);
+
+	// Get the mouse's current position in the viewport
+	FVector2D mousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport( WorldContextObject );
+
+	// Determine where the mouse is relative to the widget geometry
+	Position = ( mousePosition - viewportMinPosition ) / ( viewportMaxPosition - viewportMinPosition );
+
+	// Calculate if the mouse is inside the geometry or not
+	return FMath::Min( Position.X, Position.Y ) >= 0.f && FMath::Max( Position.X, Position.Y ) <= 1.f;
 }
-*/

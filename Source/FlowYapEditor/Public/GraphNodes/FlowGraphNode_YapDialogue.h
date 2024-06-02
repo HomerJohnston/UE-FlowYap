@@ -25,4 +25,6 @@ public:
 	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 
 	UFlowNode_YapDialogue* GetFlowYapNode() const;
+
+	FLinearColor GetNodeBodyTintColor() const override;
 };

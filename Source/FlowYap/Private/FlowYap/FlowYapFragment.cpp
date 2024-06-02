@@ -1,6 +1,5 @@
 #include "FlowYap/FlowYapFragment.h"
 
-#include "AkAudioEvent.h"
 #include "FlowYap/FlowYapProjectSettings.h"
 
 #if WITH_EDITOR
@@ -37,12 +36,12 @@ void FFlowYapFragment::SetDialogueText(FText NewText)
 	DialogueText = NewText;
 }
 
-const UAkAudioEvent* FFlowYapFragment::GetDialogueAudio() const
+const UObject* FFlowYapFragment::GetDialogueAsset() const
 {
 	return DialogueAudio;
 }
 
-void FFlowYapFragment::SetDialogueAudio(UAkAudioEvent* NewAudio)
+void FFlowYapFragment::SetDialogueAudio(UObject* NewAudio)
 {
 	DialogueAudio = NewAudio;
 }
@@ -194,14 +193,29 @@ FName FFlowYapFragment::GetPortraitKey() const
 	return PortraitKey;
 }
 
+int32 FFlowYapFragment::GetActivationCount() const
+{
+	return ActivationCount;
+}
+
+int32 FFlowYapFragment::GetActivationLimit() const
+{
+	return ActivationLimit;
+}
+
 #if WITH_EDITOR
 void FFlowYapFragment::SetDialogueAudioFromAsset(const FAssetData& AssetData)
 {
-	DialogueAudio = Cast<UAkAudioEvent>(AssetData.GetAsset());
+	DialogueAudio = AssetData.GetAsset();
 }
 
 bool FFlowYapFragment::HasDialogueAudioAsset() const
 {
 	return !!DialogueAudio;
+}
+
+void FFlowYapFragment::SetActivationLimit(int32 NewValue)
+{
+	ActivationLimit = NewValue;
 }
 #endif

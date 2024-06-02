@@ -32,7 +32,6 @@ public class FlowYap : ModuleRules
 			{
 				"Core",
 				"Flow",
-				"AkAudio",
 				"GameplayTags",
 				"Projects",
 				// ... add other public dependencies that you statically link with here ...

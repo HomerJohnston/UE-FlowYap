@@ -35,12 +35,13 @@ public class FlowYapEditor : ModuleRules
                 "EditorStyle",
                 "GraphEditor",
                 
-                "AkAudio",
-                
                 "EditorSubsystem",
                 "InputCore",
                 
-                "ToolMenus"
+                "PropertyEditor",
+                "ToolMenus",
+                
+                "UMG"
             }
         );
     }

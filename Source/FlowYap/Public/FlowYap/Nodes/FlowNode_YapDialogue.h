@@ -6,7 +6,13 @@
 
 class UFlowYapCharacter;
 
-UCLASS(NotBlueprintable)
+enum class EFlowYapMultipleInputBehavior : uint8
+{
+	Sequential,
+	Random
+};
+
+UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -14,16 +20,27 @@ public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
-protected:	
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UFlowYapCharacter> Character;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FFlowYapFragment> Fragments;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName ConversationName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsPlayerPrompt = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 NodeActivationLimit = 0;
+	
+	// STATE
+protected:
+	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
+	int32 NodeActivationCount = 0;
+	
 #if WITH_EDITORONLY_DATA
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -48,6 +65,12 @@ public:
 	
 	FText GetNodeTitle() const override;
 
+	bool GetIsPlayerPrompt() const;
+
+	int32 GetNodeActivationCount() const;
+
+	int32 GetNodeActivationLimit() const;
+	
 #if WITH_EDITOR
 	FFlowYapFragment& GetFragment(int64 FragmentID);
 #endif
@@ -89,7 +112,9 @@ public:
 	virtual TArray<FFlowPin> GetContextInputs() override;
 
 	virtual TArray<FFlowPin> GetContextOutputs() override;
-#endif
+	
+	void ToggleIsPlayerPrompt();
 
-	void PostLoad() override;
+	void SetNodeActivationLimit(int32 NewValue);	
+#endif
 };

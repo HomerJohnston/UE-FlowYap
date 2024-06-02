@@ -11,4 +11,7 @@ namespace FlowYapColors
 	inline FLinearColor Red = FLinearColor(0.95, 0.04, 0.06, 1.00);
 	inline FLinearColor RedHovered = FLinearColor(HOVER * Red.R, HOVER * Red.G, HOVER * Red.B, Red.A);
 	inline FLinearColor RedPressed = FLinearColor(PRESS * Red.R, PRESS * Red.G, PRESS * Red.B, Red.A);
+
+	inline FLinearColor Gray = FLinearColor(0.20, 0.20, 0.20, 1.00);
+	inline FLinearColor DarkGray = FLinearColor(0.03, 0.03, 0.03, 1.00);
 }

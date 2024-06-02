@@ -27,11 +27,21 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EFlowYapTimedMode AudioTimeFallbackTimedMode;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	UClass* DialogueAssetClass;
+	
 #if WITH_EDITORONLY_DATA
 protected:
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\PortraitKeys", simply type "Resources\\PortraitKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\PortraitKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath PortraitKeyIconPath;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -50, ClampMax = +200, UIMin = -50, UIMax = +200))
+	int32 DialogueWidthAdjustment;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bHideTitleTextOnNPCDialogueNodes = true;
+	
 #endif
 	
 #if WITH_EDITOR
@@ -51,4 +61,10 @@ public:
 	const FFlowYapFragmentTimeSettings& GetDefaultTimeSettings() const;
 
 	EFlowYapTimedMode GetAudioTimeFallbackTimedMode() const;
+	
+	UClass* GetDialogueAssetClass() const;
+
+	int32 GetDialogueWidthAdjustment() const;
+
+	bool GetHideTitleTextOnNPCDialogueNodes() const;
 };

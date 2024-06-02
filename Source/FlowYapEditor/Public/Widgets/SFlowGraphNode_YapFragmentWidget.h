@@ -30,17 +30,30 @@ protected:
 
 	int64 FragmentID = -1;
 
-	//TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
-	TSharedPtr<SMultiLineEditableText> DialogueBox;
+	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 
 	SVerticalBox DialogueEntries;
 	
 	FCheckBoxStyle ToggleButtonCheckBox_Orange;
 
 	FCheckBoxStyle UseAudioTimeButtonStyle;
+	
+	UClass* DialogueAssetClass = nullptr;
 
 protected:
+	EVisibility GetPortraitWidgetVisibility() const;
+
+	EVisibility GetTitleTextEntryVisibility() const;
+
+	FReply OnClickPortrait();
+	
 	TSharedRef<SWidget> CreateDialogueContentArea();
+
+	FOptionalSize GetDialogueWidgetWidthAdjustment() const;
+
+	FSlateColor GetDialogueTextColor() const;
+	
+	FSlateColor GetDialogueTextBackgroundColor() const;
 	
 	TSharedRef<SBox> CreatePortraitWidget();
 
@@ -59,10 +72,16 @@ protected:
 
 	TSharedRef<SBox> CreateTimeSettingsWidget();
 
-	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
-	
+	/*
+	FOptionalSize GetMinDialogueEditableTextWidgetWidth() const;
+
 	FOptionalSize GetMaxDialogueEditableTextWidgetWidth() const;
 
+	FOptionalSize GetMinDialogueEditableTextWidgetHeight() const;
+	*/
+	
+	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
+	
 	// Fragment settings
 protected:
 	FText GetTitleText() const;
@@ -106,6 +125,8 @@ protected:
 	
 	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
+	EVisibility GetSelectedDialogueAudioAssetIsValid() const;
+	
 protected:
 	
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
