@@ -48,7 +48,7 @@ void UFlowYapGraphCommandInjector::RegisterCommands(SFlowGraphEditor* FlowGraphE
 // ================================================================================================
 void UFlowYapGraphCommandInjector::ToggleMultipleInputs(SFlowGraphEditor* FlowGraphEditor)
 {
-	FFlowYapTransactions::BeginModify(INVTEXT("TODO"), this);
+	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueNode", "Toggle Multiple Inputs"), this);
 	
 	UEdGraphNode* Node = FlowGraphEditor->GetSingleSelectedNode();
 
@@ -77,7 +77,7 @@ bool UFlowYapGraphCommandInjector::MultipleInputsChecked(SFlowGraphEditor* FlowG
 // ------------------------------------------------------------------------------------------------
 void UFlowYapGraphCommandInjector::ToggleMultipleOutputs(SFlowGraphEditor* FlowGraphEditor)
 {
-	FFlowYapTransactions::BeginModify(INVTEXT("TODO"), this);
+	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueNode", "Toggle Multiple Outputs"), this);
 	
 	UEdGraphNode* Node = FlowGraphEditor->GetSingleSelectedNode();
 

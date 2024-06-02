@@ -48,7 +48,7 @@ FText UFlowNode_YapDialogue::GetSpeakerName() const
 {
 	if (!Character)
 	{
-		return INVTEXT("NO CHARACTER SET");
+		return LOCTEXT("DialogueNodeMissingCharacter", "NO CHARACTER SET");
 	}
 
 	return Character->GetEntityName();

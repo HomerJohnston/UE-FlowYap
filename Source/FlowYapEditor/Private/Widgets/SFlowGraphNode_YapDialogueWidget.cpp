@@ -62,8 +62,7 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::GetFragmentMovementControlsColor()
 
 FReply SFlowGraphNode_YapDialogueWidget::MoveFragment(bool bUp, int64 EditorID)
 {
-	// TODO remove all INVTEXT
-	FFlowYapTransactions::BeginModify(INVTEXT("Move Fragment"), GetFlowYapDialogueNode());
+	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueNode", "Move Fragment"), GetFlowYapDialogueNode());
 	
 	TArray<FFlowYapFragment>& Fragments = GetFlowYapDialogueNode()->GetFragments();
 
@@ -256,7 +255,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 								.ContentPadding(FMargin(8, 8))
-								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.ToolTipText(LOCTEXT("DialogueMoveFragmentUp_Tooltip", "Move Fragment Up"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, true, Fragment.GetEditorID())
 								[
 									SNew(SImage)
@@ -273,7 +272,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 							[
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.ToolTipText(LOCTEXT("DialogueDeleteFragment_Tooltip", "Delete Fragment"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::DeleteFragment, Fragment.GetEditorID())
 								[
 									SNew(SImage)
@@ -291,7 +290,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 								.ContentPadding(FMargin(8, 8))
-								//.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
+								.ToolTipText(LOCTEXT("DialogueMoveFragmentDown_Tooltip", "Move Fragment Down"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, false, Fragment.GetEditorID())
 								[
 									SNew(SImage)
@@ -329,7 +328,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 					.HAlign(HAlign_Center)
 					.VAlign(VAlign_Center)
 					.Padding(0)
-					.ToolTipText(FText::Format(INVTEXT("Set Activation Limit to {0}"), i + 1))
+					.ToolTipText(FText::Format(LOCTEXT("DialogueNode_Tooltip", "Set Activation Limit to {0}"), i + 1))
 					[
 						SNew(SButton)
 						.ButtonStyle(FCoreStyle::Get(), "SimpleButton")
@@ -337,7 +336,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 						.HAlign(HAlign_Center)
 						.VAlign(VAlign_Center)
 						.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClickedActivationDot, &Fragment, i)
-						.ToolTipText(FText::Format(INVTEXT("Set Activation Limit to {0}"), i + 1))
+						.ToolTipText(FText::Format(LOCTEXT("DialogueNode_Tooltip", "Set Activation Limit to {0}"), i + 1))
 						[
 							SNew(SImage)
 							.DesiredSizeOverride(FVector2D(Size, Size))
@@ -398,6 +397,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 			SNew(SButton)
 			.HAlign(HAlign_Center)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+			.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))
 			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetAddFragmentButtonVisibility)
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::AddFragment)
 			[
@@ -458,7 +458,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.Style(&UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White)
 		.Padding(FMargin(4, 0))
 		.CheckBoxContentUsesAutoWidth(true)
-		.ToolTipText(INVTEXT("Toggle Player Prompt Node"))
+		.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle Player Prompt Node"))
 		.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetIsUserPromptDialogue)
 		.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleUserPromptDialogueChanged)
 		.Content()
@@ -470,7 +470,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.Padding(6,0,6,1)
 			[
 				SNew(STextBlock)
-				.Text(INVTEXT("Prompt"))
+				.Text(LOCTEXT("DialogueNode", "Prompt"))
 				.ColorAndOpacity(FlowYapColors::DimGray)
 			]
 			+ SHorizontalBox::Slot()
@@ -543,6 +543,8 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		[
 			PinToAdd
 		];
+
+		PinToAdd->SetToolTipText(FText::Format(LOCTEXT("DialogueNode", "Input {0}"), Index));
 		
 		InputPins.Add(PinToAdd);
 	}
@@ -551,6 +553,8 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		if (PinToAdd->GetPinObj()->GetFName() == FName("Bypass"))
 		{
 			AddBypassPin(PinToAdd);
+
+			PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Bypass, executes immediately when this node (or all fragments) have reached activation limits"));
 		}
 		else
 		{
@@ -575,7 +579,9 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 			[
 				PinToAdd
 			];
-			
+
+			PinToAdd->SetToolTipText(FText::Format(LOCTEXT("DialogueNode", "Output {0}"), Index));
+
 			OutputPins.Add(PinToAdd);	
 		}
 	}
@@ -590,7 +596,7 @@ void SFlowGraphNode_YapDialogueWidget::AddBypassPin(const TSharedRef<SGraphPin>&
 
 FReply SFlowGraphNode_YapDialogueWidget::AddFragment()
 {
-	FFlowYapTransactions::BeginModify(INVTEXT("Add Fragment"), GetFlowYapDialogueNode());
+	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueAddFragment", "Add Fragment"), GetFlowYapDialogueNode());
 	
 	GetFlowYapDialogueNode()->AddFragment();
 
@@ -603,7 +609,7 @@ FReply SFlowGraphNode_YapDialogueWidget::AddFragment()
 
 FReply SFlowGraphNode_YapDialogueWidget::DeleteFragment(int64 FragmentID)
 {
-	FFlowYapTransactions::BeginModify(INVTEXT("Delete Fragment"), GetFlowYapDialogueNode());
+	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueDeleteFragment", "Delete Fragment"), GetFlowYapDialogueNode());
 
 	GetFlowYapDialogueNode()->RemoveFragmentByID(FragmentID);
 

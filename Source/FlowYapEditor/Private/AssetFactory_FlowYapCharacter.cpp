@@ -32,13 +32,13 @@ uint32 UAssetFactory_FlowYapCharacter::GetMenuCategories() const
 
 FText UAssetFactory_FlowYapCharacter::GetDisplayName() const
 {
-	return LOCTEXT("FlowYapCharacter", "FlowYapCharacter");
+	return LOCTEXT("FlowYapCharacter", "FlowYap Character");
 }
 
 // ================================================================================================
 FText FAssetTypeActions_FlowYapCharacter::GetName() const
 {
-	return INVTEXT("FlowYapCharacter");
+	return LOCTEXT("FlowYapCharacter", "FlowYap Character");
 }
 
 FColor FAssetTypeActions_FlowYapCharacter::GetTypeColor() const
