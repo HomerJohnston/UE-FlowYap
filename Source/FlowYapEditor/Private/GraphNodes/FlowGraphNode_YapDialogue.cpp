@@ -29,9 +29,9 @@ void UFlowGraphNode_YapDialogue::GetNodeContextMenuActions(UToolMenu* Menu, UGra
 {
 	Super::GetNodeContextMenuActions(Menu, Context);
 
-	const FFlowYapGraphCommands& Commands = FFlowYapGraphCommands::Get();
+	//const FFlowYapGraphCommands& Commands = FFlowYapGraphCommands::Get();
 	
-	FToolMenuSection& Test = Menu->AddSection("FlowYapActions", LOCTEXT("PinsSettings", "Pins Settings"));
+	//FToolMenuSection& Test = Menu->AddSection("FlowYapActions", LOCTEXT("PinsSettings", "Pins Settings"));
 
 	//Test.AddMenuEntry(Commands.ToggleMultipleInputs);
 	//Test.AddMenuEntry(Commands.ToggleMultipleOutputs);

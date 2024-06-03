@@ -8,6 +8,7 @@
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "FlowYapEditorSubsystem.h"
+#include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
 #include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
@@ -146,7 +147,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 				.HAlign(HAlign_Fill)
 				.Padding(0, 0, 0, 2)
 				[
-					SNew(SEditableTextBox)
+					SAssignNew(TitleTextBox, SEditableTextBox)
 					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetTitleTextEntryVisibility)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::GetTitleText)
 					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleTitleTextCommitted)
@@ -171,7 +172,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 						.HAlign(HAlign_Fill)
 						.VAlign(VAlign_Fill)
 						[
-							SNew(SObjectPropertyEntryBox)
+							SAssignNew(AudioAssetProperty, SObjectPropertyEntryBox)
 							.DisplayBrowse(true)
 							.DisplayUseSelected(false)
 							.DisplayThumbnail(false)
@@ -891,7 +892,22 @@ EVisibility SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetIsVal
 
 EVisibility SFlowGraphNode_YapFragmentWidget::DisplayAllLowerFragmentControls() const
 {
-	return Owner->IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
+	if (!Owner->GetIsSelected())
+	{
+		return EVisibility::Collapsed;
+	}
+	
+	if (Owner->GetFocusedFragment() == this)
+	{
+		return EVisibility::Visible;
+	}
+
+	if (Owner->GetControlHooked())
+	{
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -908,5 +924,25 @@ FFlowYapFragment& SFlowGraphNode_YapFragmentWidget::GetFragment() const
 FFlowYapFragment& SFlowGraphNode_YapFragmentWidget::GetFragmentMutable()
 {
 	return GetFlowNodeYapDialogue()->GetFragmentByID(FragmentID);
+}
+
+void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	const FGeometry& OwnerGeo = Owner->GetTickSpaceGeometry();
+	FVector2D OwnerSize = OwnerGeo.GetAbsoluteSize();
+	
+	FVector2D UL = OwnerGeo.GetAbsolutePosition() - FVector2D(50, 50);
+	FVector2D LR = UL + OwnerSize + FVector2D(50, 500);
+	
+	bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();
+
+	if (DialogueBox->HasKeyboardFocus() || TitleTextBox->HasKeyboardFocus())
+	{
+		Owner->SetFocusedFragment(this);
+	}
+	else
+	{
+		//Owner->ClearFocusedFragment(this);
+	}
 }
 #undef LOCTEXT_NAMESPACE

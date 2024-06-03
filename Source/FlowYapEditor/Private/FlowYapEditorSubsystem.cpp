@@ -6,6 +6,7 @@
 #include "FlowYap/FlowYapProjectSettings.h"
 #include "ImageUtils.h"
 #include "FlowYap/FlowYapEngineUtils.h"
+#include "FlowYapInputTracker.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -90,6 +91,10 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
 
 	CheckBoxStyles.ToggleButtonCheckBox_White.Padding = FMargin(0);
+
+	InputTracker = MakeShared<FFlowYapInputTracker>(this);
+
+	FSlateApplication::Get().RegisterInputPreProcessor(InputTracker);
 }
 
 void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
@@ -105,13 +110,20 @@ void UFlowYapEditorSubsystem::Deinitialize()
 {
 	UFlowYapProjectSettings* ProjectSettings = GetMutableDefault<UFlowYapProjectSettings>();
 	ProjectSettings->OnPortraitKeysChanged.RemoveAll(this);
-	
+
+	FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
+
 	Super::Deinitialize();
 }
 
 const FCheckBoxStyles& UFlowYapEditorSubsystem::GetCheckBoxStyles()
 {
 	return CheckBoxStyles;
+}
+
+FFlowYapInputTracker* UFlowYapEditorSubsystem::GetInputTracker()
+{
+	return InputTracker.Get();
 }
 
 #undef LOCTEXT_NAMESPACE

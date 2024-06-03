@@ -1,11 +1,11 @@
 #pragma once
 
-#include "FlowYap/FlowYapFragment.h"
 #include "Textures/SlateIcon.h"
 
 #include "FlowYapEditorSubsystem.generated.h"
 
 class UFlowYapCharacter;
+class FFlowYapInputTracker;
 
 struct FCheckBoxStyles
 {
@@ -45,6 +45,9 @@ private:
 protected:
 	static FCheckBoxStyles CheckBoxStyles;
 
+	// STATE
+	TSharedPtr<FFlowYapInputTracker> InputTracker;
+	
 public:
 	void UpdatePortraitKeyIconsMap();
 	
@@ -63,9 +66,11 @@ public:
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	void Deinitialize() override;
+	
 	void LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize = 16);
 	
-	void Deinitialize() override;
-
 	static const FCheckBoxStyles& GetCheckBoxStyles();
+
+	FFlowYapInputTracker* GetInputTracker();
 };

@@ -5,12 +5,15 @@
 #include "FlowEditorStyle.h"
 #include "FlowYapColors.h"
 #include "FlowYapEditorSubsystem.h"
+#include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
 #include "GraphEditorSettings.h"
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
+#include "Graph/FlowGraphEditor.h"
+#include "Graph/FlowGraphUtils.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
 #include "Widgets/Layout/SSeparator.h"
@@ -278,7 +281,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 					+ SOverlay::Slot()
 					[
 						SNew(SBox)
-						.VAlign(VAlign_Center)
+						.VAlign(VAlign_Bottom)
 						.Visibility(this, &SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility)
 						[
 							// CONTROLS FOR UP/DELETE/DOWN
@@ -288,16 +291,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 							.AutoHeight()
 							.VAlign(VAlign_Center)
 							.HAlign(HAlign_Center)
-							.Padding(0, 2)
+							.Padding(0, 1)
 							[
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-								.ContentPadding(FMargin(8, 8))
+								.ContentPadding(FMargin(4, 4))
 								.ToolTipText(LOCTEXT("DialogueMoveFragmentUp_Tooltip", "Move Fragment Up"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, true, Fragment.GetEditorID())
 								[
 									SNew(SImage)
 									.Image(FAppStyle::Get().GetBrush("Symbols.UpArrow"))
+									.DesiredSizeOverride(FVector2D(8,8))
 									.ColorAndOpacity(DialogueButtonsColor)
 								]
 							]
@@ -306,15 +310,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 							.AutoHeight()
 							.VAlign(VAlign_Center)
 							.HAlign(HAlign_Center)
-							.Padding(0, 2)
+							.Padding(0, 1)
 							[
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.ContentPadding(FMargin(4, 4))
 								.ToolTipText(LOCTEXT("DialogueDeleteFragment_Tooltip", "Delete Fragment"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::DeleteFragment, Fragment.GetEditorID())
 								[
 									SNew(SImage)
 									.Image(FAppStyle::GetBrush("Icons.Delete"))
+									.DesiredSizeOverride(FVector2D(8,8))
 									.ColorAndOpacity(DialogueButtonsColor)
 								]
 							]
@@ -323,16 +329,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 							.AutoHeight()
 							.VAlign(VAlign_Center)
 							.HAlign(HAlign_Center)
-							.Padding(0, 2)
+							.Padding(0, 1)
 							[
 								SNew(SButton)
 								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-								.ContentPadding(FMargin(8, 8))
+								.ContentPadding(FMargin(4, 4))
 								.ToolTipText(LOCTEXT("DialogueMoveFragmentDown_Tooltip", "Move Fragment Down"))
 								.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::MoveFragment, false, Fragment.GetEditorID())
 								[
 									SNew(SImage)
 									.Image(FAppStyle::Get().GetBrush("Symbols.DownArrow"))
+									.DesiredSizeOverride(FVector2D(8,8))
 									.ColorAndOpacity(DialogueButtonsColor)
 								]
 							]
@@ -722,6 +729,67 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 			}
 		}
 	}
+}
+
+void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
+
+	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
+
+	bool bControlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
+
+	if (bIsSelected)
+	{
+		bWasSelected = true;
+	}
+	
+	if (bIsSelected && bControlPressed)
+	{
+		bControlHooked = true;
+	}
+
+	if (!bIsSelected)
+	{
+		bWasSelected = false;
+		bControlHooked = false;
+		FocusedFragment = nullptr;
+	}
+}
+
+bool SFlowGraphNode_YapDialogueWidget::GetIsSelected() const
+{
+	return bIsSelected;
+}
+
+bool SFlowGraphNode_YapDialogueWidget::GetControlHooked() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("WTF %s"), *(bControlHooked ? FString("True") : FString("False")));
+	return bControlHooked;
+}
+
+void SFlowGraphNode_YapDialogueWidget::SetFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment)
+{
+	if (FocusedFragment != InFragment)
+	{
+		TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
+		GraphEditor->SetNodeSelection(FlowGraphNode, true);
+		
+		FocusedFragment = InFragment;
+	}
+}
+
+void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment)
+{
+	if (FocusedFragment == InFragment)
+	{
+		FocusedFragment = nullptr;
+	}
+}
+
+const SFlowGraphNode_YapFragmentWidget* SFlowGraphNode_YapDialogueWidget::GetFocusedFragment() const
+{
+	return FocusedFragment;
 }
 
 #undef LOCTEXT_NAMESPACE

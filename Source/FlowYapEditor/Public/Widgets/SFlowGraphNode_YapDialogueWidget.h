@@ -34,6 +34,15 @@ protected:
 	FLinearColor ConnectedBypassPinColor;
 	
 	FLinearColor DisconnectedBypassPinColor;
+
+	// STATE
+	bool bIsSelected = false;
+
+	bool bWasSelected = false;
+
+	bool bControlHooked = false;
+
+	const SFlowGraphNode_YapFragmentWidget* FocusedFragment = nullptr;
 	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
@@ -81,4 +90,16 @@ public:
 	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
 	
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
+
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+
+	bool GetIsSelected() const;
+
+	bool GetControlHooked() const;
+	
+	void SetFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+
+	void ClearFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+	
+	const SFlowGraphNode_YapFragmentWidget* GetFocusedFragment() const;
 };

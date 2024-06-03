@@ -7,6 +7,7 @@
 #include "Widgets/SUserWidget.h"
 #include "Widgets/Input/SSegmentedControl.h"
 
+class SObjectPropertyEntryBox;
 class SMultiLineEditableText;
 class SFlowGraphNode_YapDialogueWidget;
 class UFlowNode_YapDialogue;
@@ -24,18 +25,29 @@ public:
 	
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment);
 
+	// STATE
 protected:
-	// TODO: Is this safe?
-	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
+	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO: Is this safe?
 
 	int64 FragmentID = -1;
 
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 
+	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
+
+	TSharedPtr<SEditableTextBox> TitleTextBox;
+	
 	SVerticalBox DialogueEntries;
 	
 	UClass* DialogueAssetClass = nullptr;
 
+	bool bCursorContained = false;
+
+	bool bShiftPressed = false;
+	
+	bool bShiftCaptured = false;
+
+	
 protected:
 	EVisibility GetPortraitWidgetVisibility() const;
 
@@ -122,4 +134,6 @@ protected:
 	FFlowYapFragment& GetFragment() const;
 
 	FFlowYapFragment& GetFragmentMutable();
+
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };

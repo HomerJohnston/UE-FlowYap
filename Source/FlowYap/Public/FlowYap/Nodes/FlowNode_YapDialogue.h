@@ -18,7 +18,7 @@ enum class EFlowYapMultipleInputBehavior : uint8
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select and press CTRL to show all node contents"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
