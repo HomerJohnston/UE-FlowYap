@@ -9,6 +9,7 @@
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "FlowYapEditorSubsystem.h"
 #include "FlowYapTransactions.h"
+#include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
@@ -68,7 +69,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 		.AutoHeight()
 		[
 			SNew(SBox)
-			.MinDesiredHeight(86)
+			.MinDesiredHeight(85)
 			[
 				SNew(SHorizontalBox)
 				// ===================
@@ -104,21 +105,22 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Top)
 				.AutoWidth()
-				.Padding(2.f, 5.f, 5.f, 5.f)
+				.Padding(2, 5, 1, 5)
 				[
 					SNew(SOverlay)
 					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetPortraitWidgetVisibility)
 					+ SOverlay::Slot()
+					.Padding(2, 1, 0, 0)
 					[
 						CreatePortraitWidget()
 					]
 					+ SOverlay::Slot()
-					.HAlign(HAlign_Right)
 					.VAlign(VAlign_Bottom)
-					.Padding(FMargin(0, 0, 2, 2))
+					.HAlign(HAlign_Right)
+					.Padding(0, 0, 2, 2)
 					[
 						CreatePortraitKeySelector()
-					]
+					]	
 				]
 			]
 		]
@@ -132,9 +134,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 		[
 			SNew(SBox)
 			.WidthOverride(400)
-			.HeightOverride(52)
+			//.HeightOverride(52)
 			[
 				SNew(SVerticalBox)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DisplayAllLowerFragmentControls)
 				// ===================
 				// TITLE TEXT
 				// ===================
@@ -185,7 +188,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 							SNew(SImage)
 							.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioButtonErrorState)
 							.Image(FAppStyle::GetBrush("MarqueeSelection"))
-							.ColorAndOpacity(FlowYapColors::Orange)
+							.ColorAndOpacity(FlowYapColor::Orange)
 						]
 						+ SOverlay::Slot()
 						.HAlign(HAlign_Fill)
@@ -247,7 +250,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	.HeightOverride(74)
 	[
 		SNew(SBorder)
-		//.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor)
+		//.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor) // doesn't do shit
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
 		.Padding(2.0f)
@@ -260,7 +263,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			[
 				SNew(SImage)
 				.Image(this, &SFlowGraphNode_YapFragmentWidget::GetPortraitBrush)
-			]
+			]		
 			+ SOverlay::Slot()
 			.VAlign(VAlign_Center)
 			.HAlign(HAlign_Center)
@@ -269,7 +272,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 				.RenderTransformPivot(FVector2D(0.5, 0.5))
 				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-30.0f))))
 				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GetVisibilityForMissingPortraitText)
-				.Text(LOCTEXT("CharacterMissing", "Missing"))
+				.Text(LOCTEXT("FragmentCharacterMissing", "Missing"))
 			]
 		]
 	];
@@ -309,9 +312,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::GetVisibilityForMissingPortraitTex
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitKeySelector()
 {
 	TSharedPtr<SBox> Box;
-	
-	FMenuBuilder MenuBuilder(true, NULL);
-	
+	FMenuBuilder MenuBuilder(true, nullptr);
 	FName SelectedPortraitKey = GetPortraitKey();
 
 	for (const FName& PortraitKey : GetDefault<UFlowYapProjectSettings>()->GetPortraitKeys())
@@ -382,7 +383,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitKeyMenuEntry
 	{
 		HBox->AddSlot()
 		.AutoWidth()
-		.Padding(0.f)
+		.Padding(0, 0, 0, 0)
 		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Center)
 		[
@@ -550,7 +551,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(1, 0, 2, 0)
+		.Padding(1, 0, 0, 0)
 		[
 			SNew(SCheckBox)
 			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
@@ -886,6 +887,11 @@ EVisibility SFlowGraphNode_YapFragmentWidget::GetSelectedDialogueAudioAssetIsVal
 	{
 		return EVisibility::Collapsed;
 	}
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::DisplayAllLowerFragmentControls() const
+{
+	return Owner->IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 // -----------------------------------------------------------------------------------------------

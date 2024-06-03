@@ -65,9 +65,9 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
 }
 
 #define INITALIZE_CHECKBOX_STYLE(Name, Color) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
-	CheckBoxStyles.Name##.CheckedImage.TintColor = FLinearColor(FlowYapColors::##Color##);\
-	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColors::##Color##Hovered);\
-	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FLinearColor(FlowYapColors::##Color##Pressed)\
+	CheckBoxStyles.Name##.CheckedImage.TintColor = FLinearColor(FlowYapColor::##Color##);\
+	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColor::##Color##Hovered);\
+	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FLinearColor(FlowYapColor::##Color##Pressed)\
 
 void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -88,6 +88,8 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Orange, Orange);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
+
+	CheckBoxStyles.ToggleButtonCheckBox_White.Padding = FMargin(0);
 }
 
 void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)

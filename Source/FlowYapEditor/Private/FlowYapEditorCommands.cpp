@@ -15,8 +15,8 @@ FFlowYapGraphCommands::FFlowYapGraphCommands()
 // ================================================================================================
 void FFlowYapGraphCommands::RegisterCommands()
 {
-	UI_COMMAND(ToggleMultipleInputs, "Enable Multiple Inputs", "TODO.", EUserInterfaceActionType::ToggleButton, FInputChord());
-	UI_COMMAND(ToggleMultipleOutputs, "Enable Multiple Outputs", "TODO.", EUserInterfaceActionType::ToggleButton, FInputChord());
+	//UI_COMMAND(ToggleMultipleInputs, "Enable Multiple Inputs", "TODO.", EUserInterfaceActionType::ToggleButton, FInputChord());
+	//UI_COMMAND(ToggleMultipleOutputs, "Enable Multiple Outputs", "TODO.", EUserInterfaceActionType::ToggleButton, FInputChord());
 }
 
 // ================================================================================================
@@ -24,14 +24,15 @@ void UFlowYapGraphCommandInjector::RegisterCommands(SFlowGraphEditor* FlowGraphE
 {
 	FFlowYapGraphCommands::Register();
 	
-	const FFlowYapGraphCommands& GraphCommands = FFlowYapGraphCommands::Get();
+	//const FFlowYapGraphCommands& GraphCommands = FFlowYapGraphCommands::Get();
 
 	/*
 	FUIAction Action( FExecuteAction::CreateSP(this, &ThisClass::, EVisualizerViewMode::Coalesced ),
 				FCanExecuteAction(),
 				FIsActionChecked::CreateSP( this, &SEventsTree::CheckViewMode, EVisualizerViewMode::Coalesced ) );
 	*/
-	
+
+	/*
 	CommandList->MapAction(
 		GraphCommands.ToggleMultipleInputs,
 		FExecuteAction::CreateUObject(this, &UFlowYapGraphCommandInjector::ToggleMultipleInputs, FlowGraphEditor),
@@ -43,6 +44,7 @@ void UFlowYapGraphCommandInjector::RegisterCommands(SFlowGraphEditor* FlowGraphE
 		FExecuteAction::CreateUObject(this, &UFlowYapGraphCommandInjector::ToggleMultipleOutputs, FlowGraphEditor),
 		FCanExecuteAction::CreateUObject(this, &UFlowYapGraphCommandInjector::CanToggleMultipleOutputs, FlowGraphEditor),
 		FIsActionChecked::CreateUObject(this, &UFlowYapGraphCommandInjector::MultipleOutputsChecked, FlowGraphEditor));
+		*/
 }
 
 // ================================================================================================
@@ -54,14 +56,18 @@ void UFlowYapGraphCommandInjector::ToggleMultipleInputs(SFlowGraphEditor* FlowGr
 
 	UFlowGraphNode_YapDialogue* YapNode = Cast<UFlowGraphNode_YapDialogue>(Node);
 
-	YapNode->GetFlowYapNode()->ToggleMultipleInputs();
+	//YapNode->GetFlowYapNode()->ToggleMultipleInputs();
 
 	FFlowYapTransactions::EndModify();
 }
 
 bool UFlowYapGraphCommandInjector::CanToggleMultipleInputs(SFlowGraphEditor* FlowGraphEditor) const
 {
-	return true;
+	UEdGraphNode* Node = FlowGraphEditor->GetSingleSelectedNode();
+
+	UFlowGraphNode_YapDialogue* YapNode = Cast<UFlowGraphNode_YapDialogue>(Node);
+
+	return YapNode->GetFlowYapNode()->GetIsPlayerPrompt() ? false : true;
 }
 
 bool UFlowYapGraphCommandInjector::MultipleInputsChecked(SFlowGraphEditor* FlowGraphEditor) const
@@ -70,7 +76,7 @@ bool UFlowYapGraphCommandInjector::MultipleInputsChecked(SFlowGraphEditor* FlowG
 
 	UFlowGraphNode_YapDialogue* YapNode = Cast<UFlowGraphNode_YapDialogue>(Node);
 
-	return YapNode->GetFlowYapNode()->UsesMultipleInputs();
+	return YapNode->GetFlowYapNode()->GetUsesMultipleInputs();
 }
 
 
@@ -83,7 +89,7 @@ void UFlowYapGraphCommandInjector::ToggleMultipleOutputs(SFlowGraphEditor* FlowG
 
 	UFlowGraphNode_YapDialogue* YapNode = Cast<UFlowGraphNode_YapDialogue>(Node);
 
-	YapNode->GetFlowYapNode()->ToggleMultipleOutputs();
+	//YapNode->GetFlowYapNode()->ToggleMultipleOutputs();
 
 	FFlowYapTransactions::EndModify();
 }
@@ -99,7 +105,7 @@ bool UFlowYapGraphCommandInjector::MultipleOutputsChecked(SFlowGraphEditor* Flow
 
 	UFlowGraphNode_YapDialogue* YapNode = Cast<UFlowGraphNode_YapDialogue>(Node);
 
-	return YapNode->GetFlowYapNode()->UsesMultipleOutputs();
+	return YapNode->GetFlowYapNode()->GetUsesMultipleOutputs();
 }
 // ------------------------------------------------------------------------------------------------
 #undef LOCTEXT_NAMESPACE

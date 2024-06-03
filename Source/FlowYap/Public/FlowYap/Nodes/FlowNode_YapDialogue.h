@@ -52,11 +52,11 @@ protected:
 	
 #if WITH_EDITORONLY_DATA
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bMultipleInputs;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//bool bMultipleInputs;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bMultipleOutputs;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//bool bMultipleOutputs;
 #endif
 	// API
 public:
@@ -110,13 +110,9 @@ public:
 
 	bool SupportsContextPins() const override;
 	
-	void ToggleMultipleInputs();
+	bool GetUsesMultipleInputs();
 	
-	bool UsesMultipleInputs();
-	
-	void ToggleMultipleOutputs();
-	
-	bool UsesMultipleOutputs();
+	bool GetUsesMultipleOutputs();
 	
 	virtual TArray<FFlowPin> GetContextInputs() override;
 

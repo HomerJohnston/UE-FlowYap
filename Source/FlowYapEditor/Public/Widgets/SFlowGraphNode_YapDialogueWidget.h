@@ -24,6 +24,16 @@ protected:
 	TSharedPtr<SBox> BypassOutputBox;
 
 	FTextBlockStyle NormalText;
+
+	FLinearColor DialogueButtonsColor;
+
+	FLinearColor ConnectedPinColor;
+	
+	FLinearColor DisconnectedPinColor;
+
+	FLinearColor ConnectedBypassPinColor;
+	
+	FLinearColor DisconnectedBypassPinColor;
 	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
@@ -34,8 +44,6 @@ public:
 
 protected:
 	EVisibility GetFragmentMovementVisibility() const;
-
-	FSlateColor GetFragmentMovementControlsColor() const;
 
 	FReply MoveFragment(bool bUp, int64 Index);
 
@@ -48,6 +56,8 @@ protected:
 	FSlateColor GetActivationDotColor(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
 
 	FReply OnClickedActivationDot(FFlowYapFragment* Fragment, int ActivationIndex);
+
+	EVisibility GetActivationIndicatorVisibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
 	
 	TSharedRef<SWidget> CreateNodeContentArea() override;
 
@@ -57,9 +67,7 @@ protected:
 	
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	EVisibility GetAddFragmentButtonVisibility() const;
-	
-	FSlateColor GetAddFragmentButtonColor() const;
+	EVisibility GetDialogueFragmentButtonsVisibility() const;
 	
 	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
 

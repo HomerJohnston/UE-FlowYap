@@ -10,9 +10,10 @@ public:
 	/** Default constructor. */
 	FFlowYapGraphCommands();
 
-	TSharedPtr<FUICommandInfo> ToggleMultipleInputs;
-	TSharedPtr<FUICommandInfo> ToggleMultipleOutputs;
-
+	// Keeping these as examples for now
+	//TSharedPtr<FUICommandInfo> ToggleMultipleInputs;
+	//TSharedPtr<FUICommandInfo> ToggleMultipleOutputs;
+	
 	void RegisterCommands() override;
 };
 

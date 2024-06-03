@@ -7,7 +7,7 @@
 	inline FLinearColor Name##Hovered = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, AA);\
 	inline FLinearColor Name##Pressed = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, AA)
 
-namespace FlowYapColors
+namespace FlowYapColor
 {
 	DECLARE_COLOR(Orange,		0.78, 0.38, 0.05, 1.00);
 	
@@ -19,6 +19,8 @@ namespace FlowYapColors
 	
 	DECLARE_COLOR(LightBlue,	0.34, 0.42, 1.00, 1.00);
 	DECLARE_COLOR(Blue,			0.04, 0.06, 0.95, 1.00);
+	DECLARE_COLOR(DimBlue,		0.03, 0.04, 0.35, 1.00);
+	DECLARE_COLOR(DarkBlue,		0.01, 0.01, 0.10, 1.00);
 
 	DECLARE_COLOR(White,		1.00, 1.00, 1.00, 1.00);
 	DECLARE_COLOR(LightGray,	0.50, 0.50, 0.50, 1.00);
@@ -28,4 +30,7 @@ namespace FlowYapColors
 	DECLARE_COLOR(DeepGray,		0.01, 0.01, 0.01, 1.00);
 	DECLARE_COLOR(Noir,			0.005, 0.005, 0.005, 1.00);
 	DECLARE_COLOR(Noir_Trans,	0.005, 0.005, 0.005, 0.50);
+	DECLARE_COLOR(Black,		0.00, 0.00, 0.00, 1.00);
+
+	DECLARE_COLOR(Transparent,	1.00, 1.00, 1.00, 0.00);
 }

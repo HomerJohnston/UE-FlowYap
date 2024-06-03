@@ -29,9 +29,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 		InputPins.Add(Index);
 		OutputPins.Add(Index);
 	}
-
-	bMultipleInputs = false;
-	bMultipleOutputs = false;
 }
 
 void UFlowNode_YapDialogue::SetConversationName(FName Name)
@@ -135,16 +132,6 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 	}
 
 	return GetSpeakerName();
-	/*
-	if (bIsPlayerPrompt)
-	{
-		return FText::Join(FText::FromString(" "), FText::FromString("(PROMPT)"), GetSpeakerName());
-	}
-	else
-	{
-		return GetSpeakerName();
-	}
-	*/
 }
 
 bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
@@ -232,49 +219,35 @@ bool UFlowNode_YapDialogue::SupportsContextPins() const
 	return true;
 }
 
-void UFlowNode_YapDialogue::ToggleMultipleInputs()
+bool UFlowNode_YapDialogue::GetUsesMultipleInputs()
 {
-	bMultipleInputs = !bMultipleInputs;
-
-	OnReconstructionRequested.ExecuteIfBound();
+	if (GetIsPlayerPrompt())
+	{
+		return false;
+	}
+	
+	return true;
 }
 
-bool UFlowNode_YapDialogue::UsesMultipleInputs()
+bool UFlowNode_YapDialogue::GetUsesMultipleOutputs()
 {
-	return bMultipleInputs;
-}
-
-void UFlowNode_YapDialogue::ToggleMultipleOutputs()
-{
-	bMultipleOutputs = !bMultipleOutputs;
-
-	OnReconstructionRequested.ExecuteIfBound();
-}
-
-bool UFlowNode_YapDialogue::UsesMultipleOutputs()
-{
-	return bMultipleOutputs;
+	return true;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 {
 	InputPins.Empty();
 
-	if (bMultipleInputs)
+	TArray<FFlowPin> ContextInputPins;
+
+	uint8 NumPins = GetUsesMultipleInputs() ? Fragments.Num() : 1;
+
+	for (uint8 Index = 0; Index < NumPins; ++Index)
 	{
-		TArray<FFlowPin> ContextInputPins;
-
-		uint8 Index = 0;
-	
-		for (FFlowYapFragment& Fragment : Fragments)
-		{
-			ContextInputPins.Add(Index++);
-		}
-
-		return ContextInputPins;	
+		ContextInputPins.Add(FName("In", Index));
 	}
 
-	return { 0 };
+	return ContextInputPins;	
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
@@ -284,11 +257,11 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 
 	TArray<FFlowPin> ContextOutputPins;
 
-	uint8 NumPins = bMultipleOutputs ? Fragments.Num() : 1;
+	uint8 NumPins = GetUsesMultipleOutputs() ? Fragments.Num() : 1;
 	
 	for (uint8 Index = 0; Index < NumPins; ++Index)
 	{
-		ContextOutputPins.Add(Index);
+		ContextOutputPins.Add(FName("Out", Index));
 	}
 	
 	ContextOutputPins.Add(FName("Bypass"));
@@ -299,6 +272,8 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
 {
 	bIsPlayerPrompt = NewValue;
+
+	OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)

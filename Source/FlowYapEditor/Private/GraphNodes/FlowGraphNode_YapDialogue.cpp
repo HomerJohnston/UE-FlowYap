@@ -33,8 +33,8 @@ void UFlowGraphNode_YapDialogue::GetNodeContextMenuActions(UToolMenu* Menu, UGra
 	
 	FToolMenuSection& Test = Menu->AddSection("FlowYapActions", LOCTEXT("PinsSettings", "Pins Settings"));
 
-	Test.AddMenuEntry(Commands.ToggleMultipleInputs);
-	Test.AddMenuEntry(Commands.ToggleMultipleOutputs);
+	//Test.AddMenuEntry(Commands.ToggleMultipleInputs);
+	//Test.AddMenuEntry(Commands.ToggleMultipleOutputs);
 }
 
 UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
@@ -57,6 +57,6 @@ FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 
 FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
 {
-	// TODO
-	return FSlateIcon();
+	return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
 }
+

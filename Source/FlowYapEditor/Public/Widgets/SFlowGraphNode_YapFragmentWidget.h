@@ -113,7 +113,8 @@ protected:
 	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
 	EVisibility GetSelectedDialogueAudioAssetIsValid() const;
-	
+
+	EVisibility DisplayAllLowerFragmentControls() const;
 protected:
 	
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
