@@ -54,7 +54,7 @@ public:
 protected:
 	EVisibility GetFragmentMovementVisibility() const;
 
-	FReply MoveFragment(bool bUp, int64 Index);
+	FReply MoveFragment(bool bUp, FFlowYapFragment* Fragment);
 
 	FSlateColor GetFragmentSeparatorColor() const;
 
@@ -67,7 +67,17 @@ protected:
 	FReply OnClickedActivationDot(FFlowYapFragment* Fragment, int ActivationIndex);
 
 	EVisibility GetActivationIndicatorVisibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
-	
+
+	EVisibility GetDialogueCycleFragmentSequencingVisibility() const;
+
+	FReply HandleDialogueCycleFragmentSequencingClicked();
+
+	const FSlateBrush* GetDialogueFragmentSequencingIcon() const;
+
+	FText GetDialogueCycleFragmentSequencingTooltip() const;
+
+	FSlateColor GetDialogueCycleFragmentSequencingColor() const;
+
 	TSharedRef<SWidget> CreateNodeContentArea() override;
 
 	ECheckBoxState GetIsUserPromptDialogue() const;
@@ -85,7 +95,7 @@ protected:
 	FReply AddFragment();
 
 public:
-	FReply DeleteFragment(int64 FragmentID);
+	FReply DeleteFragment(FFlowYapFragment* Fragment);
 	
 	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
 	
@@ -103,3 +113,4 @@ public:
 	
 	const SFlowGraphNode_YapFragmentWidget* GetFocusedFragment() const;
 };
+

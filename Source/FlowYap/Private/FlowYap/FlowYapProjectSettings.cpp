@@ -3,6 +3,7 @@
 #include "FlowYap/FlowYapProjectSettings.h"
 
 #include "FlowYap/FlowYapEngineUtils.h"
+#include "FlowYap/FlowYapTextCalculator.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -10,7 +11,9 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 {
 	PortraitKeyIconPath.Path = "";
 
-	AudioTimeFallbackTimedMode = EFlowYapTimedMode::None;
+	DefaultTimeMode = EFlowYapTimeMode::AudioLength;
+	
+	AudioTimeFallbackTimedMode = EFlowYapTimeMode::TextLength;
 	
 	DialogueWidthAdjustment = 0;
 
@@ -19,6 +22,10 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	MinimumAutoTextTimeLength = 2.5;
 
 	MinimumAutoAudioTimeLength = 1.0;
+
+	TextCalculator = UFlowYapTextCalculator::StaticClass();
+
+	AudioTimeCacher = UFlowYapAudioTimeCacher::StaticClass();
 }
 
 #if WITH_EDITOR
@@ -54,7 +61,7 @@ const FFlowYapFragmentTimeSettings& UFlowYapProjectSettings::GetDefaultTimeSetti
 	return DefaultTimeSettings;
 }
 
-EFlowYapTimedMode UFlowYapProjectSettings::GetAudioTimeFallbackTimedMode() const
+EFlowYapTimeMode UFlowYapProjectSettings::GetInvalidAudioFallbackTimeMode() const
 {
 	return AudioTimeFallbackTimedMode;
 }

@@ -1,10 +1,12 @@
 #pragma once
 
-#include "FlowYapFragmentTimeSettings.h"
-#include "GameplayTagContainer.h"
+#include "FlowYapAudioTimeCacher.h"
+#include "FlowYapTimeMode.h"
 #include "Engine/DeveloperSettings.h"
 
 #include "FlowYapProjectSettings.generated.h"
+
+class UFlowYapTextCalculator;
 
 UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class FLOWYAP_API UFlowYapProjectSettings : public UDeveloperSettings
@@ -22,10 +24,14 @@ protected:
 	TArray<FName> PortraitKeys;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FFlowYapFragmentTimeSettings DefaultTimeSettings;
+	EFlowYapTimeMode DefaultTimeMode;
 
+	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	EFlowYapTimedMode AudioTimeFallbackTimedMode;
+	float DialoguePaddingTime = 0.5f;
+	
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	EFlowYapTimeMode AudioTimeFallbackTimedMode;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180))
 	int32 TextWordsPerMinute;
@@ -50,7 +56,12 @@ protected:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHideTitleTextOnNPCDialogueNodes = true;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSubclassOf<UFlowYapTextCalculator> TextCalculator;
 	
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacher;
 #endif
 	
 #if WITH_EDITOR
@@ -67,9 +78,9 @@ public:
 #endif
 
 public:
-	const FFlowYapFragmentTimeSettings& GetDefaultTimeSettings() const;
+	const EFlowYapTimeMode GetDefaultTimeMode() const { return DefaultTimeMode; }
 
-	EFlowYapTimedMode GetAudioTimeFallbackTimedMode() const;
+	EFlowYapTimeMode GetInvalidAudioFallbackTimeMode() const;
 	
 	UClass* GetDialogueAssetClass() const;
 
@@ -82,4 +93,10 @@ public:
 	double GetMinimumAutoTextTimeLength() const;
 	
 	double GetMinimumAutoAudioTimeLength() const;
+
+#if WITH_EDITOR
+	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?
+	
+	TSubclassOf<UFlowYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; };
+#endif
 };

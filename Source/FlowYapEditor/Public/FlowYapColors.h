@@ -9,6 +9,8 @@
 
 namespace FlowYapColor
 {
+	DECLARE_COLOR(LightOrange,	0.85, 0.55, 0.15, 1.00);
+	DECLARE_COLOR(BrightOrange,	1.00, 0.65, 0.05, 1.00);
 	DECLARE_COLOR(Orange,		0.78, 0.38, 0.05, 1.00);
 	
 	DECLARE_COLOR(LightRed,		0.95, 0.34, 0.42, 1.00);

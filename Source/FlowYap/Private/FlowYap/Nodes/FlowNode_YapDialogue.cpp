@@ -15,7 +15,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 
 	bIsPlayerPrompt = false;
 	NodeActivationLimit = 0;
-	MultipleInputBehavior = EFlowYapMultipleInputBehavior::Sequential;
+	MultipleFragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
 
 	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
@@ -99,29 +99,27 @@ const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& Request
 	}
 }
 
-#if WITH_EDITOR
-FFlowYapFragment& UFlowNode_YapDialogue::GetFragmentByID(int64 FragmentID)
-{
-	FFlowYapFragment* FoundFragment = Fragments.FindByPredicate(
-		[&](FFlowYapFragment& Fragment)
-	{
-		return Fragment.GetEditorID() == FragmentID;
-	});
-
-	check(FoundFragment);
-
-	return *FoundFragment;
-}
-#endif
-
 TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
 {
 	return Fragments;
 }
 
-int16 UFlowNode_YapDialogue::GetNumFragments() const
+uint8 UFlowNode_YapDialogue::GetNumFragments() const
 {
 	return Fragments.Num();
+}
+
+int16 UFlowNode_YapDialogue::FindFragmentIndex(FFlowYapFragment* InFragment) const
+{
+	for (uint8 i = 0; i < Fragments.Num(); ++i)
+	{
+		if (&Fragments[i] == InFragment)
+		{
+			return i;
+		}
+	}
+
+	return INDEX_NONE;
 }
 
 FText UFlowNode_YapDialogue::GetNodeTitle() const
@@ -182,24 +180,6 @@ void UFlowNode_YapDialogue::AddFragment()
 	OnReconstructionRequested.ExecuteIfBound();
 }
 
-void UFlowNode_YapDialogue::RemoveFragmentByID(int64 EditorID)
-{
-	Fragments.RemoveAll(
-		[&]
-		(FFlowYapFragment& Fragment)
-		{
-			if (Fragments.Num() <= 1)
-			{
-				return false;
-			}
-			
-			return Fragment.GetEditorID() == EditorID;
-		}
-	);
-	
-	OnReconstructionRequested.ExecuteIfBound();
-}
-
 #if WITH_EDITOR
 
 bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
@@ -221,17 +201,17 @@ bool UFlowNode_YapDialogue::SupportsContextPins() const
 
 bool UFlowNode_YapDialogue::GetUsesMultipleInputs()
 {
-	if (GetIsPlayerPrompt())
-	{
-		return false;
-	}
-	
-	return true;
+	return false;
 }
 
 bool UFlowNode_YapDialogue::GetUsesMultipleOutputs()
 {
 	return true;
+}
+
+EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing() const
+{
+	return MultipleFragmentSequencing;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
@@ -272,13 +252,35 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
 {
 	bIsPlayerPrompt = NewValue;
-
-	OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 {
 	NodeActivationLimit = NewValue;
+}
+
+void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
+{
+	uint8 AsInt = static_cast<uint8>(MultipleFragmentSequencing);
+
+	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
+	{
+		AsInt = 0;
+	}
+
+	MultipleFragmentSequencing = static_cast<EFlowYapMultipleFragmentSequencing>(AsInt);
+}
+
+void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
+{
+	if (!Fragments.IsValidIndex(DeleteIndex))
+	{
+		UE_LOG(FlowYap, Error, TEXT("Invalid deletion index!"));
+	}
+	
+	Fragments.RemoveAt(DeleteIndex);
+	
+	OnReconstructionRequested.ExecuteIfBound();
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const

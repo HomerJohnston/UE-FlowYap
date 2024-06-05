@@ -7,11 +7,14 @@
 class UFlowYapCharacter;
 
 UENUM(BlueprintType)
-enum class EFlowYapMultipleInputBehavior : uint8
+enum class EFlowYapMultipleFragmentSequencing : uint8
 {
-	Sequential,
-	Random
+	Sequential	,
+	Random		,
+	COUNT		UMETA(Hidden)
 };
+
+ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragmentSequencing::COUNT);
 
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below.
 
@@ -43,7 +46,7 @@ protected:
 	int32 NodeActivationLimit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EFlowYapMultipleInputBehavior MultipleInputBehavior;
+	EFlowYapMultipleFragmentSequencing MultipleFragmentSequencing;
 	
 	// STATE
 protected:
@@ -80,13 +83,11 @@ public:
 
 	int32 GetNodeActivationLimit() const;
 	
-#if WITH_EDITOR
-	FFlowYapFragment& GetFragmentByID(int64 FragmentID);
-#endif
-	
 	TArray<FFlowYapFragment>& GetFragments();
 
-	int16 GetNumFragments() const;
+	uint8 GetNumFragments() const;
+
+	int16 FindFragmentIndex(FFlowYapFragment* Fragment) const;
 	
 	// -------------------
 
@@ -97,8 +98,6 @@ public:
 	void ExecuteInput(const FName& PinName) override;
 	
 	void AddFragment();
-
-	void RemoveFragmentByID(int64 EditorID);
 
 #if WITH_EDITOR
 public:
@@ -113,6 +112,8 @@ public:
 	bool GetUsesMultipleInputs();
 	
 	bool GetUsesMultipleOutputs();
+
+	EFlowYapMultipleFragmentSequencing GetMultipleFragmentSequencing() const;
 	
 	virtual TArray<FFlowPin> GetContextInputs() override;
 
@@ -120,6 +121,10 @@ public:
 	
 	void SetIsPlayerPrompt(bool NewValue);
 
-	void SetNodeActivationLimit(int32 NewValue);	
+	void SetNodeActivationLimit(int32 NewValue);
+
+	void CycleFragmentSequencingMode();
+	
+	void DeleteFragmentByIndex(int16 DeleteIndex);
 #endif
 };

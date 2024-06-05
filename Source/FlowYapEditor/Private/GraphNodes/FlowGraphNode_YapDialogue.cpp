@@ -2,8 +2,11 @@
 
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 
+#include "FlowYapColors.h"
 #include "FlowYapEditorCommands.h"
+#include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
+#include "Graph/FlowGraphUtils.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
@@ -44,19 +47,41 @@ UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 
 FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
-	return UFlowGraphNode::GetNodeBodyTintColor();
-	/*
+	//return UFlowGraphNode::GetNodeBodyTintColor();
+	
 	if (GetFlowYapNode()->GetIsPlayerPrompt())
 	{
-		return FLinearColor::White;
+		return FlowYapColor::White;
 	}
 
-	return FlowYapColors::Gray;
-	*/
+	return FlowYapColor::LightGray;
 }
 
 FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
 {
 	return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
+}
+
+void UFlowGraphNode_YapDialogue::PreparePinsForFragmentDeletion(int16 DeleteIndex)
+{
+	// -2 is to account for the bypass node! don't touch the bypass node!
+	uint8 LastIndex = OutputPins.Num() - 2;
+
+	for (int i = DeleteIndex; i <= LastIndex - 1; ++i)
+	{
+		UEdGraphPin* PinToFixup = OutputPins[i];
+
+		PinToFixup->BreakAllPinLinks(true);
+
+		if (i < LastIndex)
+		{
+			TArray<UEdGraphPin*>& NextFragmentConnections = OutputPins[i + 1]->LinkedTo;
+
+			for (UEdGraphPin* Pin : NextFragmentConnections)
+			{
+				PinToFixup->MakeLinkTo(Pin);
+			}
+		}
+	}
 }
 

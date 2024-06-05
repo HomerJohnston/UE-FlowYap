@@ -1,10 +1,7 @@
 #pragma once
-#include "FlowYapAssetWrapper.h"
-#include "FlowYapFragmentTimeSettings.h"
+#include "FlowYapBit.h"
 
 #include "FlowYapFragment.generated.h"
-
-class UAkAudioEvent;
 
 USTRUCT(BlueprintType)
 struct FLOWYAP_API FFlowYapFragment
@@ -12,116 +9,34 @@ struct FLOWYAP_API FFlowYapFragment
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-	static int64 NextID;
-	
-	FFlowYapFragment();
+	friend class SFlowGraphNode_YapDialogueWidget;
+	friend class SFlowGraphNode_YapFragmentWidget;
 #endif
-
-	// Settings
+	
+	// ==========================================
+	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
-	FText TitleText;
-	
-	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
-	FText DialogueText;
-
-	// TODO soft pointer support for audio!
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UObject> DialogueAudio;
-
-	UPROPERTY(EditAnywhere)
-	bool bUseProjectDefaultTimeSettings = true;
-	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectDefaultTimeSettings", ShowOnlyInnerProperties))
-	FFlowYapFragmentTimeSettings TimeSettings;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName PortraitKey = NAME_None;
+	FFlowYapBit Bit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 ActivationLimit = 0;
-	
-	// State
+
+	// ==========================================
+	// STATE
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly) // TODO VisibleAnywhere
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 IndexInDialogue = 0; 
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 ActivationCount = 0;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 CachedWordCount = 0;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	double CachedAudioTime = 0;
-	
-#if WITH_EDITOR
-protected:
-	int64 EditorID = -1;
-
+	// ==========================================
+	// API
 public:
-	int64 GetEditorID() const;
-#endif
+	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
-public:
-	const FText& GetTitleText() const;
-	void SetTitleText(FText NewText);
+	int32 GetActivationCount() const { return ActivationCount; }
 
-	const FText& GetDialogueText() const;
-	void SetDialogueText(FText NewText);
-
-	template<class T>
-	const T* GetDialogueAsset() const { return Cast<T>(GetDialogueAsset()); };
-	
-	const UObject* GetDialogueAsset() const;
-	void SetDialogueAudio(UObject* NewAudio);
-
-	bool GetUsesProjectDefaultTimeSettings() const;
-	void SetUseProjectDefaultTimeSettings(bool NewValue);
-
-	//	===============================================================================================
-#pragma region Timed Settings API group
-	//	-----------------------------------------------------------------------------------------------
-	const FFlowYapFragmentTimeSettings& GetTimeSettings() const;
-	
-	EFlowYapTimedMode GetTimedMode() const;
-
-	void SetTimedMode(EFlowYapTimedMode NewValue);
-	void UnsetTimedMode();
-	
-	double GetEnteredTimeValue() const;
-	void SetEnteredTimeValue(double NewValue);
-
-	float GetEndPaddingTime() const;
-	void SetEndPaddingTime(float NewValue);
-
-	bool GetUserInterruptible() const;
-	void SetUserInterruptible(bool bNewValue);
-
-	EFlowYapTimedMode GetRuntimeTimedMode() const;
-	double GetRuntimeTimedValue() const;
-
-	const FFlowYapFragmentTimeSettings& GetRuntimeTimeSettings() const;
-
-#if WITH_EDITOR
-	void CacheWordCountFromText();
-	void CacheTimeFromAudio();
-#endif
-	//	-----------------------------------------------------------------------------------------------
-#pragma endregion 
-	//	-----------------------------------------------------------------------------------------------
-
-	void SetPortraitKey(const FName& NewValue);
-	
-	FName GetPortraitKey() const;
-
-	int32 GetActivationCount() const;
-	
-	int32 GetActivationLimit() const;
-	
-#if WITH_EDITOR
-public:
-	void SetDialogueAudioFromAsset(const FAssetData& AssetData);
-	
-	bool HasDialogueAudioAsset() const;
-
-	void SetActivationLimit(int32 NewValue);
-#endif
+	const FFlowYapBit& GetBit() const { return Bit; }
 };

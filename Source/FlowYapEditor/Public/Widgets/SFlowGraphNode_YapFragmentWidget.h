@@ -15,7 +15,7 @@ class UFlowGraphNode_YapDialogue;
 
 class SMultiLineEditableTextBox;
 
-enum class EFlowYapTimedMode : uint8;
+enum class EFlowYapTimeMode : uint8;
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
@@ -29,7 +29,7 @@ public:
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO: Is this safe?
 
-	int64 FragmentID = -1;
+	FFlowYapFragment* Fragment = nullptr;
 
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 
@@ -53,7 +53,7 @@ protected:
 
 	EVisibility GetTitleTextEntryVisibility() const;
 
-	FReply OnClickPortrait();
+	FReply OnClickDialogueTextBox();
 	
 	TSharedRef<SWidget> CreateDialogueContentArea();
 
@@ -95,9 +95,8 @@ protected:
 	FName GetPortraitKey() const;
 	FReply HandlePortraitKeyChanged(FName NewValue);
 
-	bool GetIsNotTimedMode(EFlowYapTimedMode TimedMode) const;
-	ECheckBoxState GetIsTimedMode(EFlowYapTimedMode QueriedMode) const;
-	void HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimedMode FlowYapTimedMode);
+	ECheckBoxState GetIsTimeMode(EFlowYapTimeMode QueriedMode) const;
+	void HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode FlowYapTimedMode);
 
 	// Time Settings
 protected:
@@ -131,9 +130,5 @@ protected:
 	
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
 	
-	FFlowYapFragment& GetFragment() const;
-
-	FFlowYapFragment& GetFragmentMutable();
-
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };
