@@ -39,8 +39,6 @@ protected:
 	
 	SVerticalBox DialogueEntries;
 	
-	UClass* DialogueAssetClass = nullptr;
-
 	bool bCursorContained = false;
 	bool bShiftPressed = false;
 	bool bShiftCaptured = false;

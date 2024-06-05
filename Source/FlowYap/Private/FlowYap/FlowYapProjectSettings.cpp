@@ -5,6 +5,7 @@
 #include "FlowYap/FlowYapEngineUtils.h"
 
 #include "FlowYap/FlowYapTextCalculator.h"
+#include "Sound/DialogueWave.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -29,6 +30,8 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	TextCalculator = UFlowYapTextCalculator::StaticClass();
 
 	AudioTimeCacher = nullptr; // UFlowYapAudioTimeCacher::StaticClass(); // You must create your own class and calculate time in it!
+	
+	DialogueAssetClass = USoundBase::StaticClass();
 }
 
 #if WITH_EDITOR
@@ -65,7 +68,7 @@ EFlowYapTimeMode UFlowYapProjectSettings::GetMissingAudioFallbackTimeMode() cons
 }
 
 UClass* UFlowYapProjectSettings::GetDialogueAssetClass() const
-{
+{	
 	return DialogueAssetClass;
 }
 

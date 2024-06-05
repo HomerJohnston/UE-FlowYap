@@ -24,8 +24,6 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 
 	Fragment = InFragment;
 	
-	DialogueAssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
-	
 	ChildSlot
 	[
 		CreateDialogueContentArea()
@@ -83,7 +81,14 @@ FText SFlowGraphNode_YapFragmentWidget::DialogueText_ToolTipText() const
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea()
-{	
+{
+	UClass* DialogueAssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
+
+	if (!DialogueAssetClass)
+	{
+		DialogueAssetClass = UObject::StaticClass();
+	}
+	
 	return SNew(SBox)
 	.WidthOverride(this, &SFlowGraphNode_YapFragmentWidget::Fragment_WidthOverride)
 	[
