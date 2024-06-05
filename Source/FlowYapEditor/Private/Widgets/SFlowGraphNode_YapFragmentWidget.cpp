@@ -70,6 +70,18 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClickDialogueTextBox()
 	return FReply::Unhandled();
 }
 
+FText SFlowGraphNode_YapFragmentWidget::DialogueText_ToolTipText() const
+{
+	if (Owner->GetFocusedFragment() == this)
+	{
+		return LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking");
+	}
+	else
+	{
+		return Fragment->Bit.GetTitleText().IsEmptyOrWhitespace() ? LOCTEXT("DialogueText_Tooltip", "No title text") : FText::Format(LOCTEXT("DialogueText_Tooltip", "Title Text: {0}"), Fragment->Bit.GetTitleText());
+	}
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea()
 {	
 	return SNew(SBox)
@@ -104,7 +116,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::DialogueText_OnTextCommitted)
 					.OverflowPolicy(ETextOverflowPolicy::Clip)
 					.HintText(LOCTEXT("DialogueText_Hint", "Enter dialogue text"))
-					.ToolTipText(LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking"))
+					//.ToolTipText(LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking"))
+					.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::DialogueText_ToolTipText)
 					.Margin(FMargin(0,0,0,0))
 					.Padding(3)
 					.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::DialogueText_BackgroundColor)
@@ -877,6 +890,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentLowerControls_Visibility()
 		return EVisibility::Visible;
 	}
 	
+	// Always show if the user is holding down CTRL and hovering over the dialogue!
+	if (Owner->IsHovered() && bControlPressed)
+	{
+		return EVisibility::Visible;
+	}
+	
 	if (!Owner->GetIsSelected())
 	{
 		return EVisibility::Collapsed;
@@ -903,15 +922,8 @@ UFlowNode_YapDialogue* SFlowGraphNode_YapFragmentWidget::GetFlowNodeYapDialogue(
 
 void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
-	/*
-	const FGeometry& OwnerGeo = Owner->GetTickSpaceGeometry();
-	FVector2D OwnerSize = OwnerGeo.GetAbsoluteSize();
-	
-	FVector2D UL = OwnerGeo.GetAbsolutePosition() - FVector2D(50, 50);
-	FVector2D LR = UL + OwnerSize + FVector2D(50, 500);
-	*/
-	
 	bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();
+	bControlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
 
 	if (DialogueBox->HasKeyboardFocus() || TitleTextBox->HasKeyboardFocus())
 	{

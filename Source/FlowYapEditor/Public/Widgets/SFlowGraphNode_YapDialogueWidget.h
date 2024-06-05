@@ -58,8 +58,6 @@ protected:
 
 	FReply MoveFragmentDownButton_OnClicked(FFlowYapFragment* Fragment);
 	
-	void UpdateFragmentIndices();
-
 	FSlateColor GetFragmentSeparatorColor() const;
 
 	TOptional<int32> GetActivationLimit(FFlowYapFragment* Fragment) const;
@@ -82,6 +80,8 @@ protected:
 
 	FSlateColor GetDialogueCycleFragmentSequencingColor() const;
 
+	FReply InsertFragment(int Index);
+	
 	TSharedRef<SWidget> CreateNodeContentArea() override;
 
 	EVisibility MoveFragmentUpButton_Visibility(FFlowYapFragment* FlowYapFragment) const;

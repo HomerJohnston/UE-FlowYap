@@ -12,10 +12,6 @@ struct FLOWYAP_API FFlowYapFragment
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
 #endif
-	FFlowYapFragment() { };
-	
-	FFlowYapFragment(uint8 Index);
-	
 	// ==========================================
 	// SETTINGS
 protected:
@@ -44,4 +40,8 @@ public:
 	int32 GetActivationLimit() const { return ActivationLimit; }
 
 	const FFlowYapBit& GetBit() const { return Bit; }
+
+#if WITH_EDITOR
+	void SetIndexInDialogue(uint8 NewValue) { IndexInDialogue = NewValue; }
+#endif
 };

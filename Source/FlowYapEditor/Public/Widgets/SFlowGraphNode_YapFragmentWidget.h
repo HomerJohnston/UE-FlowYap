@@ -44,10 +44,14 @@ protected:
 	bool bCursorContained = false;
 	bool bShiftPressed = false;
 	bool bShiftCaptured = false;
+
+	bool bControlPressed = false;
 	
 protected:
 	// ----------------------------------------------
 
+	FText DialogueText_ToolTipText() const;
+	
 	TSharedRef<SWidget> CreateDialogueContentArea();
 	
 	FOptionalSize Fragment_WidthOverride() const;

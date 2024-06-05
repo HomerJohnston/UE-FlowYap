@@ -18,7 +18,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	MultipleFragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
 
 	// Always have at least one fragment.
-	Fragments.Add(FFlowYapFragment(0));
+	Fragments.Add(FFlowYapFragment());
 
 	InputPins.Empty();
 	OutputPins.Empty();
@@ -99,7 +99,7 @@ const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& Request
 	}
 }
 
-TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
+const TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
 {
 	return Fragments;
 }
@@ -168,6 +168,11 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	Super::ExecuteInput(PinName);
 }
 
+TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
+{
+	return Fragments;
+}
+
 void UFlowNode_YapDialogue::AddFragment()
 {
 	if (Fragments.Num() >= 9)
@@ -175,9 +180,11 @@ void UFlowNode_YapDialogue::AddFragment()
 		return;
 	}
 
-	FFlowYapFragment NewFragment(Fragments.Num());
+	FFlowYapFragment NewFragment;
 	
 	Fragments.Emplace(NewFragment);
+
+	UpdateFragmentIndices();
 
 	OnReconstructionRequested.ExecuteIfBound();
 }
@@ -281,7 +288,41 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 	}
 	
 	Fragments.RemoveAt(DeleteIndex);
+
+	UpdateFragmentIndices();
 	
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+void UFlowNode_YapDialogue::InsertFragment(uint8 Index)
+{
+	if (Fragments.Num() >= 9)
+	{
+		return;
+	}
+
+	FFlowYapFragment NewFragment;
+	Fragments.Insert(NewFragment, Index);
+
+	UpdateFragmentIndices();
+
+	OnReconstructionRequested.ExecuteIfBound();
+}
+
+void UFlowNode_YapDialogue::UpdateFragmentIndices()
+{
+	for (int i = 0; i < Fragments.Num(); ++i)
+	{
+		Fragments[i].SetIndexInDialogue(i);
+	}
+}
+
+void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
+{
+	Fragments.Swap(IndexA, IndexB);
+
+	UpdateFragmentIndices();
+
 	OnReconstructionRequested.ExecuteIfBound();
 }
 

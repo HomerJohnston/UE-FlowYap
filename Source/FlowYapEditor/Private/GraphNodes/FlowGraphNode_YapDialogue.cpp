@@ -60,6 +60,26 @@ FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) co
 	return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
 }
 
+void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex)
+{
+	// Start above Bypass pin PLUS above new pin that got added after fragment insertion
+	uint8 LastIndex = OutputPins.Num() - 3;
+
+	for (int i = LastIndex; i >= InsertionIndex; --i)
+	{
+		UEdGraphPin* CurrentPin = OutputPins[i];
+
+		TArray<UEdGraphPin*> LinksToMoveDown = CurrentPin->LinkedTo;
+		
+		CurrentPin->BreakAllPinLinks(true);
+
+		for (UEdGraphPin* Pin : LinksToMoveDown)
+		{
+			OutputPins[i + 1 ]->MakeLinkTo(Pin);
+		}
+	}
+}
+
 void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 DeleteIndex)
 {
 	// -2 is to account for the bypass node, the last node! don't mess with the bypass node!

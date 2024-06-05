@@ -83,7 +83,7 @@ public:
 
 	int32 GetNodeActivationLimit() const;
 	
-	TArray<FFlowYapFragment>& GetFragments();
+	const TArray<FFlowYapFragment>& GetFragments();
 
 	uint8 GetNumFragments() const;
 
@@ -97,10 +97,12 @@ public:
 	
 	void ExecuteInput(const FName& PinName) override;
 	
-	void AddFragment();
-
 #if WITH_EDITOR
 public:
+	TArray<FFlowYapFragment>& GetFragmentsMutable();
+	
+	void AddFragment();
+
 	bool GetDynamicTitleColor(FLinearColor& OutColor) const override;
 
 	bool CanUserAddInput() const override { return false; }
@@ -126,5 +128,11 @@ public:
 	void CycleFragmentSequencingMode();
 	
 	void DeleteFragmentByIndex(int16 DeleteIndex);
+	
+	void InsertFragment(uint8 Index);
+	
+	void UpdateFragmentIndices();
+
+	void SwapFragments(uint8 IndexA, uint8 IndexB);
 #endif
 };
