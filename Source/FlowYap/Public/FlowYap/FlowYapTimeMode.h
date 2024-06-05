@@ -6,6 +6,6 @@ UENUM()
 enum class EFlowYapTimeMode : uint8
 {
 	ManualTime,
-	TextLength,
-	AudioLength,
+	TextTime,
+	AudioTime,
 };

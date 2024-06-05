@@ -5,3 +5,7 @@
 #define LOCTEXT_NAMESPACE "FlowYap"
 
 #undef LOCTEXT_NAMESPACE
+FFlowYapFragment::FFlowYapFragment(uint8 Index)
+{
+	IndexInDialogue = Index;
+}

@@ -12,11 +12,14 @@ struct FLOWYAP_API FFlowYapFragment
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
 #endif
+	FFlowYapFragment() { };
+	
+	FFlowYapFragment(uint8 Index);
 	
 	// ==========================================
 	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere)
 	FFlowYapBit Bit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
@@ -37,6 +40,8 @@ public:
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
 	int32 GetActivationCount() const { return ActivationCount; }
+	
+	int32 GetActivationLimit() const { return ActivationLimit; }
 
 	const FFlowYapBit& GetBit() const { return Bit; }
 };

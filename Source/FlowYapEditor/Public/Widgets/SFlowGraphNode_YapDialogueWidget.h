@@ -54,7 +54,11 @@ public:
 protected:
 	EVisibility GetFragmentMovementVisibility() const;
 
-	FReply MoveFragment(bool bUp, FFlowYapFragment* Fragment);
+	FReply MoveFragmentUpButton_OnClicked(FFlowYapFragment* Fragment);
+
+	FReply MoveFragmentDownButton_OnClicked(FFlowYapFragment* Fragment);
+	
+	void UpdateFragmentIndices();
 
 	FSlateColor GetFragmentSeparatorColor() const;
 
@@ -79,6 +83,10 @@ protected:
 	FSlateColor GetDialogueCycleFragmentSequencingColor() const;
 
 	TSharedRef<SWidget> CreateNodeContentArea() override;
+
+	EVisibility MoveFragmentUpButton_Visibility(FFlowYapFragment* FlowYapFragment) const;
+
+	EVisibility MoveFragmentDownButton_Visibility(FFlowYapFragment* FlowYapFragment) const;
 
 	ECheckBoxState GetIsUserPromptDialogue() const;
 

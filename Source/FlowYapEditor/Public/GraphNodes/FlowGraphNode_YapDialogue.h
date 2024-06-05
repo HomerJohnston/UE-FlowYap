@@ -30,5 +30,7 @@ public:
 
 	FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
 
-	void PreparePinsForFragmentDeletion(int16 DeleteIndex);
+	void UpdatePinsForFragmentDeletion(uint8 DeleteIndex);
+
+	void SwapPinConnections(uint8 A, uint8 B);
 };

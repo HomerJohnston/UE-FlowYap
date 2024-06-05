@@ -27,7 +27,7 @@ public:
 
 	// STATE
 protected:
-	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO: Is this safe?
+	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO TSharedPtr safer?
 
 	FFlowYapFragment* Fragment = nullptr;
 
@@ -42,34 +42,57 @@ protected:
 	UClass* DialogueAssetClass = nullptr;
 
 	bool bCursorContained = false;
-
 	bool bShiftPressed = false;
-	
 	bool bShiftCaptured = false;
-
 	
 protected:
-	EVisibility GetPortraitWidgetVisibility() const;
+	// ----------------------------------------------
 
-	EVisibility GetTitleTextEntryVisibility() const;
-
-	FReply OnClickDialogueTextBox();
-	
 	TSharedRef<SWidget> CreateDialogueContentArea();
-
-	FOptionalSize GetDialogueWidgetWidthAdjustment() const;
-
-	FSlateColor GetDialogueTextColor() const;
 	
-	FSlateColor GetDialogueTextBackgroundColor() const;
+	FOptionalSize Fragment_WidthOverride() const;
+	
+	FOptionalSize DialogueText_MaxDesiredHeight() const;
+
+	FText DialogueText_Text() const;
+	
+	void DialogueText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+	
+	FSlateColor DialogueText_ForegroundColor() const;
+	
+	FSlateColor DialogueText_BackgroundColor() const;
+
+	EVisibility FragmentLowerControls_Visibility() const;
+	
+	EVisibility TitleText_Visibility() const;
+	
+	FText TitleText_Text() const;
+
+	void TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+	
+	EVisibility DialogueAudioAssetWarningState_Visibility() const;
+	bool DialogueAudioAssetInWarningState() const; // I've used separate functions for the actual conditions here because I call these in multiple places, and EVisibility is a struct which is annoying to compare against
+	
+	EVisibility DialogueAudioAssetErrorState_Visibility() const;
+	bool DialogueAudioAssetInErrorState() const;
+	// ----------------------------------------------
 	
 	TSharedRef<SBox> CreatePortraitWidget();
 
-	const FSlateBrush* GetPortraitBrush() const;
+	EVisibility PortraitImage_Visibility() const;
+
+
+	FReply OnClickDialogueTextBox();
+	
+
+
+	
+
+	const FSlateBrush* PortraitImage_Image() const;
 
 	FSlateColor GetNodeTitleColor() const;
 	
-	EVisibility GetVisibilityForMissingPortraitText() const;
+	EVisibility MissingPortraitWarning_Visibility() const;
 	
 	TSharedRef<SBox> CreatePortraitKeySelector();
 	
@@ -79,23 +102,29 @@ protected:
 
 	TSharedRef<SBox> CreateTimeSettingsWidget();
 	
-	FOptionalSize GetMaxDialogueEditableTextWidgetHeight() const;
+	bool UseManuallyEnteredTimeButton_IsEnabled() const;
+	
+	ECheckBoxState UseManuallyEnteredTimeButton_IsChecked() const;
+	
+	void UseManuallyEnteredTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	
+	bool UseTextTimeButton_IsEnabled() const;
+	
+	ECheckBoxState UseTextTimeButton_IsChecked() const;
+	
+	void UseTextTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	
 	// Fragment settings
 protected:
-	FText GetTitleText() const;
-	void HandleTitleTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 
-	FText GetDialogueText() const;
-	void HandleDialogueTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 	
-	FString GetSelectedDialogueAudioAssetPath() const;
-	void HandleDialogueAudioAssetChanged(const FAssetData& InAssetData);
+	FString DialogueAudioAsset_ObjectPath() const;
+	void DialogueAudioAsset_OnObjectChanged(const FAssetData& InAssetData);
 
 	FName GetPortraitKey() const;
 	FReply HandlePortraitKeyChanged(FName NewValue);
 
-	void UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode FlowYapTimedMode);
+	void UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 
 	// Time Settings
 protected:
@@ -120,11 +149,7 @@ protected:
 
 	ECheckBoxState UseAudioTimeButton_IsChecked() const;
 	
-	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
-	EVisibility GetSelectedDialogueAudioAssetIsValid() const;
-
-	EVisibility DisplayAllLowerFragmentControls() const;
 protected:
 	
 	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;

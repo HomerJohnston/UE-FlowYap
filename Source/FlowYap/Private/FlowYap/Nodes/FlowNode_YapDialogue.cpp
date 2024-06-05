@@ -18,7 +18,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	MultipleFragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
 
 	// Always have at least one fragment.
-	Fragments.Add(FFlowYapFragment());
+	Fragments.Add(FFlowYapFragment(0));
 
 	InputPins.Empty();
 	OutputPins.Empty();
@@ -174,8 +174,10 @@ void UFlowNode_YapDialogue::AddFragment()
 	{
 		return;
 	}
+
+	FFlowYapFragment NewFragment(Fragments.Num());
 	
-	Fragments.Add(FFlowYapFragment());
+	Fragments.Emplace(NewFragment);
 
 	OnReconstructionRequested.ExecuteIfBound();
 }

@@ -89,7 +89,7 @@ public:
 
 	bool GetDefaultInterruptibleSetting() const { return bDefaultInterruptibleSetting; }
 	
-	EFlowYapTimeMode GetInvalidAudioFallbackTimeMode() const;
+	EFlowYapTimeMode GetMissingAudioFallbackTimeMode() const;
 	
 	UClass* GetDialogueAssetClass() const;
 

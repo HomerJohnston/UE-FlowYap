@@ -47,8 +47,6 @@ UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 
 FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
-	//return UFlowGraphNode::GetNodeBodyTintColor();
-	
 	if (GetFlowYapNode()->GetIsPlayerPrompt())
 	{
 		return FlowYapColor::White;
@@ -62,9 +60,9 @@ FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) co
 	return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
 }
 
-void UFlowGraphNode_YapDialogue::PreparePinsForFragmentDeletion(int16 DeleteIndex)
+void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 DeleteIndex)
 {
-	// -2 is to account for the bypass node! don't touch the bypass node!
+	// -2 is to account for the bypass node, the last node! don't mess with the bypass node!
 	uint8 LastIndex = OutputPins.Num() - 2;
 
 	for (int i = DeleteIndex; i <= LastIndex - 1; ++i)
@@ -82,6 +80,28 @@ void UFlowGraphNode_YapDialogue::PreparePinsForFragmentDeletion(int16 DeleteInde
 				PinToFixup->MakeLinkTo(Pin);
 			}
 		}
+	}
+}
+
+void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 A, uint8 B)
+{
+	UEdGraphPin* PinA = OutputPins[A];
+	UEdGraphPin* PinB = OutputPins[B];
+
+	TArray<UEdGraphPin*> PinALinksCopy = PinA->LinkedTo;
+	TArray<UEdGraphPin*> PinBLinksCopy = PinB->LinkedTo;
+
+	PinA->BreakAllPinLinks(true);
+	PinB->BreakAllPinLinks(true);
+
+	for (UEdGraphPin* ConnectToA : PinBLinksCopy)
+	{
+		PinA->MakeLinkTo(ConnectToA);
+	}
+	
+	for (UEdGraphPin* ConnectToB : PinALinksCopy)
+	{
+		PinB->MakeLinkTo(ConnectToB);
 	}
 }
 

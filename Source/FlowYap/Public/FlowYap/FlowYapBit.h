@@ -5,7 +5,7 @@
 #include "FlowYapBit.generated.h"
 
 USTRUCT()
-struct FFlowYapBit
+struct FLOWYAP_API FFlowYapBit
 {
 	GENERATED_BODY()
 
@@ -21,14 +21,14 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere)
 	FName PortraitKey = NAME_None;
 	
 	UPROPERTY(EditAnywhere)
 	bool bUseProjectDefaultTimeSettings = true;
 	
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
-	EFlowYapTimeMode TimeMode = EFlowYapTimeMode::AudioLength;
+	EFlowYapTimeMode TimeMode = EFlowYapTimeMode::AudioTime;
 
 	UPROPERTY(EditAnywhere)
 	bool bInterruptible = true;
@@ -36,13 +36,13 @@ protected:
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
 protected:
-	UPROPERTY(VisibleAnywhere, meta = (Units = "s"))
+	UPROPERTY(VisibleAnywhere)
 	double ManualTime = 0;
 	
 	UPROPERTY(VisibleAnywhere)
 	int32 CachedWordCount = 0;
 	
-	UPROPERTY(VisibleAnywhere, meta = (Units = "s"))
+	UPROPERTY(VisibleAnywhere)
 	double CachedAudioTime = 0;
 	
 	// --------------------------------------------------------------------------------------------
@@ -55,8 +55,12 @@ public:
 	template<class T>
 	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }; // TODO make sure this works
 
-	FName GetPortraitKey() const { return PortraitKey; }
-	
+#if WITH_EDITOR
+	FName GetPortraitKey();
+#else
+	FName GetPortraitKey() const;
+#endif	
+
 	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetInterruptible() const;
 
