@@ -6,11 +6,23 @@
 // --------------------------------------------------------------------------------------------
 // PUBLIC API
 
+bool FFlowYapBit::GetInterruptible() const
+{
+	if (bUseProjectDefaultTimeSettings)
+	{
+		const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+
+		return ProjectSettings->GetDefaultInterruptibleSetting();
+	}
+
+	return bInterruptible;	
+}
+
 double FFlowYapBit::GetTime() const
 {
 	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
 	
-	EFlowYapTimeMode TimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeMode() : PreferredTimeMode;
+	EFlowYapTimeMode TimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeModeSetting() : TimeMode;
 
 	if (TimeMode == EFlowYapTimeMode::AudioLength && CachedAudioTime <= 0)
 	{
@@ -88,4 +100,18 @@ void FFlowYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 	}
 	
 	CachedAudioTime = CacherCDO->GetAudioLengthInSeconds(DialogueAudioAsset);
+}
+
+EFlowYapTimeMode FFlowYapBit::GetTimeMode() const
+{
+	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+	 
+	EFlowYapTimeMode ActualTimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeModeSetting() : TimeMode;
+
+	if (ActualTimeMode == EFlowYapTimeMode::AudioLength && !HasDialogueAudioAsset())
+	{
+		ActualTimeMode = ProjectSettings->GetInvalidAudioFallbackTimeMode();
+	}
+
+	return ActualTimeMode;
 }

@@ -458,13 +458,17 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.VAlign(VAlign_Center)
 		.Padding(0, 0, 1, 0)
 		[
+			// =============================
+			// USE PROJECT DEFAULTS BUTTON
+			// =============================
 			SNew(SCheckBox)
 			.Style(&UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_Green)
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(LOCTEXT("UseProjectDefaultTimeSettings_Tooltip", "Use time settings from project settings"))
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUseProjectDefaultTimeSettingsChecked)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleUseProjectDefaultTimeSettingsChanged)
+			.IsEnabled(true)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::UseProjectDefaultTimeSettingsButton_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::UseProjectDefaultTimeSettingsButton_OnCheckStateChanged)
 			.Content()
 			[
 				SNew(SImage)
@@ -478,14 +482,17 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.VAlign(VAlign_Center)
 		.Padding(1, 0, 1, 0)
 		[
+			// =============================
+			// USE MANUAL TIME ENTRY BUTTON
+			// =============================
 			SNew(SCheckBox)
 			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(LOCTEXT("UseEnteredTime_Tooltip", "Use a manually entered time"))
-			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::IsUseEnteredTimeEnabled)
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetIsTimeMode, EFlowYapTimeMode::ManualTime)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleTimedModeChanged, EFlowYapTimeMode::ManualTime)
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::UseManuallyEnteredTimeButton_IsEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::UseManuallyEnteredTimeButton_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::UseManuallyEnteredTimeButton_OnCheckStateChanged)
 			[
 				SNew(SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
@@ -498,14 +505,17 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.VAlign(VAlign_Center)
 		.Padding(1, 0, 1, 0)
 		[
+			// =============================
+			// USE TEXT TIME BUTTON
+			// =============================
 			SNew(SCheckBox)
 			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(LOCTEXT("UseTimeFromText_Tooltip", "Use a time calculated from text length"))
-			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::IsUseTimeFromTextEnabled)
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetIsTimeMode, EFlowYapTimeMode::TextLength)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleTimedModeChanged, EFlowYapTimeMode::TextLength)
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::UseTextTimeButton_IsEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::UseTextTimeButton_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::UseTextTimeButton_OnCheckStateChanged)
 			[
 				SNew(SBox)
 				[
@@ -520,22 +530,21 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.VAlign(VAlign_Center)
 		.Padding(1, 0, 1, 0)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
+			// =============================
+			// USE AUDIO TIME BUTTON
+			// =============================
+			SNew(SCheckBox)
+			.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
+			.Padding(FMargin(4, 3))
+			.CheckBoxContentUsesAutoWidth(true)
+			.ToolTipText(LOCTEXT("UseTimeFromAudio_Tooltip", "Use a time read from the audio asset"))
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_IsEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_OnCheckStateChanged)
+			.HAlign(HAlign_Center)
 			[
-				SNew(SCheckBox)
-				.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
-				.Padding(FMargin(4, 3))
-				.CheckBoxContentUsesAutoWidth(true)
-				.ToolTipText(LOCTEXT("UseTimeFromAudio_Tooltip", "Use a time read from the audio asset"))
-				.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::IsUseTimeFromAudioEnabled)
-				.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioChecked)
-				.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleTimedModeChanged, EFlowYapTimeMode::AudioLength)
-				.HAlign(HAlign_Center)
-				[
-					SNew(SImage)
-					.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetAudioTimeBrush())
-				]
+				SNew(SImage)
+				.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetAudioTimeBrush())
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -544,38 +553,39 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		.Padding(1, 0, 1, 0)
 		.MaxWidth(51)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
+			// =============================
+			// TIME DISPLAY / MANUAL ENTRY FIELD
+			// =============================
+			SNew(SBox)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SBox)
-				[
-					SNew(SNumericEntryBox<double>)
-					.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled)
-					.Delta(0.1)
-					.MinValue(0.0)
-					/* 8 pixels per side for border + 7 pixels per number... allow for 5 numbers */
-					.MinDesiredValueWidth(51)
-					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-					.Value(this, &SFlowGraphNode_YapFragmentWidget::GetEnteredTime)
-					.Justification(ETextJustify::Center)
-					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::HandleEnteredTimeChanged)
-				]
+				SNew(SNumericEntryBox<double>)
+				.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetEnabled_TimeEntryBox)
+				.Delta(0.1)
+				.MinValue(0.0)
+				.MinDesiredValueWidth(51) /* 8 pixels per side for border + 7 pixels per number... allow for 5 numbers */
+				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+				.Justification(ETextJustify::Center)
+				.Value(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_Value)
+				.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted)
 			]
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.Padding(1, 0, 0, 0)
 		[
+			// =============================
+			// INTERRUPTIBLE BUTTON
+			// =============================
 			SNew(SCheckBox)
 			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 			.Padding(FMargin(4, 3))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(LOCTEXT("FragmentInterruptible_Tooltip", "Can the player interrupt (fast forward) this?"))
-			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleButtonEnabled)
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleChecked)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::HandleUserInterruptibleChanged)
+			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsEnabled)
+			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_OnCheckStateChanged)
 			[
 				SNew(SBox)
 				[
@@ -588,14 +598,6 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 
 	return Box.ToSharedRef(); 
 }
-
-/*
-
-FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMinDialogueEditableTextWidgetWidth() const
-{
-	return 300;
-}
-*/
 
 FOptionalSize SFlowGraphNode_YapFragmentWidget::GetMaxDialogueEditableTextWidgetHeight() const
 {
@@ -691,24 +693,15 @@ FReply SFlowGraphNode_YapFragmentWidget::HandlePortraitKeyChanged(FName NewValue
 }
 
 // -----------------------------------------------------------------------------------------------
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetIsTimeMode(EFlowYapTimeMode QueriedMode) const
-{
-	EFlowYapTimeMode TimedMode = Fragment->Bit.GetUseProjectDefaultTimeSettings() ? Fragment.Bit->GetTimeMode() : Fragment->GetTimeMode();
-		
-	return TimedMode == QueriedMode ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-}
 
-void SFlowGraphNode_YapFragmentWidget::HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode Mode)
+
+void SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode Mode)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeTimedModeChanged", "Timed Mode Changed"), GetFlowNodeYapDialogue());
 
 	if (CheckBoxState == ECheckBoxState::Checked)
 	{
-		Fragment->SetTimeMode(Mode);
-	}
-	else
-	{
-		Fragment->UnsetTimeMode();
+		Fragment->Bit.SetBitTimeMode(Mode);
 	}
 	
 	FFlowYapTransactions::EndModify();
@@ -716,40 +709,31 @@ void SFlowGraphNode_YapFragmentWidget::HandleTimedModeChanged(ECheckBoxState Che
 
 
 // -----------------------------------------------------------------------------------------------
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleChecked() const
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsChecked() const
 {
-	if (Fragment->GetUseProjectDefaultTimeSettings())
+	if (Fragment->Bit.GetUseProjectDefaultTimeSettings())
 	{
-		const FFlowYapFragmentTimeSettings& TimeSettings = GetDefault<UFlowYapProjectSettings>()->GetDefaultTimeSettings();
-
-		return TimeSettings.bUserInterruptible ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-	}
-
-	if (!GetUserInterruptibleButtonEnabled())
-	{
-		return ECheckBoxState::Unchecked;
+		return GetDefault<UFlowYapProjectSettings>()->GetDefaultInterruptibleSetting() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 	}
 	
-	return Fragment->GetTimeSettings().bUserInterruptible ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return Fragment->Bit.GetInterruptible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
-void SFlowGraphNode_YapFragmentWidget::HandleUserInterruptibleChanged(ECheckBoxState CheckBoxState)
+void SFlowGraphNode_YapFragmentWidget::InterruptibleButton_OnCheckStateChanged(ECheckBoxState CheckBoxState)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeInterruptibleChanged", "Interruptible Changed"), GetFlowNodeYapDialogue());
 	
-	Fragment->SetUserInterruptible(CheckBoxState == ECheckBoxState::Checked ? true : false);
+	Fragment->Bit.SetBitInterruptible(CheckBoxState == ECheckBoxState::Checked ? true : false);
 
 	FFlowYapTransactions::EndModify();
 }
 
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseProjectDefaultTimeSettingsChecked() const
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::UseProjectDefaultTimeSettingsButton_IsChecked() const
 {
-	bool bUsesProjectDefaultTimeSettings = Fragment->GetUseProjectDefaultTimeSettings();
-	
-	return bUsesProjectDefaultTimeSettings ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	return Fragment->Bit.GetUseProjectDefaultTimeSettings() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
-void SFlowGraphNode_YapFragmentWidget::HandleUseProjectDefaultTimeSettingsChanged(ECheckBoxState CheckBoxState)
+void SFlowGraphNode_YapFragmentWidget::UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeUseProjectDefaultTimeSettings", "Use Project Default Time Settings Changed"), GetFlowNodeYapDialogue());
 
@@ -759,7 +743,7 @@ void SFlowGraphNode_YapFragmentWidget::HandleUseProjectDefaultTimeSettingsChange
 }
 
 // -----------------------------------------------------------------------------------------------
-bool SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::GetEnabled_TimeEntryBox() const
 {
 	if (Fragment->GetUseProjectDefaultTimeSettings())
 	{
@@ -774,7 +758,7 @@ bool SFlowGraphNode_YapFragmentWidget::GetTimeEntryEnabled() const
 	return true;
 }
 
-bool SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleButtonEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsEnabled() const
 {
 	if (Fragment->GetUseProjectDefaultTimeSettings())
 	{
@@ -789,7 +773,7 @@ bool SFlowGraphNode_YapFragmentWidget::GetUserInterruptibleButtonEnabled() const
 	return true;
 }
 
-bool SFlowGraphNode_YapFragmentWidget::IsUseTimeFromAudioEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_IsEnabled() const
 {
 	if (Fragment->GetUseProjectDefaultTimeSettings())
 	{
@@ -799,7 +783,7 @@ bool SFlowGraphNode_YapFragmentWidget::IsUseTimeFromAudioEnabled() const
 	return true;
 }
 
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioChecked() const
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_IsChecked() const
 {
 	if (Fragment->GetUseProjectDefaultTimeSettings())
 	{
@@ -812,41 +796,25 @@ ECheckBoxState SFlowGraphNode_YapFragmentWidget::GetUseTimeFromAudioChecked() co
 }
 
 // -----------------------------------------------------------------------------------------------
-bool SFlowGraphNode_YapFragmentWidget::IsUseEnteredTimeEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::IsManualTimeEntryEnabled() const
 {
-	if (Fragment->GetUseProjectDefaultTimeSettings())
-	{
-		return false;
-	}
-
-	return true;
+	EFlowYapTimeMode TimeMode = Fragment->Bit.GetTimeMode();
+	
+	return TimeMode == EFlowYapTimeMode::ManualTime;
 }
 
-TOptional<double> SFlowGraphNode_YapFragmentWidget::GetEnteredTime() const
+TOptional<double> SFlowGraphNode_YapFragmentWidget::TimeEntryBox_Value() const
 {
-	TOptional<double> Value;
-
-	const FFlowYapFragmentTimeSettings& TimeSettingsRef = Fragment->GetTimeSettings();
-
-	if (TimeSettingsRef.TimedMode == EFlowYapTimeMode::None)
-	{
-		Value.Reset();
-	}
-	else
-	{
-		Value = Fragment->GetTimeValue();
-	}
-
-	return Value;
+	return Fragment->Bit.GetTime();
 }
 
-void SFlowGraphNode_YapFragmentWidget::HandleEnteredTimeChanged(double NewValue, ETextCommit::Type CommitType)
+void SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeEnteredTimeChanged", "Entered Time Changed"), GetFlowNodeYapDialogue());
 
 	if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
 	{
-		Fragment->SetEnteredTimeValue(NewValue);
+		Fragment->Bit.SetManualTime(NewValue);
 	}
 
 	if (CommitType == ETextCommit::OnCleared)
@@ -857,7 +825,7 @@ void SFlowGraphNode_YapFragmentWidget::HandleEnteredTimeChanged(double NewValue,
 	FFlowYapTransactions::EndModify();
 }
 
-bool SFlowGraphNode_YapFragmentWidget::IsUseTimeFromTextEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::GetEnabled_UseTextTimeButton() const
 {
 	if (Fragment->GetUseProjectDefaultTimeSettings())
 	{

@@ -18,20 +18,25 @@ public:
 public:
 	TMulticastDelegate<void()> OnPortraitKeysChanged;
 
+	// ------------------------------------------
+	// SETTINGS
 protected:
 	// TODO: editing this needs to tell you that you need to restart the editor somehow. Details customization with a big warning bar in slate surrounding these settings after they're modified??
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TArray<FName> PortraitKeys;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	EFlowYapTimeMode DefaultTimeMode;
+	EFlowYapTimeMode DefaultTimeModeSetting;
 
-	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	float DialoguePaddingTime = 0.5f;
-	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EFlowYapTimeMode AudioTimeFallbackTimedMode;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bDefaultInterruptibleSetting;
+	
+	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0, UIMax = 4))
+	float DialoguePaddingTime = 0.5f;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180))
 	int32 TextWordsPerMinute;
@@ -44,6 +49,8 @@ protected:
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	UClass* DialogueAssetClass;
+
+	
 	
 #if WITH_EDITORONLY_DATA
 protected:
@@ -78,8 +85,10 @@ public:
 #endif
 
 public:
-	const EFlowYapTimeMode GetDefaultTimeMode() const { return DefaultTimeMode; }
+	const EFlowYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
 
+	bool GetDefaultInterruptibleSetting() const { return bDefaultInterruptibleSetting; }
+	
 	EFlowYapTimeMode GetInvalidAudioFallbackTimeMode() const;
 	
 	UClass* GetDialogueAssetClass() const;

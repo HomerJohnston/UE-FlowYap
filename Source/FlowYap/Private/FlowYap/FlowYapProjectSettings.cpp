@@ -11,9 +11,11 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 {
 	PortraitKeyIconPath.Path = "";
 
-	DefaultTimeMode = EFlowYapTimeMode::AudioLength;
+	DefaultTimeModeSetting = EFlowYapTimeMode::AudioLength;
 	
 	AudioTimeFallbackTimedMode = EFlowYapTimeMode::TextLength;
+
+	bDefaultInterruptibleSetting = true;
 	
 	DialogueWidthAdjustment = 0;
 

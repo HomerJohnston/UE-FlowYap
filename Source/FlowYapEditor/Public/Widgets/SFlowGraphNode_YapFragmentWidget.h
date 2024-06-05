@@ -95,31 +95,30 @@ protected:
 	FName GetPortraitKey() const;
 	FReply HandlePortraitKeyChanged(FName NewValue);
 
-	ECheckBoxState GetIsTimeMode(EFlowYapTimeMode QueriedMode) const;
-	void HandleTimedModeChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode FlowYapTimedMode);
+	void UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState, EFlowYapTimeMode FlowYapTimedMode);
 
 	// Time Settings
 protected:
-	bool IsUseEnteredTimeEnabled() const;
-	TOptional<double> GetEnteredTime() const;
-	void HandleEnteredTimeChanged(double NewValue, ETextCommit::Type CommitType);
+	bool IsManualTimeEntryEnabled() const;
+	TOptional<double> TimeEntryBox_Value() const;
+	void TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType);
 
-	bool IsUseTimeFromTextEnabled() const;
+	bool GetEnabled_UseTextTimeButton() const;
 
-	ECheckBoxState GetUserInterruptibleChecked() const;
-	void HandleUserInterruptibleChanged(ECheckBoxState CheckBoxState);
+	ECheckBoxState InterruptibleButton_IsChecked() const;
+	void InterruptibleButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 
-	ECheckBoxState GetUseProjectDefaultTimeSettingsChecked() const;
-	void HandleUseProjectDefaultTimeSettingsChanged(ECheckBoxState CheckBoxState);
+	ECheckBoxState UseProjectDefaultTimeSettingsButton_IsChecked() const;
+	void UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 
-	bool GetTimeEntryEnabled() const;
+	bool GetEnabled_TimeEntryBox() const;
 
 
-	bool GetUserInterruptibleButtonEnabled() const; 
+	bool InterruptibleButton_IsEnabled() const; 
 
-	bool IsUseTimeFromAudioEnabled() const;
+	bool UseAudioTimeButton_IsEnabled() const;
 
-	ECheckBoxState GetUseTimeFromAudioChecked() const;
+	ECheckBoxState UseAudioTimeButton_IsChecked() const;
 	
 	EVisibility GetUseTimeFromAudioButtonErrorState() const;
 
