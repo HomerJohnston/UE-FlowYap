@@ -23,7 +23,7 @@ ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragment
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select and press CTRL to show all node contents"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select node(s) and tap SHIFT key to show all node contents"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
