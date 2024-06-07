@@ -5,7 +5,7 @@
 #include "FlowYap/FlowYapEngineUtils.h"
 
 #include "FlowYap/FlowYapTextCalculator.h"
-#include "Sound/DialogueWave.h"
+#include "FlowYap/Enums/FlowYapErrorLevel.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -15,7 +15,7 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 
 	DefaultTimeModeSetting = EFlowYapTimeMode::AudioTime;
 	
-	AudioTimeFallbackTimedMode = EFlowYapTimeMode::TextTime;
+	MissingAudioErrorLevel = EFlowYapErrorLevel::Warning;
 
 	bDefaultInterruptibleSetting = true;
 	
@@ -60,11 +60,6 @@ void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	{
 		OnPortraitKeysChanged.Broadcast();
 	}
-}
-
-EFlowYapTimeMode UFlowYapProjectSettings::GetMissingAudioFallbackTimeMode() const
-{
-	return AudioTimeFallbackTimedMode;
 }
 
 UClass* UFlowYapProjectSettings::GetDialogueAssetClass() const

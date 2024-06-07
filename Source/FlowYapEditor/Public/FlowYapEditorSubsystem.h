@@ -9,11 +9,16 @@ class FFlowYapInputTracker;
 
 struct FCheckBoxStyles
 {
+	// Generic check boxes
 	FCheckBoxStyle ToggleButtonCheckBox_Red;
 	FCheckBoxStyle ToggleButtonCheckBox_Green;
 	FCheckBoxStyle ToggleButtonCheckBox_Blue;
 	FCheckBoxStyle ToggleButtonCheckBox_Orange;
-	FCheckBoxStyle ToggleButtonCheckBox_White;	
+	FCheckBoxStyle ToggleButtonCheckBox_White;
+
+	// Custom check boxes
+	FCheckBoxStyle ToggleButtonCheckBox_PlayerPrompt;
+	FCheckBoxStyle ToggleButtonCheckBox_DialogueInterrupt;
 };
 
 UCLASS()
@@ -31,8 +36,8 @@ private:
 	FSlateBrush TimerBrush;
 
 	UPROPERTY(Transient)
-	UTexture2D* UserInterruptIcon;
-	FSlateBrush UserInterruptBrush;
+	UTexture2D* NoInterruptIcon;
+	FSlateBrush NoInterruptBrush;
 
 	UPROPERTY(Transient)
 	UTexture2D* TextTimeIcon;
@@ -55,7 +60,7 @@ public:
 
 	const FSlateBrush* GetPortraitKeyBrush(FName Name);
 
-	const FSlateBrush* GetUserInterruptBrush() { return &UserInterruptBrush; }
+	const FSlateBrush* GetNoInterruptBrush() { return &NoInterruptBrush; }
 	
 	const FSlateBrush* GetTimerBrush() { return &TimerBrush; }
 

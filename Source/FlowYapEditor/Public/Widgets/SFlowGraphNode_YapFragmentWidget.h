@@ -16,6 +16,7 @@ class UFlowGraphNode_YapDialogue;
 class SMultiLineEditableTextBox;
 
 enum class EFlowYapTimeMode : uint8;
+enum class EFlowYapErrorLevel : uint8;
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
@@ -33,9 +34,9 @@ protected:
 
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 
-	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
-
 	TSharedPtr<SEditableTextBox> TitleTextBox;
+	
+	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
 	
 	SVerticalBox DialogueEntries;
 	
@@ -49,7 +50,7 @@ protected:
 	// ----------------------------------------------
 
 	FText DialogueText_ToolTipText() const;
-	
+
 	TSharedRef<SWidget> CreateDialogueContentArea();
 	
 	FOptionalSize Fragment_WidthOverride() const;
@@ -73,10 +74,10 @@ protected:
 	void TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 	
 	EVisibility DialogueAudioAssetWarningState_Visibility() const;
-	bool DialogueAudioAssetInWarningState() const; // I've used separate functions for the actual conditions here because I call these in multiple places, and EVisibility is a struct which is annoying to compare against
-	
+	EFlowYapErrorLevel GetAudioErrorLevel() const; // I've used separate functions for the actual conditions here because I call these in multiple places, and EVisibility is a struct which is annoying to compare against
+	FSlateColor DialogueAudioErrorState_ColorAndOpacity() const;
+
 	EVisibility DialogueAudioAssetErrorState_Visibility() const;
-	bool DialogueAudioAssetInErrorState() const;
 	// ----------------------------------------------
 	
 	TSharedRef<SBox> CreatePortraitWidget();
@@ -115,8 +116,7 @@ protected:
 	ECheckBoxState UseTextTimeButton_IsChecked() const;
 	
 	void UseTextTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-	
-	// Fragment settings
+
 protected:
 
 	
@@ -135,9 +135,6 @@ protected:
 	void TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType);
 
 	bool GetEnabled_UseTextTimeButton() const;
-
-	ECheckBoxState InterruptibleButton_IsChecked() const;
-	void InterruptibleButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 
 	ECheckBoxState UseProjectDefaultTimeSettingsButton_IsChecked() const;
 	void UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);

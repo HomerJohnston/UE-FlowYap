@@ -6,6 +6,8 @@
 
 class UFlowYapCharacter;
 
+enum class EFlowYapInterruptible : uint8;
+
 UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
@@ -25,6 +27,9 @@ UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", Too
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
+
+friend class SFlowGraphNode_YapDialogueWidget;
+	
 public:
 	UFlowNode_YapDialogue();
 
@@ -47,20 +52,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EFlowYapMultipleFragmentSequencing MultipleFragmentSequencing;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EFlowYapInterruptible Interruptible;
 	
 	// STATE
 protected:
 	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
 	
-#if WITH_EDITORONLY_DATA
-protected:
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	//bool bMultipleInputs;
-	
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	//bool bMultipleOutputs;
-#endif
 	// API
 public:
 	void SetConversationName(FName Name);

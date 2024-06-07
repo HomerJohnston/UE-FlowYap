@@ -35,4 +35,5 @@ namespace FlowYapColor
 	DECLARE_COLOR(Black,		0.00, 0.00, 0.00, 1.00);
 
 	DECLARE_COLOR(Transparent,	1.00, 1.00, 1.00, 0.00);
+	DECLARE_COLOR(Error,		1.00, 0.00, 1.00, 1.00);
 }

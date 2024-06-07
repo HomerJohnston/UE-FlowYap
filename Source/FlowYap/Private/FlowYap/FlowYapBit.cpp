@@ -30,14 +30,17 @@ FName FFlowYapBit::GetPortraitKey() const
 
 bool FFlowYapBit::GetInterruptible() const
 {
-	if (bUseProjectDefaultTimeSettings)
+	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
 	{
-		const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
-
-		return ProjectSettings->GetDefaultInterruptibleSetting();
+		return GetDefault<UFlowYapProjectSettings>()->GetDialogueInterruptibleByDefault();
 	}
 
-	return bInterruptible;	
+	return Interruptible == EFlowYapInterruptible::Interruptible;
+}
+
+EFlowYapTimeMode FFlowYapBit::GetTimeMode() const
+{
+	return bUseProjectDefaultTimeSettings ? GetDefault<UFlowYapProjectSettings>()->GetDefaultTimeModeSetting() : TimeMode;
 }
 
 double FFlowYapBit::GetTime() const
@@ -48,7 +51,7 @@ double FFlowYapBit::GetTime() const
 
 	if (ActualTimeMode == EFlowYapTimeMode::AudioTime && (!HasDialogueAudioAsset() || CachedAudioTime <= 0))
 	{
-		ActualTimeMode = ProjectSettings->GetMissingAudioFallbackTimeMode();
+		ActualTimeMode = EFlowYapTimeMode::TextTime;
 	}
 
 	switch (ActualTimeMode)
@@ -67,7 +70,6 @@ double FFlowYapBit::GetTime() const
 		}
 	default:
 		{
-			check(false)
 			return -1.0;
 		}
 	}
@@ -122,21 +124,4 @@ void FFlowYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 	}
 	
 	CachedAudioTime = CacherCDO->GetAudioLengthInSeconds(DialogueAudioAsset);
-}
-
-EFlowYapTimeMode FFlowYapBit::GetTimeMode() const
-{
-	if (bUseProjectDefaultTimeSettings)
-	{
-		const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
-		
-		EFlowYapTimeMode ActualTimeMode = ProjectSettings->GetDefaultTimeModeSetting();
-		
-		if (ActualTimeMode == EFlowYapTimeMode::AudioTime && !HasDialogueAudioAsset())
-		{
-			return ProjectSettings->GetMissingAudioFallbackTimeMode();
-		}
-	}
-
-	return TimeMode;
 }

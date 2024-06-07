@@ -1,4 +1,5 @@
 #pragma once
+#include "SFlowGraphNode_YapFragmentWidget.h"
 #include "Graph/Widgets/SFlowGraphNode.h"
 #include "Widgets/SUserWidget.h"
 
@@ -35,23 +36,31 @@ protected:
 	
 	FLinearColor DisconnectedBypassPinColor;
 
+	//** TEMP
+	FCheckBoxStyle TestStyle;
+	//** END TEMP
+
 	// STATE
 	bool bIsSelected = false;
 
 	bool bWasSelected = false;
 
-	bool bControlHooked = false;
+	bool bShiftHooked = false;
 
 	const SFlowGraphNode_YapFragmentWidget* FocusedFragment = nullptr;
+
+	const SFlowGraphNode_YapFragmentWidget* TypingInFragment = nullptr;
 	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
-
+	
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
 	
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
 protected:
+	//void UpdateGraphNode() override;
+
 	EVisibility GetFragmentMovementVisibility() const;
 
 	FReply MoveFragmentUpButton_OnClicked(FFlowYapFragment* Fragment);
@@ -88,9 +97,13 @@ protected:
 
 	EVisibility MoveFragmentDownButton_Visibility(FFlowYapFragment* FlowYapFragment) const;
 
-	ECheckBoxState GetIsUserPromptDialogue() const;
+	ECheckBoxState PlayerPromptCheckBox_IsChecked() const;
 
-	void HandleUserPromptDialogueChanged(ECheckBoxState CheckBoxState);
+	void PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+
+	ECheckBoxState InterruptibleToggle_IsChecked() const;
+
+	void InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
@@ -120,5 +133,11 @@ public:
 	void ClearFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
 	
 	const SFlowGraphNode_YapFragmentWidget* GetFocusedFragment() const;
+
+	void SetTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+
+	void ClearTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+
+	const SFlowGraphNode_YapFragmentWidget* GetTypingInFragment() const;
 };
 

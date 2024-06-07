@@ -11,6 +11,8 @@
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "FlowYap/FlowYapLog.h"
+#include "FlowYap/FlowYapProjectSettings.h"
+#include "FlowYap/Enums/FlowYapErrorLevel.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
@@ -617,20 +619,86 @@ EVisibility SFlowGraphNode_YapDialogueWidget::MoveFragmentDownButton_Visibility(
 	return (FlowYapFragment->IndexInDialogue == GetFlowYapDialogueNode()->GetNumFragments() - 1) ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::GetIsUserPromptDialogue() const
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_IsChecked() const
 {
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
-void SFlowGraphNode_YapDialogueWidget::HandleUserPromptDialogueChanged(ECheckBoxState CheckBoxState)
+void SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState)
 {
 	GetFlowYapDialogueNode()->SetIsPlayerPrompt(CheckBoxState == ECheckBoxState::Checked ? true : false);
+}
+
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_IsChecked() const
+{
+	switch (GetFlowYapDialogueNode()->Interruptible)
+	{
+	case EFlowYapInterruptible::UseProjectDefaults:
+		{
+			return ECheckBoxState::Undetermined;
+		}
+	case EFlowYapInterruptible::NotInterruptible:
+		{
+			return ECheckBoxState::Unchecked;
+		}
+	case EFlowYapInterruptible::Interruptible:
+		{
+			return ECheckBoxState::Checked;
+		}
+	}
+
+	check(false);
+	return ECheckBoxState::Undetermined;
+}
+
+void SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState)
+{
+	if (GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
+	{
+		GetFlowYapDialogueNode()->Interruptible = EFlowYapInterruptible::UseProjectDefaults;
+	}
+	else if (CheckBoxState == ECheckBoxState::Checked)
+	{
+		GetFlowYapDialogueNode()->Interruptible = EFlowYapInterruptible::Interruptible;
+	}
+	else
+	{
+		GetFlowYapDialogueNode()->Interruptible = EFlowYapInterruptible::NotInterruptible;
+	}
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
 	TSharedRef<SWidget> Title = SFlowGraphNode::CreateTitleWidget(NodeTitle);
 
+	TSharedPtr<SCheckBox> InterruptibleCheckBox;
+
+	TestStyle = UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White;
+
+	TestStyle.CheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.CheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.CheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+
+	TestStyle.UndeterminedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.UndeterminedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.UndeterminedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+
+	TestStyle.UncheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.UncheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	TestStyle.UncheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+
+	TestStyle.CheckedImage.TintColor = FlowYapColor::Green;
+	TestStyle.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
+	TestStyle.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
+
+	TestStyle.UndeterminedImage.TintColor = FlowYapColor::DarkGray;
+	TestStyle.UndeterminedHoveredImage.TintColor = FlowYapColor::DarkGrayHovered;
+	TestStyle.UndeterminedPressedImage.TintColor = FlowYapColor::DarkGrayPressed;
+	
+	TestStyle.UncheckedImage.TintColor = FlowYapColor::Red;
+	TestStyle.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
+	TestStyle.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
+	
 	return SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
 	.FillWidth(1.0)
@@ -642,15 +710,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Right)
 	.AutoWidth()
-	.Padding(2,0,12,0)
+	.Padding(2,0,2,0)
 	[
 		SNew(SCheckBox)
-		.Style(&UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White)
+		.Style(&UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_PlayerPrompt)
 		.Padding(FMargin(4, 0))
 		.CheckBoxContentUsesAutoWidth(true)
 		.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle Player Prompt Node"))
-		.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::GetIsUserPromptDialogue)
-		.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::HandleUserPromptDialogueChanged)
+		.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_IsChecked)
+		.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_OnCheckStateChanged)
 		.Content()
 		[
 			SNew(SBox)
@@ -660,9 +728,43 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.VAlign(VAlign_Center)
 			[
 				SNew(SImage)
-				.ColorAndOpacity(FlowYapColor::Noir)
+				.ColorAndOpacity(FlowYapColor::DarkGray)
 				.DesiredSizeOverride(FVector2D(16, 16))
 				.Image(FAppStyle::Get().GetBrush("MainFrame.VisitForums"))
+			]
+		]
+	]
+	+ SHorizontalBox::Slot()
+	.HAlign(HAlign_Right)
+	.AutoWidth()
+	.Padding(2,0,-24,0)
+	[
+		SNew(SBox)
+		.WidthOverride(32)
+		.HAlign(HAlign_Center)
+		[
+			SAssignNew(InterruptibleCheckBox, SCheckBox)
+			.Style(&TestStyle)
+			.Type(ESlateCheckBoxType::ToggleButton)
+			.Padding(FMargin(0, 0))
+			.CheckBoxContentUsesAutoWidth(true)
+			.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle whether this dialogue can be skipped by the player. Hold CTRL to reset to project defaults."))
+			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_IsChecked)
+			.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_OnCheckStateChanged)
+			.Content()
+			[
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(16)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				.Visibility_Lambda([this](){return ( GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Hidden; })
+				[
+					SNew(SImage)
+					.ColorAndOpacity(FlowYapColor::LightRed)
+					.DesiredSizeOverride(FVector2D(16, 16))
+					.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
+				]
 			]
 		]
 	];
@@ -868,23 +970,24 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 
 	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
 
-	bool bControlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
+	bool bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();
 
 	if (bIsSelected)
 	{
 		bWasSelected = true;
 	}
 	
-	if (bIsSelected && bControlPressed)
+	if (bIsSelected && bShiftPressed && TypingInFragment == nullptr)
 	{
-		bControlHooked = true;
+		bShiftHooked = true;
 	}
 
 	if (!bIsSelected)
 	{
 		bWasSelected = false;
-		bControlHooked = false;
+		bShiftHooked = false;
 		FocusedFragment = nullptr;
+		TypingInFragment = nullptr;
 	}
 }
 
@@ -895,7 +998,7 @@ bool SFlowGraphNode_YapDialogueWidget::GetIsSelected() const
 
 bool SFlowGraphNode_YapDialogueWidget::GetControlHooked() const
 {
-	return bControlHooked;
+	return bShiftHooked;
 }
 
 void SFlowGraphNode_YapDialogueWidget::SetFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment)
@@ -920,6 +1023,24 @@ void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragment(const SFlowGraphNode
 const SFlowGraphNode_YapFragmentWidget* SFlowGraphNode_YapDialogueWidget::GetFocusedFragment() const
 {
 	return FocusedFragment;
+}
+
+void SFlowGraphNode_YapDialogueWidget::SetTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment)
+{
+	TypingInFragment = InFragment;
+}
+
+void SFlowGraphNode_YapDialogueWidget::ClearTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment)
+{
+	if (TypingInFragment == InFragment)
+	{
+		TypingInFragment = nullptr;
+	}
+}
+
+const SFlowGraphNode_YapFragmentWidget* SFlowGraphNode_YapDialogueWidget::GetTypingInFragment() const
+{
+	return TypingInFragment;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -11,9 +11,11 @@
 #include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
 #include "FlowYap/FlowYapLog.h"
+#include "FlowYap/Enums/FlowYapErrorLevel.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Layout/SBackgroundBlur.h"
 #include "Widgets/Layout/SSeparator.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
@@ -160,7 +162,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.HAlign(HAlign_Fill)
-				.Padding(0, 0, 0, 2)
+				.Padding(0, 4, 0, 0)
 				[
 					SAssignNew(TitleTextBox, SEditableTextBox)
 					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
@@ -205,18 +207,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueContentArea(
 						.VAlign(VAlign_Fill)
 						[
 							SNew(SImage)
-							.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetWarningState_Visibility)
 							.Image(FAppStyle::GetBrush("MarqueeSelection"))
-							.ColorAndOpacity(FlowYapColor::Orange)
-						]
-						+ SOverlay::Slot()
-						.HAlign(HAlign_Fill)
-						.VAlign(VAlign_Fill)
-						[
-							SNew(SImage)
 							.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetErrorState_Visibility)
-							.Image(FAppStyle::GetBrush("MarqueeSelection"))
-							.ColorAndOpacity(FLinearColor::Red)
+							.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::DialogueAudioErrorState_ColorAndOpacity)
 						]
 					]
 					+ SHorizontalBox::Slot()
@@ -566,49 +559,25 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.VAlign(VAlign_Fill)
-		.Padding(1, 0, 1, 0)
-		.MaxWidth(51)
+		.Padding(3, 0, 1, 0)
+		//.MaxWidth(73)
 		[
 			// =============================
 			// TIME DISPLAY / MANUAL ENTRY FIELD
 			// =============================
 			SNew(SBox)
-			.HAlign(HAlign_Center)
+			.WidthOverride(73)
 			.VAlign(VAlign_Fill)
 			[
 				SNew(SNumericEntryBox<double>)
 				.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::GetEnabled_TimeEntryBox)
 				.Delta(0.1)
 				.MinValue(0.0)
-				.MinDesiredValueWidth(51) /* 8 pixels per side for border + 7 pixels per number... allow for 5 numbers */
+				//.MinDesiredValueWidth(73) /* 8 pixels per side for border + 7 pixels per number... allow for 5 numbers */
 				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
 				.Justification(ETextJustify::Center)
 				.Value(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_Value)
 				.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted)
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(1, 0, 0, 0)
-		[
-			// =============================
-			// INTERRUPTIBLE BUTTON
-			// =============================
-			SNew(SCheckBox)
-			.Style( &FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
-			.Padding(FMargin(4, 3))
-			.CheckBoxContentUsesAutoWidth(true)
-			.ToolTipText(LOCTEXT("FragmentInterruptible_Tooltip", "Can the player interrupt (fast forward) this?"))
-			.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsEnabled)
-			.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsChecked)
-			.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::InterruptibleButton_OnCheckStateChanged)
-			[
-				SNew(SBox)
-				[
-					SNew(SImage)
-					.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetUserInterruptBrush())
-				]
 			]
 		]
 	];
@@ -768,22 +737,6 @@ void SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_OnCheckStateChanged(EC
 	FFlowYapTransactions::EndModify();
 }
 
-
-// -----------------------------------------------------------------------------------------------
-ECheckBoxState SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsChecked() const
-{
-	return Fragment->Bit.GetInterruptible() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-}
-
-void SFlowGraphNode_YapFragmentWidget::InterruptibleButton_OnCheckStateChanged(ECheckBoxState CheckBoxState)
-{
-	FFlowYapTransactions::BeginModify(LOCTEXT("NodeInterruptibleChanged", "Interruptible Changed"), GetFlowNodeYapDialogue());
-	
-	Fragment->Bit.SetBitInterruptible(CheckBoxState == ECheckBoxState::Checked ? true : false);
-
-	FFlowYapTransactions::EndModify();
-}
-
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::UseProjectDefaultTimeSettingsButton_IsChecked() const
 {
 	return Fragment->Bit.GetUseProjectDefaultTimeSettings() ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
@@ -806,7 +759,7 @@ bool SFlowGraphNode_YapFragmentWidget::GetEnabled_TimeEntryBox() const
 
 bool SFlowGraphNode_YapFragmentWidget::InterruptibleButton_IsEnabled() const
 {
-	return !Fragment->Bit.GetUseProjectDefaultTimeSettings() && Fragment->Bit.GetBitTimeMode() == EFlowYapTimeMode::ManualTime;
+	return Fragment->Bit.GetTimeMode() != EFlowYapTimeMode::None;
 }
 
 bool SFlowGraphNode_YapFragmentWidget::UseAudioTimeButton_IsEnabled() const
@@ -829,7 +782,9 @@ bool SFlowGraphNode_YapFragmentWidget::IsManualTimeEntryEnabled() const
 
 TOptional<double> SFlowGraphNode_YapFragmentWidget::TimeEntryBox_Value() const
 {
-	return Fragment->Bit.GetTime();
+	double Time = Fragment->Bit.GetTime();
+	
+	return (Time > 0) ? Time : TOptional<double>();
 }
 
 void SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType)
@@ -855,50 +810,89 @@ bool SFlowGraphNode_YapFragmentWidget::GetEnabled_UseTextTimeButton() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetWarningState_Visibility() const
 {
-	return DialogueAudioAssetInWarningState() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
+	return GetAudioErrorLevel() != EFlowYapErrorLevel::OK ? EVisibility::HitTestInvisible : EVisibility::Hidden;
 }
 
-bool SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetInWarningState() const
-{
-	if (Fragment->Bit.GetTimeMode() == EFlowYapTimeMode::AudioTime && !Fragment->Bit.HasDialogueAudioAsset())
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetErrorState_Visibility() const
-{
-	return DialogueAudioAssetInErrorState() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
-}
-
-bool SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetInErrorState() const
+EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioErrorLevel() const
 {
 	UClass* AssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
 
+	static EFlowYapErrorLevel CachedErrorLevel = EFlowYapErrorLevel::OK;
+	static double LastUpdateTime = 0;
+	
+	if (GWorld)
+	{
+		if (GWorld->GetRealTimeSeconds() - LastUpdateTime < 1.0)
+		{
+			return CachedErrorLevel;
+		}		
+	}
+	
 	const TSoftObjectPtr<UObject> Asset = Fragment->Bit.GetDialogueAudioAsset<UObject>();
 
 	if (Asset)
 	{
-		return (!Asset->IsA(AssetClass));
+		if (!Asset->IsA(AssetClass))
+		{
+			CachedErrorLevel = EFlowYapErrorLevel::Error;
+			return CachedErrorLevel;
+		}
 	}
 
-	return false;
+	if (Fragment->Bit.GetTimeMode() == EFlowYapTimeMode::AudioTime && !Fragment->Bit.HasDialogueAudioAsset())
+	{
+		CachedErrorLevel = GetDefault<UFlowYapProjectSettings>()->GetMissingAudioErrorLevel();
+		return CachedErrorLevel;
+	}
+
+	CachedErrorLevel = EFlowYapErrorLevel::OK;
+	return CachedErrorLevel;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::DialogueAudioAssetErrorState_Visibility() const
+{
+	if (GetAudioErrorLevel() != EFlowYapErrorLevel::OK)
+	{
+		return EVisibility::HitTestInvisible;
+	}
+	
+	return EVisibility::Hidden;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::DialogueAudioErrorState_ColorAndOpacity() const
+{
+	switch (GetAudioErrorLevel())
+	{
+	case EFlowYapErrorLevel::OK:
+		{
+			return FlowYapColor::Green;
+		}
+	case EFlowYapErrorLevel::Warning:
+		{
+			return FlowYapColor::Orange;
+		}
+	case EFlowYapErrorLevel::Error:
+		{
+			return FlowYapColor::Red;
+		}
+	}
+
+	return FlowYapColor::Black;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::FragmentLowerControls_Visibility() const
 {
 	// Always show if there are errors!
-	if (DialogueAudioAssetInWarningState() || DialogueAudioAssetInErrorState())
+	// TODO: I am running GetAudioErrorLevel() multiple times, should I cache it?
+	if (GetAudioErrorLevel() != EFlowYapErrorLevel::OK)
 	{
 		return EVisibility::Visible;
 	}
 	
 	// Always show if the user is holding down CTRL and hovering over the dialogue!
-	if (Owner->IsHovered() && bControlPressed)
+	if (Owner->IsHovered() && bShiftPressed && Owner->GetTypingInFragment() == this)
 	{
-		return EVisibility::Visible;
+		//return EVisibility::Visible;
 	}
 	
 	if (!Owner->GetIsSelected())
@@ -933,10 +927,11 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	if (DialogueBox->HasKeyboardFocus() || TitleTextBox->HasKeyboardFocus())
 	{
 		Owner->SetFocusedFragment(this);
+		Owner->SetTypingFragment(this);
 	}
 	else
 	{
-		//Owner->ClearFocusedFragment(this);
+		Owner->ClearTypingFragment(this);
 	}
 }
 #undef LOCTEXT_NAMESPACE

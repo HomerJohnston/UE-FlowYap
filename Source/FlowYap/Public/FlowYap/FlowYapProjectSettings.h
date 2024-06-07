@@ -7,6 +7,7 @@
 #include "FlowYapProjectSettings.generated.h"
 
 class UFlowYapTextCalculator;
+enum class EFlowYapErrorLevel : uint8;
 
 UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class FLOWYAP_API UFlowYapProjectSettings : public UDeveloperSettings
@@ -25,12 +26,18 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TArray<FName> PortraitKeys;
 
+	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EFlowYapTimeMode DefaultTimeModeSetting;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	EFlowYapTimeMode AudioTimeFallbackTimedMode;
+	/** Controls how missing audio fields are handled.
+	 * - OK: Missing audio falls back to using text time.
+	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow.
+	 * - Error: Missing audio will not package. */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EFlowYapTimeMode::AudioTime", EditConditionHides))
+	EFlowYapErrorLevel MissingAudioErrorLevel;
 
+	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bDefaultInterruptibleSetting;
 	
@@ -87,9 +94,7 @@ public:
 public:
 	const EFlowYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
 
-	bool GetDefaultInterruptibleSetting() const { return bDefaultInterruptibleSetting; }
-	
-	EFlowYapTimeMode GetMissingAudioFallbackTimeMode() const;
+	bool GetDialogueInterruptibleByDefault() const { return bDefaultInterruptibleSetting; }
 	
 	UClass* GetDialogueAssetClass() const;
 
@@ -103,6 +108,8 @@ public:
 	
 	double GetMinimumAutoAudioTimeLength() const;
 
+	EFlowYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
+	
 #if WITH_EDITOR
 	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?
 	

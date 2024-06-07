@@ -66,9 +66,9 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
 }
 
 #define INITALIZE_CHECKBOX_STYLE(Name, Color) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
-	CheckBoxStyles.Name##.CheckedImage.TintColor = FLinearColor(FlowYapColor::##Color##);\
-	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FLinearColor(FlowYapColor::##Color##Hovered);\
-	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FLinearColor(FlowYapColor::##Color##Pressed)\
+	CheckBoxStyles.Name##.CheckedImage.TintColor = FlowYapColor::##Color##;\
+	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FlowYapColor::##Color##Hovered;\
+	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FlowYapColor::##Color##Pressed\
 
 void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -80,7 +80,7 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UpdatePortraitKeyIconsMap();
 
 	LoadIcon("Resources/DialogueNodeIcons/Icon_Timer_16x16.png", TimerIcon, TimerBrush);
-	LoadIcon("Resources/DialogueNodeIcons/Icon_UserInterrupt_16x16.png", UserInterruptIcon, UserInterruptBrush);
+	LoadIcon("Resources/DialogueNodeIcons/Icon_NoInterrupt_16x16.png", NoInterruptIcon, NoInterruptBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_TextTime_16x16.png", TextTimeIcon, TextTimeBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_AudioTime_16x16.png", AudioTimeIcon, AudioTimeBrush);
 	
@@ -90,7 +90,24 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Orange, Orange);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
 
-	CheckBoxStyles.ToggleButtonCheckBox_White.Padding = FMargin(0);
+	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt = CheckBoxStyles.ToggleButtonCheckBox_White;
+	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt.Padding = FMargin(0);
+
+	CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
+	FCheckBoxStyle& Tmp = CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt;
+
+	Tmp.CheckedImage.TintColor = FlowYapColor::LightGreen;
+	Tmp.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
+	Tmp.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
+	Tmp.UncheckedImage.TintColor = FlowYapColor::LightRed;
+	Tmp.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
+	Tmp.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
+
+	Tmp.UndeterminedForeground = FlowYapColor::Green;
+	Tmp.UndeterminedImage = Tmp.CheckedImage;
+	Tmp.UndeterminedImage.TintColor = FlowYapColor::LightGray;
+	Tmp.UndeterminedHoveredImage.TintColor = FlowYapColor::Gray;
+	Tmp.UndeterminedPressedImage.TintColor = FlowYapColor::Gray;
 
 	InputTracker = MakeShared<FFlowYapInputTracker>(this);
 

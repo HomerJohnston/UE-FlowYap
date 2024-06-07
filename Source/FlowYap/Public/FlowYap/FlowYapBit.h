@@ -4,7 +4,16 @@
 
 #include "FlowYapBit.generated.h"
 
-USTRUCT()
+UENUM(BlueprintType)
+enum class EFlowYapInterruptible : uint8
+{
+	UseProjectDefaults,
+	NotInterruptible,
+	Interruptible,
+	MAX						UMETA(Hidden)
+};
+
+USTRUCT(BlueprintType)
 struct FLOWYAP_API FFlowYapBit
 {
 	GENERATED_BODY()
@@ -12,37 +21,37 @@ struct FLOWYAP_API FFlowYapBit
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
 	FText TitleText;
 	
-	UPROPERTY(EditAnywhere, meta=(MultiLine=true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
 	FText DialogueText;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName PortraitKey = NAME_None;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bUseProjectDefaultTimeSettings = true;
 	
-	UPROPERTY(EditAnywhere, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
 	EFlowYapTimeMode TimeMode = EFlowYapTimeMode::AudioTime;
 
-	UPROPERTY(EditAnywhere)
-	bool bInterruptible = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EFlowYapInterruptible Interruptible = EFlowYapInterruptible::UseProjectDefaults;
 	
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	double ManualTime = 0;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 CachedWordCount = 0;
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	double CachedAudioTime = 0;
 	
 	// --------------------------------------------------------------------------------------------
@@ -99,7 +108,9 @@ public:
 
 	void SetBitTimeMode(EFlowYapTimeMode NewValue) { TimeMode = NewValue; }
 
-	void SetBitInterruptible(bool NewValue) { bInterruptible = NewValue; }
+	void SetBitInterruptible(EFlowYapInterruptible NewValue) { Interruptible = NewValue; }
+
+	EFlowYapInterruptible GetBitInterruptible() const { return Interruptible; }
 	
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 #endif

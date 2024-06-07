@@ -11,11 +11,16 @@
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
 	Category = TEXT("Yap");
+
 	NodeStyle = EFlowNodeStyle::Custom;
 
 	bIsPlayerPrompt = false;
+	
 	NodeActivationLimit = 0;
+	
 	MultipleFragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
+
+	Interruptible = EFlowYapInterruptible::UseProjectDefaults;
 
 	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
@@ -29,6 +34,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 		InputPins.Add(Index);
 		OutputPins.Add(Index);
 	}
+
 }
 
 void UFlowNode_YapDialogue::SetConversationName(FName Name)
