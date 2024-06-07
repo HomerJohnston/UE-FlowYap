@@ -32,12 +32,8 @@ void UFlowNode_YapConversationStart::InitializeInstance()
 
 void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes)
 {
-	for (const FFlowPin& OutputPin : DownstreamNode->GetOutputPins())
+	for (UFlowNode* ConnectedNode : DownstreamNode->GetConnectedNodes())
 	{
-		FConnectedPin FlowPin = DownstreamNode->GetConnection(OutputPin.PinName);
-
-		UFlowNode* ConnectedNode = DownstreamNode->GetFlowAsset()->GetNode(FlowPin.NodeGuid);
-
 		if (ConnectedNode)
 		{
 			ConnectedNodes.Add(ConnectedNode);
