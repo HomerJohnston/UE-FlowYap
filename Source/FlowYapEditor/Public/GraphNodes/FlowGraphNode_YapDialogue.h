@@ -32,7 +32,9 @@ public:
 
 	void UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex);
 	
-	void UpdatePinsForFragmentDeletion(uint8 DeleteIndex);
+	void UpdatePinsForFragmentDeletion(uint8 FragmentIndex);
 
-	void SwapPinConnections(uint8 A, uint8 B);
+	void SwapPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB);
+
+	void DoTrick(uint8 FragmentIndexA, uint8 FragmentIndexB);
 };

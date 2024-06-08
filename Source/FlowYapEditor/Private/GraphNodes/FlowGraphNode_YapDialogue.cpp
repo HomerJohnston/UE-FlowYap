@@ -80,48 +80,64 @@ void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 Insertio
 	}
 }
 
-void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 DeleteIndex)
+void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentIndex)
 {
-	// -2 is to account for the bypass node, the last node! don't mess with the bypass node!
-	uint8 LastIndex = OutputPins.Num() - 2;
+	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
 
-	for (int i = DeleteIndex; i <= LastIndex - 1; ++i)
+	uint8 NumPins = 3;
+
+	// For each fragment
+	for (int i = FragmentIndex; i <= LastFragmentIndex; ++i)
 	{
-		UEdGraphPin* PinToFixup = OutputPins[i];
-
-		PinToFixup->BreakAllPinLinks(true);
-
-		if (i < LastIndex)
+		for (int j = 0; j < NumPins; ++j)
 		{
-			TArray<UEdGraphPin*>& NextFragmentConnections = OutputPins[i + 1]->LinkedTo;
+			uint8 PinIndex = i * NumPins + j;
 
-			for (UEdGraphPin* Pin : NextFragmentConnections)
+			UEdGraphPin* PinToFixup = OutputPins[PinIndex];
+
+			PinToFixup->BreakAllPinLinks(true);
+
+			if (i < LastFragmentIndex)
 			{
-				PinToFixup->MakeLinkTo(Pin);
+				TArray<UEdGraphPin*>& NextFragmentConnections = OutputPins[PinIndex + NumPins]->LinkedTo;
+
+				for (UEdGraphPin* Pin : NextFragmentConnections)
+				{
+					PinToFixup->MakeLinkTo(Pin);
+				}
 			}
 		}
 	}
 }
 
-void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 A, uint8 B)
+void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB)
 {
-	UEdGraphPin* PinA = OutputPins[A];
-	UEdGraphPin* PinB = OutputPins[B];
+	uint8 PinCount = 3;
 
-	TArray<UEdGraphPin*> PinALinksCopy = PinA->LinkedTo;
-	TArray<UEdGraphPin*> PinBLinksCopy = PinB->LinkedTo;
-
-	PinA->BreakAllPinLinks(true);
-	PinB->BreakAllPinLinks(true);
-
-	for (UEdGraphPin* ConnectToA : PinBLinksCopy)
+	for (int i = 0; i < PinCount; ++i)
 	{
-		PinA->MakeLinkTo(ConnectToA);
+		DoTrick(FragmentIndexA * PinCount + i, FragmentIndexB * PinCount + i);
 	}
+}
+
+void UFlowGraphNode_YapDialogue::DoTrick(uint8 FragmentIndexA, uint8 FragmentIndexB)
+{
+	UEdGraphPin* PinA = OutputPins[FragmentIndexA];
+	UEdGraphPin* PinB = OutputPins[FragmentIndexB];
 	
-	for (UEdGraphPin* ConnectToB : PinALinksCopy)
+	TArray<UEdGraphPin*> PinALinks = PinA->LinkedTo;
+	PinA->BreakAllPinLinks(true);
+
+	for (UEdGraphPin* PinBConnection : PinB->LinkedTo)
 	{
-		PinB->MakeLinkTo(ConnectToB);
+		PinA->MakeLinkTo(PinBConnection);
+	}
+
+	PinB->BreakAllPinLinks(true);
+	
+	for (UEdGraphPin* PinAConnection : PinALinks)
+	{
+		PinB->MakeLinkTo(PinAConnection);
 	}
 }
 

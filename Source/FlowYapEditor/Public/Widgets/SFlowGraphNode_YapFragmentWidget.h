@@ -26,6 +26,8 @@ public:
 	
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment);
 
+	const FFlowYapFragment* GetFragment() const { return Fragment; };
+
 	// STATE
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO TSharedPtr safer?
@@ -39,12 +41,19 @@ protected:
 	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
 	
 	SVerticalBox DialogueEntries;
+
+	// TODO static?
+	FButtonStyle MoveFragmentButtonStyle;
+	
+	FButtonStyle DeleteFragmentButtonStyle;
 	
 	bool bCursorContained = false;
 	bool bShiftPressed = false;
 	bool bShiftCaptured = false;
 
 	bool bControlPressed = false;
+
+	bool bPortraitKeySelectorMenuOpen = false;
 	
 protected:
 	// ----------------------------------------------
@@ -79,6 +88,26 @@ protected:
 
 	EVisibility DialogueAudioAssetErrorState_Visibility() const;
 	// ----------------------------------------------
+
+	FReply MoveFragmentUpButton_OnClicked();
+
+	EVisibility MoveFragmentUpButton_Visibility() const;
+
+	FReply DeleteFragmentButton_OnClicked();
+	
+	FReply MoveFragmentDownButton_OnClicked();
+	
+	EVisibility MoveFragmentDownButton_Visibility() const;
+
+	/*
+	EVisibility GetFragmentMovementVisibility(FFlowYapFragment* Fragment) const;
+
+	EVisibility GetFragmentDeleteVisibility(FFlowYapFragment* FlowYapFragment) const;
+	*/
+
+	EVisibility DeleteFragmentButton_Visibility() const;
+
+	EVisibility FragmentControlsBox_Visibility() const;
 	
 	TSharedRef<SBox> CreatePortraitWidget();
 
@@ -96,6 +125,10 @@ protected:
 	FSlateColor GetNodeTitleColor() const;
 	
 	EVisibility MissingPortraitWarning_Visibility() const;
+
+	EVisibility PortraitKeySelector_Visibility() const;
+
+	void PortraitKeySelector_OnMenuOpenChanged(bool bMenuOpen);
 	
 	TSharedRef<SBox> CreatePortraitKeySelector();
 	
@@ -151,7 +184,7 @@ protected:
 
 protected:
 	
-	UFlowNode_YapDialogue* GetFlowNodeYapDialogue() const;
+	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 	
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };

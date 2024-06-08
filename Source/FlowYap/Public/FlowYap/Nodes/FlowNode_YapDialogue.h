@@ -20,6 +20,8 @@ ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragment
 
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below.
 
+// TODO: should you have two output pins for dialogues?
+
 /**
  * Emits a FlowYap Dialogue Fragment
  */
@@ -96,6 +98,8 @@ public:
 	void OnActivate() override;
 	
 	void ExecuteInput(const FName& PinName) override;
+
+	bool GetInterruptible() const;
 	
 #if WITH_EDITOR
 public:

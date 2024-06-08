@@ -174,6 +174,18 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	Super::ExecuteInput(PinName);
 }
 
+bool UFlowNode_YapDialogue::GetInterruptible() const
+{
+	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
+	{
+		return GetDefault<UFlowYapProjectSettings>()->GetDialogueInterruptibleByDefault();
+	}
+	else
+	{
+		return Interruptible == EFlowYapInterruptible::Interruptible;
+	}
+}
+
 TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
 {
 	return Fragments;
@@ -252,11 +264,11 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 
 	TArray<FFlowPin> ContextOutputPins;
 
-	uint8 NumPins = GetUsesMultipleOutputs() ? Fragments.Num() : 1;
-	
-	for (uint8 Index = 0; Index < NumPins; ++Index)
+	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index)
 	{
-		ContextOutputPins.Add(FName("Out", Index));
+		ContextOutputPins.Add(FName("DialogueEnd", Index));
+		ContextOutputPins.Add(FName("DialogueStart", Index));
+		ContextOutputPins.Add(FName("DialogueInterrupt", Index));
 	}
 	
 	ContextOutputPins.Add(FName("Bypass"));
@@ -329,7 +341,7 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 	UpdateFragmentIndices();
 
-	OnReconstructionRequested.ExecuteIfBound();
+	//OnReconstructionRequested.ExecuteIfBound();
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const

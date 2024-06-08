@@ -28,12 +28,18 @@ protected:
 
 	FLinearColor DialogueButtonsColor;
 
-	FLinearColor ConnectedPinColor;
-	
-	FLinearColor DisconnectedPinColor;
+	FLinearColor ConnectedEndPinColor;
+	FLinearColor DisconnectedEndPinColor;
 
-	FLinearColor ConnectedBypassPinColor;
+	FLinearColor ConnectedStartPinColor;
+	FLinearColor DisconnectedStartPinColor;
+
+	FLinearColor ConnectedInterruptPinColor;	
+	FLinearColor DisconnectedInterruptPinColor;	
+	FLinearColor ConnectedInterruptPinColor_Disabled;	
+	FLinearColor DisconnectedInterruptPinColor_Disabled;	
 	
+	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
 
 	//** TEMP
@@ -47,9 +53,9 @@ protected:
 
 	bool bShiftHooked = false;
 
-	const SFlowGraphNode_YapFragmentWidget* FocusedFragment = nullptr;
+	TOptional<uint8> SelectedFragmentWidget;
 
-	const SFlowGraphNode_YapFragmentWidget* TypingInFragment = nullptr;
+	TOptional<uint8> KeyboardFocusedFragmentWidget;
 	
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
@@ -59,43 +65,32 @@ public:
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
 protected:
-	//void UpdateGraphNode() override;
 
-	EVisibility GetFragmentMovementVisibility() const;
-
-	FReply MoveFragmentUpButton_OnClicked(FFlowYapFragment* Fragment);
-
-	FReply MoveFragmentDownButton_OnClicked(FFlowYapFragment* Fragment);
-	
 	FSlateColor GetFragmentSeparatorColor() const;
 
 	TOptional<int32> GetActivationLimit(FFlowYapFragment* Fragment) const;
 
 	void OnActivationLimitChanged(int32 NewValue, FFlowYapFragment* Fragment);
 
-	FSlateColor GetActivationDotColor(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
+	FSlateColor ActivationDot_ColorAndOpacity(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
 
-	FReply OnClickedActivationDot(FFlowYapFragment* Fragment, int ActivationIndex);
+	FReply ActivationDot_OnClicked(FFlowYapFragment* Fragment, int ActivationIndex);
 
 	EVisibility GetActivationIndicatorVisibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
 
-	EVisibility GetDialogueCycleFragmentSequencingVisibility() const;
+	EVisibility FragmentSequencingButton_Visibility() const;
 
-	FReply HandleDialogueCycleFragmentSequencingClicked();
+	FReply FragmentSequencingButton_OnClicked();
 
-	const FSlateBrush* GetDialogueFragmentSequencingIcon() const;
+	const FSlateBrush* FragmentSequencingButton_Image() const;
 
-	FText GetDialogueCycleFragmentSequencingTooltip() const;
+	FText FragmentSequencingButton_ToolTipText() const;
 
-	FSlateColor GetDialogueCycleFragmentSequencingColor() const;
+	FSlateColor FragmentSequencingButton_ColorAndOpacity() const;
 
 	FReply InsertFragment(int Index);
-	
+
 	TSharedRef<SWidget> CreateNodeContentArea() override;
-
-	EVisibility MoveFragmentUpButton_Visibility(FFlowYapFragment* FlowYapFragment) const;
-
-	EVisibility MoveFragmentDownButton_Visibility(FFlowYapFragment* FlowYapFragment) const;
 
 	ECheckBoxState PlayerPromptCheckBox_IsChecked() const;
 
@@ -107,16 +102,22 @@ protected:
 	
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	EVisibility GetDialogueFragmentButtonsVisibility() const;
+	EVisibility BottomAddFragmentButton_Visibility() const;
 	
 	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
 
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 	
-	FReply AddFragment();
+	FReply BottomAddFragmentButton_OnClicked();
 
 public:
-	FReply DeleteFragment(FFlowYapFragment* Fragment);
+	void DeleteFragment(uint8 FragmentIndex);
+	
+	void MoveFragmentUp(uint8 FragmentIndex);
+
+	void MoveFragmentDown(uint8 FragmentIndex);
+
+	void MoveFragment(uint8 FragmentIndex, int16 By);
 	
 	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
 	
@@ -128,16 +129,16 @@ public:
 
 	bool GetControlHooked() const;
 	
-	void SetFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+	void SetFocusedFragment(uint8 FragmentIndex);
 
-	void ClearFocusedFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+	void ClearFocusedFragment(uint8 FragmentIndex);
 	
-	const SFlowGraphNode_YapFragmentWidget* GetFocusedFragment() const;
+	const TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetFocusedFragment() const;
 
-	void SetTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+	void SetTypingFragment(uint8 FragmentIndex);
 
-	void ClearTypingFragment(const SFlowGraphNode_YapFragmentWidget* InFragment);
+	void ClearTypingFragment(uint8 FragmentIndex);
 
-	const SFlowGraphNode_YapFragmentWidget* GetTypingInFragment() const;
+	TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetKeyboardFocusedFragmentWidget() const;
 };
 
