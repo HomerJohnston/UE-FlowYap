@@ -13,11 +13,11 @@ UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class FLOWYAP_API UFlowYapProjectSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
+	
 public:
 	UFlowYapProjectSettings();
 
-public:
-	TMulticastDelegate<void()> OnMoodKeysChanged;
+	static UFlowYapProjectSettings* Get() { return StaticClass()->GetDefaultObject<UFlowYapProjectSettings>(); }
 
 	// ------------------------------------------
 	// SETTINGS
@@ -56,10 +56,11 @@ protected:
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	UClass* DialogueAssetClass;
-
-	
 	
 #if WITH_EDITORONLY_DATA
+public:
+	TMulticastDelegate<void()> OnMoodKeysChanged;
+	
 protected:
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")

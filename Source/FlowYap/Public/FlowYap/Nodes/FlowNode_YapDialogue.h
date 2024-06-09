@@ -18,9 +18,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 
 ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragmentSequencing::COUNT);
 
-// TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below.
-
-// TODO: should you have two output pins for dialogues?
+// TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
 
 /**
  * Emits a FlowYap Dialogue Fragment
@@ -31,7 +29,7 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 	GENERATED_BODY()
 
 friend class SFlowGraphNode_YapDialogueWidget;
-	
+
 public:
 	UFlowNode_YapDialogue();
 

@@ -74,7 +74,7 @@ const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
 		return nullptr;
 	}
 
-	const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* Settings = UFlowYapProjectSettings::Get();
 
 	if (Settings->GetMoodKeys().Num() == 0)
 	{
@@ -178,7 +178,7 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 {
 	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
 	{
-		return GetDefault<UFlowYapProjectSettings>()->GetDialogueInterruptibleByDefault();
+		return UFlowYapProjectSettings::Get()->GetDialogueInterruptibleByDefault();
 	}
 	else
 	{

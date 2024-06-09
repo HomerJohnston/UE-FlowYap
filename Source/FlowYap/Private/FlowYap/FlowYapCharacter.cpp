@@ -11,7 +11,7 @@
 
 UFlowYapCharacter::UFlowYapCharacter()
 {
-	const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* Settings = UFlowYapProjectSettings::Get();
 
 	// TODO I need a details customization to add a button to "rebuild" the portraits array
 	// TODO I need validation code to check if the character's portrait keys array matches the project or not

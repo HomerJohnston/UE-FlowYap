@@ -40,6 +40,7 @@ protected:
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
 
+	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
 
 	TOptional<uint8> FocusedFragmentIndex;
@@ -66,6 +67,7 @@ protected:
 	void				PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	ECheckBoxState		InterruptibleToggle_IsChecked() const;
 	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	FSlateColor			InterruptibleToggleIcon_ColorAndOpacity() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;

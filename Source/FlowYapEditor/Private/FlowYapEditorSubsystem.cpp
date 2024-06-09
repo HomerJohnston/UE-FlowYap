@@ -14,7 +14,7 @@ FCheckBoxStyles UFlowYapEditorSubsystem::CheckBoxStyles;
 
 void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 {
-	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 
 	const TArray<FName>& MoodKeys = ProjectSettings->GetMoodKeys();
 
@@ -89,6 +89,7 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Orange, Orange);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
+	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Transparent, Transparent);
 
 	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt = CheckBoxStyles.ToggleButtonCheckBox_White;
 	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt.Padding = FMargin(0);

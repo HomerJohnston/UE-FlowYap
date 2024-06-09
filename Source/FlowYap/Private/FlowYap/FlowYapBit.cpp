@@ -11,7 +11,7 @@ FName FFlowYapBit::GetMoodKey()
 {
 	if (MoodKey == NAME_None)
 	{
-		const TArray<FName>& Keys = GetDefault<UFlowYapProjectSettings>()->GetMoodKeys();
+		const TArray<FName>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
 
 		if (Keys.Num() > 0)
 		{
@@ -32,7 +32,7 @@ bool FFlowYapBit::GetInterruptible() const
 {
 	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
 	{
-		return GetDefault<UFlowYapProjectSettings>()->GetDialogueInterruptibleByDefault();
+		return UFlowYapProjectSettings::Get()->GetDialogueInterruptibleByDefault();
 	}
 
 	return Interruptible == EFlowYapInterruptible::Interruptible;
@@ -40,12 +40,12 @@ bool FFlowYapBit::GetInterruptible() const
 
 EFlowYapTimeMode FFlowYapBit::GetTimeMode() const
 {
-	return bUseProjectDefaultTimeSettings ? GetDefault<UFlowYapProjectSettings>()->GetDefaultTimeModeSetting() : TimeMode;
+	return bUseProjectDefaultTimeSettings ? UFlowYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;
 }
 
 double FFlowYapBit::GetTime() const
 {
-	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 	
 	EFlowYapTimeMode ActualTimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeModeSetting() : TimeMode;
 
@@ -80,7 +80,7 @@ double FFlowYapBit::GetTime() const
 
 double FFlowYapBit::GetTextTime() const
 {
-	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 
 	int32 TWPM = ProjectSettings->GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
 	double SecondsPerWord = 60.0 / (double)TWPM;
@@ -96,7 +96,7 @@ void FFlowYapBit::SetDialogueText(const FText& NewText)
 {
 	DialogueText = NewText;
 
-	TSubclassOf<UFlowYapTextCalculator> TextCalculatorClass = GetDefault<UFlowYapProjectSettings>()->GetTextCalculator();
+	TSubclassOf<UFlowYapTextCalculator> TextCalculatorClass = UFlowYapProjectSettings::Get()->GetTextCalculator();
 
 	CachedWordCount = TextCalculatorClass->GetDefaultObject<UFlowYapTextCalculator>()->CalculateWordCount(DialogueText);
 }
@@ -105,7 +105,7 @@ void FFlowYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
 	DialogueAudioAsset = NewAudio;
 
-	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacheClass = GetDefault<UFlowYapProjectSettings>()->GetAudioTimeCacheClass();
+	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacheClass = UFlowYapProjectSettings::Get()->GetAudioTimeCacheClass();
 
 	if (AudioTimeCacheClass == nullptr)
 	{

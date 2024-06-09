@@ -41,7 +41,9 @@ public class FlowYapEditor : ModuleRules
                 "PropertyEditor",
                 "ToolMenus",
                 
-                "UMG"
+                "UMG",
+                
+                "DeveloperSettings",
             }
         );
     }

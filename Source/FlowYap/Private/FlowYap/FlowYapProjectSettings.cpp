@@ -14,8 +14,6 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	MoodKeyIconPath.Path = "";
 
 	DefaultTimeModeSetting = EFlowYapTimeMode::AudioTime;
-	
-	MissingAudioErrorLevel = EFlowYapErrorLevel::Warning;
 
 	bDefaultInterruptibleSetting = true;
 	

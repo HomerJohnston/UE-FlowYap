@@ -4,6 +4,7 @@
 
 #include "FlowEditorStyle.h"
 #include "FlowYapColors.h"
+#include "FlowYapEditorSettings.h"
 #include "FlowYapEditorSubsystem.h"
 #include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
@@ -71,31 +72,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 
 	TSharedPtr<SCheckBox> InterruptibleCheckBox;
 
-	InterruptibleCheckBoxStyle = UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White;
+	// TODO move to a proper style
+	InterruptibleCheckBoxStyle = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
 
-	InterruptibleCheckBoxStyle.CheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.CheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.CheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.SetCheckBoxType(ESlateCheckBoxType::ToggleButton);
+	InterruptibleCheckBoxStyle.CheckedImage = InterruptibleCheckBoxStyle.UncheckedImage;
+	InterruptibleCheckBoxStyle.CheckedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
+	InterruptibleCheckBoxStyle.CheckedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
 
-	InterruptibleCheckBoxStyle.UndeterminedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.UndeterminedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-
-	InterruptibleCheckBoxStyle.UncheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.UncheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	InterruptibleCheckBoxStyle.UncheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-
-	InterruptibleCheckBoxStyle.CheckedImage.TintColor = FlowYapColor::Green;
-	InterruptibleCheckBoxStyle.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
-	InterruptibleCheckBoxStyle.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
-
-	InterruptibleCheckBoxStyle.UndeterminedImage.TintColor = FlowYapColor::DarkGray;
-	InterruptibleCheckBoxStyle.UndeterminedHoveredImage.TintColor = FlowYapColor::DarkGrayHovered;
-	InterruptibleCheckBoxStyle.UndeterminedPressedImage.TintColor = FlowYapColor::DarkGrayPressed;
-	
-	InterruptibleCheckBoxStyle.UncheckedImage.TintColor = FlowYapColor::Red;
-	InterruptibleCheckBoxStyle.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
-	InterruptibleCheckBoxStyle.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
+	InterruptibleCheckBoxStyle.UndeterminedImage = InterruptibleCheckBoxStyle.UncheckedImage;
+	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
+	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
 	
 	return SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
@@ -108,7 +95,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Right)
 	.AutoWidth()
-	.Padding(2,0,2,0)
+	.Padding(2, -2, 2, -2)
 	[
 		SNew(SCheckBox)
 		.Style(&UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_PlayerPrompt)
@@ -121,7 +108,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		[
 			SNew(SBox)
 			.WidthOverride(66)
-			.HeightOverride(16)
+			.HeightOverride(20)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			[
@@ -135,7 +122,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Right)
 	.AutoWidth()
-	.Padding(2,0,-24,0)
+	.Padding(2,-2,-24,-2)
 	[
 		SNew(SBox)
 		.WidthOverride(32)
@@ -144,7 +131,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			SAssignNew(InterruptibleCheckBox, SCheckBox)
 			.Style(&InterruptibleCheckBoxStyle)
 			.Type(ESlateCheckBoxType::ToggleButton)
-			.Padding(FMargin(0, 0))
+			.Padding(FMargin(6, 0))
 			.CheckBoxContentUsesAutoWidth(true)
 			.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle whether this dialogue can be skipped by the player. Hold CTRL while clicking to reset to project defaults."))
 			.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_IsChecked)
@@ -153,15 +140,26 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			[
 				SNew(SBox)
 				.WidthOverride(16)
-				.HeightOverride(16)
+				.HeightOverride(20)
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
-				.Visibility_Lambda([this](){return ( GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Hidden; })
 				[
-					SNew(SImage)
-					.ColorAndOpacity(FlowYapColor::LightRed)
-					.DesiredSizeOverride(FVector2D(16, 16))
-					.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SImage)
+						.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOpacity)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FAppStyle::Get().GetBrush("Icons.Rotate180"))
+					]
+					+ SOverlay::Slot()
+					[
+						SNew(SImage)
+						.ColorAndOpacity(FlowYapColor::LightRed)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
+						.Visibility_Lambda([this](){return ( GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+					]
 				]
 			]
 		]
@@ -216,6 +214,22 @@ void SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_OnCheckStateChanged(E
 	}
 }
 
+FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOpacity() const
+{
+	if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible)
+	{
+		return FlowYapColor::Red;
+	}
+	else if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::Interruptible)
+	{
+		return FlowYapColor::Green;
+	}
+	else
+	{
+		return FlowYapColor::DarkGray;
+	}
+}
+
 // ================================================================================================
 // NODE CONTENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -228,6 +242,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	bool bFirstFragment = true;
 	bool bLastFragment = false;
 
+	uint8 Spacing = GetDefault<UFlowYapEditorSettings>()->GetDialogueRowSpacing(); // TODO put this into project settings
+	uint8 Padding = 1 + Spacing * 8;
+	
 	for (uint8 f = 0; f < GetFlowYapDialogueNode()->GetNumFragments(); ++f)
 	{
 		FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragmentsMutable()[f];
@@ -250,7 +267,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		
 		FragmentBox->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
+		//.Padding(0, bFirstFragment ? 2 : 11, 0, bSingleFragment || bLastFragment ? 2 : 12)
+		//.Padding(0, bFirstFragment ? 1 : 1, 0, bSingleFragment || bLastFragment ? 2 : 1)
+		.Padding(0, bFirstFragment ? 1 : Padding, 0, bSingleFragment || bLastFragment ? 2 : Padding)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
@@ -316,7 +335,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWid
 	[
 		SNew(SImage)
 		.Image(FAppStyle::GetBrush("Menu.Separator"))
-		.DesiredSizeOverride(FVector2D(1, 2))
+		.DesiredSizeOverride(FVector2D(1, 1))
 		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
 	];
 }

@@ -51,8 +51,8 @@ int16 UFlowYapTextCalculator::CalculateWordCount(const FText& Text)
 
 double UFlowYapTextCalculator::CalculateTextTime(int16 WordCount)
 {
-	int32 TWPM = GetDefault<UFlowYapProjectSettings>()->GetTextWordsPerMinute();
-	double Min = GetDefault<UFlowYapProjectSettings>()->GetMinimumAutoTextTimeLength();
+	int32 TWPM = UFlowYapProjectSettings::Get()->GetTextWordsPerMinute();
+	double Min = UFlowYapProjectSettings::Get()->GetMinimumAutoTextTimeLength();
 	double SecondsPerWord = 60.0 / (double)TWPM;
 
 	return FMath::Max(WordCount * SecondsPerWord, Min);

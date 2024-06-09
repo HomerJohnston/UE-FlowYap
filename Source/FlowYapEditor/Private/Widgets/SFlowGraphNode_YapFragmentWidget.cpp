@@ -158,7 +158,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 
 FOptionalSize SFlowGraphNode_YapFragmentWidget::Fragment_WidthOverride() const
 {
-	return 360 + GetDefault<UFlowYapProjectSettings>()->GetDialogueWidthAdjustment();
+	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment();
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility() const
@@ -379,7 +379,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 	FMenuBuilder MenuBuilder(true, nullptr);
 	FName SelectedMoodKey = GetCurrentMoodKey();
 
-	for (const FName& MoodKey : GetDefault<UFlowYapProjectSettings>()->GetMoodKeys())
+	for (const FName& MoodKey : UFlowYapProjectSettings::Get()->GetMoodKeys())
 	{
 		if (MoodKey == NAME_None)
 		{
@@ -393,7 +393,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 
 	TSharedPtr<SImage> PortraitIconImage;
 	
-	FString IconPath = GetDefault<UFlowYapProjectSettings>()->GetPortraitIconPath(GetCurrentMoodKey());
+	FString IconPath = UFlowYapProjectSettings::Get()->GetPortraitIconPath(GetCurrentMoodKey());
 
 	// TODO ensure that system works and displays labels if user does not supply icons but only FNames. Use Generic mood icon?
 	SAssignNew(Box, SBox)
@@ -453,7 +453,7 @@ FName SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidget(FName InIconName, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
-	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
+	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 		
 	TSharedPtr<SHorizontalBox> HBox = SNew(SHorizontalBox);
 
@@ -679,7 +679,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
 		return EVisibility::Visible;
 	}
 	
-	return GetDefault<UFlowYapProjectSettings>()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Collapsed : EVisibility::Visible;
+	return UFlowYapProjectSettings::Get()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::TitleText_Text() const
@@ -976,7 +976,7 @@ void SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted(double NewV
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget()
 {
-	UClass* DialogueAssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
+	UClass* DialogueAssetClass = UFlowYapProjectSettings::Get()->GetDialogueAssetClass();
 
 	if (!DialogueAssetClass)
 	{
@@ -1060,7 +1060,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::AudioAssetErrorState_ColorAndOpaci
 
 EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() const
 {
-	UClass* AssetClass = GetDefault<UFlowYapProjectSettings>()->GetDialogueAssetClass();
+	UClass* AssetClass = UFlowYapProjectSettings::Get()->GetDialogueAssetClass();
 
 	static EFlowYapErrorLevel CachedErrorLevel = EFlowYapErrorLevel::OK;
 	static double LastUpdateTime = 0;
@@ -1086,7 +1086,7 @@ EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() cons
 
 	if (Fragment->Bit.GetTimeMode() == EFlowYapTimeMode::AudioTime && !Fragment->Bit.HasDialogueAudioAsset())
 	{
-		CachedErrorLevel = GetDefault<UFlowYapProjectSettings>()->GetMissingAudioErrorLevel();
+		CachedErrorLevel = UFlowYapProjectSettings::Get()->GetMissingAudioErrorLevel();
 		return CachedErrorLevel;
 	}
 

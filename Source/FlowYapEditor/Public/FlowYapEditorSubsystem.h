@@ -15,6 +15,7 @@ struct FCheckBoxStyles
 	FCheckBoxStyle ToggleButtonCheckBox_Blue;
 	FCheckBoxStyle ToggleButtonCheckBox_Orange;
 	FCheckBoxStyle ToggleButtonCheckBox_White;
+	FCheckBoxStyle ToggleButtonCheckBox_Transparent;
 
 	// Custom check boxes
 	FCheckBoxStyle ToggleButtonCheckBox_PlayerPrompt;
