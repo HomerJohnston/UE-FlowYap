@@ -19,26 +19,31 @@
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
+FButtonStyle SFlowGraphNode_YapFragmentWidget::MoveFragmentButtonStyle;
+bool SFlowGraphNode_YapFragmentWidget::bStylesInitialized = false;
+
 void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment)
 {
 	Owner = InOwner;
 
 	Fragment = InFragment;
 
-	MoveFragmentButtonStyle = FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("PropertyEditor.AssetComboStyle");
+	if (!bStylesInitialized)
+	{
+		MoveFragmentButtonStyle = FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("PropertyEditor.AssetComboStyle");
 
-	MoveFragmentButtonStyle.Normal.TintColor = FlowYapColor::Noir_Trans;
-	MoveFragmentButtonStyle.Hovered.TintColor = FlowYapColor::DarkGray;
-	MoveFragmentButtonStyle.Pressed.TintColor = FlowYapColor::DarkGrayPressed;
-	
-	MoveFragmentButtonStyle.NormalForeground = FlowYapColor::LightGray;
-	MoveFragmentButtonStyle.HoveredForeground = FlowYapColor::White;
-	MoveFragmentButtonStyle.PressedForeground = FlowYapColor::LightGrayPressed;
+		// Button colors
+		MoveFragmentButtonStyle.Normal.TintColor = FlowYapColor::Noir_Trans;
+		MoveFragmentButtonStyle.Hovered.TintColor = FlowYapColor::DarkGray_Trans;
+		MoveFragmentButtonStyle.Pressed.TintColor = FlowYapColor::DarkGrayPressed_Trans;
 
-	DeleteFragmentButtonStyle = MoveFragmentButtonStyle;
-	DeleteFragmentButtonStyle.NormalForeground = FlowYapColor::LightRed;
-	DeleteFragmentButtonStyle.HoveredForeground = FlowYapColor::LightRedHovered;
-	DeleteFragmentButtonStyle.PressedForeground = FlowYapColor::LightRedPressed;
+		// Text colors
+		MoveFragmentButtonStyle.NormalForeground = FlowYapColor::LightGray;
+		MoveFragmentButtonStyle.HoveredForeground = FlowYapColor::White;
+		MoveFragmentButtonStyle.PressedForeground = FlowYapColor::LightGrayPressed;
+
+		bStylesInitialized = true;
+	}
 
 	ChildSlot
 	[
@@ -159,16 +164,9 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::Fragment_WidthOverride() const
 EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility() const
 {
 	// Always show if there are errors!
-	// TODO: I am running GetAudioErrorLevel() multiple times, should I cache it?
 	if (AudioAssetErrorLevel() != EFlowYapErrorLevel::OK)
 	{
 		return EVisibility::Visible;
-	}
-	
-	// Always show if the user is holding down CTRL and hovering over the dialogue!
-	if (Owner->IsHovered() && bShiftPressed && Owner->GetKeyboardFocusedFragmentWidget().Get() == this)
-	{
-		//return EVisibility::Visible;
 	}
 	
 	if (!Owner->GetIsSelected())
@@ -281,7 +279,6 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 {
-	// TODO clean this up?
 	return SNew(SBox)
 	.Padding(0, 0, 0, 0)
 	[
@@ -566,7 +563,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 		.Padding(0, 0)
 		[
 			SNew(SButton)
-			.ButtonStyle(&DeleteFragmentButtonStyle)
+			.ButtonStyle(&MoveFragmentButtonStyle)
 			.ContentPadding(FMargin(3, 4))
 			.ToolTipText(LOCTEXT("DialogueDeleteFragment_Tooltip", "Delete Fragment"))
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DeleteFragmentButton_Visibility)
@@ -1124,20 +1121,14 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor() const
 
 void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
-	
-	bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();
-	bControlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
-
 	if (DialogueBox->HasKeyboardFocus() || TitleTextBox->HasKeyboardFocus())
 	{
 		Owner->SetFocusedFragment(Fragment->IndexInDialogue);
-		Owner->SetTypingFragment(Fragment->IndexInDialogue);
 	}
-	else
+	else if (Owner->GetFocusedFragmentIndex().IsSet() && Owner->GetFocusedFragmentIndex().GetValue() == Fragment->IndexInDialogue)
 	{
-		Owner->ClearTypingFragment(Fragment->IndexInDialogue);
+		Owner->ClearTypingFocus(Fragment->IndexInDialogue);
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE

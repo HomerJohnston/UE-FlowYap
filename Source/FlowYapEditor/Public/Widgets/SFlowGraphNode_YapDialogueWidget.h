@@ -9,18 +9,15 @@ class UFlowGraphNode_YapDialogue;
 
 class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 {
+	// ------------------------------------------
+	// STATE
 protected:
-	// TODO: Is this safe?
 	UFlowGraphNode_YapDialogue* FlowGraphNode_YapDialogue = nullptr;
 
 	TSharedPtr<SVerticalBox> FragmentBox;
-	
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
-
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
-	
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
-
 	TSharedPtr<SBox> BypassOutputBox;
 
 	FTextBlockStyle NormalText;
@@ -41,27 +38,24 @@ protected:
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
 
-	//** TEMP
-	FCheckBoxStyle TestStyle;
-	//** END TEMP
+	FCheckBoxStyle InterruptibleCheckBoxStyle;
 
-	// STATE
+	TOptional<uint8> FocusedFragmentIndex;
+
 	bool bIsSelected = false;
-
-	bool bWasSelected = false;
-
 	bool bShiftHooked = false;
+	bool bKeyboardFocused = false;
 
-	TOptional<uint8> SelectedFragmentWidget;
-
-	TOptional<uint8> KeyboardFocusedFragmentWidget;
-	
+	// ------------------------------------------
+	// CONSTRUCTION
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 	
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
 	
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+	
+	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
 
 protected:
 
@@ -134,10 +128,7 @@ public:
 	
 	const TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetFocusedFragment() const;
 
-	void SetTypingFragment(uint8 FragmentIndex);
+	void SetTypingFocus(uint8 FragmentIndex);
 
-	void ClearTypingFragment(uint8 FragmentIndex);
-
-	TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetKeyboardFocusedFragmentWidget() const;
+	void ClearTypingFocus(uint8 FragmentIndex);
 };
-

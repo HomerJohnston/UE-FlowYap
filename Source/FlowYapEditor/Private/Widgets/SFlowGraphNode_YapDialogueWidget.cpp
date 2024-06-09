@@ -42,8 +42,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	ConnectedBypassPinColor = FlowYapColor::LightBlue;
 	DisconnectedBypassPinColor = FlowYapColor::DarkGray;
 
-	SelectedFragmentWidget.Reset();
-	KeyboardFocusedFragmentWidget.Reset();
+	FocusedFragmentIndex.Reset();
 	
 	// TODO move this to my editor subsystem, no need to build it over and over
 	NormalText = FTextBlockStyle()
@@ -86,9 +85,9 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 B
 
 	GetFlowYapDialogueNode()->SwapFragments(FragmentIndex, FragmentIndex + By);
 
-	if (SelectedFragmentWidget.IsSet())
+	if (FocusedFragmentIndex.IsSet())
 	{
-		SelectedFragmentWidget = SelectedFragmentWidget.GetValue() + By;
+		FocusedFragmentIndex = FocusedFragmentIndex.GetValue() + By;
 	}
 }
 
@@ -560,31 +559,31 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 
 	TSharedPtr<SCheckBox> InterruptibleCheckBox;
 
-	TestStyle = UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White;
+	InterruptibleCheckBoxStyle = UFlowYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_White;
 
-	TestStyle.CheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.CheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.CheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.CheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.CheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.CheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
 
-	TestStyle.UndeterminedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.UndeterminedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.UndeterminedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UndeterminedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UndeterminedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
 
-	TestStyle.UncheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.UncheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
-	TestStyle.UncheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UncheckedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UncheckedHoveredImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
+	InterruptibleCheckBoxStyle.UncheckedPressedImage = *FAppStyle::Get().GetBrush("Icons.Rotate180");
 
-	TestStyle.CheckedImage.TintColor = FlowYapColor::Green;
-	TestStyle.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
-	TestStyle.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
+	InterruptibleCheckBoxStyle.CheckedImage.TintColor = FlowYapColor::Green;
+	InterruptibleCheckBoxStyle.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
+	InterruptibleCheckBoxStyle.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
 
-	TestStyle.UndeterminedImage.TintColor = FlowYapColor::DarkGray;
-	TestStyle.UndeterminedHoveredImage.TintColor = FlowYapColor::DarkGrayHovered;
-	TestStyle.UndeterminedPressedImage.TintColor = FlowYapColor::DarkGrayPressed;
+	InterruptibleCheckBoxStyle.UndeterminedImage.TintColor = FlowYapColor::DarkGray;
+	InterruptibleCheckBoxStyle.UndeterminedHoveredImage.TintColor = FlowYapColor::DarkGrayHovered;
+	InterruptibleCheckBoxStyle.UndeterminedPressedImage.TintColor = FlowYapColor::DarkGrayPressed;
 	
-	TestStyle.UncheckedImage.TintColor = FlowYapColor::Red;
-	TestStyle.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
-	TestStyle.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
+	InterruptibleCheckBoxStyle.UncheckedImage.TintColor = FlowYapColor::Red;
+	InterruptibleCheckBoxStyle.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
+	InterruptibleCheckBoxStyle.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
 	
 	return SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
@@ -631,7 +630,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.HAlign(HAlign_Center)
 		[
 			SAssignNew(InterruptibleCheckBox, SCheckBox)
-			.Style(&TestStyle)
+			.Style(&InterruptibleCheckBoxStyle)
 			.Type(ESlateCheckBoxType::ToggleButton)
 			.Padding(FMargin(0, 0))
 			.CheckBoxContentUsesAutoWidth(true)
@@ -901,23 +900,17 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
 
 	bool bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();
-
-	if (bIsSelected)
-	{
-		bWasSelected = true;
-	}
 	
-	if (bIsSelected && bShiftPressed && !KeyboardFocusedFragmentWidget.IsSet())
+	if (bIsSelected && bShiftPressed && !bKeyboardFocused)
 	{
 		bShiftHooked = true;
 	}
 
 	if (!bIsSelected)
 	{
-		bWasSelected = false;
 		bShiftHooked = false;
-		SelectedFragmentWidget.Reset();
-		KeyboardFocusedFragmentWidget.Reset();
+		FocusedFragmentIndex.Reset();
+		bKeyboardFocused = false;
 	}
 
 	for (int i = 2; i < OutputPins.Num() - 1; i += 3)
@@ -951,28 +944,30 @@ bool SFlowGraphNode_YapDialogueWidget::GetControlHooked() const
 
 void SFlowGraphNode_YapDialogueWidget::SetFocusedFragment(uint8 InFragment)
 {
-	if (SelectedFragmentWidget != InFragment)
+	if (FocusedFragmentIndex != InFragment)
 	{
 		TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
 		GraphEditor->SetNodeSelection(FlowGraphNode, true);
 		
-		SelectedFragmentWidget = InFragment;
+		FocusedFragmentIndex = InFragment;
 	}
+
+	SetTypingFocus(InFragment);
 }
 
 void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragment(uint8 FragmentIndex)
 {
-	if (SelectedFragmentWidget == FragmentIndex)
+	if (FocusedFragmentIndex == FragmentIndex)
 	{
-		SelectedFragmentWidget.Reset();
+		FocusedFragmentIndex.Reset();
 	}
 }
 
 const TSharedPtr<SFlowGraphNode_YapFragmentWidget> SFlowGraphNode_YapDialogueWidget::GetFocusedFragment() const
 {
-	if (SelectedFragmentWidget.IsSet())
+	if (FocusedFragmentIndex.IsSet())
 	{
-		return FragmentWidgets[SelectedFragmentWidget.GetValue()];
+		return FragmentWidgets[FocusedFragmentIndex.GetValue()];
 	}
 	else
 	{
@@ -980,29 +975,14 @@ const TSharedPtr<SFlowGraphNode_YapFragmentWidget> SFlowGraphNode_YapDialogueWid
 	}
 }
 
-void SFlowGraphNode_YapDialogueWidget::SetTypingFragment(uint8 FragmentIndex)
+void SFlowGraphNode_YapDialogueWidget::SetTypingFocus(uint8 FragmentIndex)
 {
-	KeyboardFocusedFragmentWidget = FragmentIndex;
+	bKeyboardFocused = true;
 }
 
-void SFlowGraphNode_YapDialogueWidget::ClearTypingFragment(uint8 FragmentIndex)
+void SFlowGraphNode_YapDialogueWidget::ClearTypingFocus(uint8 FragmentIndex)
 {
-	if (KeyboardFocusedFragmentWidget == FragmentIndex)
-	{
-		KeyboardFocusedFragmentWidget.Reset();
-	}
-}
-
-TSharedPtr<SFlowGraphNode_YapFragmentWidget> SFlowGraphNode_YapDialogueWidget::GetKeyboardFocusedFragmentWidget() const
-{
-	if (KeyboardFocusedFragmentWidget.IsSet())
-	{
-		return FragmentWidgets[KeyboardFocusedFragmentWidget.GetValue()];
-	}
-	else
-	{
-		return nullptr;
-	}
+	bKeyboardFocused = false;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -12,45 +12,35 @@ class UFlowGraphNode_YapDialogue;
 
 class SMultiLineEditableTextBox;
 
-enum class EFlowYapTimeMode : uint8;
 enum class EFlowYapErrorLevel : uint8;
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
-public:
-	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
-	SLATE_END_ARGS()
-	
+	// ------------------------------------------
 	// STATE
 protected:
-	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO TSharedPtr safer?
-
+	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
 	FFlowYapFragment* Fragment = nullptr;
 
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
-
 	TSharedPtr<SEditableTextBox> TitleTextBox;
-	
 	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
-	
-	SVerticalBox DialogueEntries;
 
-	// TODO static?
-	FButtonStyle MoveFragmentButtonStyle;
-	
-	FButtonStyle DeleteFragmentButtonStyle;
+	static FButtonStyle MoveFragmentButtonStyle;
+	static bool bStylesInitialized;
 	
 	bool bCursorContained = false;
-	bool bShiftPressed = false;
-	bool bShiftCaptured = false;
-
-	bool bControlPressed = false;
-
 	bool MoodKeySelectorMenuOpen = false;
 
+	// ------------------------------------------
+	// CONSTRUCTION
 public:
+	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
+	SLATE_END_ARGS()
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment); // non-virtual override
 
+	// ------------------------------------------
+	// WIDGETS
 protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
@@ -139,10 +129,14 @@ protected:
 	EFlowYapErrorLevel	AudioAssetErrorLevel() const;
 
 	// ------------------------------------------
+	// HELPERS
 protected:
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
+	// ------------------------------------------
+	// OVERRIDES
 public:
-	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
+
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };
