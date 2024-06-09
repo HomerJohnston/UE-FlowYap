@@ -241,59 +241,32 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 
 		FragmentWidgets.Add(NewFragmentWidget);
 
-		TSharedPtr<SVerticalBox> RightSideNodeBox;
-
 		FragmentBox->AddSlot()
 		.AutoHeight()
 		.Padding(0, 0, 0, 0)
 		[
-			SNew(SButton)
-			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ToolTipText(LOCTEXT("DialogueNode", "Insert new fragment"))
-			.ContentPadding(0)
-			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked, f)
-			[
-				SNew(SImage)
-				.Image(FAppStyle::GetBrush("Menu.Separator"))
-				.DesiredSizeOverride(FVector2D(1, 2))
-				.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
-			]
+			CreateFragmentSeparatorWidget(f)
 		];	
 		
 		FragmentBox->AddSlot()
 		.AutoHeight()
 		[
-			SNew(SHorizontalBox)
-			// LEFT PANE
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0, 0, 0, 0)
-			.VAlign(VAlign_Fill)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
 			[
-				CreateLeftFragmentPane(Fragment)
+				CreateFragmentRowWidget(Fragment, bSingleFragment, bFirstFragment, bLastFragment)
 			]
-			// MIDDLE PANE
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Top)
-			.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
+			+ SOverlay::Slot()
 			[
-				SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, &Fragment)
-			]
-			// RIGHT PANE
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Fill)
-			[
-				SNew(SBox)
-				.MinDesiredWidth(40)
-				[
-					SAssignNew(RightSideNodeBox, SVerticalBox)
-				]
+				SNew(SBorder)
+				.BorderImage(FAppStyle::GetBrush("Menu.Background"))
+				.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility)
+				.ColorAndOpacity(FlowYapColor::White_Trans)
+				.BorderBackgroundColor(FlowYapColor::White_Trans)
+				.ForegroundColor(FlowYapColor::White_Trans)
 			]
 		];
 		
-		FragmentOutputBoxes.Add(RightSideNodeBox);
 		bFirstFragment = false;
 	};
 	
@@ -310,6 +283,26 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	.VAlign(VAlign_Fill)
 	[
 		FragmentBox.ToSharedRef()
+	];
+}
+
+EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility() const
+{
+	return EVisibility::Collapsed;
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(int FragmentIndex)
+{
+	return SNew(SButton)
+	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+	.ToolTipText(LOCTEXT("DialogueNode", "Insert new fragment"))
+	.ContentPadding(0)
+	.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked, FragmentIndex)
+	[
+		SNew(SImage)
+		.Image(FAppStyle::GetBrush("Menu.Separator"))
+		.DesiredSizeOverride(FVector2D(1, 2))
+		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
 	];
 }
 
@@ -331,6 +324,38 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(int Index)
 	FFlowYapTransactions::EndModify();
 	
 	return FReply::Handled();
+}
+
+// ================================================================================================
+// FRAGMENT ROW
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(FFlowYapFragment& Fragment, bool bSingleFragment, bool bFirstFragment, bool bLastFragment)
+{
+	return SNew(SHorizontalBox)
+	// LEFT PANE
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(0, 0, 0, 0)
+	.VAlign(VAlign_Fill)
+	[
+		CreateLeftFragmentPane(Fragment)
+	]
+	// MIDDLE PANE
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.VAlign(VAlign_Top)
+	.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
+	[
+		SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, &Fragment)
+	]
+	// RIGHT PANE
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.VAlign(VAlign_Fill)
+	[
+		CreateRightFragmentPane()
+	];
 }
 
 // ================================================================================================
@@ -518,6 +543,23 @@ FReply SFlowGraphNode_YapDialogueWidget::ActivationDot_OnClicked(FFlowYapFragmen
 	FFlowYapTransactions::EndModify();
 	
 	return FReply::Handled();
+}
+
+// ================================================================================================
+// RIGHT PANE OF FRAGMENT ROW
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane()
+{
+	TSharedRef<SVerticalBox> RightSideNodeBox = SNew(SVerticalBox);
+	
+	FragmentOutputBoxes.Add(RightSideNodeBox);
+	
+	return SNew(SBox)
+	.MinDesiredWidth(40)
+	[
+		RightSideNodeBox
+	];
 }
 
 // ================================================================================================

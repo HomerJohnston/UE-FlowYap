@@ -63,13 +63,21 @@ protected:
 	void				PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	ECheckBoxState		InterruptibleToggle_IsChecked() const;
 	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-	
+
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
+
+	EVisibility			FragmentRowHighlight_Visibility() const;
+
+	// ------------------------------------------
+	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(int FragmentIndex);
 
 	FSlateColor			FragmentSeparator_ColorAndOpacity() const;
 	FReply				FragmentSeparator_OnClicked(int Index);
 
+	// ------------------------------------------
+	TSharedRef<SWidget>	CreateFragmentRowWidget(FFlowYapFragment& Fragment, bool bSingleFragment, bool bFirstFragment, bool bLastFragment);
+	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftFragmentPane(FFlowYapFragment& Fragment);
 	
@@ -84,6 +92,9 @@ protected:
 	FReply				ActivationDot_OnClicked(FFlowYapFragment* Fragment, int ActivationIndex);
 
 	// ------------------------------------------
+	TSharedRef<SBox>	CreateRightFragmentPane();
+	
+	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateBottomBarWidget();
 
 	EVisibility			FragmentSequencingButton_Visibility() const;
@@ -94,6 +105,13 @@ protected:
 	EVisibility			BottomAddFragmentButton_Visibility() const;
 	FReply				BottomAddFragmentButton_OnClicked();
 
+
+
+
+
+	
+	
+	
 	
 	// ------------------------------------------
 	// PUBLIC API & THEIR HELPERS
