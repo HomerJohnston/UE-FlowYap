@@ -48,6 +48,9 @@ protected:
 	bool bShiftHooked = false;
 	bool bKeyboardFocused = false;
 
+	TOptional<uint8> FlashFragmentIndex; 
+	double FlashHighlight = 0.0;
+	
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
@@ -67,7 +70,8 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
 
-	EVisibility			FragmentRowHighlight_Visibility() const;
+	EVisibility			FragmentRowHighlight_Visibility(uint8 f) const;
+	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(int FragmentIndex);
@@ -105,14 +109,6 @@ protected:
 	EVisibility			BottomAddFragmentButton_Visibility() const;
 	FReply				BottomAddFragmentButton_OnClicked();
 
-
-
-
-
-	
-	
-	
-	
 	// ------------------------------------------
 	// PUBLIC API & THEIR HELPERS
 public:
@@ -146,6 +142,9 @@ public:
 	
 	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
 
+protected:
+	void SetFlashFragment(uint8 FragmentIndex);
+	
 	// ------------------------------------------
 	// OVERRIDES & THEIR HELPERS
 public:

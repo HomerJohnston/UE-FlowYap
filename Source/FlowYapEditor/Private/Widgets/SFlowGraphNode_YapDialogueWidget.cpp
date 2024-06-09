@@ -228,7 +228,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	bool bFirstFragment = true;
 	bool bLastFragment = false;
 
-	for (int f = 0; f < GetFlowYapDialogueNode()->GetNumFragments(); ++f)
+	for (uint8 f = 0; f < GetFlowYapDialogueNode()->GetNumFragments(); ++f)
 	{
 		FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragmentsMutable()[f];
 
@@ -250,10 +250,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		
 		FragmentBox->AddSlot()
 		.AutoHeight()
+		.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
-			.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
 			[
 				CreateFragmentRowWidget(Fragment)
 			]
@@ -262,10 +262,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 				SNew(SBorder)
 				.Padding(0)
 				.BorderImage(FAppStyle::GetBrush("Menu.Background"))
-				.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility)
-				.ColorAndOpacity(FlowYapColor::White_Trans)
-				.BorderBackgroundColor(FlowYapColor::White_Trans)
-				.ForegroundColor(FlowYapColor::White_Trans)
+				.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility, f)
+				.BorderBackgroundColor(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgroundColor, f)
 			]
 		];
 		
@@ -288,11 +286,24 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	];
 }
 
-EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility() const
+EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(uint8 f) const
 {
-	// TODO
-	//return EVisibility::HitTestInvisible;
+	if (FlashFragmentIndex == f)
+	{
+		return EVisibility::HitTestInvisible;
+	}
+
 	return EVisibility::Collapsed;
+}
+
+FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgroundColor(uint8 f) const
+{
+	if (FlashFragmentIndex == f)
+	{
+		return FlashHighlight * FlowYapColor::White_Trans;
+	}
+
+	return FlowYapColor::Transparent;
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(int FragmentIndex)
@@ -349,7 +360,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(FF
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.VAlign(VAlign_Top)
-	//.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
 	[
 		SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, &Fragment)
 	]
@@ -742,12 +752,16 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragmentUp(uint8 FragmentIndex)
 {
 	check(FragmentIndex > 0);
 	MoveFragment(FragmentIndex, -1);
+
+	SetFlashFragment(FragmentIndex - 1);
 }
 
 void SFlowGraphNode_YapDialogueWidget::MoveFragmentDown(uint8 FragmentIndex)
 {
 	check(FragmentIndex < GetFlowYapDialogueNode()->GetNumFragments() - 1);
 	MoveFragment(FragmentIndex, +1);
+
+	SetFlashFragment(FragmentIndex + 1);
 }
 
 void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 By)
@@ -815,6 +829,12 @@ const UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogu
 	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNode());
 }
 
+void SFlowGraphNode_YapDialogueWidget::SetFlashFragment(uint8 FragmentIndex)
+{
+	FlashFragmentIndex = FragmentIndex;
+	FlashHighlight = 1.0;
+}
+
 // ------------------------------------------
 // OVERRIDES & THEIR HELPERS
 
@@ -861,6 +881,13 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		}
 		
 		Pin->SetColorAndOpacity(InterruptPinColor);
+	}
+
+	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);
+
+	if (FlashHighlight <= 0)
+	{
+		FlashFragmentIndex.Reset();
 	}
 }
 

@@ -1125,7 +1125,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		Owner->SetFocusedFragment(Fragment->IndexInDialogue);
 	}
-	else if (Owner->GetFocusedFragmentIndex().IsSet() && Owner->GetFocusedFragmentIndex().GetValue() == Fragment->IndexInDialogue)
+	else if (Owner->GetFocusedFragmentIndex() == Fragment->IndexInDialogue)
 	{
 		Owner->ClearTypingFocus();
 	}
