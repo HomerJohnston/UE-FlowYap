@@ -253,12 +253,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
+			.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
 			[
-				CreateFragmentRowWidget(Fragment, bSingleFragment, bFirstFragment, bLastFragment)
+				CreateFragmentRowWidget(Fragment)
 			]
 			+ SOverlay::Slot()
 			[
 				SNew(SBorder)
+				.Padding(0)
 				.BorderImage(FAppStyle::GetBrush("Menu.Background"))
 				.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility)
 				.ColorAndOpacity(FlowYapColor::White_Trans)
@@ -288,6 +290,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility() const
 {
+	// TODO
+	//return EVisibility::HitTestInvisible;
 	return EVisibility::Collapsed;
 }
 
@@ -330,7 +334,7 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(int Index)
 // FRAGMENT ROW
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(FFlowYapFragment& Fragment, bool bSingleFragment, bool bFirstFragment, bool bLastFragment)
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(FFlowYapFragment& Fragment)
 {
 	return SNew(SHorizontalBox)
 	// LEFT PANE
@@ -345,7 +349,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(FF
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.VAlign(VAlign_Top)
-	.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
+	//.Padding(0, bFirstFragment ? 2 : 12, 0, bSingleFragment || bLastFragment ? 2 : 12)
 	[
 		SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, &Fragment)
 	]
@@ -925,7 +929,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	FMargin LeftMargins = Settings->GetInputPinPadding();
 	FMargin RightMargins = Settings->GetInputPinPadding();
 
-	LeftMargins.Top = -1;
+	LeftMargins.Top = 0;
 	LeftMargins.Right = 0;
 	LeftMargins.Bottom = 0;
 
@@ -933,15 +937,6 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	RightMargins.Bottom = 0;
 	RightMargins.Top = 0;
 	
-	if (OutputPins.Num() == 0)
-	{
-		RightMargins.Top = -1;
-	}
-	else if (OutputPins.Num() % 3 == 0)
-	{
-		RightMargins.Top = 8;
-	}
-
 	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 	{
 		int32 Index = InputPins.Num();

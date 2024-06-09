@@ -76,7 +76,7 @@ protected:
 	FReply				FragmentSeparator_OnClicked(int Index);
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentRowWidget(FFlowYapFragment& Fragment, bool bSingleFragment, bool bFirstFragment, bool bLastFragment);
+	TSharedRef<SWidget>	CreateFragmentRowWidget(FFlowYapFragment& Fragment);
 	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftFragmentPane(FFlowYapFragment& Fragment);

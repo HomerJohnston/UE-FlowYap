@@ -48,7 +48,6 @@ protected:
 	FOptionalSize		Fragment_WidthOverride() const;
 	EVisibility			FragmentBottomSection_Visibility() const;
 	
-
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateDialogueWidget();
 	
