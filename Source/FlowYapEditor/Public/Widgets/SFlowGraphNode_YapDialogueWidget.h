@@ -20,6 +20,8 @@ protected:
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
 	TSharedPtr<SBox> BypassOutputBox;
 
+	// TODO make style set junk, for both this and Fragment widget. Pull it out of
+	// TODO search engine source for final : public FSlateStyleSet for examples
 	FTextBlockStyle NormalText;
 
 	FLinearColor DialogueButtonsColor;
@@ -50,59 +52,51 @@ protected:
 	// CONSTRUCTION
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
-	
-	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
-	
-	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
-	
-	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
 
+	// ------------------------------------------
+	// WIDGETS
 protected:
-
-	FSlateColor GetFragmentSeparatorColor() const;
-
-	TOptional<int32> GetActivationLimit(FFlowYapFragment* Fragment) const;
-
-	void OnActivationLimitChanged(int32 NewValue, FFlowYapFragment* Fragment);
-
-	FSlateColor ActivationDot_ColorAndOpacity(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
-
-	FReply ActivationDot_OnClicked(FFlowYapFragment* Fragment, int ActivationIndex);
-
-	EVisibility GetActivationIndicatorVisibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
-
-	EVisibility FragmentSequencingButton_Visibility() const;
-
-	FReply FragmentSequencingButton_OnClicked();
-
-	const FSlateBrush* FragmentSequencingButton_Image() const;
-
-	FText FragmentSequencingButton_ToolTipText() const;
-
-	FSlateColor FragmentSequencingButton_ColorAndOpacity() const;
-
-	FReply InsertFragment(int Index);
-
-	TSharedRef<SWidget> CreateNodeContentArea() override;
-
-	ECheckBoxState PlayerPromptCheckBox_IsChecked() const;
-
-	void PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-
-	ECheckBoxState InterruptibleToggle_IsChecked() const;
-
-	void InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-	
+	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	EVisibility BottomAddFragmentButton_Visibility() const;
+	ECheckBoxState		PlayerPromptCheckBox_IsChecked() const;
+	void				PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	ECheckBoxState		InterruptibleToggle_IsChecked() const;
+	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	
-	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+	// ------------------------------------------
+	TSharedRef<SWidget>	CreateNodeContentArea() override;
 
-	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
+	FSlateColor			FragmentSeparator_ColorAndOpacity() const;
+	FReply				FragmentSeparator_OnClicked(int Index);
+
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateLeftFragmentPane(FFlowYapFragment& Fragment);
 	
-	FReply BottomAddFragmentButton_OnClicked();
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateLeftSideNodeBox();
+	
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateActivationLimiterWidget(FFlowYapFragment& Fragment);
+	
+	EVisibility			ActivationLimiter_Visibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
+	FSlateColor			ActivationDot_ColorAndOpacity(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
+	FReply				ActivationDot_OnClicked(FFlowYapFragment* Fragment, int ActivationIndex);
 
+	// ------------------------------------------
+	TSharedRef<SHorizontalBox> CreateBottomBarWidget();
+
+	EVisibility			FragmentSequencingButton_Visibility() const;
+	FReply				FragmentSequencingButton_OnClicked();
+	const FSlateBrush*	FragmentSequencingButton_Image() const;
+	FText				FragmentSequencingButton_ToolTipText() const;
+	FSlateColor			FragmentSequencingButton_ColorAndOpacity() const;
+	EVisibility			BottomAddFragmentButton_Visibility() const;
+	FReply				BottomAddFragmentButton_OnClicked();
+
+	
+	// ------------------------------------------
+	// PUBLIC API & THEIR HELPERS
 public:
 	void DeleteFragment(uint8 FragmentIndex);
 	
@@ -110,17 +104,13 @@ public:
 
 	void MoveFragmentDown(uint8 FragmentIndex);
 
+protected:
 	void MoveFragment(uint8 FragmentIndex, int16 By);
-	
-	bool GetNormalisedMousePositionInGeometry(UObject *WorldContextObject, FGeometry Geometry, FVector2D &Position) const;
-	
-	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
 
-	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+public:
+	bool GetIsSelected() const { return bIsSelected; };
 
-	bool GetIsSelected() const;
-
-	bool GetControlHooked() const;
+	bool GetShiftHooked() const { return bShiftHooked; };
 	
 	void SetFocusedFragment(uint8 FragmentIndex);
 
@@ -128,7 +118,25 @@ public:
 	
 	const TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetFocusedFragment() const;
 
-	void SetTypingFocus(uint8 FragmentIndex);
+	void SetTypingFocus();
 
-	void ClearTypingFocus(uint8 FragmentIndex);
+	void ClearTypingFocus();
+	
+	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
+	
+	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+	
+	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
+
+	// ------------------------------------------
+	// OVERRIDES & THEIR HELPERS
+public:
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+
+	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
+	
+	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+
+protected:
+	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 };

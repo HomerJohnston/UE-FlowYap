@@ -179,7 +179,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility()
 		return EVisibility::Visible;
 	}
 
-	if (Owner->GetControlHooked())
+	if (Owner->GetShiftHooked())
 	{
 		return EVisibility::Visible;
 	}
@@ -1127,7 +1127,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	}
 	else if (Owner->GetFocusedFragmentIndex().IsSet() && Owner->GetFocusedFragmentIndex().GetValue() == Fragment->IndexInDialogue)
 	{
-		Owner->ClearTypingFocus(Fragment->IndexInDialogue);
+		Owner->ClearTypingFocus();
 	}
 }
 
