@@ -2,10 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
-#include "Graph/Widgets/SFlowGraphNode.h"
 #include "Widgets/SCompoundWidget.h"
-#include "Widgets/SUserWidget.h"
-#include "Widgets/Input/SSegmentedControl.h"
 
 class SObjectPropertyEntryBox;
 class SMultiLineEditableText;
@@ -24,10 +21,6 @@ public:
 	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
 	SLATE_END_ARGS()
 	
-	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment);
-
-	const FFlowYapFragment* GetFragment() const { return Fragment; };
-
 	// STATE
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr; // TODO TSharedPtr safer?
@@ -53,138 +46,103 @@ protected:
 
 	bool bControlPressed = false;
 
-	bool bPortraitKeySelectorMenuOpen = false;
-	
-protected:
-	// ----------------------------------------------
+	bool MoodKeySelectorMenuOpen = false;
 
-	FText DialogueText_ToolTipText() const;
-
-	TSharedRef<SWidget> CreateDialogueContentArea();
-	
-	FOptionalSize Fragment_WidthOverride() const;
-	
-	FOptionalSize DialogueText_MaxDesiredHeight() const;
-
-	FText DialogueText_Text() const;
-	
-	void DialogueText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
-	
-	FSlateColor DialogueText_ForegroundColor() const;
-	
-	FSlateColor DialogueText_BackgroundColor() const;
-
-	EVisibility FragmentLowerControls_Visibility() const;
-	
-	EVisibility TitleText_Visibility() const;
-	
-	FText TitleText_Text() const;
-
-	void TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
-	
-	EVisibility DialogueAudioAssetWarningState_Visibility() const;
-	EFlowYapErrorLevel GetAudioErrorLevel() const; // I've used separate functions for the actual conditions here because I call these in multiple places, and EVisibility is a struct which is annoying to compare against
-	FSlateColor DialogueAudioErrorState_ColorAndOpacity() const;
-
-	EVisibility DialogueAudioAssetErrorState_Visibility() const;
-	// ----------------------------------------------
-
-	FReply MoveFragmentUpButton_OnClicked();
-
-	EVisibility MoveFragmentUpButton_Visibility() const;
-
-	FReply DeleteFragmentButton_OnClicked();
-	
-	FReply MoveFragmentDownButton_OnClicked();
-	
-	EVisibility MoveFragmentDownButton_Visibility() const;
-
-	/*
-	EVisibility GetFragmentMovementVisibility(FFlowYapFragment* Fragment) const;
-
-	EVisibility GetFragmentDeleteVisibility(FFlowYapFragment* FlowYapFragment) const;
-	*/
-
-	EVisibility DeleteFragmentButton_Visibility() const;
-
-	EVisibility FragmentControlsBox_Visibility() const;
-	
-	TSharedRef<SBox> CreatePortraitWidget();
-
-	EVisibility PortraitImage_Visibility() const;
-
-
-	FReply OnClickDialogueTextBox();
-	
-
-
-	
-
-	const FSlateBrush* PortraitImage_Image() const;
-
-	FSlateColor GetNodeTitleColor() const;
-	
-	EVisibility MissingPortraitWarning_Visibility() const;
-
-	EVisibility PortraitKeySelector_Visibility() const;
-
-	void PortraitKeySelector_OnMenuOpenChanged(bool bMenuOpen);
-	
-	TSharedRef<SBox> CreatePortraitKeySelector();
-	
-	TSharedRef<SWidget> CreatePortraitKeyMenuEntry(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
-
-	const FSlateBrush* GetPortraitKeyBrush() const;
-
-	TSharedRef<SBox> CreateTimeSettingsWidget();
-	
-	bool UseManuallyEnteredTimeButton_IsEnabled() const;
-	
-	ECheckBoxState UseManuallyEnteredTimeButton_IsChecked() const;
-	
-	void UseManuallyEnteredTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-	
-	bool UseTextTimeButton_IsEnabled() const;
-	
-	ECheckBoxState UseTextTimeButton_IsChecked() const;
-	
-	void UseTextTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+public:
+	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment); // non-virtual override
 
 protected:
+	// ------------------------------------------
+	TSharedRef<SWidget> CreateFragmentWidget();
 
+	FOptionalSize		Fragment_WidthOverride() const;
+	EVisibility			FragmentBottomSection_Visibility() const;
 	
-	FString DialogueAudioAsset_ObjectPath() const;
-	void DialogueAudioAsset_OnObjectChanged(const FAssetData& InAssetData);
 
-	FName GetPortraitKey() const;
-	FReply HandlePortraitKeyChanged(FName NewValue);
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateDialogueWidget();
+	
+	FOptionalSize		Dialogue_MaxDesiredHeight() const;
+	FText				Dialogue_Text() const;
+	void				Dialogue_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+	FText				Dialogue_ToolTipText() const;
+	FSlateColor			Dialogue_BackgroundColor() const;
+	FSlateColor			Dialogue_ForegroundColor() const;
 
-	void UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	// ------------------------------------------
+	TSharedRef<SBox>	CreatePortraitWidget();
 
-	// Time Settings
+	EVisibility			PortraitImage_Visibility() const;
+	const FSlateBrush*	PortraitImage_Image() const;
+	EVisibility			MissingPortraitWarning_Visibility() const;
+
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
+
+	EVisibility			MoodKeySelector_Visibility() const;
+	void				MoodKeySelector_OnMenuOpenChanged(bool bMenuOpen);
+	const FSlateBrush*	MoodKeyBrush_GetBrush() const;
+	FName				GetCurrentMoodKey() const;
+
+	// ------------------------------------------
+	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+
+	FReply				MoodKeyMenuEntry_OnClicked(FName NewValue);
+
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateFragmentControlsWidget();
+
+	EVisibility			FragmentControls_Visibility() const;
+	EVisibility			MoveFragmentUpButton_Visibility() const;
+	FReply				MoveFragmentUpButton_OnClicked();
+	EVisibility			DeleteFragmentButton_Visibility() const;
+	FReply				DeleteFragmentButton_OnClicked();
+	EVisibility			MoveFragmentDownButton_Visibility() const;
+	FReply				MoveFragmentDownButton_OnClicked();
+
+	// ------------------------------------------
+	TSharedRef<SWidget> CreateTitleTextWidget();
+
+	EVisibility			TitleText_Visibility() const;
+	FText				TitleText_Text() const;
+	void				TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateBottomRowWidget();
+
+	ECheckBoxState		UseProjectDefaultTimeSettingsButton_IsChecked() const;
+	void				UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	
+	bool				UseManuallyEnteredTimeButton_IsEnabled() const;
+	ECheckBoxState		UseManuallyEnteredTimeButton_IsChecked() const;
+	void				UseManuallyEnteredTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+
+	bool				UseTextTimeButton_IsEnabled() const;
+	ECheckBoxState		UseTextTimeButton_IsChecked() const;
+	void				UseTextTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	
+	bool				UseAudioTimeButton_IsEnabled() const;
+	ECheckBoxState		UseAudioTimeButton_IsChecked() const;
+	void				UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+
+	bool				TimeEntryBox_IsEnabled() const;
+	TOptional<double>	TimeEntryBox_Value() const;
+	void				TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType);
+
+	// ------------------------------------------
+	TSharedRef<SWidget> CreateAudioAssetWidget();
+
+	FString				AudioAsset_ObjectPath() const;
+	void				AudioAsset_OnObjectChanged(const FAssetData& InAssetData);
+	EVisibility			AudioAssetErrorState_Visibility() const;
+	FSlateColor			AudioAssetErrorState_ColorAndOpacity() const;
+	EFlowYapErrorLevel	AudioAssetErrorLevel() const;
+
+	// ------------------------------------------
 protected:
-	bool IsManualTimeEntryEnabled() const;
-	TOptional<double> TimeEntryBox_Value() const;
-	void TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType);
-
-	bool GetEnabled_UseTextTimeButton() const;
-
-	ECheckBoxState UseProjectDefaultTimeSettingsButton_IsChecked() const;
-	void UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-
-	bool GetEnabled_TimeEntryBox() const;
-
-
-	bool InterruptibleButton_IsEnabled() const; 
-
-	bool UseAudioTimeButton_IsEnabled() const;
-
-	ECheckBoxState UseAudioTimeButton_IsChecked() const;
-	
-
-protected:
-	
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
-	
+
+public:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	FSlateColor GetNodeTitleColor() const; // non-virtual override
 };

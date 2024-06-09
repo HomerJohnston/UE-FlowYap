@@ -17,14 +17,14 @@ public:
 	UFlowYapProjectSettings();
 
 public:
-	TMulticastDelegate<void()> OnPortraitKeysChanged;
+	TMulticastDelegate<void()> OnMoodKeysChanged;
 
 	// ------------------------------------------
 	// SETTINGS
 protected:
 	// TODO: editing this needs to tell you that you need to restart the editor somehow. Details customization with a big warning bar in slate surrounding these settings after they're modified??
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TArray<FName> PortraitKeys;
+	TArray<FName> MoodKeys;
 
 	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -61,9 +61,9 @@ protected:
 	
 #if WITH_EDITORONLY_DATA
 protected:
-	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\PortraitKeys", simply type "Resources\\PortraitKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\PortraitKeys" folder.*/
+	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FDirectoryPath PortraitKeyIconPath;
+	FDirectoryPath MoodKeyIconPath;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -50, ClampMax = +200, UIMin = -50, UIMax = +200))
 	int32 DialogueWidthAdjustment;
@@ -86,7 +86,7 @@ public:
 
 	FString GetPortraitIconPath(FName Key) const;
 
-	const TArray<FName>& GetPortraitKeys() const;
+	const TArray<FName>& GetMoodKeys() const;
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

@@ -12,43 +12,43 @@
 
 FCheckBoxStyles UFlowYapEditorSubsystem::CheckBoxStyles;
 
-void UFlowYapEditorSubsystem::UpdatePortraitKeyIconsMap()
+void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 {
 	const UFlowYapProjectSettings* ProjectSettings = GetDefault<UFlowYapProjectSettings>();
 
-	const TArray<FName>& PortraitKeys = ProjectSettings->GetPortraitKeys();
+	const TArray<FName>& MoodKeys = ProjectSettings->GetMoodKeys();
 
-	PortraitKeyIconTextures.Empty(PortraitKeys.Num());
+	MoodKeyIconTextures.Empty(MoodKeys.Num());
 
-	for (const FName& PortraitKey : PortraitKeys)
+	for (const FName& MoodKey : MoodKeys)
 	{
-		if (PortraitKey.IsNone())
+		if (MoodKey.IsNone())
 		{
 			continue;
 		}
 		
-		FString IconPath = ProjectSettings->GetPortraitIconPath(PortraitKey);
-		UTexture2D* PortraitKeyIcon = FImageUtils::ImportFileAsTexture2D(IconPath);
+		FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
+		UTexture2D* MoodKeyIcon = FImageUtils::ImportFileAsTexture2D(IconPath);
 
-		if (!IsValid(PortraitKeyIcon))
+		if (!IsValid(MoodKeyIcon))
 		{
 			continue;
 		}
 
-		PortraitKeyIconTextures.Add(PortraitKey, PortraitKeyIcon);
+		MoodKeyIconTextures.Add(MoodKey, MoodKeyIcon);
 
-		TSharedPtr<FSlateBrush> PortraitKeyBrush = MakeShareable(new FSlateBrush);
+		TSharedPtr<FSlateBrush> MoodKeyBrush = MakeShareable(new FSlateBrush);
 
-		PortraitKeyBrush->SetResourceObject(PortraitKeyIcon);
-		PortraitKeyBrush->SetImageSize({16, 16});
+		MoodKeyBrush->SetResourceObject(MoodKeyIcon);
+		MoodKeyBrush->SetImageSize({16, 16});
 		
-		PortraitKeyIconBrushes.Add(PortraitKey, PortraitKeyBrush);
+		MoodKeyIconBrushes.Add(MoodKey, MoodKeyBrush);
 	}
 }
 
-UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
+UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FName MoodKey)
 {
-	UTexture2D** Texture = PortraitKeyIconTextures.Find(PortraitKey);
+	UTexture2D** Texture = MoodKeyIconTextures.Find(MoodKey);
 
 	if (Texture)
 	{
@@ -58,9 +58,9 @@ UTexture2D* UFlowYapEditorSubsystem::GetPortraitKeyIcon(FName PortraitKey)
 	return nullptr;
 }
 
-const FSlateBrush* UFlowYapEditorSubsystem::GetPortraitKeyBrush(FName Name)
+const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FName Name)
 {
-	TSharedPtr<FSlateBrush>* Brush = PortraitKeyIconBrushes.Find(Name);
+	TSharedPtr<FSlateBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
 	return Brush ? Brush->Get() : nullptr;
 }
@@ -75,9 +75,9 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	UFlowYapProjectSettings* ProjectSettings = GetMutableDefault<UFlowYapProjectSettings>();
-	ProjectSettings->OnPortraitKeysChanged.AddUObject(this, &ThisClass::UpdatePortraitKeyIconsMap);
+	ProjectSettings->OnMoodKeysChanged.AddUObject(this, &ThisClass::UpdateMoodKeyIconsMap);
 
-	UpdatePortraitKeyIconsMap();
+	UpdateMoodKeyIconsMap();
 
 	LoadIcon("Resources/DialogueNodeIcons/Icon_Timer_16x16.png", TimerIcon, TimerBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_NoInterrupt_16x16.png", NoInterruptIcon, NoInterruptBrush);
@@ -126,7 +126,7 @@ void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& T
 void UFlowYapEditorSubsystem::Deinitialize()
 {
 	UFlowYapProjectSettings* ProjectSettings = GetMutableDefault<UFlowYapProjectSettings>();
-	ProjectSettings->OnPortraitKeysChanged.RemoveAll(this);
+	ProjectSettings->OnMoodKeysChanged.RemoveAll(this);
 
 	FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
 

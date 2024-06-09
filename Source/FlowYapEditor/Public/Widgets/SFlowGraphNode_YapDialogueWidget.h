@@ -1,7 +1,6 @@
 #pragma once
 #include "SFlowGraphNode_YapFragmentWidget.h"
 #include "Graph/Widgets/SFlowGraphNode.h"
-#include "Widgets/SUserWidget.h"
 
 struct FFlowYapFragment;
 class SFlowGraphNode_YapFragmentWidget;

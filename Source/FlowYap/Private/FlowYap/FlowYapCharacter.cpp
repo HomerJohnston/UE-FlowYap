@@ -17,15 +17,15 @@ UFlowYapCharacter::UFlowYapCharacter()
 	// TODO I need validation code to check if the character's portrait keys array matches the project or not
 	if (Portraits.Num() == 0)
 	{
-		for (FName PortraitKey : Settings->GetPortraitKeys())
+		for (FName MoodKey : Settings->GetMoodKeys())
 		{
-			if (PortraitKey == NAME_None)
+			if (MoodKey == NAME_None)
 			{
 				UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
 				continue;
 			}
 			
-			Portraits.Add(PortraitKey, nullptr);
+			Portraits.Add(MoodKey, nullptr);
 		}
 	}
 }
@@ -60,9 +60,9 @@ TMap<FName, FSlateBrush> UFlowYapCharacter::GetPortraitBrushes()
 	return PortraitBrushes;
 }
 
-FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FName& PortraitKey)
+FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FName& MoodKey)
 {
-	FSlateBrush* Brush = PortraitBrushes.Find(PortraitKey);
+	FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
 
 	if (Brush)
 	{
@@ -80,7 +80,7 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 	
 	for (const TPair<FName, TObjectPtr<UTexture2D>>& PortraitsKVP : Portraits)
 	{
-		const FName& PortraitKey = PortraitsKVP.Key;
+		const FName& MoodKey = PortraitsKVP.Key;
 		UTexture2D* Portrait = PortraitsKVP.Value;
 
 		FSlateBrush PortraitBrush;
@@ -100,7 +100,7 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 			PortraitBrush.TintColor = FLinearColor::Transparent;
 		}
 
-		PortraitBrushes.Add(PortraitKey, PortraitBrush);
+		PortraitBrushes.Add(MoodKey, PortraitBrush);
 	}
 }
 #endif

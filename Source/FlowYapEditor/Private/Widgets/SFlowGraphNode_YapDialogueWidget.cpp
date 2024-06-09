@@ -8,12 +8,9 @@
 #include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
 #include "GraphEditorSettings.h"
-#include "LandscapeRender.h"
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "FlowYap/FlowYapLog.h"
-#include "FlowYap/FlowYapProjectSettings.h"
-#include "FlowYap/Enums/FlowYapErrorLevel.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
@@ -35,15 +32,15 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	DisconnectedEndPinColor = FlowYapColor::DarkGray;
 	
 	ConnectedStartPinColor = FlowYapColor::LightGreen;
-	DisconnectedStartPinColor = FlowYapColor::DeepGreen;
+	DisconnectedStartPinColor = FlowYapColor::DarkGray;
 	
 	ConnectedInterruptPinColor = FlowYapColor::LightRed;
-	DisconnectedInterruptPinColor = FlowYapColor::DeepRed;
+	DisconnectedInterruptPinColor = FlowYapColor::DarkGray;
 	ConnectedInterruptPinColor_Disabled = ConnectedInterruptPinColor.Desaturate(0.75);
 	DisconnectedInterruptPinColor_Disabled = DisconnectedInterruptPinColor.Desaturate(0.75);
 	
 	ConnectedBypassPinColor = FlowYapColor::LightBlue;
-	DisconnectedBypassPinColor = FlowYapColor::DarkBlue;
+	DisconnectedBypassPinColor = FlowYapColor::DarkGray;
 
 	SelectedFragmentWidget.Reset();
 	KeyboardFocusedFragmentWidget.Reset();
@@ -70,23 +67,6 @@ const UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogu
 {
 	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNode());
 }
-
-/*
-EVisibility SFlowGraphNode_YapDialogueWidget::GetFragmentMovementVisibility(FFlowYapFragment* Fragment) const
-{	
-	if (bShiftHooked || (SelectedFragmentWidget && SelectedFragmentWidget.IsSet() && SelectedFragmentWidget.GetValue() == Fragment->IndexInDialogue))// IsHovered() && GetFlowYapDialogueNode()->GetNumFragments() > 1)
-	{
-		return EVisibility::Visible;
-	}
-
-	return EVisibility::Collapsed;
-}
-
-EVisibility SFlowGraphNode_YapDialogueWidget::GetFragmentDeleteVisibility(FFlowYapFragment* FlowYapFragment) const
-{
-	return (GetFragmentMovementVisibility(FlowYapFragment) == EVisibility::Visible) ? EVisibility::Collapsed : EVisibility::Visible;
-}
-*/
 
 void SFlowGraphNode_YapDialogueWidget::MoveFragmentUp(uint8 FragmentIndex)
 {
@@ -909,6 +889,8 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 
 void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
+	SFlowGraphNode::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	
 	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
 
 	if (!GraphEditor)

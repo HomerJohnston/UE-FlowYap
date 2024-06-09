@@ -31,7 +31,7 @@ protected:
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName PortraitKey = NAME_None;
+	FName MoodKey = NAME_None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bUseProjectDefaultTimeSettings = true;
@@ -65,9 +65,9 @@ public:
 	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }; // TODO make sure this works
 
 #if WITH_EDITOR
-	FName GetPortraitKey();
+	FName GetMoodKey();
 #else
-	FName GetPortraitKey() const;
+	FName GetMoodKey() const;
 #endif	
 
 	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
@@ -98,7 +98,7 @@ public:
 
 	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
 	
-	void SetPortraitKey(const FName& NewValue) { PortraitKey = NewValue; };
+	void SetMoodKey(const FName& NewValue) { MoodKey = NewValue; };
 
 	bool GetUseProjectDefaultTimeSettings() const { return bUseProjectDefaultTimeSettings; }
 	

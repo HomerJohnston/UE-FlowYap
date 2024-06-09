@@ -76,24 +76,24 @@ const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
 
 	const UFlowYapProjectSettings* Settings = GetDefault<UFlowYapProjectSettings>();
 
-	if (Settings->GetPortraitKeys().Num() == 0)
+	if (Settings->GetMoodKeys().Num() == 0)
 	{
 		return nullptr;
 	}
 
-	const FName& Key = Settings->GetPortraitKeys()[0];
+	const FName& Key = Settings->GetMoodKeys()[0];
 	
 	return GetSpeakerPortrait(Key);
 }
 
-const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& RequestedPortraitKey) const
+const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& RequestedMoodKey) const
 {
 	if (!Character)
 	{
 		return nullptr;
 	}
 
-	const TObjectPtr<UTexture2D>* Portrait = Character->GetPortraits().Find(RequestedPortraitKey);
+	const TObjectPtr<UTexture2D>* Portrait = Character->GetPortraits().Find(RequestedMoodKey);
 
 	if (Portrait)
 	{
@@ -344,11 +344,11 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 	//OnReconstructionRequested.ExecuteIfBound();
 }
 
-FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const
+FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const
 {
 	if (Character)
 	{
-		return Character->GetPortraitBrush(RequestedPortraitKey);
+		return Character->GetPortraitBrush(RequestedMoodKey);
 	}
 
 	return nullptr;

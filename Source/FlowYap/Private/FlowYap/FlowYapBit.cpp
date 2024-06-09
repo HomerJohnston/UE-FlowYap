@@ -7,24 +7,24 @@
 // PUBLIC API
 
 #if WITH_EDITOR
-FName FFlowYapBit::GetPortraitKey()
+FName FFlowYapBit::GetMoodKey()
 {
-	if (PortraitKey == NAME_None)
+	if (MoodKey == NAME_None)
 	{
-		const TArray<FName>& Keys = GetDefault<UFlowYapProjectSettings>()->GetPortraitKeys();
+		const TArray<FName>& Keys = GetDefault<UFlowYapProjectSettings>()->GetMoodKeys();
 
 		if (Keys.Num() > 0)
 		{
-			PortraitKey = Keys[0];
+			MoodKey = Keys[0];
 		}
 	}
 	
-	return PortraitKey;
+	return MoodKey;
 }
 #else
-FName FFlowYapBit::GetPortraitKey() const
+FName FFlowYapBit::GetMoodKey() const
 {
-	return PortraitKey;
+	return MoodKey;
 }
 #endif
 

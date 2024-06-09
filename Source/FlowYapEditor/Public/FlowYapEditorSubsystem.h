@@ -28,8 +28,8 @@ class UFlowYapEditorSubsystem : public UEditorSubsystem
 
 private:
 	UPROPERTY(Transient)
-	TMap<FName, UTexture2D*> PortraitKeyIconTextures;
-	TMap<FName, TSharedPtr<FSlateBrush>> PortraitKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
+	TMap<FName, UTexture2D*> MoodKeyIconTextures;
+	TMap<FName, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
 	
 	UPROPERTY(Transient)
 	UTexture2D* TimerIcon;
@@ -54,11 +54,11 @@ protected:
 	TSharedPtr<FFlowYapInputTracker> InputTracker;
 	
 public:
-	void UpdatePortraitKeyIconsMap();
+	void UpdateMoodKeyIconsMap();
 	
-	UTexture2D* GetPortraitKeyIcon(FName PortraitKey);
+	UTexture2D* GetMoodKeyIcon(FName MoodKey);
 
-	const FSlateBrush* GetPortraitKeyBrush(FName Name);
+	const FSlateBrush* GetMoodKeyBrush(FName Name);
 
 	const FSlateBrush* GetNoInterruptBrush() { return &NoInterruptBrush; }
 	

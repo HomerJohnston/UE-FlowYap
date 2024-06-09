@@ -73,9 +73,9 @@ public:
 
 	const UTexture2D* GetDefaultSpeakerPortrait() const;
 
-	const UTexture2D* GetSpeakerPortrait(const FName& RequestedPortraitKey) const;
+	const UTexture2D* GetSpeakerPortrait(const FName& RequestedMoodKey) const;
 
-	FSlateBrush* GetSpeakerPortraitBrush(const FName& RequestedPortraitKey) const;
+	FSlateBrush* GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const;
 	
 	FText GetNodeTitle() const override;
 

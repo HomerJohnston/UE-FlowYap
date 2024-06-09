@@ -11,7 +11,7 @@
 
 UFlowYapProjectSettings::UFlowYapProjectSettings()
 {
-	PortraitKeyIconPath.Path = "";
+	MoodKeyIconPath.Path = "";
 
 	DefaultTimeModeSetting = EFlowYapTimeMode::AudioTime;
 	
@@ -37,17 +37,17 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 #if WITH_EDITOR
 FString UFlowYapProjectSettings::GetPortraitIconPath(FName Key) const
 {
-	if (PortraitKeyIconPath.Path == "")
+	if (MoodKeyIconPath.Path == "")
 	{
-		return FFlowYapEngineUtils::GetFlowYapPluginDir() / FString::Format(TEXT("Resources/PortraitKeys/{1}.png"), { PortraitKeyIconPath.Path, Key.ToString() });
+		return FFlowYapEngineUtils::GetFlowYapPluginDir() / FString::Format(TEXT("Resources/MoodKeys/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
 	}
 	
-	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { PortraitKeyIconPath.Path, Key.ToString() });
+	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
 }
 
-const TArray<FName>& UFlowYapProjectSettings::GetPortraitKeys() const
+const TArray<FName>& UFlowYapProjectSettings::GetMoodKeys() const
 {
-	return PortraitKeys;
+	return MoodKeys;
 }
 
 void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -56,9 +56,9 @@ void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 
 	FName PropertyName = PropertyChangedEvent.Property->GetFName();
 
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, PortraitKeys))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, MoodKeys))
 	{
-		OnPortraitKeysChanged.Broadcast();
+		OnMoodKeysChanged.Broadcast();
 	}
 }
 

@@ -3,10 +3,7 @@
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 
 #include "FlowYapColors.h"
-#include "FlowYapEditorCommands.h"
-#include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
-#include "Graph/FlowGraphUtils.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
