@@ -15,5 +15,5 @@ class FLOWYAP_API UFlowNode_YapConversationEnd : public UFlowNode
 public:
 	UFlowNode_YapConversationEnd();
 
-	virtual void OnActivate() override;
+	void ExecuteInput(const FName& PinName) override;
 };

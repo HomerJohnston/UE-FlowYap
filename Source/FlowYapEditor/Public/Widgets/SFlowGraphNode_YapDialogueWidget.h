@@ -83,20 +83,20 @@ protected:
 	FReply				FragmentSeparator_OnClicked(int Index);
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentRowWidget(FFlowYapFragment& Fragment);
+	TSharedRef<SWidget>	CreateFragmentRowWidget(uint8 FragmentIndex);
 	
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateLeftFragmentPane(FFlowYapFragment& Fragment);
+	TSharedRef<SBox>	CreateLeftFragmentPane(uint8 FragmentIndex);
 	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 	
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateActivationLimiterWidget(FFlowYapFragment& Fragment);
+	TSharedRef<SBox>	CreateActivationLimiterWidget(uint8 FragmentIndex);
 	
-	EVisibility			ActivationLimiter_Visibility(SFlowGraphNode_YapDialogueWidget* FlowGraphNode_YapDialogueWidget, FFlowYapFragment* FlowYapFragment) const;
-	FSlateColor			ActivationDot_ColorAndOpacity(FFlowYapFragment* Fragment, int32 ActivationIndex) const;
-	FReply				ActivationDot_OnClicked(FFlowYapFragment* Fragment, int ActivationIndex);
+	EVisibility			ActivationLimiter_Visibility(uint8 FragmentIndex) const;
+	FSlateColor			ActivationDot_ColorAndOpacity(uint8 FragmentIndex, int32 ActivationIndex) const;
+	FReply				ActivationDot_OnClicked(uint8 FragmentIndex, int ActivationIndex);
 
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateRightFragmentPane();
@@ -148,6 +148,10 @@ public:
 protected:
 	void SetFlashFragment(uint8 FragmentIndex);
 	
+	void OnDialogueEnd(uint8 FragmentIndex);
+	void OnDialogueStart(uint8 FragmentIndex);
+	void OnDialogueInterrupt(uint8 FragmentIndex);
+	
 	// ------------------------------------------
 	// OVERRIDES & THEIR HELPERS
 public:
@@ -159,4 +163,8 @@ public:
 
 protected:
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
+
+	const FFlowYapFragment* GetFragment(uint8 FragmentIndex) const;
+
+	FFlowYapFragment* GetFragmentMutable(uint8 FragmentIndex);
 };

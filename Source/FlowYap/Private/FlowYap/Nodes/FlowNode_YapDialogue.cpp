@@ -163,9 +163,13 @@ void UFlowNode_YapDialogue::InitializeInstance()
 
 void UFlowNode_YapDialogue::OnActivate()
 {
+}
+
+void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
+{
 	++NodeActivationCount;
 
-	TOptional<uint8> SelectedFragmentIndex;
+	TOptional<uint8> FragmentIndex;
 	
 	switch (MultipleFragmentSequencing)
 	{
@@ -175,7 +179,7 @@ void UFlowNode_YapDialogue::OnActivate()
 			{
 				if (Fragments[i].TryActivate())
 				{
-					SelectedFragmentIndex = i;
+					FragmentIndex = i;
 					break;
 				}
 			}
@@ -185,13 +189,13 @@ void UFlowNode_YapDialogue::OnActivate()
 		{
 			return;
 		}
-		default:
+	default:
 		{
 			return;
 		}
 	}
 
-	if (!SelectedFragmentIndex)
+	if (!FragmentIndex)
 	{
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
 		return;
@@ -200,22 +204,19 @@ void UFlowNode_YapDialogue::OnActivate()
 	// Choose a fragment and send its bit
 	// TODO
 
-	FFlowYapFragment& SelectedFragment = Fragments[SelectedFragmentIndex.GetValue()];
+	FFlowYapFragment& SelectedFragment = Fragments[FragmentIndex.GetValue()];
 	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
 
 	double Time = SelectedFragment.GetBit().GetTime();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnTextTimeComplete), Time, false);
-	
-	Super::OnActivate();
-}
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnTextTimeComplete, FragmentIndex.GetValue()), Time, false);
 
-void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
-{
-	UE_LOG(FlowYap, Warning, TEXT("ExecuteInput, conversation: %s"), *ConversationName.ToString());
+	TriggerOutput(FName("DialogueStart", FragmentIndex.GetValue() + 1));
 
-	Super::ExecuteInput(PinName);
+#if WITH_EDITOR
+	RunningFragmentIndex = FragmentIndex;
+#endif
 }
 
 bool UFlowNode_YapDialogue::GetInterruptible() const
@@ -230,10 +231,9 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	}
 }
 
-void UFlowNode_YapDialogue::OnTextTimeComplete()
+void UFlowNode_YapDialogue::OnTextTimeComplete(uint8 FragmentIndex)
 {
-	// TODO
-	FFlowYapFragment& SelectedFragment = Fragments[0];
+	FFlowYapFragment& SelectedFragment = Fragments[FragmentIndex];
 	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueEnd(ConversationName, SelectedFragment.GetBit());
 
@@ -241,17 +241,41 @@ void UFlowNode_YapDialogue::OnTextTimeComplete()
 
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete), PaddingTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex), PaddingTime, false);
 	}
 	else
 	{
-		TriggerFirstOutput(true);
+		TriggerOutput(FName("DialogueEnd", FragmentIndex + 1), true);
 	}
+	
+#if WITH_EDITOR
+	RunningFragmentIndex.Reset();
+#endif
 }
 
-void UFlowNode_YapDialogue::OnPaddingTimeComplete()
+void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 {
-	TriggerFirstOutput(true);
+	TriggerOutput(FName("DialogueEnd", FragmentIndex + 1), true);
+}
+
+const FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndex(int16 Index) const
+{
+	if (!Fragments.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+	
+	return &Fragments[Index];
+}
+
+FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndexMutable(int16 Index)
+{
+	if (!Fragments.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+	
+	return &Fragments[Index];
 }
 
 TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()

@@ -35,7 +35,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 {
 	for (UFlowNode* ConnectedNode : DownstreamNode->GetConnectedNodes())
 	{
-		if (ConnectedNode)
+		if (ConnectedNode && !ConnectedNodes.Contains(ConnectedNode))
 		{
 			ConnectedNodes.Add(ConnectedNode);
 

@@ -10,9 +10,9 @@ inline FLinearColor Name##Pressed = FLinearColor(PRESS * RR, PRESS * GG, PRESS *
 inline FLinearColor Name##_Trans = FLinearColor(RR, GG, BB, 0.70);\
 inline FLinearColor Name##Hovered_Trans = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, 0.70 * AA);\
 inline FLinearColor Name##Pressed_Trans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, 0.70 * AA);\
-inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, 0.10);\
-inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, 0.10 * AA);\
-inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, 0.10 * AA)
+inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, 0.20);\
+inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, 0.20 * AA);\
+inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, 0.20 * AA)
 
 #define DECLARE_COLOR(Name, RR, GG, BB) DECLARE_COLOR_TRAN(Name, RR, GG, BB, 1.000)
 

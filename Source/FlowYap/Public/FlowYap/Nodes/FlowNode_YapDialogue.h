@@ -103,12 +103,16 @@ public:
 	bool GetInterruptible() const;
 
 protected:
-	void OnTextTimeComplete();
+	void OnTextTimeComplete(uint8 FragmentIndex);
 	
-	void OnPaddingTimeComplete();
+	void OnPaddingTimeComplete(uint8 FragmentIndex);
 
 #if WITH_EDITOR
 public:
+	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;
+	
+	FFlowYapFragment* GetFragmentByIndexMutable(int16 Index);
+	
 	TArray<FFlowYapFragment>& GetFragmentsMutable();
 	
 	void AddFragment();
@@ -144,5 +148,11 @@ public:
 	void UpdateFragmentIndices();
 
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
+
+protected:
+	TOptional<uint8> RunningFragmentIndex;
+
+public:
+	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
 #endif
 };

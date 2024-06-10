@@ -20,7 +20,6 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 	// STATE
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
-	FFlowYapFragment* Fragment = nullptr;
 
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
@@ -32,12 +31,14 @@ protected:
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 
+	uint8 FragmentIndex;
+	
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
 	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
 	SLATE_END_ARGS()
-	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, FFlowYapFragment* InFragment); // non-virtual override
+	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
 
 	// ------------------------------------------
 	// WIDGETS
@@ -131,6 +132,8 @@ protected:
 	// HELPERS
 protected:
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+
+	FFlowYapFragment* GetFragment() const;
 
 	// ------------------------------------------
 	// OVERRIDES
