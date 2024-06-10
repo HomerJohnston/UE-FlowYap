@@ -41,6 +41,8 @@ public:
 
 	const FFlowYapBit& GetBit() const { return Bit; }
 
+	bool TryActivate();
+	
 #if WITH_EDITOR
 	void SetIndexInDialogue(uint8 NewValue) { IndexInDialogue = NewValue; }
 #endif

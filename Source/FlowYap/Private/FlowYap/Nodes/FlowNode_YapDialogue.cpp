@@ -165,10 +165,43 @@ void UFlowNode_YapDialogue::OnActivate()
 {
 	++NodeActivationCount;
 
+	TOptional<uint8> SelectedFragmentIndex;
+	
+	switch (MultipleFragmentSequencing)
+	{
+	case EFlowYapMultipleFragmentSequencing::Sequential:
+		{
+			for (uint8 i = 0; i < Fragments.Num(); ++i)
+			{
+				if (Fragments[i].TryActivate())
+				{
+					SelectedFragmentIndex = i;
+					break;
+				}
+			}
+			break;
+		}
+	case EFlowYapMultipleFragmentSequencing::Random:
+		{
+			return;
+		}
+		default:
+		{
+			return;
+		}
+	}
+
+	if (!SelectedFragmentIndex)
+	{
+		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
+		return;
+	}
+	
 	// Choose a fragment and send its bit
 	// TODO
 
-	FFlowYapFragment& SelectedFragment = Fragments[0];
+	FFlowYapFragment& SelectedFragment = Fragments[SelectedFragmentIndex.GetValue()];
+	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
 
 	double Time = SelectedFragment.GetBit().GetTime();
