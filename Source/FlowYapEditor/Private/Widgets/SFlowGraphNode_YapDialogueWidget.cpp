@@ -33,6 +33,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 	ConnectedEndPinColor = FlowYapColor::White;
 	DisconnectedEndPinColor = FlowYapColor::DarkGray;
+	DisconnectedEndPinColor_Prompt = FlowYapColor::Red;
 	
 	ConnectedStartPinColor = FlowYapColor::LightGreen;
 	DisconnectedStartPinColor = FlowYapColor::DarkGray;
@@ -173,7 +174,11 @@ ECheckBoxState SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_IsChecked(
 
 void SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Toggle player prompt node"), GetFlowYapDialogueNode());
+
 	GetFlowYapDialogueNode()->SetIsPlayerPrompt(CheckBoxState == ECheckBoxState::Checked ? true : false);
+
+	FFlowYapTransactions::EndModify();
 }
 
 ECheckBoxState SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_IsChecked() const
@@ -267,8 +272,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		
 		FragmentBox->AddSlot()
 		.AutoHeight()
-		//.Padding(0, bFirstFragment ? 2 : 11, 0, bSingleFragment || bLastFragment ? 2 : 12)
-		//.Padding(0, bFirstFragment ? 1 : 1, 0, bSingleFragment || bLastFragment ? 2 : 1)
 		.Padding(0, bFirstFragment ? 1 : Padding, 0, bSingleFragment || bLastFragment ? 2 : Padding)
 		[
 			SNew(SOverlay)
@@ -1007,9 +1010,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 			PinToAdd
 		];
 
-		//PinToAdd->SetToolTipText(FText::Format(LOCTEXT("DialogueNode", "Input {0}"), Index));
 		PinToAdd->SetToolTipText(FText::FromName(PinToAdd->GetPinObj()->GetFName()));
-		PinToAdd->SetColorAndOpacity((PinToAdd->IsConnected() || InputPins.Num() == 0) ? ConnectedEndPinColor : DisconnectedEndPinColor);
 
 		InputPins.Add(PinToAdd);
 	}
@@ -1050,7 +1051,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 			FText ToolTipText;
 			if (PinName.IsEqual(FName("DialogueEnd"), ENameCase::IgnoreCase, false))
 			{
-				Color = PinToAdd->IsConnected() ? ConnectedEndPinColor : DisconnectedEndPinColor;
+				Color = PinToAdd->IsConnected() ? ConnectedEndPinColor : (GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? DisconnectedEndPinColor_Prompt : DisconnectedEndPinColor);
 				ToolTipText = LOCTEXT("Fragment", "On End");
 			}
 			else if (PinName.IsEqual(FName("DialogueStart"), ENameCase::IgnoreCase, false))

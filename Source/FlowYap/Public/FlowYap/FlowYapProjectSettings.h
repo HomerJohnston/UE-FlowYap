@@ -109,6 +109,8 @@ public:
 	
 	double GetMinimumAutoAudioTimeLength() const;
 
+	double GetDialoguePaddingTime() const { return DialoguePaddingTime; }
+	
 	EFlowYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
 	
 #if WITH_EDITOR

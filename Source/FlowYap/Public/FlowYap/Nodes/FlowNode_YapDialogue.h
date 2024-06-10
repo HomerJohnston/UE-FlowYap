@@ -60,6 +60,9 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
+
+	UPROPERTY()
+	FTimerHandle TimerHandle;
 	
 	// API
 public:
@@ -92,13 +95,18 @@ public:
 	// -------------------
 
 	void InitializeInstance() override;
-	
+
 	void OnActivate() override;
 	
 	void ExecuteInput(const FName& PinName) override;
 
 	bool GetInterruptible() const;
+
+protected:
+	void OnTextTimeComplete();
 	
+	void OnPaddingTimeComplete();
+
 #if WITH_EDITOR
 public:
 	TArray<FFlowYapFragment>& GetFragmentsMutable();

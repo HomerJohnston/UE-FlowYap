@@ -28,6 +28,7 @@ protected:
 
 	FLinearColor ConnectedEndPinColor;
 	FLinearColor DisconnectedEndPinColor;
+	FLinearColor DisconnectedEndPinColor_Prompt;
 
 	FLinearColor ConnectedStartPinColor;
 	FLinearColor DisconnectedStartPinColor;

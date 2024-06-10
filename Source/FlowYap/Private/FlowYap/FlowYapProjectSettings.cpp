@@ -27,7 +27,7 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 
 	TextCalculator = UFlowYapTextCalculator::StaticClass();
 
-	AudioTimeCacher = nullptr; // UFlowYapAudioTimeCacher::StaticClass(); // You must create your own class and calculate time in it!
+	AudioTimeCacher = nullptr; // You *must* create your own class and set it to calculate audio time!
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 }

@@ -4,6 +4,7 @@
 
 #include "FlowAsset.h"
 #include "FlowYap/FlowYapLog.h"
+#include "FlowYap/FlowYapSubsystem.h"
 #include "FlowYap/Nodes/FlowNode_YapConversationEnd.h"
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 
@@ -42,10 +43,10 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 			
 			if (DialogueNode)
 			{
-				DialogueNode->SetConversationName(Name);
+				DialogueNode->SetConversationName(ConversationName);
 			}
 			
-			if (ConnectedNode->IsA(UFlowNode_YapConversationEnd::StaticClass()))
+			if (UFlowNode_YapConversationEnd* ConversationEnd = Cast<UFlowNode_YapConversationEnd>(ConnectedNode))
 			{
 				return;
 			}
@@ -57,8 +58,9 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 
 void UFlowNode_YapConversationStart::OnActivate()
 {
-	UE_LOG(FlowYap, Warning, TEXT("Conversation started: %s"), *Name.ToString());
-	Super::OnActivate();
+	UE_LOG(FlowYap, Warning, TEXT("Conversation started: %s"), *ConversationName.ToString());
+
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->StartConversation(ConversationName);
 }
 
 void UFlowNode_YapConversationStart::ExecuteInput(const FName& PinName)

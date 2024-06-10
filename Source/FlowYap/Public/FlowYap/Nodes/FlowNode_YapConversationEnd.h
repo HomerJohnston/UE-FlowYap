@@ -1,4 +1,5 @@
 #pragma once
+#include "FlowNode_YapConversationStart.h"
 #include "Nodes/FlowNode.h"
 
 #include "FlowNode_YapConversationEnd.generated.h"
@@ -8,6 +9,11 @@ class FLOWYAP_API UFlowNode_YapConversationEnd : public UFlowNode
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
+	FName ConversationName;
+	
 public:
 	UFlowNode_YapConversationEnd();
+
+	virtual void OnActivate() override;
 };

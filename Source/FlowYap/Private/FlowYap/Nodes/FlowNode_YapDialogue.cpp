@@ -5,6 +5,7 @@
 #include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/FlowYapProjectSettings.h"
+#include "FlowYap/FlowYapSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -164,6 +165,16 @@ void UFlowNode_YapDialogue::OnActivate()
 {
 	++NodeActivationCount;
 
+	// Choose a fragment and send its bit
+	// TODO
+
+	FFlowYapFragment& SelectedFragment = Fragments[0];
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
+
+	double Time = SelectedFragment.GetBit().GetTime();
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnTextTimeComplete), Time, false);
+	
 	Super::OnActivate();
 }
 
@@ -184,6 +195,30 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	{
 		return Interruptible == EFlowYapInterruptible::Interruptible;
 	}
+}
+
+void UFlowNode_YapDialogue::OnTextTimeComplete()
+{
+	// TODO
+	FFlowYapFragment& SelectedFragment = Fragments[0];
+	
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueEnd(ConversationName, SelectedFragment.GetBit());
+
+	double PaddingTime = UFlowYapProjectSettings::Get()->GetDialoguePaddingTime();
+
+	if (PaddingTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete), PaddingTime, false);
+	}
+	else
+	{
+		TriggerFirstOutput(true);
+	}
+}
+
+void UFlowNode_YapDialogue::OnPaddingTimeComplete()
+{
+	TriggerFirstOutput(true);
 }
 
 TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
@@ -279,6 +314,8 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
 {
 	bIsPlayerPrompt = NewValue;
+
+	OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
