@@ -3,6 +3,7 @@
 #include "FlowYap/Nodes/FlowNode_YapConversationStart.h"
 
 #include "FlowAsset.h"
+#include "GameplayTagsManager.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/FlowYapSubsystem.h"
 #include "FlowYap/Nodes/FlowNode_YapConversationEnd.h"

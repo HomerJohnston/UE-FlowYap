@@ -10,6 +10,7 @@
 #include "FlowYapEditorSubsystem.h"
 #include "FlowYapInputTracker.h"
 #include "FlowYapTransactions.h"
+#include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/Enums/FlowYapErrorLevel.h"
 #include "Widgets/SFlowGraphNode_YapDialogueWidget.h"
@@ -32,14 +33,14 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 		MoveFragmentButtonStyle = FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("PropertyEditor.AssetComboStyle");
 
 		// Button colors
-		MoveFragmentButtonStyle.Normal.TintColor = FlowYapColor::Noir_Trans;
-		MoveFragmentButtonStyle.Hovered.TintColor = FlowYapColor::DarkGray_Trans;
-		MoveFragmentButtonStyle.Pressed.TintColor = FlowYapColor::DarkGrayPressed_Trans;
+		MoveFragmentButtonStyle.Normal.TintColor = FlowYapEditor::Color::Noir_Trans;
+		MoveFragmentButtonStyle.Hovered.TintColor = FlowYapEditor::Color::DarkGray_Trans;
+		MoveFragmentButtonStyle.Pressed.TintColor = FlowYapEditor::Color::DarkGrayPressed_Trans;
 
 		// Text colors
-		MoveFragmentButtonStyle.NormalForeground = FlowYapColor::LightGray;
-		MoveFragmentButtonStyle.HoveredForeground = FlowYapColor::White;
-		MoveFragmentButtonStyle.PressedForeground = FlowYapColor::LightGrayPressed;
+		MoveFragmentButtonStyle.NormalForeground = FlowYapEditor::Color::LightGray;
+		MoveFragmentButtonStyle.HoveredForeground = FlowYapEditor::Color::White;
+		MoveFragmentButtonStyle.PressedForeground = FlowYapEditor::Color::LightGrayPressed;
 
 		bStylesInitialized = true;
 	}
@@ -193,7 +194,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility()
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
 	return SNew(SBox)
-	.MinDesiredHeight(74) // This is the normal height of the full portrait widget
+	.MinDesiredHeight(58) // This is the normal height of the full portrait widget
 	.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight)
 	.Padding(0, 0, 0, 0)
 	[
@@ -263,12 +264,12 @@ FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
 {
-	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? FlowYapColor::White : FlowYapColor::Noir;
+	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? FlowYapEditor::Color::White : FlowYapEditor::Color::Noir;
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 {
-	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? FlowYapColor::White : FlowYapColor::LightGray;
+	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? FlowYapEditor::Color::White : FlowYapEditor::Color::LightGray;
 }
 
 
@@ -287,13 +288,13 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 		.Padding(4, 0, 0, 0)
 		[
 			SNew(SBox)
-			.WidthOverride(74)
-			.HeightOverride(74)
+			.WidthOverride(58)//(74)
+			.HeightOverride(58)//(74)
 			[
 				SNew(SBorder)
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
-				.Padding(2.0f)
+				.Padding(0.0f)
 				.BorderImage(FAppStyle::Get().GetBrush("PropertyEditor.AssetThumbnailBorder"))
 				[
 					SNew(SOverlay)
@@ -302,6 +303,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 					.HAlign(HAlign_Center)
 					[
 						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(48, 48))
 						.Image(this, &SFlowGraphNode_YapFragmentWidget::PortraitImage_Image)
 					]		
 					+ SOverlay::Slot()
@@ -353,12 +355,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::PortraitImage_Visibility() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::PortraitImage_Image() const
 {
-	return GetFlowYapDialogueNode()->GetSpeakerPortraitBrush(GetCurrentMoodKey());
+	return GetFragment()->GetBit().GetSpeakerPortraitBrush();
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::MissingPortraitWarning_Visibility() const
 {
-	FSlateBrush* Brush = GetFlowYapDialogueNode()->GetSpeakerPortraitBrush(GetCurrentMoodKey());
+	const FSlateBrush* Brush = GetFragment()->GetBit().GetSpeakerPortraitBrush();
 
 	if (Brush)
 	{
@@ -539,7 +541,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 		.AutoHeight()
 		.VAlign(VAlign_Top)
 		.HAlign(HAlign_Center)
-		.Padding(0, 2)
+		.Padding(0, 2, 0, 1)
 		[
 			SNew(SButton)
 			.ButtonStyle(&MoveFragmentButtonStyle)
@@ -550,7 +552,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 			[
 				SNew(SImage)
 				.Image(FAppStyle::Get().GetBrush("Symbols.UpArrow"))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				.DesiredSizeOverride(FVector2D(8, 8))
 				.ColorAndOpacity(FSlateColor::UseForeground())
 			]
 		]
@@ -570,7 +572,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 			[
 				SNew(SImage)
 				.Image(FAppStyle::GetBrush("Cross"))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				.DesiredSizeOverride(FVector2D(8, 8))
 				.ColorAndOpacity(FSlateColor::UseForeground())
 			]
 		]
@@ -579,7 +581,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 		.AutoHeight()
 		.VAlign(VAlign_Bottom)
 		.HAlign(HAlign_Center)
-		.Padding(0, 2)
+		.Padding(0, 1, 0, 2)
 		[
 			SNew(SButton)
 			.ButtonStyle(&MoveFragmentButtonStyle)
@@ -590,7 +592,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidget(
 			[
 				SNew(SImage)
 				.Image(FAppStyle::Get().GetBrush("Symbols.DownArrow"))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				.DesiredSizeOverride(FVector2D(8, 8))
 				.ColorAndOpacity(FSlateColor::UseForeground())
 			]
 		]
@@ -1042,19 +1044,19 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::AudioAssetErrorState_ColorAndOpaci
 	{
 	case EFlowYapErrorLevel::OK:
 		{
-			return FlowYapColor::Green;
+			return FlowYapEditor::Color::Green;
 		}
 	case EFlowYapErrorLevel::Warning:
 		{
-			return FlowYapColor::Orange;
+			return FlowYapEditor::Color::Orange;
 		}
 	case EFlowYapErrorLevel::Error:
 		{
-			return FlowYapColor::Red;
+			return FlowYapEditor::Color::Red;
 		}
 	}
 
-	return FlowYapColor::Black;
+	return FlowYapEditor::Color::Black;
 }
 
 EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() const

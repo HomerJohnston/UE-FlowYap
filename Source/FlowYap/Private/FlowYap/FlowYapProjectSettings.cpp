@@ -2,6 +2,7 @@
 
 #include "FlowYap/FlowYapProjectSettings.h"
 
+#include "GameplayTagsManager.h"
 #include "FlowYap/FlowYapEngineUtils.h"
 
 #include "FlowYap/FlowYapTextCalculator.h"
@@ -30,6 +31,10 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	AudioTimeCacher = nullptr; // You *must* create your own class and set it to calculate audio time!
 	
 	DialogueAssetClass = USoundBase::StaticClass();
+
+	ConditionContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
+	
+	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
 }
 
 #if WITH_EDITOR
@@ -88,6 +93,38 @@ double UFlowYapProjectSettings::GetMinimumAutoTextTimeLength() const
 double UFlowYapProjectSettings::GetMinimumAutoAudioTimeLength() const
 {
 	return MinimumAutoAudioTimeLength;
+}
+
+void UFlowYapProjectSettings::RegisterConditionContainerUser(UObject* Object, FName PropertyName)
+{
+	if (Object->IsTemplate())
+	{
+		RegisterConditionContainerUser(Object->GetClass(), PropertyName);
+	}
+}
+
+void UFlowYapProjectSettings::RegisterConditionContainerUser(UClass* Class, FName PropertyName)
+{
+	if (!PropertyContainerUsers.Contains(Class))
+	{
+		PropertyContainerUsers.Add(Class, PropertyName);
+	}
+}
+
+void UFlowYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
+{
+	TArray<UObject*> OuterObjects;
+	PropertyHandle->GetOuterObjects(OuterObjects);
+
+	for (const UObject* PropertyOuter : OuterObjects)
+	{
+		const FName* FoundProperty = PropertyContainerUsers.FindPair(PropertyOuter->GetClass(), PropertyHandle->GetProperty()->GetFName());
+
+		if (FoundProperty)
+		{
+			MetaString = GetConditionContainer().ToString();
+		}
+	}
 }
 #endif
 

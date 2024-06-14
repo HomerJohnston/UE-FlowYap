@@ -144,7 +144,7 @@ public:
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 	
 	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
-
+	
 protected:
 	void SetFlashFragment(uint8 FragmentIndex);
 	
@@ -158,10 +158,14 @@ public:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
-	
+
 	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
 
+	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
+
 protected:
+	void AddOutPin(const TSharedRef<SGraphPin>& PinToAdd);
+
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 
 	const FFlowYapFragment* GetFragment(uint8 FragmentIndex) const;

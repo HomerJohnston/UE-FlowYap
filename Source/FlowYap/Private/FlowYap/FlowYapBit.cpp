@@ -1,5 +1,6 @@
 #include "FlowYap/FlowYapBit.h"
 
+#include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapProjectSettings.h"
 #include "FlowYap/FlowYapTextCalculator.h"
 
@@ -7,6 +8,16 @@
 // PUBLIC API
 
 #if WITH_EDITOR
+const FSlateBrush* FFlowYapBit::GetSpeakerPortraitBrush() const
+{
+	if (Character)
+	{
+		return Character->GetPortraitBrush(MoodKey);
+	}
+
+	return nullptr;
+}
+
 FName FFlowYapBit::GetMoodKey()
 {
 	if (MoodKey == NAME_None)

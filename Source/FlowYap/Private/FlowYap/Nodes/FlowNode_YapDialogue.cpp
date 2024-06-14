@@ -29,13 +29,18 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	InputPins.Empty();
 	OutputPins.Empty();
 
+	InputPins.Add(FName("In"));
+	OutputPins.Add(FName("Out"));
+	OutputPins.Add(FName("Bypass"));
+
+	/*
 	// Workaround to "save" pins - putting them in the CDO causes some nuisance engine code to work correctly
 	for (int Index = 0; Index <= 9; Index++)
 	{
 		InputPins.Add(Index);
 		OutputPins.Add(Index);
 	}
-
+	*/
 }
 
 void UFlowNode_YapDialogue::SetConversationName(FName Name)
@@ -50,26 +55,23 @@ void UFlowNode_YapDialogue::SetConversationName(FName Name)
 
 FText UFlowNode_YapDialogue::GetSpeakerName() const
 {
+	return FText::GetEmpty();
+	
+	/*
 	if (!Character)
 	{
 		return LOCTEXT("DialogueNodeMissingCharacter", "NO CHARACTER SET");
 	}
 
 	return Character->GetEntityName();
-}
-
-FLinearColor UFlowNode_YapDialogue::GetSpeakerColor() const
-{
-	if (!Character)
-	{
-		return FLinearColor::Gray;
-	}
-	
-	return Character->GetEntityColor();
+	*/
 }
 
 const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
 {
+	return nullptr;
+	
+	/*
 	if (!Character)
 	{
 		return nullptr;
@@ -85,10 +87,14 @@ const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
 	const FName& Key = Settings->GetMoodKeys()[0];
 	
 	return GetSpeakerPortrait(Key);
+	*/
 }
 
 const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& RequestedMoodKey) const
 {
+	return nullptr;
+
+	/*
 	if (!Character)
 	{
 		return nullptr;
@@ -104,6 +110,7 @@ const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& Request
 	{
 		return nullptr;
 	}
+	*/
 }
 
 const TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
@@ -127,16 +134,6 @@ int16 UFlowNode_YapDialogue::FindFragmentIndex(FFlowYapFragment* InFragment) con
 	}
 
 	return INDEX_NONE;
-}
-
-FText UFlowNode_YapDialogue::GetNodeTitle() const
-{
-	if (!Character)
-	{
-		return Super::GetNodeTitle();
-	}
-
-	return GetSpeakerName();
 }
 
 bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
@@ -168,12 +165,17 @@ void UFlowNode_YapDialogue::OnActivate()
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
 	++NodeActivationCount;
-
+	
 	TOptional<uint8> FragmentIndex;
 	
 	switch (MultipleFragmentSequencing)
 	{
 	case EFlowYapMultipleFragmentSequencing::Sequential:
+		{
+			RunFragmentsSequentiallyFrom(0);
+			break;
+		}
+	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
 			for (uint8 i = 0; i < Fragments.Num(); ++i)
 			{
@@ -183,10 +185,6 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 					break;
 				}
 			}
-			break;
-		}
-	case EFlowYapMultipleFragmentSequencing::Random:
-		{
 			return;
 		}
 	default:
@@ -200,23 +198,6 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
 		return;
 	}
-	
-	// Choose a fragment and send its bit
-	// TODO
-
-	FFlowYapFragment& SelectedFragment = Fragments[FragmentIndex.GetValue()];
-	
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
-
-	double Time = SelectedFragment.GetBit().GetTime();
-
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnTextTimeComplete, FragmentIndex.GetValue()), Time, false);
-
-	TriggerOutput(FName("DialogueStart", FragmentIndex.GetValue() + 1));
-
-#if WITH_EDITOR
-	RunningFragmentIndex = FragmentIndex;
-#endif
 }
 
 bool UFlowNode_YapDialogue::GetInterruptible() const
@@ -245,7 +226,7 @@ void UFlowNode_YapDialogue::OnTextTimeComplete(uint8 FragmentIndex)
 	}
 	else
 	{
-		TriggerOutput(FName("DialogueEnd", FragmentIndex + 1), true);
+		TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
 	}
 	
 #if WITH_EDITOR
@@ -255,7 +236,31 @@ void UFlowNode_YapDialogue::OnTextTimeComplete(uint8 FragmentIndex)
 
 void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 {
-	TriggerOutput(FName("DialogueEnd", FragmentIndex + 1), true);
+	//TriggerOutput(FName("FraEnd", FragmentIndex + 1), true);
+}
+
+void UFlowNode_YapDialogue::RunFragmentsSequentiallyFrom(uint8 StartIndex)
+{
+	for (uint8 i = StartIndex; i < Fragments.Num(); ++i)
+	{
+		if (Fragments[i].TryActivate())
+		{
+			FFlowYapFragment& SelectedFragment = Fragments[i];
+	
+			GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
+
+			double Time = SelectedFragment.GetBit().GetTime();
+
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::RunFragmentsSequentiallyFrom, (uint8)(i + 1)), Time, false);
+
+			TriggerOutput(FName("DialogueStart", i + 1));
+
+#if WITH_EDITOR
+			RunningFragmentIndex = i;
+#endif
+			break;
+		}
+	}
 }
 
 const FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndex(int16 Index) const
@@ -303,14 +308,17 @@ void UFlowNode_YapDialogue::AddFragment()
 
 bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
 {
+	return Super::GetDynamicTitleColor(OutColor);
+
+	/*
 	if (!Character)
 	{
 		return Super::GetDynamicTitleColor(OutColor);
 	}
 
 	OutColor = Character->GetEntityColor();
-
 	return true;
+	*/
 }
 
 bool UFlowNode_YapDialogue::SupportsContextPins() const
@@ -335,35 +343,24 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 {
-	InputPins.Empty();
-
-	TArray<FFlowPin> ContextInputPins;
-
-	uint8 NumPins = GetUsesMultipleInputs() ? Fragments.Num() : 1;
-
-	for (uint8 Index = 0; Index < NumPins; ++Index)
-	{
-		ContextInputPins.Add(FName("In", Index));
-	}
-
-	return ContextInputPins;	
+	return TArray<FFlowPin>();
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
-	// Workaround for annoying editor code, pins that aren't kept on the CDO do dumb things (see root engine class code).
-	OutputPins.Empty();
+	if (bIsPlayerPrompt)
+	{
+		// No bypass! No normal out!
+		OutputPins.Empty();
+	}
 
 	TArray<FFlowPin> ContextOutputPins;
 
-	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index)
+	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
 	{
-		ContextOutputPins.Add(FName("DialogueEnd", Index));
-		ContextOutputPins.Add(FName("DialogueStart", Index));
-		ContextOutputPins.Add(FName("DialogueInterrupt", Index));
+		ContextOutputPins.Add(FName("FragmentStart", Index));
+		ContextOutputPins.Add(FName("FragmentEnd", Index));
 	}
-	
-	ContextOutputPins.Add(FName("Bypass"));
 	
 	return ContextOutputPins;
 }
@@ -418,6 +415,7 @@ void UFlowNode_YapDialogue::InsertFragment(uint8 Index)
 
 	UpdateFragmentIndices();
 
+	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
 	OnReconstructionRequested.ExecuteIfBound();
 }
 
@@ -440,12 +438,16 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const
 {
+	return nullptr;
+
+	/*
 	if (Character)
 	{
 		return Character->GetPortraitBrush(RequestedMoodKey);
 	}
 
 	return nullptr;
+	*/
 }
 #endif
 

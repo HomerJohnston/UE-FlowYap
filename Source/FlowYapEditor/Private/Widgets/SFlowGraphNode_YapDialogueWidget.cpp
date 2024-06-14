@@ -18,8 +18,12 @@
 #include "Graph/FlowGraphUtils.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
+#include "Widgets/SFlowYapGraphPinExec.h"
+#include "Widgets/Input/SNumericEntryBox.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
+
+constexpr int32 NUM_PINS_PER_FRAGMENT {2};
 
 // ------------------------------------------
 // CONSTRUCTION
@@ -29,22 +33,22 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	FlowGraphNode = InNode;
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
 
-	DialogueButtonsColor = FlowYapColor::DimGray;
+	DialogueButtonsColor = FlowYapEditor::Color::DimGray;
 
-	ConnectedEndPinColor = FlowYapColor::White;
-	DisconnectedEndPinColor = FlowYapColor::DarkGray;
-	DisconnectedEndPinColor_Prompt = FlowYapColor::Red;
+	ConnectedEndPinColor = FlowYapEditor::Color::White;
+	DisconnectedEndPinColor = FlowYapEditor::Color::DarkGray;
+	DisconnectedEndPinColor_Prompt = FlowYapEditor::Color::Red;
 	
-	ConnectedStartPinColor = FlowYapColor::LightGreen;
-	DisconnectedStartPinColor = FlowYapColor::DarkGray;
+	ConnectedStartPinColor = FlowYapEditor::Color::LightGreen;
+	DisconnectedStartPinColor = FlowYapEditor::Color::DarkGray;
 	
-	ConnectedInterruptPinColor = FlowYapColor::LightRed;
-	DisconnectedInterruptPinColor = FlowYapColor::DarkGray;
+	ConnectedInterruptPinColor = FlowYapEditor::Color::LightRed;
+	DisconnectedInterruptPinColor = FlowYapEditor::Color::DarkGray;
 	ConnectedInterruptPinColor_Disabled = ConnectedInterruptPinColor.Desaturate(0.75);
 	DisconnectedInterruptPinColor_Disabled = DisconnectedInterruptPinColor.Desaturate(0.75);
 	
-	ConnectedBypassPinColor = FlowYapColor::LightBlue;
-	DisconnectedBypassPinColor = FlowYapColor::DarkGray;
+	ConnectedBypassPinColor = FlowYapEditor::Color::LightBlue;
+	DisconnectedBypassPinColor = FlowYapEditor::Color::DarkGray;
 
 	FocusedFragmentIndex.Reset();
 	
@@ -58,6 +62,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	.SetHighlightColor(FLinearColor(0.02f, 0.3f, 0.0f));
 
 	UpdateGraphNode();
+
 }
 
 // ------------------------------------------
@@ -108,13 +113,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.Content()
 		[
 			SNew(SBox)
-			.WidthOverride(66)
+			.WidthOverride(50)
 			.HeightOverride(20)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			[
 				SNew(SImage)
-				.ColorAndOpacity(FlowYapColor::DarkGray)
+				.ColorAndOpacity(FlowYapEditor::Color::DarkGray)
 				.DesiredSizeOverride(FVector2D(16, 16))
 				.Image(FAppStyle::Get().GetBrush("MainFrame.VisitForums"))
 			]
@@ -156,7 +161,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 					+ SOverlay::Slot()
 					[
 						SNew(SImage)
-						.ColorAndOpacity(FlowYapColor::LightRed)
+						.ColorAndOpacity(FlowYapEditor::Color::LightRed)
 						.DesiredSizeOverride(FVector2D(16, 16))
 						.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
 						.Visibility_Lambda([this](){return ( GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
@@ -223,15 +228,15 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 {
 	if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible)
 	{
-		return FlowYapColor::Red;
+		return FlowYapEditor::Color::Red;
 	}
 	else if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::Interruptible)
 	{
-		return FlowYapColor::Green;
+		return FlowYapEditor::Color::Green;
 	}
 	else
 	{
-		return FlowYapColor::DarkGray;
+		return FlowYapEditor::Color::DarkGray;
 	}
 }
 
@@ -326,35 +331,66 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgro
 {
 	if (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f)
 	{
-		return FlowYapColor::White_Glass;
+		return FlowYapEditor::Color::White_Glass;
 	}
 	
 	if (FlashFragmentIndex == f)
 	{
-		return FlashHighlight * FlowYapColor::White_Trans;
+		return FlashHighlight * FlowYapEditor::Color::White_Trans;
 	}
 
-	return FlowYapColor::Transparent;
+	return FlowYapEditor::Color::Transparent;
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(int FragmentIndex)
 {
-	return SNew(SButton)
-	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-	.ToolTipText(LOCTEXT("DialogueNode", "Insert new fragment"))
-	.ContentPadding(0)
-	.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked, FragmentIndex)
+	TSharedRef<SOverlay> Overlay = SNew(SOverlay)
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Fill)
 	[
-		SNew(SImage)
-		.Image(FAppStyle::GetBrush("Menu.Separator"))
-		.DesiredSizeOverride(FVector2D(1, 1))
-		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
+		SNew(SButton)
+		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+		.ToolTipText(LOCTEXT("DialogueNode", "Insert new fragment"))
+		.ContentPadding(0)
+		.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked, FragmentIndex)
+		[
+			SNew(SImage)
+			.Image(FAppStyle::GetBrush("Menu.Separator"))
+			.DesiredSizeOverride(FVector2D(1, 1))
+			.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
+		]
 	];
+
+	/*
+	if (FragmentIndex > 0)
+	{
+		Overlay->AddSlot()
+		.HAlign(HAlign_Center)
+		.Padding(-8, -11, -8, -11)
+		[
+			SNew(SBox)
+			.WidthOverride(73)
+			.VAlign(VAlign_Fill)
+			.Padding(0)
+			[
+				SNew(SNumericEntryBox<double>)
+				//.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_IsEnabled)
+				.Delta(0.1)
+				.MinValue(0.0)
+				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+				.Justification(ETextJustify::Center)
+				//.Value(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_Value)
+				//.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::TimeEntryBox_OnValueCommitted)
+			]
+		];
+	}
+	*/
+	return Overlay;
 }
 
 FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity() const
 {
-	return FlowYapColor::Black;
+	return FlowYapEditor::Color::Black;
 }
 
 FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(int Index)
@@ -461,9 +497,9 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateActivationLimiterWidget
 
 	if (ActivationLimit <= 3) // TODO 3 twice should be a gvar
 	{
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < 1; ++i)
 		{
-			int32 Size = 16;// i < ActivationCount ? 16 : 12;
+			int32 Size = 24;// i < ActivationCount ? 16 : 12;
 			ActivationLimiter_VerticalBox->AddSlot()
 			.VAlign(VAlign_Center)
 			.HAlign(HAlign_Center)
@@ -471,8 +507,8 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateActivationLimiterWidget
 			.Padding(0)
 			[
 				SNew(SBox)
-				.WidthOverride(16)
-				.HeightOverride(14)
+				.WidthOverride(24)
+				.HeightOverride(22)
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
 				.Padding(0)
@@ -504,7 +540,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateActivationLimiterWidget
 		[
 			SNew(STextBlock)
 			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(ActivationCount), FText::AsNumber(Fragment->GetActivationLimit())))
-			.ColorAndOpacity(FlowYapColor::White)
+			.ColorAndOpacity(FlowYapEditor::Color::White)
 			.TextStyle(&NormalText)
 			.Justification(ETextJustify::Center)
 		];
@@ -548,30 +584,30 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ActivationDot_ColorAndOpacity(uint
 	{
 		if (ActivationLimit == 0)
 		{
-			return Current <= ActivationCount ? FlowYapColor::White : FlowYapColor::Black;
+			return Current <= ActivationCount ? FlowYapEditor::Color::White : FlowYapEditor::Color::Black;
 		}
 
 		if (Current > ActivationLimit)
 		{
-			return FlowYapColor::Transparent;
+			return FlowYapEditor::Color::Transparent;
 		}
 		
 		if (ActivationCount >= ActivationLimit)
 		{
-			return (Current <= ActivationCount) ? FlowYapColor::Red : FlowYapColor::Black; 
+			return (Current <= ActivationCount) ? FlowYapEditor::Color::Red : FlowYapEditor::Color::Black; 
 		}
 		else
 		{
-			return (Current <= ActivationCount) ? FlowYapColor::White : FlowYapColor::Black; 
+			return (Current <= ActivationCount) ? FlowYapEditor::Color::White : FlowYapEditor::Color::Black; 
 		}
 	}
 
 	if (Current <= ActivationLimit)
 	{
-		return FlowYapColor::White;
+		return FlowYapEditor::Color::Orange;
 	}
 
-	return FlowYapColor::Black;
+	return FlowYapEditor::Color::Black;
 }
 
 FReply SFlowGraphNode_YapDialogueWidget::ActivationDot_OnClicked(uint8 FragmentIndex, int ActivationIndex)
@@ -601,12 +637,19 @@ FReply SFlowGraphNode_YapDialogueWidget::ActivationDot_OnClicked(uint8 FragmentI
 
 TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane()
 {
-	TSharedRef<SVerticalBox> RightSideNodeBox = SNew(SVerticalBox);
+	TSharedRef<SVerticalBox> RightSideNodeBox = SNew(SVerticalBox)
+	+ SVerticalBox::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Fill)
+	[
+		SNew(SSpacer)
+	];
 	
 	FragmentOutputBoxes.Add(RightSideNodeBox);
 	
 	return SNew(SBox)
 	.MinDesiredWidth(40)
+	.VAlign(VAlign_Fill)
 	[
 		RightSideNodeBox
 	];
@@ -699,11 +742,11 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Im
 	{
 	case EFlowYapMultipleFragmentSequencing::Sequential:
 		{
-			return FAppStyle::Get().GetBrush("LevelEditor.Profile"); 
+			return FAppStyle::Get().GetBrush("Icons.SortDown"); 
 		}
-	case EFlowYapMultipleFragmentSequencing::Random:
+	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			return FAppStyle::Get().GetBrush("Icons.Convert"); 
+			return FAppStyle::Get().GetBrush("LevelEditor.Profile"); 
 		}
 	}
 
@@ -718,10 +761,9 @@ FText SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText() c
 		{
 			return LOCTEXT("DialogueNodeSequence", "Run nodes from top to bottom");
 		}
-	case EFlowYapMultipleFragmentSequencing::Random:
+	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			// TODO should I describe if this is deterministic or not? Should I make it deterministic? How?
-			return LOCTEXT("DialogueNodeSequence", "Select nodes randomly");
+			return LOCTEXT("DialogueNodeSequence", "Starting from the top, attempts to run a single fragment only. Use this to easily display slightly different dialogue on second, third runs.");
 		}
 	default:
 		{
@@ -736,15 +778,15 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndO
 	{
 	case EFlowYapMultipleFragmentSequencing::Sequential:
 		{
-			return FlowYapColor::DarkGray;
+			return FlowYapEditor::Color::DarkGray;
 		}
-	case EFlowYapMultipleFragmentSequencing::Random:
+	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			return FlowYapColor::Orange;
+			return FlowYapEditor::Color::Orange;
 		}
 	default:
 		{
-			return FlowYapColor::White;
+			return FlowYapEditor::Color::White;
 		}
 	}
 }
@@ -915,24 +957,6 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		bKeyboardFocused = false;
 	}
 
-	for (int i = 2; i < OutputPins.Num() - 1; i += 3)
-	{
-		TSharedRef<SGraphPin> Pin = OutputPins[i];
-
-		FLinearColor InterruptPinColor;
-
-		if (GetFlowYapDialogueNode()->GetInterruptible())
-		{
-			InterruptPinColor = Pin->IsConnected() ? ConnectedInterruptPinColor	: DisconnectedInterruptPinColor;
-		}
-		else
-		{
-			InterruptPinColor = Pin->IsConnected() ? ConnectedInterruptPinColor_Disabled : DisconnectedInterruptPinColor_Disabled;
-		}
-		
-		Pin->SetColorAndOpacity(InterruptPinColor);
-	}
-
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);
 
 	if (FlashHighlight <= 0)
@@ -1044,14 +1068,19 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	}
 	else
 	{
-		if (PinToAdd->GetPinObj()->GetFName() == FName("Bypass"))
+		if (PinToAdd->GetPinObj()->GetFName() == FName("Out"))
+		{
+			AddOutPin(PinToAdd);
+		}
+		else if (PinToAdd->GetPinObj()->GetFName() == FName("Bypass"))
 		{
 			AddBypassPin(PinToAdd);
 		}
 		else
 		{
-			// We don't have to account for the bypass pin because it is added last
-			int32 FragmentIndex = FMath::DivideAndRoundDown(OutputPins.Num(), 3);
+			uint8 BasePins = GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? 0 : 2;
+			// Subtract 2 to account for Out and Bypass pins
+			int32 FragmentIndex = FMath::DivideAndRoundDown(OutputPins.Num() - BasePins, NUM_PINS_PER_FRAGMENT);
 
 			if (!FragmentOutputBoxes.IsValidIndex(FragmentIndex))
 			{
@@ -1064,41 +1093,135 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 				return;
 			}
 			
-			FragmentOutputBoxes[FragmentIndex]->AddSlot()// InsertSlot(0)
-			.HAlign(HAlign_Right)
-			.VAlign(VAlign_Top)
-			.AutoHeight()
-			.Padding(RightMargins)
-			[
-				PinToAdd
-			];
-
 			FName PinName = PinToAdd->GetPinObj()->GetFName();
+
+			if (GetFlowYapDialogueNode()->GetIsPlayerPrompt() && PinName.IsEqual("FragmentEnd", ENameCase::IgnoreCase, false))
+			{
+				FragmentOutputBoxes[FragmentIndex]->InsertSlot(0)
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Top)
+				.AutoHeight()
+				.Padding(RightMargins)
+				[
+					PinToAdd
+				];
+			}
+			else
+			{				
+				FragmentOutputBoxes[FragmentIndex]->AddSlot()
+				.HAlign(HAlign_Right)
+				.VAlign(VAlign_Bottom)
+				.AutoHeight()
+				.Padding(RightMargins)
+				[
+					PinToAdd
+				];
+			}
+			
 
 			FLinearColor Color;
 			FText ToolTipText;
-			if (PinName.IsEqual(FName("DialogueEnd"), ENameCase::IgnoreCase, false))
+			if (PinName == "Out")
+			{
+				Color = FlowYapEditor::Color::White;
+				ToolTipText = LOCTEXT("Fragment", "Out");	
+			}
+			else if (PinName.IsEqual("FragmentEnd", ENameCase::IgnoreCase, false))
 			{
 				Color = PinToAdd->IsConnected() ? ConnectedEndPinColor : (GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? DisconnectedEndPinColor_Prompt : DisconnectedEndPinColor);
 				ToolTipText = LOCTEXT("Fragment", "On End");
 			}
-			else if (PinName.IsEqual(FName("DialogueStart"), ENameCase::IgnoreCase, false))
+			else if (PinName.IsEqual("FragmentStart", ENameCase::IgnoreCase, false))
 			{
 				Color = PinToAdd->IsConnected() ? ConnectedStartPinColor : DisconnectedStartPinColor;
 				ToolTipText = LOCTEXT("Fragment", "On Start");
 			}
+			else
+			{
+				Color = FlowYapEditor::Color::Error;
+				ToolTipText = LOCTEXT("Fragment", "WTF");
+			}
+			/*
 			else // if (PinName.IsEqual(FName("DialogueInterrupt"), ENameCase::IgnoreCase, false))
 			{
 				Color = PinToAdd->IsConnected() ? ConnectedInterruptPinColor : DisconnectedInterruptPinColor;
 				ToolTipText = LOCTEXT("Fragment", "On Interrupt");
 			}
-
+			*/
+			
 			PinToAdd->SetColorAndOpacity(Color);
 			PinToAdd->SetToolTipText(ToolTipText);
 
 			OutputPins.Add(PinToAdd);	
 		}
 	}
+}
+
+void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
+{
+	FName PinName = Pin->GetFName();
+
+	TSharedPtr<SGraphPin> NewPin;
+
+	TArray<FName> NormalPins;
+
+	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		NormalPins = { "In", "FragmentEnd" };
+	}
+	else
+	{
+		NormalPins = { "In", "Out", "Bypass" };
+	}
+
+
+	if (NormalPins.ContainsByPredicate([&](FName OtherPin)
+	{
+		return OtherPin.IsEqual(PinName, ENameCase::IgnoreCase, false);
+	}))
+	{
+		NewPin = SNew(SFlowGraphPinExec, Pin);
+	}
+	else // if (PinName.IsEqual(FName("DialogueStart"), ENameCase::IgnoreCase, false))
+	{
+		NewPin = SNew(SFlowYapGraphPinExec, Pin);
+	}
+	
+	//const TSharedPtr<SGraphPin> NewPin = SNew(SFlowYapGraphPin, Pin);
+
+	if (!UFlowGraphSettings::Get()->bShowDefaultPinNames && FlowGraphNode->GetFlowNode())
+	{
+		if (Pin->Direction == EGPD_Input)
+		{
+		}
+		else
+		{
+		}
+	}
+
+	this->AddPin(NewPin.ToSharedRef());
+}
+
+void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& PinToAdd)
+{
+	FMargin RightMargins = Settings->GetInputPinPadding();
+
+	RightMargins.Left = 0;
+	RightMargins.Bottom = 0;
+	RightMargins.Top = 0;
+	
+	FragmentOutputBoxes[0]->InsertSlot(0)
+	.HAlign(HAlign_Right)
+	.VAlign(VAlign_Top)
+	.AutoHeight()
+	.Padding(RightMargins)
+	[
+		PinToAdd
+	];
+	
+	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
+	PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? ConnectedEndPinColor : DisconnectedEndPinColor);
+	OutputPins.Add(PinToAdd);
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd)

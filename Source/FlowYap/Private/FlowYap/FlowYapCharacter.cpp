@@ -60,9 +60,9 @@ TMap<FName, FSlateBrush> UFlowYapCharacter::GetPortraitBrushes()
 	return PortraitBrushes;
 }
 
-FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FName& MoodKey)
+const FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FName& MoodKey) const
 {
-	FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
+	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
 
 	if (Brush)
 	{

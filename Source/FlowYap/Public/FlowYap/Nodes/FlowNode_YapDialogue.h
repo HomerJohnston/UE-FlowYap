@@ -12,7 +12,7 @@ UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
 	Sequential	,
-	Random		,
+	SelectOne	,
 	COUNT		UMETA(Hidden)
 };
 
@@ -34,10 +34,7 @@ public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UFlowYapCharacter> Character;
-	
+protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FFlowYapFragment> Fragments;
 	
@@ -55,6 +52,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EFlowYapInterruptible Interruptible;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Categories="Yap.Topic"))
+	FGameplayTag TopicTag;
 	
 	// STATE
 protected:
@@ -70,16 +70,12 @@ public:
 	
 	FText GetSpeakerName() const;
 
-	FLinearColor GetSpeakerColor() const;
-
 	const UTexture2D* GetDefaultSpeakerPortrait() const;
 
 	const UTexture2D* GetSpeakerPortrait(const FName& RequestedMoodKey) const;
 
 	FSlateBrush* GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const;
 	
-	FText GetNodeTitle() const override;
-
 	bool GetIsPlayerPrompt() const;
 
 	int32 GetNodeActivationCount() const;
@@ -107,6 +103,8 @@ protected:
 	
 	void OnPaddingTimeComplete(uint8 FragmentIndex);
 
+	void RunFragmentsSequentiallyFrom(uint8 StartIndex);
+	
 #if WITH_EDITOR
 public:
 	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;
@@ -154,5 +152,5 @@ protected:
 
 public:
 	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
-#endif
+#endif // WITH_EDITOR
 };

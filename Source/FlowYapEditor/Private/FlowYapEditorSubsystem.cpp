@@ -65,10 +65,10 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FName Name)
 	return Brush ? Brush->Get() : nullptr;
 }
 
-#define INITALIZE_CHECKBOX_STYLE(Name, Color) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
-	CheckBoxStyles.Name##.CheckedImage.TintColor = FlowYapColor::##Color##;\
-	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FlowYapColor::##Color##Hovered;\
-	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FlowYapColor::##Color##Pressed\
+#define INITALIZE_CHECKBOX_STYLE(Name, Col) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
+	CheckBoxStyles.Name##.CheckedImage.TintColor = FlowYapEditor::Color::##Col##;\
+	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FlowYapEditor::Color::##Col##Hovered;\
+	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FlowYapEditor::Color::##Col##Pressed\
 
 void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -97,18 +97,18 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
 	FCheckBoxStyle& Tmp = CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt;
 
-	Tmp.CheckedImage.TintColor = FlowYapColor::LightGreen;
-	Tmp.CheckedHoveredImage.TintColor = FlowYapColor::GreenHovered;
-	Tmp.CheckedPressedImage.TintColor = FlowYapColor::GreenPressed;
-	Tmp.UncheckedImage.TintColor = FlowYapColor::LightRed;
-	Tmp.UncheckedHoveredImage.TintColor = FlowYapColor::RedHovered;
-	Tmp.UncheckedPressedImage.TintColor = FlowYapColor::RedPressed;
+	Tmp.CheckedImage.TintColor = FlowYapEditor::Color::LightGreen;
+	Tmp.CheckedHoveredImage.TintColor = FlowYapEditor::Color::GreenHovered;
+	Tmp.CheckedPressedImage.TintColor = FlowYapEditor::Color::GreenPressed;
+	Tmp.UncheckedImage.TintColor = FlowYapEditor::Color::LightRed;
+	Tmp.UncheckedHoveredImage.TintColor = FlowYapEditor::Color::RedHovered;
+	Tmp.UncheckedPressedImage.TintColor = FlowYapEditor::Color::RedPressed;
 
-	Tmp.UndeterminedForeground = FlowYapColor::Green;
+	Tmp.UndeterminedForeground = FlowYapEditor::Color::Green;
 	Tmp.UndeterminedImage = Tmp.CheckedImage;
-	Tmp.UndeterminedImage.TintColor = FlowYapColor::LightGray;
-	Tmp.UndeterminedHoveredImage.TintColor = FlowYapColor::Gray;
-	Tmp.UndeterminedPressedImage.TintColor = FlowYapColor::Gray;
+	Tmp.UndeterminedImage.TintColor = FlowYapEditor::Color::LightGray;
+	Tmp.UndeterminedHoveredImage.TintColor = FlowYapEditor::Color::Gray;
+	Tmp.UndeterminedPressedImage.TintColor = FlowYapEditor::Color::Gray;
 
 	InputTracker = MakeShared<FFlowYapInputTracker>(this);
 

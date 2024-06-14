@@ -2,6 +2,7 @@
 
 #include "FlowYapAudioTimeCacher.h"
 #include "FlowYapTimeMode.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
 
 #include "FlowYapProjectSettings.generated.h"
@@ -37,6 +38,10 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EFlowYapTimeMode::AudioTime", EditConditionHides))
 	EFlowYapErrorLevel MissingAudioErrorLevel;
 
+	/** If set, enables nicer filtering of condition tags display */
+	UPROPERTY(Config, EditAnywhere)
+	FGameplayTag ConditionContainer;
+	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bDefaultInterruptibleSetting;
@@ -77,6 +82,8 @@ protected:
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacher;
+
+	TMultiMap<UClass*, FName> PropertyContainerUsers;
 #endif
 	
 #if WITH_EDITOR
@@ -117,5 +124,13 @@ public:
 	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?
 	
 	TSubclassOf<UFlowYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; };
+
+	FGameplayTag GetConditionContainer() const { return ConditionContainer; }
+
+	void RegisterConditionContainerUser(UObject* Object, FName PropertyName);
+	
+	void RegisterConditionContainerUser(UClass* Class, FName PropertyName);
+
+	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const;
 #endif
 };

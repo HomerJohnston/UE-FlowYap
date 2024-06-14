@@ -4,6 +4,8 @@
 
 #include "FlowYapBit.generated.h"
 
+class UFlowYapCharacter;
+
 UENUM(BlueprintType)
 enum class EFlowYapInterruptible : uint8
 {
@@ -21,6 +23,9 @@ struct FLOWYAP_API FFlowYapBit
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UFlowYapCharacter> Character;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
 	FText TitleText;
 	
@@ -57,12 +62,16 @@ protected:
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
 public:
+	const UFlowYapCharacter* GetCharacter() const { return Character; }
+	
 	const FText& GetTitleText() const { return TitleText; }
 
 	const FText& GetDialogueText() const { return DialogueText; }
 
 	template<class T>
-	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }; // TODO make sure this works
+	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }
+
+	const FSlateBrush* GetSpeakerPortraitBrush() const;; // TODO make sure this works
 
 #if WITH_EDITOR
 	FName GetMoodKey();

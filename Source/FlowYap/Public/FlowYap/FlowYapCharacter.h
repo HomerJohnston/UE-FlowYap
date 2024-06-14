@@ -35,7 +35,7 @@ public:
 
 	TMap<FName, FSlateBrush> GetPortraitBrushes();
 
-	FSlateBrush* GetPortraitBrush(const FName& MoodKey);
+	const FSlateBrush* GetPortraitBrush(const FName& MoodKey) const;
 
 private:
 	void RebuildPortraitBrushes();

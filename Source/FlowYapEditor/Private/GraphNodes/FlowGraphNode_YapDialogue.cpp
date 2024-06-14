@@ -46,10 +46,10 @@ FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
 	if (GetFlowYapNode()->GetIsPlayerPrompt())
 	{
-		return FlowYapColor::White;
+		return FlowYapEditor::Color::White;
 	}
 
-	return FlowYapColor::LightGray;
+	return FlowYapEditor::Color::LightGray;
 }
 
 FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
@@ -81,7 +81,7 @@ void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentInd
 {
 	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
 
-	uint8 NumPins = 3;
+	uint8 NumPins = 2;
 
 	// For each fragment
 	for (int i = FragmentIndex; i <= LastFragmentIndex; ++i)
@@ -109,7 +109,7 @@ void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentInd
 
 void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB)
 {
-	uint8 PinCount = 3;
+	uint8 PinCount = 2;
 
 	for (int i = 0; i < PinCount; ++i)
 	{
@@ -117,6 +117,7 @@ void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 FragmentIndexA, uint8 
 	}
 }
 
+// TODO name
 void UFlowGraphNode_YapDialogue::DoTrick(uint8 FragmentIndexA, uint8 FragmentIndexB)
 {
 	UEdGraphPin* PinA = OutputPins[FragmentIndexA];
