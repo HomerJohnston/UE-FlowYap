@@ -2,17 +2,23 @@
 
 #define HOVER 1.15
 #define PRESS 0.85
+#define SEMITRANS 0.95
+#define TRANS 0.70
+#define GLASS 0.20
 
 #define DECLARE_COLOR_TRAN(Name, RR, GG, BB, AA)\
 inline FLinearColor Name = FLinearColor(RR, GG, BB, AA);\
 inline FLinearColor Name##Hovered = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, AA);\
 inline FLinearColor Name##Pressed = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, AA);\
-inline FLinearColor Name##_Trans = FLinearColor(RR, GG, BB, 0.70);\
-inline FLinearColor Name##Hovered_Trans = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, 0.70 * AA);\
-inline FLinearColor Name##Pressed_Trans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, 0.70 * AA);\
-inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, 0.20);\
-inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, 0.20 * AA);\
-inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, 0.20 * AA)
+inline FLinearColor Name##_SemiTrans = FLinearColor(RR, GG, BB, SEMITRANS);\
+inline FLinearColor Name##Hovered_SemiTrans = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, SEMITRANS * AA);\
+inline FLinearColor Name##Pressed_SemiTrans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, SEMITRANS * AA);\
+inline FLinearColor Name##_Trans = FLinearColor(RR, GG, BB, TRANS);\
+inline FLinearColor Name##Hovered_Trans = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, TRANS * AA);\
+inline FLinearColor Name##Pressed_Trans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, TRANS * AA);\
+inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, GLASS);\
+inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, GLASS * AA);\
+inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, GLASS * AA)
 
 #define DECLARE_COLOR(Name, RR, GG, BB) DECLARE_COLOR_TRAN(Name, RR, GG, BB, 1.000)
 

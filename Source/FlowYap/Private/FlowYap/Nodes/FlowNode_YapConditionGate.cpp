@@ -2,7 +2,7 @@
 
 #include "GameplayTagsManager.h"
 #include "FlowYap/FlowYapProjectSettings.h"
-#include "FlowYap/Nodes/Category.h"
+#include "FlowYap/FlowYapUtil.h"
 
 UFlowNode_YapConditionGate::UFlowNode_YapConditionGate()
 {
@@ -11,13 +11,13 @@ UFlowNode_YapConditionGate::UFlowNode_YapConditionGate()
 	OutputPins = { FName("No"), FName("Yes") };
 
 #if WITH_EDITOR
-	UFlowYapProjectSettings::Get()->RegisterConditionContainerUser(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition));
+	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition), EFlowYap_TagFilter::Conditions);
 #endif
 }
 
 FString UFlowNode_YapConditionGate::GetNodeCategory() const
 {
-	return FlowYapRuntime::NodeCategory;
+	return FlowYapUtil::NodeCategory;
 }
 
 FText UFlowNode_YapConditionGate::GetNodeTitle() const
@@ -42,18 +42,10 @@ void UFlowNode_YapConditionGate::OnActivate()
 
 void UFlowNode_YapConditionGate::ExecuteInput(const FName& PinName)
 {
-	
 	Super::ExecuteInput(PinName);
 }
 
 FString UFlowNode_YapConditionGate::GetNodeDescription() const
 {
-	const FGameplayTag& ParentContainer = UFlowYapProjectSettings::Get()->GetConditionContainer();
-
-	if (ParentContainer.IsValid() && ParentContainer != FGameplayTag::EmptyTag && Condition.MatchesTag(ParentContainer))
-	{
-		return Condition.ToString().RightChop(ParentContainer.ToString().Len() + 1) + "?";
-	}
-	
-	return Condition.ToString() + "?";
+	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Conditions, Condition);
 }

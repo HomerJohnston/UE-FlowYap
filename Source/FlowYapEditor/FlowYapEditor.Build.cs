@@ -9,7 +9,7 @@ public class FlowYapEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "Slate", "FlowEditor",
+                "Core", "Slate", "FlowEditor", "GameplayTags", "GameplayTagsEditor",
             }
         );
 
@@ -44,6 +44,8 @@ public class FlowYapEditor : ModuleRules
                 "UMG",
                 
                 "DeveloperSettings",
+                
+                "BlueprintGraph"
             }
         );
     }

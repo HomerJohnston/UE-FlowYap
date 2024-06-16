@@ -40,7 +40,7 @@ void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 		TSharedPtr<FSlateBrush> MoodKeyBrush = MakeShareable(new FSlateBrush);
 
 		MoodKeyBrush->SetResourceObject(MoodKeyIcon);
-		MoodKeyBrush->SetImageSize({16, 16});
+		MoodKeyBrush->SetImageSize(FVector2D(16, 16));
 		
 		MoodKeyIconBrushes.Add(MoodKey, MoodKeyBrush);
 	}
@@ -66,9 +66,9 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FName Name)
 }
 
 #define INITALIZE_CHECKBOX_STYLE(Name, Col) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
-	CheckBoxStyles.Name##.CheckedImage.TintColor = FlowYapEditor::Color::##Col##;\
-	CheckBoxStyles.Name##.CheckedHoveredImage.TintColor = FlowYapEditor::Color::##Col##Hovered;\
-	CheckBoxStyles.Name##.CheckedPressedImage.TintColor = FlowYapEditor::Color::##Col##Pressed\
+	CheckBoxStyles.Name.CheckedImage.TintColor = FlowYapEditor::Color::Col;\
+	CheckBoxStyles.Name.CheckedHoveredImage.TintColor = FlowYapEditor::Color::Col##Hovered;\
+	CheckBoxStyles.Name.CheckedPressedImage.TintColor = FlowYapEditor::Color::Col##Pressed\
 
 void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -83,7 +83,9 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	LoadIcon("Resources/DialogueNodeIcons/Icon_NoInterrupt_16x16.png", NoInterruptIcon, NoInterruptBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_TextTime_16x16.png", TextTimeIcon, TextTimeBrush);
 	LoadIcon("Resources/DialogueNodeIcons/Icon_AudioTime_16x16.png", AudioTimeIcon, AudioTimeBrush);
-	
+
+	FCheckBoxStyle asdf;
+
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Green, Green);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);

@@ -29,32 +29,34 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 	GENERATED_BODY()
 
 friend class SFlowGraphNode_YapDialogueWidget;
+friend class SFlowGraphNode_YapFragmentWidget;
 
 public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
 protected:	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	TArray<FFlowYapFragment> Fragments;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName ConversationName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	bool bIsPlayerPrompt;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 NodeActivationLimit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, meta = (EditCondition = "!bIsPlayerPrompt", EditConditionHides))
 	EFlowYapMultipleFragmentSequencing MultipleFragmentSequencing;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	EFlowYapInterruptible Interruptible;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(Categories="Yap.Topic"))
-	FGameplayTag TopicTag;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FGameplayTag PromptTag;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FName ConversationName;
 	
 	// STATE
 protected:
@@ -152,5 +154,12 @@ protected:
 
 public:
 	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
+
+	FString GetNodeDescription() const override;
+
+	const FGameplayTag& GetPromptTag() const { return PromptTag; }
+	
+	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
+
 #endif // WITH_EDITOR
 };

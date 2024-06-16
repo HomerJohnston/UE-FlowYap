@@ -99,6 +99,10 @@ protected:
 	// EDITOR API
 #if WITH_EDITOR
 public:
+	UFlowYapCharacter* GetCharacterMutable() const { return Character; }
+	
+	void SetCharacter(UFlowYapCharacter* InCharacter) { Character = InCharacter; }
+	
 	void SetTitleText(const FText& InText) { TitleText = InText; }
 
 	void SetDialogueText(const FText& InText);

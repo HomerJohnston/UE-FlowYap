@@ -17,6 +17,7 @@
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
+#include "Logging/StructuredLog.h"
 #include "Widgets/SFlowGraphNode_YapFragmentWidget.h"
 #include "Widgets/SFlowYapGraphPinExec.h"
 #include "Widgets/Input/SNumericEntryBox.h"
@@ -404,7 +405,7 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(int Index)
 	UpdateGraphNode();
 
 	FFlowYapTransactions::EndModify();
-	
+		
 	return FReply::Handled();
 }
 
@@ -854,7 +855,7 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 B
 	}
 }
 
-void SFlowGraphNode_YapDialogueWidget::SetFocusedFragment(uint8 InFragment)
+void SFlowGraphNode_YapDialogueWidget::SetFocusedFragmentIndex(uint8 InFragment)
 {
 	if (FocusedFragmentIndex != InFragment)
 	{
@@ -867,7 +868,7 @@ void SFlowGraphNode_YapDialogueWidget::SetFocusedFragment(uint8 InFragment)
 	SetTypingFocus();
 }
 
-void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragment(uint8 FragmentIndex)
+void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragmentIndex(uint8 FragmentIndex)
 {
 	if (FocusedFragmentIndex == FragmentIndex)
 	{
@@ -875,16 +876,15 @@ void SFlowGraphNode_YapDialogueWidget::ClearFocusedFragment(uint8 FragmentIndex)
 	}
 }
 
-const TSharedPtr<SFlowGraphNode_YapFragmentWidget> SFlowGraphNode_YapDialogueWidget::GetFocusedFragment() const
+const bool SFlowGraphNode_YapDialogueWidget::GetFocusedFragmentIndex(uint8& OutFragmentIndex) const
 {
 	if (FocusedFragmentIndex.IsSet())
 	{
-		return FragmentWidgets[FocusedFragmentIndex.GetValue()];
+		OutFragmentIndex = FocusedFragmentIndex.GetValue();
+		return true;
 	}
-	else
-	{
-		return nullptr;
-	}
+
+	return false;
 }
 
 void SFlowGraphNode_YapDialogueWidget::SetTypingFocus()
@@ -982,25 +982,19 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 			return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
 		}
 	}
-	else
+	
+	if (bSelected)
 	{
-		if (bSelected)
-		{
-			return FAppStyle::GetBrush(TEXT("Graph.Node.ShadowSelected"));
-		}
-		else
-		{
-			if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
-			{
-				// TODO a custom brush style could be less obtuse
-				return FAppStyle::GetBrush(TEXT("Graph.ReadOnlyBorder"));
-			}
-			else
-			{
-				return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
-			}
-		}
+		return FAppStyle::GetBrush(TEXT("Graph.Node.ShadowSelected"));
 	}
+	
+	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		// TODO a custom brush style could be less obtuse
+		return FAppStyle::GetBrush(TEXT("Graph.ReadOnlyBorder"));
+	}
+
+	return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
@@ -1045,11 +1039,10 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		if (!FragmentInputBoxes.IsValidIndex(Index))
 		{
 			UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD INPUT PIN: %s, perhaps node is corrupt?"
-								 "This might fix itself by refreshing the graph and saving. "
-								 "Otherwise, consider disconnecting all pins and cycling Multiple Inputs off and on. "
-								 "First Node dialogue entry: %s"),
-								 *PinObj->GetName(),
-								 *GetFlowYapDialogueNode()->GetFragments()[0].Bit.GetDialogueText().ToString());
+								"Copy paste this node and delete the old one. "
+								"First Node dialogue entry: %s"),
+								*PinObj->GetName(),
+								*GetFlowYapDialogueNode()->GetFragments()[0].Bit.GetDialogueText().ToString());
 			return;
 		}
 		
@@ -1078,18 +1071,18 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		}
 		else
 		{
-			uint8 BasePins = GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? 0 : 2;
+			uint8 BasePins = GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? 1 : 2;
 			// Subtract 2 to account for Out and Bypass pins
 			int32 FragmentIndex = FMath::DivideAndRoundDown(OutputPins.Num() - BasePins, NUM_PINS_PER_FRAGMENT);
 
 			if (!FragmentOutputBoxes.IsValidIndex(FragmentIndex))
 			{
-				UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD OUTPUT PIN: %s, perhaps node is corrupt?"
-								"This might fix itself by refreshing the graph and saving. "
-								"Consider disconnecting all pins and cycling Multiple Outputs off and on. "
+				UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD OUTPUT PIN: %s, perhaps node is corrupt? "
+								"Copy paste this node and delete the old one. "
 								"First Node dialogue entry: %s"),
 								*PinObj->GetName(),
 								*GetFlowYapDialogueNode()->GetFragments()[0].Bit.GetDialogueText().ToString());
+
 				return;
 			}
 			
@@ -1121,12 +1114,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 
 			FLinearColor Color;
 			FText ToolTipText;
-			if (PinName == "Out")
-			{
-				Color = FlowYapEditor::Color::White;
-				ToolTipText = LOCTEXT("Fragment", "Out");	
-			}
-			else if (PinName.IsEqual("FragmentEnd", ENameCase::IgnoreCase, false))
+			if (PinName.IsEqual("FragmentEnd", ENameCase::IgnoreCase, false))
 			{
 				Color = PinToAdd->IsConnected() ? ConnectedEndPinColor : (GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? DisconnectedEndPinColor_Prompt : DisconnectedEndPinColor);
 				ToolTipText = LOCTEXT("Fragment", "On End");
@@ -1139,7 +1127,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 			else
 			{
 				Color = FlowYapEditor::Color::Error;
-				ToolTipText = LOCTEXT("Fragment", "WTF");
+				ToolTipText = LOCTEXT("Fragment", "Error");
 			}
 			/*
 			else // if (PinName.IsEqual(FName("DialogueInterrupt"), ENameCase::IgnoreCase, false))
@@ -1167,13 +1155,12 @@ void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
 
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
-		NormalPins = { "In", "FragmentEnd" };
+		NormalPins = { "In", "Bypass", "FragmentEnd" };
 	}
 	else
 	{
 		NormalPins = { "In", "Out", "Bypass" };
 	}
-
 
 	if (NormalPins.ContainsByPredicate([&](FName OtherPin)
 	{
@@ -1220,7 +1207,7 @@ void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& Pi
 	];
 	
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
-	PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? ConnectedEndPinColor : DisconnectedEndPinColor);
+	PinToAdd->SetColorAndOpacity(FlowYapEditor::Color::White);
 	OutputPins.Add(PinToAdd);
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagCustomizationOptions.h"
+#include "SGameplayTagWidget.h"
 #include "GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Widgets/SCompoundWidget.h"
 
@@ -24,6 +26,7 @@ protected:
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
+	int DialogueScrollBar_RenderOpacity;
 
 	static FButtonStyle MoveFragmentButtonStyle;
 	static bool bStylesInitialized;
@@ -32,6 +35,9 @@ protected:
 	bool MoodKeySelectorMenuOpen = false;
 
 	uint8 FragmentIndex;
+	
+	/** Tag name selected*/
+	FString TagName;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -48,16 +54,26 @@ protected:
 
 	FOptionalSize		Fragment_WidthOverride() const;
 	EVisibility			FragmentBottomSection_Visibility() const;
-	
+
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateDialogueWidget();
-	
+
+	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
 	FText				Dialogue_Text() const;
 	void				Dialogue_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 	FText				Dialogue_ToolTipText() const;
 	FSlateColor			Dialogue_BackgroundColor() const;
 	FSlateColor			Dialogue_ForegroundColor() const;
+
+	
+	// ------------------------------------------
+	TSharedRef<SWidget>	CreateFragmentTagPreviewWidget();
+
+	EVisibility			FragmentTagPreview_Visibility() const;
+	FText				FragmentTagPreview_Text() const;
+	FSlateColor			FragmentTagPreview_BorderBackgroundColor() const;
+	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
 
 	// ------------------------------------------
 	TSharedRef<SBox>	CreatePortraitWidget();
@@ -98,6 +114,12 @@ protected:
 	void				TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
+	TSharedRef<SWidget>	CreateFragmentTagWidget();
+	
+	FGameplayTag		FragmentTag_Tag() const;
+	void				FragmentTag_OnTagChanged(FGameplayTag GameplayTag);
+
+	// ------------------------------------------
 	TSharedRef<SBox>	CreateBottomRowWidget();
 
 	ECheckBoxState		UseProjectDefaultTimeSettingsButton_IsChecked() const;
@@ -134,6 +156,8 @@ protected:
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
 	FFlowYapFragment* GetFragment() const;
+
+	bool FragmentFocused() const;
 
 	// ------------------------------------------
 	// OVERRIDES

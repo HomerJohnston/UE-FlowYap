@@ -32,9 +32,19 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 
-	ConditionContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
-	
+	ConditionsContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
+
+	PromptsContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Prompts"));
+
+	TagContainers =
+	{
+		{ EFlowYap_TagFilter::Conditions, &ConditionsContainer },
+		{ EFlowYap_TagFilter::Prompts, &PromptsContainer }
+	};
+
+#if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
+#endif
 }
 
 #if WITH_EDITOR
@@ -95,36 +105,58 @@ double UFlowYapProjectSettings::GetMinimumAutoAudioTimeLength() const
 	return MinimumAutoAudioTimeLength;
 }
 
-void UFlowYapProjectSettings::RegisterConditionContainerUser(UObject* Object, FName PropertyName)
+void UFlowYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EFlowYap_TagFilter Filter)
 {
-	if (Object->IsTemplate())
-	{
-		RegisterConditionContainerUser(Object->GetClass(), PropertyName);
-	}
-}
+	TMap<UClass*, EFlowYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);
 
-void UFlowYapProjectSettings::RegisterConditionContainerUser(UClass* Class, FName PropertyName)
-{
-	if (!PropertyContainerUsers.Contains(Class))
-	{
-		PropertyContainerUsers.Add(Class, PropertyName);
-	}
+	ClassFiltersForProperty.Add(ClassSource->GetClass(), Filter);
 }
 
 void UFlowYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {
+	if (!PropertyHandle)
+	{
+		return;
+	}
+	
+	const TMap<UClass*, EFlowYap_TagFilter>* ClassFilters = TagFilterSubscriptions.Find(PropertyHandle->GetProperty()->GetFName());
+
+	if (!ClassFilters)
+	{
+		return;
+	}
+
 	TArray<UObject*> OuterObjects;
 	PropertyHandle->GetOuterObjects(OuterObjects);
 
 	for (const UObject* PropertyOuter : OuterObjects)
 	{
-		const FName* FoundProperty = PropertyContainerUsers.FindPair(PropertyOuter->GetClass(), PropertyHandle->GetProperty()->GetFName());
+		const EFlowYap_TagFilter* Filter = ClassFilters->Find(PropertyOuter->GetClass());
 
-		if (FoundProperty)
+		if (!Filter)
 		{
-			MetaString = GetConditionContainer().ToString();
+			continue;
 		}
+
+		MetaString = TagContainers[*Filter]->ToString();
 	}
+}
+
+FString UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter Filter, const FGameplayTag& PropertyTag)
+{
+	const FGameplayTag& ParentContainer = *Get()->TagContainers[Filter];
+	
+	if (ParentContainer.IsValid() && ParentContainer != FGameplayTag::EmptyTag && PropertyTag.MatchesTag(ParentContainer))
+	{
+		return PropertyTag.ToString().RightChop(ParentContainer.ToString().Len() + 1);
+	}
+
+	if (PropertyTag == FGameplayTag::EmptyTag)
+	{
+		return "";
+	}
+	
+	return PropertyTag.ToString();
 }
 #endif
 

@@ -4,6 +4,7 @@
 
 #include "AssetFactory_FlowYapCharacter.h"
 #include "AssetToolsModule.h"
+#include "Widgets/GameplayTagFilteredStyle.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -30,6 +31,8 @@ void FFlowYapEditorModule::StartupModule()
 		RegisterAssetCategories(AssetToolsModule);
 		RegisterAssetTypeActions(AssetToolsModule);
 	}
+
+	FGameplayTagFilteredStyle::Initialize();
 }
 
 void FFlowYapEditorModule::ShutdownModule()

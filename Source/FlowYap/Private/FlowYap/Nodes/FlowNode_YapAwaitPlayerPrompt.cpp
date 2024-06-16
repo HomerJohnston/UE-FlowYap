@@ -1,6 +1,6 @@
 #include "FlowYap/Nodes/FlowNode_YapAwaitPlayerPrompt.h"
 
-#include "FlowYap/Nodes/Category.h"
+#include "FlowYap/FlowYapUtil.h"
 
 UFlowNode_YapAwaitPlayerPrompt::UFlowNode_YapAwaitPlayerPrompt()
 {
@@ -8,7 +8,7 @@ UFlowNode_YapAwaitPlayerPrompt::UFlowNode_YapAwaitPlayerPrompt()
 
 FString UFlowNode_YapAwaitPlayerPrompt::GetNodeCategory() const
 {
-	return FlowYapRuntime::NodeCategory;
+	return FlowYapUtil::NodeCategory;
 }
 
 FText UFlowNode_YapAwaitPlayerPrompt::GetNodeTitle() const

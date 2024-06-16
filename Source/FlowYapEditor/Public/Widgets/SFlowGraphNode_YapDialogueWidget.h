@@ -129,11 +129,11 @@ public:
 
 	bool GetShiftHooked() const { return bShiftHooked; };
 	
-	void SetFocusedFragment(uint8 FragmentIndex);
+	void SetFocusedFragmentIndex(uint8 FragmentIndex);
 
-	void ClearFocusedFragment(uint8 FragmentIndex);
+	void ClearFocusedFragmentIndex(uint8 FragmentIndex);
 	
-	const TSharedPtr<SFlowGraphNode_YapFragmentWidget> GetFocusedFragment() const;
+	const bool GetFocusedFragmentIndex(uint8& OutFragmentIndex) const;
 
 	void SetTypingFocus();
 
@@ -144,6 +144,8 @@ public:
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 	
 	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
+
+	void ForceUpdateGraphNode() { UpdateGraphNode(); };
 	
 protected:
 	void SetFlashFragment(uint8 FragmentIndex);

@@ -2,6 +2,7 @@
 
 #include "FlowYap/Nodes/FlowNode_YapDialogue.h"
 
+#include "GameplayTagsManager.h"
 #include "FlowYap/FlowYapCharacter.h"
 #include "FlowYap/FlowYapLog.h"
 #include "FlowYap/FlowYapProjectSettings.h"
@@ -33,14 +34,14 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	OutputPins.Add(FName("Out"));
 	OutputPins.Add(FName("Bypass"));
 
-	/*
-	// Workaround to "save" pins - putting them in the CDO causes some nuisance engine code to work correctly
-	for (int Index = 0; Index <= 9; Index++)
+#if WITH_EDITOR
+	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, PromptTag), EFlowYap_TagFilter::Prompts);
+	
+	if (IsTemplate())
 	{
-		InputPins.Add(Index);
-		OutputPins.Add(Index);
+		UGameplayTagsManager::Get().OnFilterGameplayTagChildren.AddUObject(this, &ThisClass::OnFilterGameplayTagChildren);
 	}
-	*/
+#endif
 }
 
 void UFlowNode_YapDialogue::SetConversationName(FName Name)
@@ -290,18 +291,17 @@ TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
 
 void UFlowNode_YapDialogue::AddFragment()
 {
-	if (Fragments.Num() >= 9)
-	{
-		return;
-	}
+	InsertFragment(Fragments.Num());
 
+	/*
 	FFlowYapFragment NewFragment;
-	
+
 	Fragments.Emplace(NewFragment);
 
 	UpdateFragmentIndices();
 
 	OnReconstructionRequested.ExecuteIfBound();
+	*/
 }
 
 #if WITH_EDITOR
@@ -350,8 +350,9 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
 	if (bIsPlayerPrompt)
 	{
-		// No bypass! No normal out!
-		OutputPins.Empty();
+		// Leave bypass! No normal out!
+		OutputPins.Remove(FName("Out"));
+		//OutputPins.Empty();
 	}
 
 	TArray<FFlowPin> ContextOutputPins;
@@ -405,12 +406,32 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 
 void UFlowNode_YapDialogue::InsertFragment(uint8 Index)
 {
-	if (Fragments.Num() >= 9)
+	if (Fragments.Num() >= 255)
 	{
 		return;
 	}
 
 	FFlowYapFragment NewFragment;
+
+	if (Index > 0 || Index >= Fragments.Num())
+	{
+		uint8 PreviousFragmentIndex = Index - 1;
+
+		if (Fragments.IsValidIndex(PreviousFragmentIndex))
+		{
+			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(PreviousFragmentIndex)->GetBit().GetCharacterMutable());
+		}
+	}
+	else
+	{
+		uint8 NextFragmentIndex = Index + 1;
+
+		if (Fragments.IsValidIndex(NextFragmentIndex))
+		{
+			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(NextFragmentIndex)->GetBit().GetCharacterMutable());
+		}
+	}
+	
 	Fragments.Insert(NewFragment, Index);
 
 	UpdateFragmentIndices();
@@ -434,6 +455,25 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 	UpdateFragmentIndices();
 
 	//OnReconstructionRequested.ExecuteIfBound();
+}
+
+FString UFlowNode_YapDialogue::GetNodeDescription() const
+{
+	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, PromptTag);
+}
+
+void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const
+{
+	const FGameplayTagContainer& ParentTagContainer = GameplayTagNode->GetParentTagNode()->GetSingleTagContainer();
+
+	if (ParentTagContainer.HasTagExact(UFlowYapProjectSettings::Get()->PromptsContainer))
+	{
+		bArg = true;
+	}
+
+	bArg = false;
+	
+	UE_LOG(FlowYap, Warning, TEXT("%s"), *GameplayTagNode->GetSimpleTagName().ToString());
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const

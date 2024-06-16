@@ -4,11 +4,18 @@
 #include "FlowYapTimeMode.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
+#include "Nodes/FlowNode_YapDialogue.h"
 
 #include "FlowYapProjectSettings.generated.h"
 
 class UFlowYapTextCalculator;
 enum class EFlowYapErrorLevel : uint8;
+
+enum class EFlowYap_TagFilter : uint8
+{
+	Conditions,
+	Prompts,
+};
 
 UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class FLOWYAP_API UFlowYapProjectSettings : public UDeveloperSettings
@@ -37,10 +44,6 @@ protected:
 	 * - Error: Missing audio will not package. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EFlowYapTimeMode::AudioTime", EditConditionHides))
 	EFlowYapErrorLevel MissingAudioErrorLevel;
-
-	/** If set, enables nicer filtering of condition tags display */
-	UPROPERTY(Config, EditAnywhere)
-	FGameplayTag ConditionContainer;
 	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -64,6 +67,15 @@ protected:
 	
 #if WITH_EDITORONLY_DATA
 public:
+	/** If set, enables nicer filtering of condition tags display */
+	UPROPERTY(Config, EditAnywhere)
+	FGameplayTag ConditionsContainer;
+
+	UPROPERTY(Config, EditAnywhere)
+	FGameplayTag PromptsContainer;
+
+	TMap<EFlowYap_TagFilter, FGameplayTag*> TagContainers;
+	
 	TMulticastDelegate<void()> OnMoodKeysChanged;
 	
 protected:
@@ -83,7 +95,8 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacher;
 
-	TMultiMap<UClass*, FName> PropertyContainerUsers;
+	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
+	TMultiMap<FName, TMap<UClass*, EFlowYap_TagFilter>> TagFilterSubscriptions;
 #endif
 	
 #if WITH_EDITOR
@@ -121,16 +134,17 @@ public:
 	EFlowYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
 	
 #if WITH_EDITOR
+public:
 	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?
 	
-	TSubclassOf<UFlowYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; };
+	TSubclassOf<UFlowYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
 
-	FGameplayTag GetConditionContainer() const { return ConditionContainer; }
+	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EFlowYap_TagFilter Filter);
 
-	void RegisterConditionContainerUser(UObject* Object, FName PropertyName);
-	
-	void RegisterConditionContainerUser(UClass* Class, FName PropertyName);
+	static FString GetTrimmedGameplayTagString(EFlowYap_TagFilter Filter, const FGameplayTag& PropertyTag);
 
+protected:
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const;
-#endif
+
+	#endif
 };

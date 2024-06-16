@@ -1,6 +1,6 @@
 #include "FlowYap/Nodes/FlowNode_TopicTagInjector.h"
 
-#include "FlowYap/Nodes/Category.h"
+#include "FlowYap/FlowYapUtil.h"
 
 UFlowNode_TopicTagInjector::UFlowNode_TopicTagInjector()
 {	
@@ -9,7 +9,7 @@ UFlowNode_TopicTagInjector::UFlowNode_TopicTagInjector()
 
 FString UFlowNode_TopicTagInjector::GetNodeCategory() const
 {
-	return FlowYapRuntime::NodeCategory;
+	return FlowYapUtil::NodeCategory;
 }
 
 FText UFlowNode_TopicTagInjector::GetNodeTitle() const

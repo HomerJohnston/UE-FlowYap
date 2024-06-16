@@ -2,20 +2,21 @@
 
 #include "GameplayTagsManager.h"
 #include "FlowYap/FlowYapProjectSettings.h"
-#include "FlowYap/Nodes/Category.h"
+#include "FlowYap/FlowYapSubsystem.h"
+#include "FlowYap/FlowYapUtil.h"
 
 UFlowNode_YapUnsetCondition::UFlowNode_YapUnsetCondition()
 {
 	NodeStyle = EFlowNodeStyle::Default;
 	
 #if WITH_EDITOR
-	UFlowYapProjectSettings::Get()->RegisterConditionContainerUser(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition));
+	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition), EFlowYap_TagFilter::Conditions);
 #endif
 }
 
 FString UFlowNode_YapUnsetCondition::GetNodeCategory() const
 {
-	return FlowYapRuntime::NodeCategory;
+	return FlowYapUtil::NodeCategory;
 }
 
 FText UFlowNode_YapUnsetCondition::GetNodeTitle() const
@@ -25,12 +26,5 @@ FText UFlowNode_YapUnsetCondition::GetNodeTitle() const
 
 FString UFlowNode_YapUnsetCondition::GetNodeDescription() const
 {
-	const FGameplayTag& ParentContainer = UFlowYapProjectSettings::Get()->GetConditionContainer();
-
-	if (ParentContainer.IsValid() && ParentContainer != FGameplayTag::EmptyTag && Condition.MatchesTag(ParentContainer))
-	{
-		return Condition.ToString().RightChop(ParentContainer.ToString().Len() + 1);
-	}
-	
-	return Condition.ToString();
+	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Conditions, Condition);
 }
