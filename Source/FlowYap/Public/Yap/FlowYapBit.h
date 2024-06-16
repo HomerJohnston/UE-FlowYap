@@ -24,7 +24,7 @@ struct FLOWYAP_API FFlowYapBit
 	// SETTINGS
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UFlowYapCharacter> Character;
+	TSoftObjectPtr<UFlowYapCharacter> Character;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
 	FText TitleText;
@@ -62,7 +62,7 @@ protected:
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
 public:
-	const UFlowYapCharacter* GetCharacter() const { return Character; }
+	const TSoftObjectPtr<UFlowYapCharacter> GetCharacterAsset() const { return Character; }
 	
 	const FText& GetTitleText() const { return TitleText; }
 
@@ -99,9 +99,9 @@ protected:
 	// EDITOR API
 #if WITH_EDITOR
 public:
-	UFlowYapCharacter* GetCharacterMutable() const { return Character; }
+	TSoftObjectPtr<UFlowYapCharacter> GetCharacterMutable() const { return Character; }
 	
-	void SetCharacter(UFlowYapCharacter* InCharacter) { Character = InCharacter; }
+	void SetCharacter(TSoftObjectPtr<UFlowYapCharacter> InCharacter) { Character = InCharacter; }
 	
 	void SetTitleText(const FText& InText) { TitleText = InText; }
 

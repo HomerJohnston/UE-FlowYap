@@ -43,7 +43,9 @@ protected:
 
 	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
-
+	static FButtonStyle MoveFragmentButtonStyle;
+	static bool bStylesInitialized;
+	
 	TOptional<uint8> FocusedFragmentIndex;
 
 	bool bIsSelected = false;
@@ -88,6 +90,16 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftFragmentPane(uint8 FragmentIndex);
 	
+	// ------------------------------------------
+	TSharedRef<SBox>	CreateFragmentControlsWidget(uint8 FragmentIndex);
+
+	EVisibility			FragmentControls_Visibility(uint8 FragmentIndex) const;
+	EVisibility			MoveFragmentUpButton_Visibility(uint8 FragmentIndex) const;
+	FReply				MoveFragmentUpButton_OnClicked(uint8 FragmentIndex);
+	EVisibility			DeleteFragmentButton_Visibility(uint8 FragmentIndex) const;
+	FReply				DeleteFragmentButton_OnClicked(uint8 FragmentIndex);
+	EVisibility			MoveFragmentDownButton_Visibility(uint8 FragmentIndex) const;
+	FReply				MoveFragmentDownButton_OnClicked(uint8 FragmentIndex);
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 	

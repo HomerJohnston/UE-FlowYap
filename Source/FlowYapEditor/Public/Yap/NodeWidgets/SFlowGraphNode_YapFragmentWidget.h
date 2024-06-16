@@ -27,9 +27,6 @@ protected:
 	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
 	int DialogueScrollBar_RenderOpacity;
 
-	static FButtonStyle MoveFragmentButtonStyle;
-	static bool bStylesInitialized;
-	
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 
@@ -80,9 +77,9 @@ protected:
 	EVisibility			PortraitImage_Visibility() const;
 	const FSlateBrush*	PortraitImage_Image() const;
 	EVisibility			MissingPortraitWarning_Visibility() const;
-	FLinearColor		CharacterSelect_ColorAndOpacity() const;
-	FSlateColor			CharacterSelectBackground_ColorAndOpacity() const;
-
+	EVisibility			CharacterSelect_Visibility() const;
+	FString				CharacterSelect_ObjectPath() const;
+	void				CharacterSelect_OnObjectChanged(const FAssetData& InAssetData);
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
 
@@ -95,17 +92,6 @@ protected:
 	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
 	FReply				MoodKeyMenuEntry_OnClicked(FName NewValue);
-
-	// ------------------------------------------
-	TSharedRef<SBox>	CreateFragmentControlsWidget();
-
-	EVisibility			FragmentControls_Visibility() const;
-	EVisibility			MoveFragmentUpButton_Visibility() const;
-	FReply				MoveFragmentUpButton_OnClicked();
-	EVisibility			DeleteFragmentButton_Visibility() const;
-	FReply				DeleteFragmentButton_OnClicked();
-	EVisibility			MoveFragmentDownButton_Visibility() const;
-	FReply				MoveFragmentDownButton_OnClicked();
 
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
