@@ -1,11 +1,11 @@
 
-#include "Yap/Nodes/FlowNode_YapPushFragmentOverride.h"
+#include "Yap/Nodes/FlowNode_YapReplaceFragment.h"
 
 #include "GameplayTagsManager.h"
 #include "Yap/FlowYapProjectSettings.h"
 #include "Yap/FlowYapUtil.h"
 
-UFlowNode_YapPushFragmentOverride::UFlowNode_YapPushFragmentOverride()
+UFlowNode_YapReplaceFragment::UFlowNode_YapReplaceFragment()
 {
 #if WITH_EDITOR
 	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, TargetPrompt), EFlowYap_TagFilter::Prompts);
@@ -17,12 +17,12 @@ UFlowNode_YapPushFragmentOverride::UFlowNode_YapPushFragmentOverride()
 #endif
 }
 
-FString UFlowNode_YapPushFragmentOverride::GetNodeCategory() const
+FString UFlowNode_YapReplaceFragment::GetNodeCategory() const
 {
 	return FlowYapUtil::NodeCategory;
 }
 
-void UFlowNode_YapPushFragmentOverride::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
+void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {
 	if (!PropertyHandle || PropertyHandle->GetProperty()->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, TargetFragment))
 	{
@@ -34,7 +34,7 @@ void UFlowNode_YapPushFragmentOverride::OnGetCategoriesMetaFromPropertyHandle(TS
 
 	for (const UObject* Object : OuterObjects)
 	{
-		const UFlowNode_YapPushFragmentOverride* Outer = Cast<UFlowNode_YapPushFragmentOverride>(Object);
+		const UFlowNode_YapReplaceFragment* Outer = Cast<UFlowNode_YapReplaceFragment>(Object);
 		
 		if (Outer)
 		{

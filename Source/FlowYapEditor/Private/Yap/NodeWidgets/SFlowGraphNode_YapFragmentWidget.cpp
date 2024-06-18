@@ -304,7 +304,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 {
 	// Pass tag from the properties
 
-	FString Filter = GetFlowYapDialogueNode()->GetPromptTag().ToString();
+	FString Filter = GetFlowYapDialogueNode()->GetDialogueTag().ToString();
 	
 	return FText::FromString(FlowYapUtil::GetFilteredSubTag(Filter, GetFragment()->FragmentTag));
 }
@@ -678,7 +678,7 @@ void SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted(const FText& Co
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagWidget()
 {
-	const FString FilterString = GetFlowYapDialogueNode()->GetPromptTag().ToString();
+	const FString FilterString = GetFlowYapDialogueNode()->GetDialogueTag().ToString();
 
 	return SNew(SGameplayTagComboFiltered)
 	.Tag(this, &SFlowGraphNode_YapFragmentWidget::FragmentTag_Tag)

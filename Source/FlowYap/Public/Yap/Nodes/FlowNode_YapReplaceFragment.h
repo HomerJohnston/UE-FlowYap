@@ -2,12 +2,12 @@
 #include "Nodes/FlowNode.h"
 #include "Yap/FlowYapFragment.h"
 
-#include "FlowNode_YapPushFragmentOverride.generated.h"
+#include "FlowNode_YapReplaceFragment.generated.h"
 
 class UFlowNode_YapDialogue;
 
 UCLASS()
-class FLOWYAP_API UFlowNode_YapPushFragmentOverride : public UFlowNode
+class FLOWYAP_API UFlowNode_YapReplaceFragment : public UFlowNode
 {
 	GENERATED_BODY()
 
@@ -34,7 +34,7 @@ protected:
 	TSoftObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
 
 public:
-	UFlowNode_YapPushFragmentOverride();
+	UFlowNode_YapReplaceFragment();
 
 public:
 

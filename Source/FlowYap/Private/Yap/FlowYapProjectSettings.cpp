@@ -29,14 +29,14 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 
-	ConditionsContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
+	ConditionTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
 
-	PromptsContainer = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Prompts"));
+	DialogueTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Dialogue"));
 
 	TagContainers =
 	{
-		{ EFlowYap_TagFilter::Conditions, &ConditionsContainer },
-		{ EFlowYap_TagFilter::Prompts, &PromptsContainer }
+		{ EFlowYap_TagFilter::Conditions, &ConditionTagsParent },
+		{ EFlowYap_TagFilter::Prompts, &DialogueTagsParent }
 	};
 
 #if WITH_EDITOR

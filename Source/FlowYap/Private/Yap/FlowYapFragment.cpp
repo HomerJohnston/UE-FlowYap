@@ -53,7 +53,7 @@ void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropert
 		
 		if (DialogueNode->GetIsPlayerPrompt())
 		{
-			MetaString = DialogueNode->GetPromptTag().ToString();
+			MetaString = DialogueNode->GetDialogueTag().ToString();
 		}
 	}
 }

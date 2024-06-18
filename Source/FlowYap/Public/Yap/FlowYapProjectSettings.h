@@ -68,10 +68,10 @@ protected:
 public:
 	/** If set, enables nicer filtering of condition tags display */
 	UPROPERTY(Config, EditAnywhere)
-	FGameplayTag ConditionsContainer;
+	FGameplayTag ConditionTagsParent;
 
 	UPROPERTY(Config, EditAnywhere)
-	FGameplayTag PromptsContainer;
+	FGameplayTag DialogueTagsParent;
 
 	TMap<EFlowYap_TagFilter, FGameplayTag*> TagContainers;
 	

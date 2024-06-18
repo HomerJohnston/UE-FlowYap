@@ -3,7 +3,7 @@
 
 #include "FlowNode_ConditionInjector.generated.h"
 
-UCLASS(DisplayName="Yap Condition Injector")
+UCLASS(meta = (DisplayName="Yap Condition Injector"))
 class FLOWYAP_API UFlowNode_ConditionInjector : public UFlowNode
 {
 	GENERATED_BODY()

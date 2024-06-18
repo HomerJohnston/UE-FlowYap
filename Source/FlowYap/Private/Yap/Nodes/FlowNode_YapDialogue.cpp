@@ -35,7 +35,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	OutputPins.Add(FName("Bypass"));
 
 #if WITH_EDITOR
-	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, PromptTag), EFlowYap_TagFilter::Prompts);
+	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EFlowYap_TagFilter::Prompts);
 	
 	if (IsTemplate())
 	{
@@ -466,14 +466,14 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 FString UFlowNode_YapDialogue::GetNodeDescription() const
 {
-	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, PromptTag);
+	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, DialogueTag);
 }
 
 void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const
 {
 	const FGameplayTagContainer& ParentTagContainer = GameplayTagNode->GetParentTagNode()->GetSingleTagContainer();
 
-	if (ParentTagContainer.HasTagExact(UFlowYapProjectSettings::Get()->PromptsContainer))
+	if (ParentTagContainer.HasTagExact(UFlowYapProjectSettings::Get()->DialogueTagsParent))
 	{
 		bArg = true;
 	}

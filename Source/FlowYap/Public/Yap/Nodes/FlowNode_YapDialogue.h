@@ -53,7 +53,7 @@ protected:
 	EFlowYapInterruptible Interruptible;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FGameplayTag PromptTag;
+	FGameplayTag DialogueTag;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName ConversationName;
@@ -157,7 +157,7 @@ public:
 
 	FString GetNodeDescription() const override;
 
-	const FGameplayTag& GetPromptTag() const { return PromptTag; }
+	const FGameplayTag& GetDialogueTag() const { return DialogueTag; }
 	
 	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
 
