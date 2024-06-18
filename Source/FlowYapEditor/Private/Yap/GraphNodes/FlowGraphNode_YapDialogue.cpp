@@ -58,20 +58,27 @@ FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) co
 
 void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex)
 {
-	// Start above Bypass pin PLUS above new pin that got added after fragment insertion
-	uint8 LastIndex = OutputPins.Num() - 3;
+	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
 
-	for (int i = LastIndex; i >= InsertionIndex; --i)
+	// For each fragment from the very bottom up to the inserted index, copy pins downward from above
+	for (int i = LastFragmentIndex; i > InsertionIndex; --i)
 	{
-		UEdGraphPin* CurrentPin = OutputPins[i];
-
-		TArray<UEdGraphPin*> LinksToMoveDown = CurrentPin->LinkedTo;
-		
-		CurrentPin->BreakAllPinLinks(true);
-
-		for (UEdGraphPin* Pin : LinksToMoveDown)
+		for (uint8 j = 0; j < GetNumPinsPerFragment(); ++j)
 		{
-			OutputPins[i + 1 ]->MakeLinkTo(Pin);
+			uint8 CurrentPinIndex = GetBasePinsNum() + i * GetNumPinsPerFragment() + j;
+			uint8 SourcePinIndex = CurrentPinIndex - GetNumPinsPerFragment();
+			
+			UEdGraphPin* CurrentPin = OutputPins[CurrentPinIndex];
+			UEdGraphPin* SourcePin = OutputPins[SourcePinIndex];
+
+			TArray<UEdGraphPin*> LinksToMoveDown = SourcePin->LinkedTo;
+			CurrentPin->BreakAllPinLinks(true);
+			SourcePin->BreakAllPinLinks(true);
+			
+			for (UEdGraphPin* TargetPin : LinksToMoveDown)
+			{
+				CurrentPin->MakeLinkTo(TargetPin);
+			}
 		}
 	}
 }
@@ -79,15 +86,13 @@ void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 Insertio
 void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentIndex)
 {
 	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
-
-	uint8 NumPins = 2;
-
-	// For each fragment
+	
+	// For each fragment from the deleted index downwards, copy pins upward from below
 	for (int i = FragmentIndex; i <= LastFragmentIndex; ++i)
 	{
-		for (int j = 0; j < NumPins; ++j)
+		for (int j = 0; j < GetNumPinsPerFragment(); ++j)
 		{
-			uint8 PinIndex = i * NumPins + j;
+			uint8 PinIndex = GetBasePinsNum() + i * GetNumPinsPerFragment() + j;
 
 			UEdGraphPin* PinToFixup = OutputPins[PinIndex];
 
@@ -95,7 +100,7 @@ void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentInd
 
 			if (i < LastFragmentIndex)
 			{
-				TArray<UEdGraphPin*>& NextFragmentConnections = OutputPins[PinIndex + NumPins]->LinkedTo;
+				TArray<UEdGraphPin*>& NextFragmentConnections = OutputPins[PinIndex + GetNumPinsPerFragment()]->LinkedTo;
 
 				for (UEdGraphPin* Pin : NextFragmentConnections)
 				{
@@ -106,21 +111,21 @@ void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentInd
 	}
 }
 
-void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB)
+void UFlowGraphNode_YapDialogue::SwapFragmentPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB)
 {
-	uint8 PinCount = 2;
-
-	for (int i = 0; i < PinCount; ++i)
+	uint8 BasePinsNum = GetBasePinsNum();
+	
+	for (int i = 0; i <  GetNumPinsPerFragment(); ++i)
 	{
-		DoTrick(FragmentIndexA * PinCount + i, FragmentIndexB * PinCount + i);
+		SwapPinConnections(BasePinsNum + FragmentIndexA *  GetNumPinsPerFragment() + i, BasePinsNum + FragmentIndexB *  GetNumPinsPerFragment() + i);
 	}
 }
 
 // TODO name
-void UFlowGraphNode_YapDialogue::DoTrick(uint8 FragmentIndexA, uint8 FragmentIndexB)
+void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 OutputIndexA, uint8 OutputIndexB)
 {
-	UEdGraphPin* PinA = OutputPins[FragmentIndexA];
-	UEdGraphPin* PinB = OutputPins[FragmentIndexB];
+	UEdGraphPin* PinA = OutputPins[OutputIndexA];
+	UEdGraphPin* PinB = OutputPins[OutputIndexB];
 	
 	TArray<UEdGraphPin*> PinALinks = PinA->LinkedTo;
 	PinA->BreakAllPinLinks(true);
@@ -136,5 +141,10 @@ void UFlowGraphNode_YapDialogue::DoTrick(uint8 FragmentIndexA, uint8 FragmentInd
 	{
 		PinB->MakeLinkTo(PinAConnection);
 	}
+}
+
+uint8 UFlowGraphNode_YapDialogue::GetBasePinsNum() const
+{
+	return (GetFlowYapNode()->GetIsPlayerPrompt() ? 1 : 2);
 }
 

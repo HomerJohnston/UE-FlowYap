@@ -8,7 +8,6 @@
 
 namespace UE::GameplayTagsFiltered::EditorUtilities
 {
-
 	static FName NAME_Categories = FName("Categories");
 	static FName NAME_GameplayTagFilter = FName("GameplayTagFilter");
 

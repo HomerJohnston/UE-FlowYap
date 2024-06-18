@@ -1,15 +1,15 @@
 #pragma once
 #include "Nodes/FlowNode.h"
 
-#include "FlowNode_TopicTagInjector.generated.h"
+#include "FlowNode_ConditionInjector.generated.h"
 
-UCLASS()
-class FLOWYAP_API UFlowNode_TopicTagInjector : public UFlowNode
+UCLASS(DisplayName="Yap Condition Injector")
+class FLOWYAP_API UFlowNode_ConditionInjector : public UFlowNode
 {
 	GENERATED_BODY()
 
 public:
-	UFlowNode_TopicTagInjector();
+	UFlowNode_ConditionInjector();
 	
 	virtual FString GetNodeCategory() const;
 	virtual FText GetNodeTitle() const;

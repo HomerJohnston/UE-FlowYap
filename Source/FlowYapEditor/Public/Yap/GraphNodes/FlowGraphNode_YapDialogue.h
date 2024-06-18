@@ -34,7 +34,11 @@ public:
 	
 	void UpdatePinsForFragmentDeletion(uint8 FragmentIndex);
 
-	void SwapPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB);
+	void SwapFragmentPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB);
 
-	void DoTrick(uint8 FragmentIndexA, uint8 FragmentIndexB);
+	void SwapPinConnections(uint8 OutputIndexA, uint8 OutputIndexB);
+
+protected:
+	uint8 GetBasePinsNum() const;
+	uint8 GetNumPinsPerFragment() const { return 2; };
 };

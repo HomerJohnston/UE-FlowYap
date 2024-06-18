@@ -343,7 +343,14 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 {
-	return TArray<FFlowPin>();
+	TArray<FFlowPin> ContextInputPins;
+
+	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
+	{
+		ContextInputPins.Add(FName("Condition", Index));
+	}
+	
+	return ContextInputPins;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
@@ -359,8 +366,8 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 
 	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
 	{
-		ContextOutputPins.Add(FName("FragmentStart", Index));
 		ContextOutputPins.Add(FName("FragmentEnd", Index));
+		ContextOutputPins.Add(FName("FragmentStart", Index));
 	}
 	
 	return ContextOutputPins;

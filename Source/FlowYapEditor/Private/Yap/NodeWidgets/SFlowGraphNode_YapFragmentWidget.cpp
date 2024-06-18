@@ -70,7 +70,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 				+ SOverlay::Slot()
 				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Bottom)
-				.Padding(3, 0, 3, 2)
+				.Padding(3, 0, 3, 3)
 				[
 					CreateFragmentTagPreviewWidget()
 				]
@@ -195,7 +195,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		.HintText(LOCTEXT("DialogueText_Hint", "Enter dialogue text"))
 		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
 		.Margin(FMargin(0,0,0,0))
-		.Padding(3)
+		.Padding(FMargin(4))
 		.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor)
 		.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor)
 		.HScrollBar(HScrollBar)
@@ -296,13 +296,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() co
 	{
 		return EVisibility::HitTestInvisible;
 	}
-	
-	/*
-	if (FragmentFocused())
-	{
-		return EVisibility::Collapsed;
-	}*/
-	
+		
 	return EVisibility::HitTestInvisible;
 }
 
@@ -382,45 +376,16 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			]
 		]
 		+ SOverlay::Slot()
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.VAlign(VAlign_Top)
-			.AutoHeight()
-			[
-				SNew(SBox)
-				.MaxDesiredWidth(54)
-				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_Visibility)
-				[
-					SNew(SObjectPropertyEntryBox)
-					.DisplayBrowse(false)
-					.DisplayThumbnail(false)
-					.DisplayUseSelected(false)
-					.AllowedClass(UFlowYapCharacter::StaticClass())
-					.EnableContentPicker(true)
-					.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_ObjectPath)
-					.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_OnObjectChanged)
-					.ToolTipText(LOCTEXT("FragmentBitCharacter_Tooltip", "Select a Character."))
-				]
-			]
-			+ SVerticalBox::Slot()
-			.VAlign(VAlign_Fill)
-			.Padding(2, 0, 2, 2)
-			[
-				CreateMoodKeySelectorWidget()
-			]
-		]/*
-		+ SOverlay::Slot()
 		.VAlign(VAlign_Bottom)
-		.HAlign(HAlign_Fill)
-		.Padding(6, 0, 4, 2)
+		.HAlign(HAlign_Right)
+		.Padding(6, 0, 2, 2)
 		[
 			CreateMoodKeySelectorWidget()
 		]
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Top)
 		.HAlign(HAlign_Fill)
-		.Padding(4, 0, 0, 0)
+		.Padding(2, 2, 2, 0)
 		[
 			SNew(SBox)
 			.MaxDesiredWidth(54)
@@ -437,7 +402,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 				.ToolTipText(LOCTEXT("FragmentBitCharacter_Tooltip", "Select a Character."))
 			]
 			
-		]*/
+		]
 	];
 }
 

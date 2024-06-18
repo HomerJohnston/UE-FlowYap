@@ -41,6 +41,9 @@ protected:
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
 
+	FLinearColor ConnectedConditionPinColor;
+	FLinearColor DisconnectedConditionPinColor;
+	
 	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
 	static FButtonStyle MoveFragmentButtonStyle;
@@ -174,13 +177,22 @@ public:
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
 
 	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
-
-	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
-
+	
 protected:
+	void AddInPin(const TSharedRef<SGraphPin> PinToAdd);
+
+	void AddConditionPin(const TSharedRef<SGraphPin> PinToAdd);
+
 	void AddOutPin(const TSharedRef<SGraphPin>& PinToAdd);
 
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
+
+	void AddFragmentStartPin(const TSharedRef<SGraphPin>& PinToAdd);
+
+	void AddFragmentEndPin(const TSharedRef<SGraphPin>& PinToAdd);
+
+public:
+	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
 
 	const FFlowYapFragment* GetFragment(uint8 FragmentIndex) const;
 
