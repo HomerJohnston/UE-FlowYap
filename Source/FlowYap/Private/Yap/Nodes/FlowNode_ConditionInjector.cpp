@@ -6,7 +6,7 @@
 
 UFlowNode_ConditionInjector::UFlowNode_ConditionInjector()
 {	
-	InputPins.Empty();
+	//InputPins.Empty();
 }
 
 FString UFlowNode_ConditionInjector::GetNodeCategory() const
@@ -17,7 +17,6 @@ FString UFlowNode_ConditionInjector::GetNodeCategory() const
 FText UFlowNode_ConditionInjector::GetNodeTitle() const
 {
 	return INVTEXT("Condition Injector");
-	//return Super::GetNodeTitle();
 }
 
 FText UFlowNode_ConditionInjector::GetNodeToolTip() const
@@ -29,7 +28,15 @@ void UFlowNode_ConditionInjector::InitializeInstance()
 {
 	Super::InitializeInstance();
 
-	OnActivate();
+	if (IsInputConnected(DefaultInputPin.PinName))
+	{
+		return;
+	}
+	
+	for (UFlowNode* ConnectedNode : GetConnectedNodes())
+	{
+		
+	}
 }
 
 void UFlowNode_ConditionInjector::OnActivate()

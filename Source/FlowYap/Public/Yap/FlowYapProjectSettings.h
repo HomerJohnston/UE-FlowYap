@@ -50,7 +50,7 @@ protected:
 	
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0, UIMax = 4))
-	float DialoguePaddingTime = 0.5f;
+	float FragmentPaddingTime = 0.5f;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180))
 	int32 TextWordsPerMinute;
@@ -58,12 +58,23 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
 	double MinimumAutoTextTimeLength;
 
+	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
 	double MinimumAutoAudioTimeLength;
+
+	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 20.0))
+	double MinimumFragmentTime;
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	UClass* DialogueAssetClass;
-	
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TArray<float> CommonFragmentPaddings;
+
+	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings")
+	float FragmentPaddingSliderMax;
+
 #if WITH_EDITORONLY_DATA
 public:
 	/** If set, enables nicer filtering of condition tags display */
@@ -128,10 +139,16 @@ public:
 	
 	double GetMinimumAutoAudioTimeLength() const;
 
-	double GetDialoguePaddingTime() const { return DialoguePaddingTime; }
+	double GetMinimumFragmentTime();
+
+	double GetFragmentPaddingTime() const { return FragmentPaddingTime; }
 	
 	EFlowYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
-	
+
+	const TArray<float>& GetCommonFragmentPaddings() const { return CommonFragmentPaddings; }
+
+	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
+
 #if WITH_EDITOR
 public:
 	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?

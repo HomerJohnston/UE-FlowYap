@@ -79,11 +79,6 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	UpdateMoodKeyIconsMap();
 
-	LoadIcon("Resources/DialogueNodeIcons/Icon_Timer_16x16.png", TimerIcon, TimerBrush);
-	LoadIcon("Resources/DialogueNodeIcons/Icon_NoInterrupt_16x16.png", NoInterruptIcon, NoInterruptBrush);
-	LoadIcon("Resources/DialogueNodeIcons/Icon_TextTime_16x16.png", TextTimeIcon, TextTimeBrush);
-	LoadIcon("Resources/DialogueNodeIcons/Icon_AudioTime_16x16.png", AudioTimeIcon, AudioTimeBrush);
-
 	FCheckBoxStyle asdf;
 
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);

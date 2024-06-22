@@ -39,7 +39,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	TArray<FFlowYapFragment> Fragments;
 	
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	bool bIsPlayerPrompt;
 
@@ -54,10 +53,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag DialogueTag;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName ConversationName;
-	
+		
 	// STATE
 protected:
 	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
@@ -68,8 +64,6 @@ protected:
 	
 	// API
 public:
-	void SetConversationName(FName Name);
-	
 	FText GetSpeakerName() const;
 
 	const UTexture2D* GetDefaultSpeakerPortrait() const;
@@ -101,12 +95,12 @@ public:
 	bool GetInterruptible() const;
 
 protected:
-	void OnTextTimeComplete(uint8 FragmentIndex);
-	
-	void OnPaddingTimeComplete(uint8 FragmentIndex);
+	void Run(uint8 StartIndex, bool bStopAtFirst);
 
-	void RunFragmentsSequentiallyFrom(uint8 StartIndex);
-	
+	void OnFragmentComplete(uint8 FragmentIndex, bool bStopAtFirst);
+
+	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst);
+
 #if WITH_EDITOR
 public:
 	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;

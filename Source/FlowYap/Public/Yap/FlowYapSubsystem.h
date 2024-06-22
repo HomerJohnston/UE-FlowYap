@@ -1,7 +1,9 @@
 #pragma once
+#include "GameplayTagContainer.h"
 
 #include "FlowYapSubsystem.generated.h"
 
+class UFlowAsset;
 class IFlowYapConversationListener;
 struct FFlowYapBit;
 
@@ -12,25 +14,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, Conve
 // ================================================================================================
 
 USTRUCT(BlueprintType)
-struct FTestDelegateContainer
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(BlueprintReadWrite, BlueprintAssignable)
-	FFlowYapConversationEvent Test1;
-	
-	UPROPERTY(BlueprintReadWrite, BlueprintAssignable)
-	FFlowYapConversationEvent Test2;
-};
-
-USTRUCT(BlueprintType)
 struct FFlowYapActiveConversation
 {
 	GENERATED_BODY()
 
 	FFlowYapActiveConversation();
-protected:
-	FName ConversationName;
+
+public:
+	UPROPERTY(Transient)
+	UFlowAsset* FlowAsset;
+
+	UPROPERTY(Transient)
+	FName Name;
 
 public:
 	TDelegate<void(FName)> OnConversationStarts;
@@ -38,16 +33,24 @@ public:
 	TDelegate<void(FName)> OnConversationEnds;
 
 public:
-	bool TryStartConversation(FName InName);
+	bool StartConversation(UFlowAsset* InOwningAsset, FName InName);
 
 	bool EndConversation();
 
-	bool IsConversationInProgress() const { return ConversationName != NAME_None; };
+	bool IsConversationInProgress() const { return Name != NAME_None; };
 
-	FName GetCurrentConversationName() const { return ConversationName; }
+	FName GetCurrentConversationName() const { return Name; }
 };
 
 // ================================================================================================
+
+USTRUCT()
+struct FYapFragmentActivationCount
+{
+	GENERATED_BODY()
+	
+	TMap<uint8, int32> Counts;
+};
 
 UCLASS()
 class FLOWYAP_API UFlowYapSubsystem : public UWorldSubsystem
@@ -57,6 +60,7 @@ class FLOWYAP_API UFlowYapSubsystem : public UWorldSubsystem
 friend class UFlowNode_YapDialogue;
 friend class UFlowNode_YapConversationStart;
 friend class UFlowNode_YapConversationEnd;
+friend struct FFlowYapFragment;
 	
 public:
 	UFlowYapSubsystem();
@@ -64,15 +68,20 @@ public:
 	// ------------------------------------------
 	// STATE
 protected:
-	UPROPERTY()
-	TArray<FName> ConversationQueue;
+	// TODO I should have a queue system???... otherwise I'll have odd race conditions on multiple conversation requests
+	//UPROPERTY(Transient)
+	//TArray<FName> ConversationQueue;
 
-	UPROPERTY()
-	FFlowYapActiveConversation Conversation;
+	UPROPERTY(Transient)
+	FFlowYapActiveConversation ActiveConversation;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TArray<UObject*> Listeners;
-	
+
+	/**  */
+	UPROPERTY(Transient)
+	TMap<FGuid, FYapFragmentActivationCount> GlobalFragmentActivationCounts;
+
 	// ------------------------------------------
 	// PUBLIC API
 public:
@@ -85,15 +94,18 @@ public:
 	// ------------------------------------------
 	// FLOW YAP API - These are called by the flow node
 protected:
-	void StartConversation(FName ConversationName); // Called by ConversationStart node
+	bool StartConversation(UFlowAsset* OwningAsset, FName ConversationName); // Called by ConversationStart node
 
 	void EndCurrentConversation(); // Called by ConversationEnd node
 
-	void DialogueStart(FName ConversationName, const FFlowYapBit& DialogueBit); // Called by Dialogue node, 2nd output pin 
+	void BroadcastFragmentStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
-	void DialogueEnd(FName ConversationName, const FFlowYapBit& DialogueBit); // Called by Dialogue node, 1st output pin
-	
-	void DialogueInterrupt(FName ConversationName, const FFlowYapBit& DialogueBit); // Called by Dialogue node, 3rd output pin
+	void BroadcastFragmentEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
+
+	int32 GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
+
+public:
+	bool FragmentGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex) const;
 	
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -103,11 +115,5 @@ protected:
 
 	void OnConversationEnds_Internal(FName Name);
 
-	// TEST TEST TEST
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FTestDelegateContainer TestContainer;
-
-	UFUNCTION(BlueprintCallable)
-	FTestDelegateContainer& GetTestContainer() { return TestContainer; };
+	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 };

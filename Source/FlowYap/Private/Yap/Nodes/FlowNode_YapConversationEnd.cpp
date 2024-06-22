@@ -16,8 +16,6 @@ void UFlowNode_YapConversationEnd::ExecuteInput(const FName& PinName)
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->EndCurrentConversation();
 
 	TriggerFirstOutput(true);
-
-	FVector MyVec = FVector({1},{2},{3});
 }
 
 #undef LOCTEXT_NAMESPACE

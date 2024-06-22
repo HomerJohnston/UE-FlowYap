@@ -46,9 +46,7 @@ void UFlowYapCharacter::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	FName PropertyName = PropertyChangedEvent.Property->GetFName();
-
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, Portraits))
+	if (PropertyChangedEvent.Property && PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ThisClass, Portraits))
 	{
 		RebuildPortraitBrushes();
 	}

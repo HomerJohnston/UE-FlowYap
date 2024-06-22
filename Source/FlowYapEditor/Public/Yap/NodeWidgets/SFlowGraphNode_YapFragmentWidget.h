@@ -25,15 +25,13 @@ protected:
 	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 	TSharedPtr<SObjectPropertyEntryBox> AudioAssetProperty;
-	int DialogueScrollBar_RenderOpacity;
 
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 
-	uint8 FragmentIndex;
-	
-	/** Tag name selected*/
-	FString TagName;
+	uint8 FragmentIndex = 0;
+
+	bool bCtrlPressed = false;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -62,6 +60,24 @@ protected:
 	FSlateColor			Dialogue_BackgroundColor() const;
 	FSlateColor			Dialogue_ForegroundColor() const;
 
+	EVisibility			DialogueBackground_Visibility() const;
+	FSlateColor			Dialogue_BorderBackgroundColor() const;
+	
+	// ---------------------------------------------------
+	TSharedRef<SBox>	CreateGlobalActivationLimiterWidget();
+	
+	EVisibility			GlobalActivationLimiter_Visibility() const;
+	EVisibility			GlobalActivationDot_Visibility() const;
+	FSlateColor			GlobalActivationDot_ColorAndOpacity() const;
+	FReply				GlobalActivationDot_OnClicked();
+	
+	// ---------------------------------------------------
+	TSharedRef<SBox>	CreateLocalActivationLimiterWidget();
+	
+	EVisibility			LocalActivationLimiter_Visibility() const;
+	EVisibility			LocalActivationDot_Visibility() const;
+	FSlateColor			LocalActivationDot_ColorAndOpacity() const;
+	FReply				LocalActivationDot_OnClicked();
 	
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTagPreviewWidget();
@@ -70,7 +86,16 @@ protected:
 	FText				FragmentTagPreview_Text() const;
 	FSlateColor			FragmentTagPreview_BorderBackgroundColor() const;
 	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
-
+	
+	// ---------------------------------------------------
+	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
+	
+	TOptional<float>	FragmentTimePadding_Percent() const;
+	float				FragmentTimePadding_Value() const;
+	void				FragmentTimePadding_OnValueChanged(float X);
+	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
+	FText				FragmentTimePadding_ToolTipText() const;
+	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreatePortraitWidget();
 

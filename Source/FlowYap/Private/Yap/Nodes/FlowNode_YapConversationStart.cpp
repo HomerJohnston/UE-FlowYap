@@ -43,7 +43,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 			
 			if (DialogueNode)
 			{
-				DialogueNode->SetConversationName(ConversationName);
+				//DialogueNode->SetConversationName(ConversationName);
 			}
 			
 			if (UFlowNode_YapConversationEnd* ConversationEnd = Cast<UFlowNode_YapConversationEnd>(ConnectedNode))
@@ -60,7 +60,7 @@ void UFlowNode_YapConversationStart::OnActivate()
 {
 	UE_LOG(FlowYap, Warning, TEXT("Conversation started: %s"), *ConversationName.ToString());
 
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->StartConversation(ConversationName);
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->StartConversation(GetFlowAsset(), ConversationName);
 }
 
 void UFlowNode_YapConversationStart::ExecuteInput(const FName& PinName)

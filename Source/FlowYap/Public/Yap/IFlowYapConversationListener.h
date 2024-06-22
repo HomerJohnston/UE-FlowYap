@@ -25,6 +25,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void OnDialogueEnd(FName ConversationName, const FFlowYapBit& DialogueInfo);
 	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnDialogueInterrupt(FName ConversationName, const FFlowYapBit& DialogueInfo);
+	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	//void OnDialogueInterrupt(FName ConversationName, const FFlowYapBit& DialogueInfo);
 };

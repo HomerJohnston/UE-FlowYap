@@ -3,6 +3,7 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #include "GameplayTagsManager.h"
+#include "Logging/StructuredLog.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapProjectSettings.h"
@@ -27,11 +28,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
 
-	InputPins.Empty();
-	OutputPins.Empty();
-
-	InputPins.Add(FName("In"));
-	OutputPins.Add(FName("Out"));
 	OutputPins.Add(FName("Bypass"));
 
 #if WITH_EDITOR
@@ -42,16 +38,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 		UGameplayTagsManager::Get().OnFilterGameplayTagChildren.AddUObject(this, &ThisClass::OnFilterGameplayTagChildren);
 	}
 #endif
-}
-
-void UFlowNode_YapDialogue::SetConversationName(FName Name)
-{
-	if (ConversationName != NAME_None)
-	{
-		return;
-	}
-
-	ConversationName = Name;
 }
 
 FText UFlowNode_YapDialogue::GetSpeakerName() const
@@ -165,39 +151,30 @@ void UFlowNode_YapDialogue::OnActivate()
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
-	++NodeActivationCount;
-	
-	TOptional<uint8> FragmentIndex;
+	if (NodeActivationLimit > 0 && NodeActivationCount++ >= NodeActivationLimit)
+	{
+		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
+		return;
+	}
 	
 	switch (MultipleFragmentSequencing)
 	{
 	case EFlowYapMultipleFragmentSequencing::Sequential:
 		{
-			RunFragmentsSequentiallyFrom(0);
+			Run(0, false);
+			
 			break;
 		}
 	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			for (uint8 i = 0; i < Fragments.Num(); ++i)
-			{
-				if (Fragments[i].TryActivate())
-				{
-					FragmentIndex = i;
-					break;
-				}
-			}
-			return;
+			Run(0, true);
+
+			break;
 		}
 	default:
 		{
-			return;
+			break;
 		}
-	}
-
-	if (!FragmentIndex)
-	{
-		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
-		return;
 	}
 }
 
@@ -213,54 +190,91 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	}
 }
 
-void UFlowNode_YapDialogue::OnTextTimeComplete(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
 {
-	FFlowYapFragment& SelectedFragment = Fragments[FragmentIndex];
-	
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueEnd(ConversationName, SelectedFragment.GetBit());
-
-	double PaddingTime = UFlowYapProjectSettings::Get()->GetDialoguePaddingTime();
-
-	if (PaddingTime > 0)
+	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex), PaddingTime, false);
+		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
+
+		if (!Fragment.TryActivate(this))
+		{
+			continue;
+		}
+
+		UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
+		
+		TriggerOutput(FName("FragmentStart", FragmentIndex + 1));
+
+		const FFlowYapBit& Bit = Fragment.GetBit();
+
+		double Time = Bit.GetTime();
+
+		if (Time == 0)
+		{
+			UE_LOGFMT(FlowYap, Warning, "Encountered 0 time for fragment containing text: {0}, using project default minimum instead", Bit.GetDialogueText().ToString());
+			Time = UFlowYapProjectSettings::Get()->GetMinimumFragmentTime();
+		}
+
+		if (Time == 0)
+		{
+			OnFragmentComplete(FragmentIndex, bStopAtFirst);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, bStopAtFirst), Time, false);
+		}
+		
+#if WITH_EDITOR
+		UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
+		RunningFragmentIndex = FragmentIndex;
+#endif
+		return;
+	}
+
+	if (StartIndex >= Fragments.Num())
+	{
+		TriggerOutput(FName("Out"), true);		
 	}
 	else
 	{
-		TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
+		TriggerOutput(FName("Bypass"), true);
 	}
+}
+
+void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAtFirst)
+{
+	const FFlowYapBit& Bit = Fragments[FragmentIndex].GetBit();
 	
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentEnd(this, FragmentIndex);
+
+	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();// UFlowYapProjectSettings::Get()->GetFragmentPaddingTime();
+
+	TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
+
 #if WITH_EDITOR
+	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
 	RunningFragmentIndex.Reset();
 #endif
-}
-
-void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
-{
-	//TriggerOutput(FName("FraEnd", FragmentIndex + 1), true);
-}
-
-void UFlowNode_YapDialogue::RunFragmentsSequentiallyFrom(uint8 StartIndex)
-{
-	for (uint8 i = StartIndex; i < Fragments.Num(); ++i)
-	{
-		if (Fragments[i].TryActivate())
-		{
-			FFlowYapFragment& SelectedFragment = Fragments[i];
 	
-			GetWorld()->GetSubsystem<UFlowYapSubsystem>()->DialogueStart(ConversationName, SelectedFragment.GetBit());
+	if (PaddingTime > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, bStopAtFirst), PaddingTime, false);
+	}
+	else
+	{
+		OnPaddingTimeComplete(FragmentIndex, bStopAtFirst);
+	}
+}
 
-			double Time = SelectedFragment.GetBit().GetTime();
-
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::RunFragmentsSequentiallyFrom, (uint8)(i + 1)), Time, false);
-
-			TriggerOutput(FName("DialogueStart", i + 1));
-
-#if WITH_EDITOR
-			RunningFragmentIndex = i;
-#endif
-			break;
-		}
+void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst)
+{
+	if (!bStopAtFirst)
+	{
+		Run(FragmentIndex + 1, bStopAtFirst);
+	}
+	else
+	{
+		TriggerOutput(FName("Out"), true);		
 	}
 }
 
@@ -357,17 +371,16 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
 	if (bIsPlayerPrompt)
 	{
-		// Leave bypass! No normal out!
+		// No normal out!
 		OutputPins.Remove(FName("Out"));
-		//OutputPins.Empty();
 	}
 
 	TArray<FFlowPin> ContextOutputPins;
 
 	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
 	{
-		ContextOutputPins.Add(FName("FragmentEnd", Index));
 		ContextOutputPins.Add(FName("FragmentStart", Index));
+		ContextOutputPins.Add(FName("FragmentEnd", Index));
 	}
 	
 	return ContextOutputPins;
@@ -479,8 +492,6 @@ void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, T
 	}
 
 	bArg = false;
-	
-	UE_LOG(FlowYap, Warning, TEXT("%s"), *GameplayTagNode->GetSimpleTagName().ToString());
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const

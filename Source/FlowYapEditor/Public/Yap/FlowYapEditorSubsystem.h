@@ -31,22 +31,6 @@ private:
 	UPROPERTY(Transient)
 	TMap<FName, UTexture2D*> MoodKeyIconTextures;
 	TMap<FName, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
-	
-	UPROPERTY(Transient)
-	UTexture2D* TimerIcon;
-	FSlateBrush TimerBrush;
-
-	UPROPERTY(Transient)
-	UTexture2D* NoInterruptIcon;
-	FSlateBrush NoInterruptBrush;
-
-	UPROPERTY(Transient)
-	UTexture2D* TextTimeIcon;
-	FSlateBrush TextTimeBrush;
-	
-	UPROPERTY(Transient)
-	UTexture2D* AudioTimeIcon;
-	FSlateBrush AudioTimeBrush;
 
 protected:
 	static FCheckBoxStyles CheckBoxStyles;
@@ -60,14 +44,6 @@ public:
 	UTexture2D* GetMoodKeyIcon(FName MoodKey);
 
 	const FSlateBrush* GetMoodKeyBrush(FName Name);
-
-	const FSlateBrush* GetNoInterruptBrush() { return &NoInterruptBrush; }
-	
-	const FSlateBrush* GetTimerBrush() { return &TimerBrush; }
-
-	const FSlateBrush* GetTextTimeBrush() { return &TextTimeBrush; }
-
-	const FSlateBrush* GetAudioTimeBrush() { return &AudioTimeBrush; }
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;

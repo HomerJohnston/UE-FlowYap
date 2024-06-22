@@ -5,16 +5,21 @@
 #include "Yap/NodeWidgets/SFlowGraphNode_YapFragmentWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
+#include "Logging/StructuredLog.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
+#include "Widgets/Input/SSlider.h"
+#include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/FlowYapCharacter.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/FlowYapEditorSubsystem.h"
 #include "Yap/FlowYapFragment.h"
+#include "Yap/FlowYapInputTracker.h"
 #include "Yap/FlowYapProjectSettings.h"
 #include "Yap/FlowYapTransactions.h"
 #include "Yap/FlowYapUtil.h"
+#include "Yap/YapEditorStyle.h"
 #include "Yap/Enums/FlowYapErrorLevel.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
@@ -70,9 +75,30 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 				+ SOverlay::Slot()
 				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Bottom)
-				.Padding(3, 0, 3, 3)
+				.Padding(4, 4, 4, 4)
 				[
 					CreateFragmentTagPreviewWidget()
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Bottom)
+				.Padding(0, 0, 0, -2)
+				[
+					CreateFragmentTimePaddingWidget()
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Top)
+				.Padding(-6, 6, 5, 18)
+				[
+					CreateGlobalActivationLimiterWidget()
+				]
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Top)
+				.Padding(-6, 18, 5, 6)
+				[
+					CreateLocalActivationLimiterWidget()
 				]
 			]
 			// -------------------
@@ -187,19 +213,35 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 	.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight)
 	.Padding(0, 0, 0, 0)
 	[
-		SAssignNew(DialogueBox, SMultiLineEditableTextBox)
-		.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
-		.ModiferKeyForNewLine(EModifierKey::Shift)
-		.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
-		.OverflowPolicy(ETextOverflowPolicy::Clip)
-		.HintText(LOCTEXT("DialogueText_Hint", "Enter dialogue text"))
-		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
-		.Margin(FMargin(0,0,0,0))
-		.Padding(FMargin(4))
-		.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor)
-		.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor)
-		.HScrollBar(HScrollBar)
-		.VScrollBar(VScrollBar)
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			SAssignNew(DialogueBox, SMultiLineEditableTextBox)
+			.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+			.ModiferKeyForNewLine(EModifierKey::Shift)
+			.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
+			.OverflowPolicy(ETextOverflowPolicy::Clip)
+			.HintText(LOCTEXT("DialogueText_Hint", "Enter dialogue text"))
+			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
+			.Margin(FMargin(0,0,0,0))
+			.Padding(FMargin(4))
+			.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor)
+			.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor)
+			.HScrollBar(HScrollBar)
+			.VScrollBar(VScrollBar)
+		]
+		/* TODO hatch overlay for disabled fragments?
+		+ SOverlay::Slot()
+		.Padding(-2)
+		[
+			SNew(SBorder)
+			//.BorderImage(FAppStyle::GetBrush("Menu.Background")) // Filled, Square, bit dark
+			.BorderImage(FAppStyle::GetBrush("Graph.StateNode.Body")) // Filled, rounded nicely
+			//.BorderImage(FAppStyle::GetBrush("Brushes.Panel")) // Filled, Square, Dark
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility)
+			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor)
+		]
+		*/
 	];
 }
 
@@ -265,6 +307,283 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::LightGray;
 }
 
+EVisibility SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility() const
+{
+	return GetFragment()->GetLocalActivationLimit() > 0 ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor() const
+{
+	return YapColor::Error;
+	
+	// TODO
+	/*
+	if (GEditor->PlayWorld)
+	{
+		return GetFragment()->GetActivationCount() < GetFragment()->GetLocalActivationLimit() ? YapColor::LightBlue_Glass : YapColor::Red_Trans;
+	}
+	else
+	{
+		return YapColor::Orange_Trans;
+	}
+	*/
+}
+
+// ================================================================================================
+// GLOBAL ACTIVATION LIMITER WIDGET
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateGlobalActivationLimiterWidget()
+{
+	TSharedRef<SVerticalBox> ActivationLimiter_VerticalBox = SNew(SVerticalBox);
+
+	if (GetFragment()->GlobalActivationLimit <= 1)
+	{
+		int32 Size = 8;// i < ActivationCount ? 16 : 12;
+		ActivationLimiter_VerticalBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.AutoHeight()
+		.Padding(0)
+		[
+			SNew(SBox)
+			.WidthOverride(12)
+			.HeightOverride(12)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.Padding(0)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_Visibility)
+			[
+				SNew(SButton)
+				.ButtonStyle(FCoreStyle::Get(), "SimpleButton")
+				.ContentPadding(0)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_OnClicked)
+				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle activation limit"))
+				[
+					SNew(SImage)
+					.DesiredSizeOverride(FVector2D(Size, Size))
+					.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity)
+				]
+			]
+		];
+	}
+	else
+	{			
+		ActivationLimiter_VerticalBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.AutoHeight()
+		[
+			SNew(STextBlock)
+			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(GetFragment()->GetGlobalActivationCount(GetFlowYapDialogueNode())), FText::AsNumber(GetFragment()->GetLocalActivationLimit())))
+			.ColorAndOpacity(YapColor::White)
+			//.TextStyle(&NormalText)
+			.Justification(ETextJustify::Center)
+		];
+	}
+
+	return SNew(SBox)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationLimiter_Visibility)
+	[
+		ActivationLimiter_VerticalBox
+	];
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::GlobalActivationLimiter_Visibility() const
+{
+	const FFlowYapFragment* Fragment = GetFragment();
+	
+	if (GEditor->PlayWorld)
+	{
+		return (Fragment->GlobalActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
+	}
+	else
+	{
+		if (IsHovered() || Fragment->GlobalActivationLimit > 0)
+		{
+			return EVisibility::Visible;
+		}
+	}
+
+	return EVisibility::Collapsed;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_Visibility() const
+{	
+	if (DialogueBox->HasKeyboardFocus())
+	{
+		return EVisibility::Collapsed;
+	}
+
+	if (IsHovered() || GetFragment()->GlobalActivationLimit > 0)
+	{
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity() const
+{
+	if (GetFragment()->GlobalActivationLimit > 0)
+	{
+		return YapColor::Orange;
+	}
+
+	return YapColor::DarkGray;
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_OnClicked()
+{
+	FFlowYapFragment* Fragment = GetFragment();
+	
+	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change activation limit"), GetFlowYapDialogueNode());
+	
+	// TODO ignore input during PIE?
+	if (Fragment->GlobalActivationLimit > 0)
+	{
+		Fragment->GlobalActivationLimit = 0;
+	}
+	else
+	{
+		Fragment->GlobalActivationLimit = 1;
+	}
+
+	FFlowYapTransactions::EndModify();
+	
+	return FReply::Handled();
+}
+
+// ================================================================================================
+// LOCAL ACTIVATION LIMITER WIDGET
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterWidget()
+{
+	TSharedRef<SVerticalBox> ActivationLimiter_VerticalBox = SNew(SVerticalBox);
+
+	int32 LocalActivationCount = GetFragment()->LocalActivationCount;
+
+	if (GetFragment()->LocalActivationLimit <= 1)
+	{
+		int32 Size = 8;// i < ActivationCount ? 16 : 12;
+		ActivationLimiter_VerticalBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.AutoHeight()
+		.Padding(0)
+		[
+			SNew(SBox)
+			.WidthOverride(12)
+			.HeightOverride(12)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.Padding(0)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_Visibility)
+			[
+				SNew(SButton)
+				.ButtonStyle(FCoreStyle::Get(), "SimpleButton")
+				.ContentPadding(0)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked)
+				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle activation limit"))
+				[
+					SNew(SImage)
+					.DesiredSizeOverride(FVector2D(Size, Size))
+					.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity)
+				]
+			]
+		];
+	}
+	else
+	{			
+		ActivationLimiter_VerticalBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.AutoHeight()
+		[
+			SNew(STextBlock)
+			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(LocalActivationCount), FText::AsNumber(GetFragment()->GetLocalActivationLimit())))
+			.ColorAndOpacity(YapColor::White)
+			//.TextStyle(&NormalText)
+			.Justification(ETextJustify::Center)
+		];
+	}
+
+	return SNew(SBox)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationLimiter_Visibility)
+	[
+		ActivationLimiter_VerticalBox
+	];
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationLimiter_Visibility() const
+{
+	const FFlowYapFragment* Fragment = GetFragment();
+	
+	if (GEditor->PlayWorld)
+	{
+		return (Fragment->LocalActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
+	}
+	else
+	{
+		if (IsHovered() || Fragment->LocalActivationLimit > 0)
+		{
+			return EVisibility::Visible;
+		}
+	}
+
+	return EVisibility::Collapsed;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationDot_Visibility() const
+{
+	if (IsHovered() || GetFragment()->GetLocalActivationLimit() > 0)
+	{
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity() const
+{
+	int32 ActivationLimit = GetFragment()->LocalActivationLimit;
+
+	if (ActivationLimit > 0)
+	{
+		return YapColor::Blue;
+	}
+
+	return YapColor::DarkGray;
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked()
+{
+	FFlowYapFragment* Fragment = GetFragment();
+	
+	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change activation limit"), GetFlowYapDialogueNode());
+	
+	// TODO ignore input during PIE?
+	if (Fragment->LocalActivationLimit > 0)
+	{
+		Fragment->LocalActivationLimit = 0;
+	}
+	else
+	{
+		Fragment->LocalActivationLimit = 1;
+	}
+
+	FFlowYapTransactions::EndModify();
+	
+	return FReply::Handled();
+}
+
 // ================================================================================================
 // FRAGMENT TAG OVERLAY WIDGET (OVER DIALOGUE, PREVIEW PURPOSE ONLY)
 // ------------------------------------------------------------------------------------------------
@@ -276,7 +595,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagPreviewWi
 	.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_BorderBackgroundColor)
 	.Padding(6, 5, 6, 5)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility)
-	.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
+	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
 	[
 		SNew(STextBlock)
 		.Text(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text)
@@ -287,7 +606,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagPreviewWi
 
 EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() const
 {
-	if (GetFragment()->FragmentTag == FGameplayTag::EmptyTag)
+	if (GetFragment()->FragmentTag == FGameplayTag::EmptyTag || DialogueBox->HasKeyboardFocus())
 	{
 		return EVisibility::Collapsed;
 	}
@@ -327,6 +646,107 @@ FLinearColor SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacit
 	}
 	
 	return YapColor::White;
+}
+
+// ================================================================================================
+// FRAGMENT TIME PADDING WIDGET
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTimePaddingWidget()
+{
+	return SNew(SBox)
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		.Padding(8, 0)
+		[
+			SNew(SBox)
+			.HeightOverride(2)
+			[
+				SNew(SProgressBar)
+				.BorderPadding(0)
+				.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+				.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
+				.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+			]
+		]
+		+ SOverlay::Slot()
+		.Padding(0, -2)
+		[
+			SNew(SSlider)
+			.Value(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value)
+			.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged)
+			.Style(FYapEditorStyle::Get(), "SliderStyle.FragmentTimePadding")
+			.SliderHandleColor(YapColor::Gray)
+			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText)
+		]
+	];
+}
+
+TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
+{
+	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+
+	return GetFragment()->GetPaddingToNextFragment() / MaxPaddedSetting;
+}
+
+float SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value() const
+{
+	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+
+	return GetFragment()->GetPaddingToNextFragment() / MaxPaddedSetting;
+}
+
+void SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged(float X)
+{
+	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	float NewValue = X * MaxPaddedSetting;
+	
+	bool bSetCommon = false;
+	
+	if (!bCtrlPressed)
+	{
+		const TArray<float>& CommonPaddings = UFlowYapProjectSettings::Get()->GetCommonFragmentPaddings();
+		
+		if (CommonPaddings.Num() > 0)
+		{
+			if (NewValue <= (CommonPaddings[CommonPaddings.Num() - 1]))
+			{
+				int Index = 0;
+				
+				for (int i = 0; i < CommonPaddings.Num() - 1; ++i)
+				{
+					float Threshold = 0.5f * (CommonPaddings[i] + CommonPaddings[i + 1]);
+
+					if (NewValue > Threshold)
+					{
+						Index = i + 1;
+					}
+				}
+				
+				GetFragment()->GetCommonPaddingSettingMutable() = Index;
+				GetFragment()->SetPaddingToNextFragment(0);
+				
+				bSetCommon = true;
+			}
+		}
+	}
+	
+	if (!bSetCommon)
+	{
+		GetFragment()->SetPaddingToNextFragment(NewValue);
+		GetFragment()->GetCommonPaddingSettingMutable().Reset();
+	}
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity() const
+{
+	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::LightBlue : YapColor::White;
+}
+
+FText SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText() const
+{
+	return FText::Format(LOCTEXT("Fragment", "Delay: {0}"), GetFragment()->GetPaddingToNextFragment());
 }
 
 // ================================================================================================
@@ -781,7 +1201,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					[
 						SNew(SImage)
 						.ColorAndOpacity(FSlateColor::UseForeground())
-						.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetTimerBrush())
+						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Timer"))
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -805,7 +1225,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 						SNew(SBox)
 						[
 							SNew(SImage)
-							.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetTextTimeBrush())
+							.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.TextTime"))
 						]
 					]
 				]
@@ -829,7 +1249,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					.HAlign(HAlign_Center)
 					[
 						SNew(SImage)
-						.Image(GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetAudioTimeBrush())
+						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.AudioTime"))
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -1101,7 +1521,7 @@ EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() cons
 
 UFlowNode_YapDialogue* SFlowGraphNode_YapFragmentWidget::GetFlowYapDialogueNode() const
 {
-	return Owner->GetFlowYapDialogueNode();
+	return Owner->GetFlowYapDialogueNodeMutable();
 }
 
 FFlowYapFragment* SFlowGraphNode_YapFragmentWidget::GetFragment() const
@@ -1133,6 +1553,8 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor() const
 
 void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
+	bCtrlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
+	
 	if (DialogueBox->HasKeyboardFocus() || TitleTextBox->HasKeyboardFocus())
 	{
 		Owner->SetFocusedFragmentIndex(GetFragment()->IndexInDialogue);

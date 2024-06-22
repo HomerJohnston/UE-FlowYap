@@ -45,7 +45,7 @@ public class FlowYapEditor : ModuleRules
                 
                 "DeveloperSettings",
                 
-                "BlueprintGraph"
+                "BlueprintGraph", "LiveCoding"
             }
         );
     }

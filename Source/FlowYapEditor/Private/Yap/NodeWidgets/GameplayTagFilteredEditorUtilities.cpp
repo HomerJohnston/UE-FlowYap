@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+#include "Yap/NodeWidgets/GameplayTagFilteredEditorUtilities.h"
 #include "GameplayTagsManager.h"
 #include "K2Node_CallFunction.h"
 #include "K2Node_VariableSet.h"
@@ -161,6 +162,4 @@ namespace UE::GameplayTagsFiltered::EditorUtilities
 
 		return Desc;
 	}
-
-
 };

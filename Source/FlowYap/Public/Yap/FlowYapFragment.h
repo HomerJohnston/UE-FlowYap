@@ -6,6 +6,16 @@
 
 class UFlowNode_YapDialogue;
 
+UENUM()
+enum class EFlowYapFragmentPause : uint8
+{
+	None,
+	Small,
+	Medium,
+	Large,
+	Custom
+};
+
 USTRUCT(BlueprintType)
 struct FLOWYAP_API FFlowYapFragment
 {
@@ -15,7 +25,7 @@ public:
 	FFlowYapFragment();
 	
 	~FFlowYapFragment();
-	
+
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
@@ -27,11 +37,22 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FFlowYapBit Bit;
 
+	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
-	int32 ActivationLimit = 0;
+	int32 LocalActivationLimit = 0;
 
+	/** How many times is this fragment allowed to broadcast? This count persists in the world scope (resets on level load). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	int32 GlobalActivationLimit = 0;
+	
 	UPROPERTY(EditAnywhere)
 	FGameplayTag FragmentTag;
+	
+	UPROPERTY(EditAnywhere)
+	float PaddingToNextFragment = 0;
+
+	UPROPERTY(EditAnywhere)
+	TOptional<uint8> CommonPaddingSetting;
 	
 	// ==========================================
 	// STATE
@@ -39,24 +60,34 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 IndexInDialogue = 0; 
 
-	// TODO move activation count and limit to the parent dialogue so that they persist naturally when swapping fragments
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 ActivationCount = 0;
+	int32 LocalActivationCount = 0;
 	
 	// ==========================================
 	// API
 public:
+	bool TryActivate(UFlowNode_YapDialogue* FlowNode_YapDialogue);
+	
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
-	int32 GetActivationCount() const { return ActivationCount; }
+	int32 GetLocalActivationCount() const { return LocalActivationCount; }
+	int32 GetLocalActivationLimit() const { return LocalActivationLimit; }
+	bool IsLocalActivationLimitMet() const { if (LocalActivationLimit <= 0) return false; return (LocalActivationCount >= LocalActivationLimit); }
 	
-	int32 GetActivationLimit() const { return ActivationLimit; }
+	int32 GetGlobalActivationCount(UFlowNode_YapDialogue* WorldContextObject) const;
+	int32 GetGlobalActivationLimit() const { return GlobalActivationLimit; }
+	bool IsGlobalActivationLimitMet(UFlowNode_YapDialogue* WorldContextObject) const;
 
 	const FFlowYapBit& GetBit() const { return Bit; }
 
-	bool TryActivate();
+	float GetPaddingToNextFragment() const;
+
+	const TOptional<uint8>& GetCommonPaddingSetting() const { return CommonPaddingSetting; }
+	
+	bool IncrementActivations();
 	
 #if WITH_EDITOR
+public:
 	FFlowYapBit& GetBitMutable() { return Bit; }
 	
 	TWeakObjectPtr<UFlowNode_YapDialogue> Owner;
@@ -68,7 +99,11 @@ public:
 	
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 	
-	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
+	//void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
+
+	void SetPaddingToNextFragment(float NewValue) { PaddingToNextFragment = NewValue; }
+
+	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
 
 #endif
 };

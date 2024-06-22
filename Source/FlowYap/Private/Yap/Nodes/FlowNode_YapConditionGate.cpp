@@ -42,6 +42,8 @@ void UFlowNode_YapConditionGate::OnActivate()
 void UFlowNode_YapConditionGate::ExecuteInput(const FName& PinName)
 {
 	Super::ExecuteInput(PinName);
+
+	
 }
 
 FString UFlowNode_YapConditionGate::GetNodeDescription() const

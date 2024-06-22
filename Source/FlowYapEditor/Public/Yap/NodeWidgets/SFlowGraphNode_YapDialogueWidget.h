@@ -54,6 +54,8 @@ protected:
 	bool bIsSelected = false;
 	bool bShiftHooked = false;
 	bool bKeyboardFocused = false;
+	bool bShiftPressed = false;
+	bool bCtrlPressed = false;
 
 	TOptional<uint8> FlashFragmentIndex; 
 	double FlashHighlight = 0.0;
@@ -82,10 +84,11 @@ protected:
 	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(int FragmentIndex);
+	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex);
 
+	EVisibility			FragmentSeparator_Visibility() const;
 	FSlateColor			FragmentSeparator_ColorAndOpacity() const;
-	FReply				FragmentSeparator_OnClicked(int Index);
+	FReply				FragmentSeparator_OnClicked(uint8 Index);
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentRowWidget(uint8 FragmentIndex);
@@ -103,16 +106,10 @@ protected:
 	FReply				DeleteFragmentButton_OnClicked(uint8 FragmentIndex);
 	EVisibility			MoveFragmentDownButton_Visibility(uint8 FragmentIndex) const;
 	FReply				MoveFragmentDownButton_OnClicked(uint8 FragmentIndex);
+	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 	
-	// ------------------------------------------
-	TSharedRef<SBox>	CreateActivationLimiterWidget(uint8 FragmentIndex);
-	
-	EVisibility			ActivationLimiter_Visibility(uint8 FragmentIndex) const;
-	FSlateColor			ActivationDot_ColorAndOpacity(uint8 FragmentIndex, int32 ActivationIndex) const;
-	FReply				ActivationDot_OnClicked(uint8 FragmentIndex, int ActivationIndex);
-
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateRightFragmentPane();
 	
@@ -154,7 +151,7 @@ public:
 
 	void ClearTypingFocus();
 	
-	UFlowNode_YapDialogue* GetFlowYapDialogueNode();
+	UFlowNode_YapDialogue* GetFlowYapDialogueNodeMutable();
 	
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 	

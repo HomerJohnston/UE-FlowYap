@@ -12,18 +12,17 @@ public:
 	
 protected:
 	/** Human-readable name or title of this entity */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText EntityName;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FLinearColor EntityColor;
 	
 	/** Used to find this actor in the world (e.g. for sending Flow tag notifications) */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag IdentityTag;
 
 public:
-	UFUNCTION(BlueprintCallable)
 	FText GetEntityName() const { return EntityName; }
 
 	FLinearColor GetEntityColor() const { return EntityColor; }

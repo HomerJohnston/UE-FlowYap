@@ -39,6 +39,10 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 		{ EFlowYap_TagFilter::Prompts, &DialogueTagsParent }
 	};
 
+	CommonFragmentPaddings = { 0.0, 0.1, 0.3, 0.6, 1.0 }; // TODO sort on post edit change properties
+
+	FragmentPaddingSliderMax = 5.0;
+
 #if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
 #endif
@@ -100,6 +104,11 @@ double UFlowYapProjectSettings::GetMinimumAutoTextTimeLength() const
 double UFlowYapProjectSettings::GetMinimumAutoAudioTimeLength() const
 {
 	return MinimumAutoAudioTimeLength;
+}
+
+double UFlowYapProjectSettings::GetMinimumFragmentTime()
+{
+	return MinimumFragmentTime;
 }
 
 void UFlowYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EFlowYap_TagFilter Filter)
