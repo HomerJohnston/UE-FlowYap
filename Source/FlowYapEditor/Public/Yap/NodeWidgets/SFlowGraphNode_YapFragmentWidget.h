@@ -86,12 +86,13 @@ protected:
 	FText				FragmentTagPreview_Text() const;
 	FSlateColor			FragmentTagPreview_BorderBackgroundColor() const;
 	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
-	
+
 	// ---------------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
 	
 	TOptional<float>	FragmentTimePadding_Percent() const;
 	float				FragmentTimePadding_Value() const;
+	EVisibility			FragmentTimePaddingSlider_Visibility() const;
 	void				FragmentTimePadding_OnValueChanged(float X);
 	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
 	FText				FragmentTimePadding_ToolTipText() const;

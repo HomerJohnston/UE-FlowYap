@@ -227,6 +227,7 @@ void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
 #if WITH_EDITOR
 		UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
 		RunningFragmentIndex = FragmentIndex;
+		FragmentStartedTime = GetWorld()->GetTimeSeconds();
 #endif
 		return;
 	}
@@ -250,11 +251,6 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAt
 	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();// UFlowYapProjectSettings::Get()->GetFragmentPaddingTime();
 
 	TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
-
-#if WITH_EDITOR
-	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
-	RunningFragmentIndex.Reset();
-#endif
 	
 	if (PaddingTime > 0)
 	{
@@ -264,10 +260,20 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAt
 	{
 		OnPaddingTimeComplete(FragmentIndex, bStopAtFirst);
 	}
+
+#if WITH_EDITOR
+	FragmentEndedTime = GetWorld()->GetTimeSeconds();
+#endif
 }
+
 
 void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst)
 {
+#if WITH_EDITOR
+	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
+	RunningFragmentIndex.Reset();
+#endif
+	
 	if (!bStopAtFirst)
 	{
 		Run(FragmentIndex + 1, bStopAtFirst);

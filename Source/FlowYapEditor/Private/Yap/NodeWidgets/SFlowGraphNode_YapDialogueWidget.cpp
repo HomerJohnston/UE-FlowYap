@@ -80,7 +80,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 		bStylesInitialized = true;
 	}
 	
-	// TODO move this to my editor subsystem, no need to build it over and over
+	// TODO move this to my style
 	NormalText = FTextBlockStyle()
 	.SetFont(FCoreStyle::GetDefaultFontStyle("Regular", 10))
 	.SetFontSize(10)
@@ -347,7 +347,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(uint8 f) const
 {
-	if (FlashFragmentIndex == f || GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f)
+	if (FlashFragmentIndex == f || (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f && GetFlowYapDialogueNode()->FragmentStartedTime > GetFlowYapDialogueNode()->FragmentEndedTime))
 	{
 		return EVisibility::HitTestInvisible;
 	}

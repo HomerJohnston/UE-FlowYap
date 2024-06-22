@@ -17,6 +17,7 @@
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapInputTracker.h"
 #include "Yap/FlowYapProjectSettings.h"
+#include "Yap/FlowYapSubsystem.h"
 #include "Yap/FlowYapTransactions.h"
 #include "Yap/FlowYapUtil.h"
 #include "Yap/YapEditorStyle.h"
@@ -298,12 +299,22 @@ FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
-{
+{	
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::Noir;
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 {
+	if (GEditor->PlayWorld)
+	{
+		if (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == GetFragment()->IndexInDialogue)
+		{
+			return YapColor::White;
+		}
+		
+		return (GetFragment()->IsActivationLimitMet(GetFlowYapDialogueNode())) ? YapColor::DarkRed : YapColor::LightGray;
+	}
+	
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::LightGray;
 }
 
@@ -674,6 +685,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTimePaddingW
 		.Padding(0, -2)
 		[
 			SNew(SSlider)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePaddingSlider_Visibility)
 			.Value(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value)
 			.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged)
 			.Style(FYapEditorStyle::Get(), "SliderStyle.FragmentTimePadding")
@@ -686,8 +698,34 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTimePaddingW
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
 	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float FragmentPadding = GetFragment()->GetPaddingToNextFragment();
 
-	return GetFragment()->GetPaddingToNextFragment() / MaxPaddedSetting;
+	if (GEditor->PlayWorld)
+	{
+		const TOptional<uint8>& RunningIndex = GetFlowYapDialogueNode()->RunningFragmentIndex;
+
+		if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment()->IndexInDialogue)
+		{
+			return FragmentPadding / MaxPaddedSetting;
+		}
+
+		if (RunningIndex == GetFragment()->IndexInDialogue)
+		{
+			if (GetFlowYapDialogueNode()->FragmentStartedTime < GetFlowYapDialogueNode()->FragmentEndedTime)
+			{
+				double ElapsedPaddingTime = GEditor->PlayWorld->GetTimeSeconds() - GetFlowYapDialogueNode()->FragmentEndedTime;
+				return (1 - (ElapsedPaddingTime / FragmentPadding)) * (FragmentPadding / MaxPaddedSetting);
+			}
+			else
+			{
+				return FragmentPadding / MaxPaddedSetting;
+			}
+		}
+
+		return 0.0;
+	}
+
+	return FragmentPadding / MaxPaddedSetting;		
 }
 
 float SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value() const
@@ -695,6 +733,16 @@ float SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value() const
 	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
 
 	return GetFragment()->GetPaddingToNextFragment() / MaxPaddedSetting;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTimePaddingSlider_Visibility() const
+{
+	if (GEditor->PlayWorld)
+	{
+		return EVisibility::Hidden;
+	}
+
+	return EVisibility::Visible;
 }
 
 void SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged(float X)
@@ -741,6 +789,22 @@ void SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged(float 
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity() const
 {
+	if (GEditor->PlayWorld)
+	{
+		const TOptional<uint8>& RunningIndex = GetFlowYapDialogueNode()->RunningFragmentIndex;
+
+		if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment()->IndexInDialogue)
+		{
+		}
+
+		if (RunningIndex == GetFragment()->IndexInDialogue)
+		{
+			return YapColor::White;
+		}
+
+		return YapColor::DarkGray;
+	}
+	
 	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::LightBlue : YapColor::White;
 }
 

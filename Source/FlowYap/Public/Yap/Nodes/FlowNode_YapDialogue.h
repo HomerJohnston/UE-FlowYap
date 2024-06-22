@@ -146,6 +146,9 @@ public:
 protected:
 	TOptional<uint8> RunningFragmentIndex;
 
+	double FragmentStartedTime;
+	double FragmentEndedTime;
+
 public:
 	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
 

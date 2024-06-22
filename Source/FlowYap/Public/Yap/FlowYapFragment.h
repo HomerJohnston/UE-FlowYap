@@ -62,11 +62,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 LocalActivationCount = 0;
-	
+
 	// ==========================================
 	// API
 public:
-	bool TryActivate(UFlowNode_YapDialogue* FlowNode_YapDialogue);
+	bool TryActivate(UFlowNode_YapDialogue* Dialogue);
 	
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
@@ -78,6 +78,8 @@ public:
 	int32 GetGlobalActivationLimit() const { return GlobalActivationLimit; }
 	bool IsGlobalActivationLimitMet(UFlowNode_YapDialogue* WorldContextObject) const;
 
+	bool IsActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const;
+	
 	const FFlowYapBit& GetBit() const { return Bit; }
 
 	float GetPaddingToNextFragment() const;

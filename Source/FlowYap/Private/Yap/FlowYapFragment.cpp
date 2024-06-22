@@ -20,35 +20,48 @@ FFlowYapFragment::~FFlowYapFragment()
 {
 }
 
-bool FFlowYapFragment::TryActivate(UFlowNode_YapDialogue* FlowNode_YapDialogue)
+bool FFlowYapFragment::TryActivate(UFlowNode_YapDialogue* Dialogue)
 {
-	if (IsLocalActivationLimitMet() || IsGlobalActivationLimitMet(FlowNode_YapDialogue))
+	if (IsLocalActivationLimitMet() || IsGlobalActivationLimitMet(Dialogue))
 	{
 		return false;
 	}
 
 	LocalActivationCount++;
 
-	FlowNode_YapDialogue->GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentStart(FlowNode_YapDialogue, IndexInDialogue);
+	Dialogue->GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentStart(Dialogue, IndexInDialogue);
 
 	return true;
 }
 
-int32 FFlowYapFragment::GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDialogue) const
-{	
-	UFlowYapSubsystem* Subsystem = OwnerDialogue->GetWorld()->GetSubsystem<UFlowYapSubsystem>();
+int32 FFlowYapFragment::GetGlobalActivationCount(UFlowNode_YapDialogue* Dialogue) const
+{
+	// Safety check because the widgets call into this, and it will crash if the widget is calling this without an actual preview entity selected
+	UWorld* World = Dialogue->GetWorld();
+
+	if (!World || World->WorldType != EWorldType::Game && World->WorldType != EWorldType::PIE && World->WorldType != EWorldType::GamePreview)
+	{
+		return 0;
+	}
 	
-	return Subsystem->GetGlobalActivationCount(OwnerDialogue, IndexInDialogue);
+	UFlowYapSubsystem* Subsystem = World->GetSubsystem<UFlowYapSubsystem>();
+	
+	return Subsystem->GetGlobalActivationCount(Dialogue, IndexInDialogue);
 }
 
-bool FFlowYapFragment::IsGlobalActivationLimitMet(UFlowNode_YapDialogue* OwnerDialogue) const
+bool FFlowYapFragment::IsGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const
 {
 	if (GlobalActivationLimit == 0)
 	{
 		return false;
 	}
 	
-	return GetGlobalActivationCount(OwnerDialogue) >= GlobalActivationLimit;
+	return GetGlobalActivationCount(Dialogue) >= GlobalActivationLimit;
+}
+
+bool FFlowYapFragment::IsActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const
+{
+	return IsLocalActivationLimitMet() || IsGlobalActivationLimitMet(Dialogue);
 }
 
 float FFlowYapFragment::GetPaddingToNextFragment() const
