@@ -14,17 +14,17 @@ class IFlowYapConversationListener
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnConversationStarts(FName ConversationName);
+	void OnConversationStarts(const FGameplayTag& Conversation);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnConversationEnds(FName ConversationName);
+	void OnConversationEnds(const FGameplayTag& Conversation);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnDialogueStart(FName ConversationName, const FFlowYapBit& DialogueInfo);
+	void OnDialogueStart(const FGameplayTag& Conversation, const FFlowYapBit& DialogueInfo);
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnDialogueEnd(FName ConversationName, const FFlowYapBit& DialogueInfo);
-	
+	void OnDialogueEnd(const FGameplayTag& Conversation, const FFlowYapBit& DialogueInfo);
+
 	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	//void OnDialogueInterrupt(FName ConversationName, const FFlowYapBit& DialogueInfo);
 };

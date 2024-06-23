@@ -20,25 +20,18 @@ FFlowYapFragment::~FFlowYapFragment()
 {
 }
 
-bool FFlowYapFragment::TryActivate(UFlowNode_YapDialogue* Dialogue)
-{
-	if (IsLocalActivationLimitMet() || IsGlobalActivationLimitMet(Dialogue))
-	{
-		return false;
-	}
-
-	LocalActivationCount++;
-
-	Dialogue->GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentStart(Dialogue, IndexInDialogue);
-
-	return true;
-}
-
 int32 FFlowYapFragment::GetGlobalActivationCount(UFlowNode_YapDialogue* Dialogue) const
 {
 	// Safety check because the widgets call into this, and it will crash if the widget is calling this without an actual preview entity selected
 	UWorld* World = Dialogue->GetWorld();
 
+#if WITH_EDITOR
+	if (!World && GEditor->PlayWorld)
+	{
+		World = GEditor->PlayWorld;
+	}
+#endif
+	
 	if (!World || World->WorldType != EWorldType::Game && World->WorldType != EWorldType::PIE && World->WorldType != EWorldType::GamePreview)
 	{
 		return 0;
@@ -74,17 +67,9 @@ float FFlowYapFragment::GetPaddingToNextFragment() const
 	return PaddingToNextFragment;
 }
 
-bool FFlowYapFragment::IncrementActivations()
+void FFlowYapFragment::IncrementActivations()
 {
-	bool bResult = true;
-	
-	if (LocalActivationLimit > 0)
-	{
-		bResult = LocalActivationCount < LocalActivationLimit;
-		LocalActivationCount++;
-	}
-
-	return bResult;
+	LocalActivationCount++;
 }
 
 #if WITH_EDITOR

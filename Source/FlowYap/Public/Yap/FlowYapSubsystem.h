@@ -25,21 +25,21 @@ public:
 	UFlowAsset* FlowAsset;
 
 	UPROPERTY(Transient)
-	FName Name;
+	FGameplayTag Conversation;
 
 public:
-	TDelegate<void(FName)> OnConversationStarts;
+	TDelegate<void(const FGameplayTag&)> OnConversationStarts;
 	
-	TDelegate<void(FName)> OnConversationEnds;
+	TDelegate<void(const FGameplayTag&)> OnConversationEnds;
 
 public:
-	bool StartConversation(UFlowAsset* InOwningAsset, FName InName);
+	bool StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InName);
 
 	bool EndConversation();
 
-	bool IsConversationInProgress() const { return Name != NAME_None; };
+	bool IsConversationInProgress() const { return Conversation != FGameplayTag::EmptyTag; };
 
-	FName GetCurrentConversationName() const { return Name; }
+	const FGameplayTag& GetCurrentConversationName() const { return Conversation; }
 };
 
 // ================================================================================================
@@ -94,7 +94,7 @@ public:
 	// ------------------------------------------
 	// FLOW YAP API - These are called by the flow node
 protected:
-	bool StartConversation(UFlowAsset* OwningAsset, FName ConversationName); // Called by ConversationStart node
+	bool StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by ConversationStart node
 
 	void EndCurrentConversation(); // Called by ConversationEnd node
 
@@ -111,9 +111,9 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 protected:
-	void OnConversationStarts_Internal(FName Name);
+	void OnConversationStarts_Internal(const FGameplayTag& Name);
 
-	void OnConversationEnds_Internal(FName Name);
+	void OnConversationEnds_Internal(const FGameplayTag& Name);
 
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 };

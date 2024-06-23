@@ -89,18 +89,23 @@ public:
 	void InitializeInstance() override;
 
 	void OnActivate() override;
-	
+
 	void ExecuteInput(const FName& PinName) override;
 
 	bool GetInterruptible() const;
 
 protected:
+	void BroadcastPrompts();
+
 	void Run(uint8 StartIndex, bool bStopAtFirst);
 
 	void OnFragmentComplete(uint8 FragmentIndex, bool bStopAtFirst);
 
 	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst);
 
+protected:
+	bool TryActivateFragment(FFlowYapFragment& Fragment);
+	
 #if WITH_EDITOR
 public:
 	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;

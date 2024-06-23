@@ -156,24 +156,31 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
 		return;
 	}
-	
-	switch (MultipleFragmentSequencing)
-	{
-	case EFlowYapMultipleFragmentSequencing::Sequential:
-		{
-			Run(0, false);
-			
-			break;
-		}
-	case EFlowYapMultipleFragmentSequencing::SelectOne:
-		{
-			Run(0, true);
 
-			break;
-		}
-	default:
+	if (bIsPlayerPrompt)
+	{
+		BroadcastPrompts();
+	}
+	else
+	{
+		switch (MultipleFragmentSequencing)
 		{
-			break;
+		case EFlowYapMultipleFragmentSequencing::Sequential:
+			{
+				Run(0, false);
+			
+				break;
+			}
+		case EFlowYapMultipleFragmentSequencing::SelectOne:
+			{
+				Run(0, true);
+
+				break;
+			}
+		default:
+			{
+				break;
+			}
 		}
 	}
 }
@@ -190,13 +197,21 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	}
 }
 
+void UFlowNode_YapDialogue::BroadcastPrompts()
+{
+	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
+	{
+		
+	}
+}
+
 void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
 {
 	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
 		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-		if (!Fragment.TryActivate(this))
+		if (!TryActivateFragment(Fragment))
 		{
 			continue;
 		}
@@ -282,6 +297,20 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bSto
 	{
 		TriggerOutput(FName("Out"), true);		
 	}
+}
+
+bool UFlowNode_YapDialogue::TryActivateFragment(FFlowYapFragment& Fragment)
+{
+	if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
+	{
+		return false;
+	}
+
+	Fragment.IncrementActivations();
+
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentStart(this, Fragment.GetIndexInDialogue());
+
+	return true;
 }
 
 const FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndex(int16 Index) const

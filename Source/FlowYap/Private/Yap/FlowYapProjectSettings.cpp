@@ -29,9 +29,9 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 
-	ConditionTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Condition"));
+	ConditionTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Condition");
 
-	DialogueTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Yap.Dialogue"));
+	DialogueTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Dialogue");
 
 	TagContainers =
 	{

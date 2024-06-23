@@ -13,7 +13,7 @@ public:
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName ConversationName;
+	FGameplayTag Conversation;
 
 	void InitializeInstance() override;
 

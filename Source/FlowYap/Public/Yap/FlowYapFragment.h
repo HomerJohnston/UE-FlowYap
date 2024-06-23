@@ -66,8 +66,6 @@ protected:
 	// ==========================================
 	// API
 public:
-	bool TryActivate(UFlowNode_YapDialogue* Dialogue);
-	
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
 	int32 GetLocalActivationCount() const { return LocalActivationCount; }
@@ -86,7 +84,7 @@ public:
 
 	const TOptional<uint8>& GetCommonPaddingSetting() const { return CommonPaddingSetting; }
 	
-	bool IncrementActivations();
+	void IncrementActivations();
 	
 #if WITH_EDITOR
 public:

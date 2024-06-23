@@ -4,6 +4,7 @@
 
 #include "Yap/FlowYapSubsystem.h"
 
+#include "GameplayTagsManager.h"
 #include "Logging/StructuredLog.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapLog.h"
@@ -13,39 +14,46 @@
 FFlowYapActiveConversation::FFlowYapActiveConversation()
 {
 	FlowAsset = nullptr;
-	Name = NAME_None;
+	Conversation = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Conversation");
+
+	TWeakObjectPtr<UObject> wtf = nullptr;
+
+	if (wtf != nullptr)
+	{
+		
+	}
 }
 
-bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, FName InName)
+bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
 {
-	if (Name != NAME_None)
+	if (Conversation != FGameplayTag::EmptyTag)
 	{
-		UE_LOGFMT(FlowYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InName, Name);
+		UE_LOGFMT(FlowYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.ToString());
 		return false;
 	}
 	
-	if (InName == NAME_None)
+	if (InConversation == FGameplayTag::EmptyTag)
 	{
 		UE_LOG(FlowYap, Error, TEXT("Tried to start conversation named NONE! Did you forgot to name the Start Conversation node? Ignoring start request."));
 		return false;
 	}
 
 	FlowAsset = InOwningAsset;
-	Name = InName;
+	Conversation = InConversation;
 
-	OnConversationStarts.ExecuteIfBound(Name);
+	OnConversationStarts.ExecuteIfBound(Conversation);
 	
 	return true;
 }
 
 bool FFlowYapActiveConversation::EndConversation()
 {
-	if (Name != NAME_None)
+	if (Conversation != FGameplayTag::EmptyTag)
 	{
-		OnConversationEnds.ExecuteIfBound(Name);
+		OnConversationEnds.ExecuteIfBound(Conversation);
 
 		FlowAsset = nullptr;
-		Name = NAME_None;
+		Conversation = FGameplayTag::EmptyTag;
 
 		return true;
 	}
@@ -72,9 +80,9 @@ void UFlowYapSubsystem::RemoveConversationListener(UObject* RemovedListener)
 	Listeners.Remove(RemovedListener);
 }
 
-bool UFlowYapSubsystem::StartConversation(UFlowAsset* OwningAsset, FName ConversationName)
+bool UFlowYapSubsystem::StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {
-	return ActiveConversation.StartConversation(OwningAsset, ConversationName);
+	return ActiveConversation.StartConversation(OwningAsset, Conversation);
 }
 
 void UFlowYapSubsystem::EndCurrentConversation()
@@ -106,11 +114,11 @@ void UFlowYapSubsystem::BroadcastFragmentStart(UFlowNode_YapDialogue* Dialogue, 
 	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
 	Count += 1;
 
-	FName ConversationName = NAME_None;
+	FGameplayTag ConversationName;
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Name;
+		ConversationName = ActiveConversation.Conversation;
 	}
 	
 	for (int i = 0; i < Listeners.Num(); ++i)
@@ -124,11 +132,11 @@ void UFlowYapSubsystem::BroadcastFragmentEnd(const UFlowNode_YapDialogue* OwnerD
 {
 	const FFlowYapBit& Bit = OwnerDialogue->GetFragmentByIndex(FragmentIndex)->GetBit();
 
-	FName ConversationName = NAME_None;
+	FGameplayTag ConversationName;
 
 	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Name;
+		ConversationName = ActiveConversation.Conversation;
 	}
 	
 	for (int i = 0; i < Listeners.Num(); ++i)
@@ -180,7 +188,7 @@ void UFlowYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ActiveConversation.OnConversationEnds.BindUObject(this, &UFlowYapSubsystem::OnConversationEnds_Internal);
 }
 
-void UFlowYapSubsystem::OnConversationStarts_Internal(FName Name)
+void UFlowYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
 {
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
@@ -189,7 +197,7 @@ void UFlowYapSubsystem::OnConversationStarts_Internal(FName Name)
 	}
 }
 
-void UFlowYapSubsystem::OnConversationEnds_Internal(FName Name)
+void UFlowYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& Name)
 {
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{

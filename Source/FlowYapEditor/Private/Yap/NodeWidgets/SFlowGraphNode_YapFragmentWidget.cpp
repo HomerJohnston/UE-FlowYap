@@ -371,7 +371,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateGlobalActivationLimiter
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
 				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_OnClicked)
-				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle activation limit"))
+				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle global activation limit"))
 				[
 					SNew(SImage)
 					.DesiredSizeOverride(FVector2D(Size, Size))
@@ -441,7 +441,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacit
 {
 	if (GetFragment()->GlobalActivationLimit > 0)
 	{
-		return YapColor::Orange;
+		return YapColor::LightGreen;
 	}
 
 	return YapColor::DarkGray;
@@ -501,7 +501,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterW
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
 				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked)
-				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle activation limit"))
+				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle local activation limit"))
 				[
 					SNew(SImage)
 					.DesiredSizeOverride(FVector2D(Size, Size))
@@ -566,12 +566,27 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity
 {
 	int32 ActivationLimit = GetFragment()->LocalActivationLimit;
 
-	if (ActivationLimit > 0)
+	if (ActivationLimit == 0)
 	{
-		return YapColor::Blue;
+		return YapColor::DarkGray;
 	}
-
-	return YapColor::DarkGray;
+	
+	FLinearColor Color = YapColor::DarkGreen;
+	
+	if (GEditor->PlayWorld)
+	{
+		if (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == GetFragment()->IndexInDialogue)
+		{
+			return YapColor::White;
+		}
+		
+		if (GetFragment()->IsActivationLimitMet(GetFlowYapDialogueNode()))
+		{
+			Color = YapColor::DarkRed;
+		}
+	}
+	
+	return Color;
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked()
