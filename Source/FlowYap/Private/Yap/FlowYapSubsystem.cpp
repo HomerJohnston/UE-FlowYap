@@ -9,19 +9,13 @@
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapLog.h"
 #include "Yap/IFlowYapConversationListener.h"
+#include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 FFlowYapActiveConversation::FFlowYapActiveConversation()
 {
 	FlowAsset = nullptr;
 	Conversation = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Conversation");
-
-	TWeakObjectPtr<UObject> wtf = nullptr;
-
-	if (wtf != nullptr)
-	{
-		
-	}
 }
 
 bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
@@ -103,12 +97,41 @@ void UFlowYapSubsystem::EndCurrentConversation()
 	*/
 }
 
-void UFlowYapSubsystem::BroadcastFragmentStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
+void UFlowYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGuid DialogueGUID = Dialogue->GetGuid();
 	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
 	const FFlowYapBit& Bit = Fragment->GetBit();
 
+	// GOD THERE IS SO MUCH UGLY SHIT HERE TODO
+	FYapFragmentActivationCount& FragmentActivationCount = GlobalFragmentActivationCounts.FindOrAdd(DialogueGUID);
+
+	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
+	Count += 1;
+
+	FGameplayTag ConversationName;
+
+	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
+	{
+		ConversationName = ActiveConversation.Conversation;
+	}
+
+	FYapPromptHandle Handle(Dialogue, FragmentIndex);
+	
+	for (int i = 0; i < Listeners.Num(); ++i)
+	{
+		UObject* Listener = Listeners[i];
+		IFlowYapConversationListener::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
+	}
+}
+
+void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
+{
+	FGuid DialogueGUID = Dialogue->GetGuid();
+	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
+	const FFlowYapBit& Bit = Fragment->GetBit();
+
+	// GOD THERE IS SO MUCH UGLY SHIT HERE TODO
 	FYapFragmentActivationCount& FragmentActivationCount = GlobalFragmentActivationCounts.FindOrAdd(DialogueGUID);
 
 	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
@@ -128,7 +151,7 @@ void UFlowYapSubsystem::BroadcastFragmentStart(UFlowNode_YapDialogue* Dialogue, 
 	}
 }
 
-void UFlowYapSubsystem::BroadcastFragmentEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
+void UFlowYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
 {
 	const FFlowYapBit& Bit = OwnerDialogue->GetFragmentByIndex(FragmentIndex)->GetBit();
 
@@ -163,6 +186,13 @@ int32 UFlowYapSubsystem::GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDi
 	}
 
 	return 0;
+}
+
+void UFlowYapSubsystem::ActivatePrompt(FYapPromptHandle& Handle)
+{
+	BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
+
+	Handle.DialogueNode->RunFragmentAsPrompt(Handle.FragmentIndex);
 }
 
 bool UFlowYapSubsystem::FragmentGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex) const

@@ -30,6 +30,7 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 
 friend class SFlowGraphNode_YapDialogueWidget;
 friend class SFlowGraphNode_YapFragmentWidget;
+friend class UFlowYapSubsystem;
 
 public:
 	UFlowNode_YapDialogue();
@@ -93,9 +94,12 @@ public:
 	void ExecuteInput(const FName& PinName) override;
 
 	bool GetInterruptible() const;
+	
 
 protected:
 	void BroadcastPrompts();
+
+	void RunFragmentAsPrompt(uint8 Uint8);
 
 	void Run(uint8 StartIndex, bool bStopAtFirst);
 
@@ -104,8 +108,10 @@ protected:
 	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst);
 
 protected:
-	bool TryActivateFragment(FFlowYapFragment& Fragment);
-	
+	bool TryBroadcastFragmentAsPrompt(FFlowYapFragment& Fragment);
+
+	bool TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment);
+
 #if WITH_EDITOR
 public:
 	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;

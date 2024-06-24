@@ -201,8 +201,50 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 {
 	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
-		
+		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
+
+		TryBroadcastFragmentAsPrompt(Fragment);
 	}
+}
+
+void UFlowNode_YapDialogue::RunFragmentAsPrompt(uint8 FragmentIndex)
+{
+	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
+
+	if (!TryBroadcastFragmentAsDialogue(Fragment))
+	{
+		return;
+	}
+
+	UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
+	
+	TriggerOutput(FName("FragmentStart", FragmentIndex + 1));
+
+	const FFlowYapBit& Bit = Fragment.GetBit();
+
+	double Time = Bit.GetTime();
+
+	if (Time == 0)
+	{
+		UE_LOGFMT(FlowYap, Warning, "Encountered 0 time for fragment containing text: {0}, using project default minimum instead", Bit.GetDialogueText().ToString());
+		Time = UFlowYapProjectSettings::Get()->GetMinimumFragmentTime();
+	}
+
+	if (Time == 0)
+	{
+		OnFragmentComplete(FragmentIndex, true);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, true), Time, false);
+	}
+	
+#if WITH_EDITOR
+	UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
+	RunningFragmentIndex = FragmentIndex;
+	FragmentStartedTime = GetWorld()->GetTimeSeconds();
+#endif
+	return;
 }
 
 void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
@@ -211,7 +253,7 @@ void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
 	{
 		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-		if (!TryActivateFragment(Fragment))
+		if (!TryBroadcastFragmentAsDialogue(Fragment))
 		{
 			continue;
 		}
@@ -261,9 +303,9 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAt
 {
 	const FFlowYapBit& Bit = Fragments[FragmentIndex].GetBit();
 	
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentEnd(this, FragmentIndex);
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
 
-	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();// UFlowYapProjectSettings::Get()->GetFragmentPaddingTime();
+	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();
 
 	TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
 	
@@ -299,7 +341,7 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bSto
 	}
 }
 
-bool UFlowNode_YapDialogue::TryActivateFragment(FFlowYapFragment& Fragment)
+bool UFlowNode_YapDialogue::TryBroadcastFragmentAsPrompt(FFlowYapFragment& Fragment)
 {
 	if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
 	{
@@ -308,7 +350,21 @@ bool UFlowNode_YapDialogue::TryActivateFragment(FFlowYapFragment& Fragment)
 
 	Fragment.IncrementActivations();
 
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastFragmentStart(this, Fragment.GetIndexInDialogue());
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, Fragment.GetIndexInDialogue());
+
+	return true;
+}
+
+bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment)
+{
+	if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
+	{
+		return false;
+	}
+
+	Fragment.IncrementActivations();
+
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueStart(this, Fragment.GetIndexInDialogue());
 
 	return true;
 }

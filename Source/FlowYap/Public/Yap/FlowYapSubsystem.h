@@ -3,6 +3,8 @@
 
 #include "FlowYapSubsystem.generated.h"
 
+class UFlowNode_YapDialogue;
+struct FYapPromptHandle;
 class UFlowAsset;
 class IFlowYapConversationListener;
 struct FFlowYapBit;
@@ -61,6 +63,7 @@ friend class UFlowNode_YapDialogue;
 friend class UFlowNode_YapConversationStart;
 friend class UFlowNode_YapConversationEnd;
 friend struct FFlowYapFragment;
+friend struct FYapPromptHandle;
 	
 public:
 	UFlowYapSubsystem();
@@ -81,7 +84,7 @@ protected:
 	/**  */
 	UPROPERTY(Transient)
 	TMap<FGuid, FYapFragmentActivationCount> GlobalFragmentActivationCounts;
-
+	
 	// ------------------------------------------
 	// PUBLIC API
 public:
@@ -92,17 +95,21 @@ public:
 	void RemoveConversationListener(UObject* RemovedListener);
 
 	// ------------------------------------------
-	// FLOW YAP API - These are called by the flow node
+	// FLOW YAP API - These are called by Yap classes
 protected:
 	bool StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by ConversationStart node
 
 	void EndCurrentConversation(); // Called by ConversationEnd node
 
-	void BroadcastFragmentStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
+	void BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
 
-	void BroadcastFragmentEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
+	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
+
+	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
 
 	int32 GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
+
+	void ActivatePrompt(FYapPromptHandle& Handle);
 
 public:
 	bool FragmentGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex) const;
