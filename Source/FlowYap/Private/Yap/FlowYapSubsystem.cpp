@@ -103,12 +103,6 @@ void UFlowYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 F
 	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
 	const FFlowYapBit& Bit = Fragment->GetBit();
 
-	// GOD THERE IS SO MUCH UGLY SHIT HERE TODO
-	FYapFragmentActivationCount& FragmentActivationCount = GlobalFragmentActivationCounts.FindOrAdd(DialogueGUID);
-
-	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
-	Count += 1;
-
 	FGameplayTag ConversationName;
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
@@ -131,9 +125,7 @@ void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, 
 	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
 	const FFlowYapBit& Bit = Fragment->GetBit();
 
-	// GOD THERE IS SO MUCH UGLY SHIT HERE TODO
 	FYapFragmentActivationCount& FragmentActivationCount = GlobalFragmentActivationCounts.FindOrAdd(DialogueGUID);
-
 	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
 	Count += 1;
 
@@ -190,26 +182,9 @@ int32 UFlowYapSubsystem::GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDi
 
 void UFlowYapSubsystem::ActivatePrompt(FYapPromptHandle& Handle)
 {
-	BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
+	//BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
 
-	Handle.DialogueNode->RunFragmentAsPrompt(Handle.FragmentIndex);
-}
-
-bool UFlowYapSubsystem::FragmentGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex) const
-{
-	const FYapFragmentActivationCount* DialogueCounts = GlobalFragmentActivationCounts.Find(Dialogue->GetGuid());
-
-	if (DialogueCounts)
-	{
-		const int32* Count = DialogueCounts->Counts.Find(FragmentIndex);
-
-		if (Count)
-		{
-			return *Count < Dialogue->GetFragmentByIndex(FragmentIndex)->GetGlobalActivationLimit();
-		}
-	}
-	
-	return false;
+	Handle.DialogueNode->RunPromptAsDialogue(Handle.FragmentIndex);
 }
 
 // =====================================================================================================

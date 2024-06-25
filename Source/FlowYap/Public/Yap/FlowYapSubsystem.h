@@ -112,9 +112,6 @@ protected:
 	void ActivatePrompt(FYapPromptHandle& Handle);
 
 public:
-	bool FragmentGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex) const;
-	
-public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 protected:

@@ -163,7 +163,7 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 	else
 	{
-		RunFragmentsAsDialogue(0, FragmentSequencing);
+		RunFragmentsAsDialogue(0, FragmentSequencing, false);
 	}
 }
 
@@ -183,6 +183,8 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
+	TArray<uint8> BroadcastedFragments;
+	
  	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
 		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
@@ -192,21 +194,35 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 			continue;
 		}
 
-		Fragment.IncrementActivations();
-
 		GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, Fragment.GetIndexInDialogue());
+ 		
+		BroadcastedFragments.Add(FragmentIndex);
+	}
+
+	if (BroadcastedFragments.Num() == 0)
+	{
+		TriggerOutput(FName("Bypass"), true);
+	}
+	else if (BroadcastedFragments.Num() == 1)
+	{
+		// TODO - auto select last option. Project setting? Overridable in dialogue node???
 	}
 }
 
-void UFlowNode_YapDialogue::RunFragmentAsPrompt(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::RunPromptAsDialogue(uint8 FragmentIndex)
 {
-	RunFragment(FragmentIndex, EFlowYapMultipleFragmentSequencing::Prompt);
+	if (!RunFragment(FragmentIndex, EFlowYapMultipleFragmentSequencing::Prompt))
+	{
+		// TODO log error? This should never happen?
+		
+		TriggerOutput(FName("Bypass"), true);
+	}
 }
 
 // ================================================================================================
 
-void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
-{	
+void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode, bool bSuccess)
+{
 	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
 		if (RunFragment(FragmentIndex, SequencingMode))
@@ -215,17 +231,13 @@ void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMul
 		}
 	}
 
-	// TODO edge case if the bottom fragments null out first?
-	if (StartIndex >= Fragments.Num())
+	if (bSuccess)
 	{
-		TriggerOutput(FName("Out"), true);		
+		TriggerOutput(FName("Out"), true);
 	}
-	else
+	else 
 	{
-		if (SequencingMode != EFlowYapMultipleFragmentSequencing::Prompt)
-		{
-			TriggerOutput(FName("Bypass"), true);
-		}
+		TriggerOutput(FName("Bypass"), true);
 	}
 }
 
@@ -301,14 +313,23 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
 	RunningFragmentIndex.Reset();
 #endif
-	
-	if (SequencingMode == EFlowYapMultipleFragmentSequencing::Sequential)
+
+	switch (SequencingMode)
 	{
-		RunFragmentsAsDialogue(FragmentIndex + 1, SequencingMode);
-	}
-	else
-	{
-		TriggerOutput(FName("Out"), true);		
+	case EFlowYapMultipleFragmentSequencing::Sequential:
+		{
+			RunFragmentsAsDialogue(FragmentIndex + 1, SequencingMode, true);
+			break;
+		}
+	case EFlowYapMultipleFragmentSequencing::SelectOne:
+		{
+			TriggerOutput(FName("Out"), true);		
+			break;
+		}
+	case EFlowYapMultipleFragmentSequencing::Prompt:
+		{
+			break;
+		}
 	}
 }
 

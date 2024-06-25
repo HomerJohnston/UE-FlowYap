@@ -101,9 +101,9 @@ protected:
 	void BroadcastPrompts();
 
 protected:
-	void RunFragmentAsPrompt(uint8 Uint8);
+	void RunPromptAsDialogue(uint8 Uint8);
 
-	void RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
+	void RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode, bool bSuccess);
 
 	bool RunFragment(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
 

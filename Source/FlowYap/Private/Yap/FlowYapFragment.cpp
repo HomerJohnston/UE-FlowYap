@@ -44,7 +44,7 @@ int32 FFlowYapFragment::GetGlobalActivationCount(UFlowNode_YapDialogue* Dialogue
 
 bool FFlowYapFragment::IsGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const
 {
-	if (GlobalActivationLimit == 0)
+	if (GlobalActivationLimit <= 0)
 	{
 		return false;
 	}
