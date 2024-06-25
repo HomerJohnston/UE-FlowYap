@@ -13,6 +13,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 {
 	Sequential	,
 	SelectOne	,
+	Prompt		,
 	COUNT		UMETA(Hidden)
 };
 
@@ -47,7 +48,7 @@ protected:
 	int32 NodeActivationLimit;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, meta = (EditCondition = "!bIsPlayerPrompt", EditConditionHides))
-	EFlowYapMultipleFragmentSequencing MultipleFragmentSequencing;
+	EFlowYapMultipleFragmentSequencing FragmentSequencing;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
 	EFlowYapInterruptible Interruptible;
@@ -99,17 +100,18 @@ public:
 protected:
 	void BroadcastPrompts();
 
+protected:
 	void RunFragmentAsPrompt(uint8 Uint8);
 
-	void Run(uint8 StartIndex, bool bStopAtFirst);
+	void RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
 
-	void OnFragmentComplete(uint8 FragmentIndex, bool bStopAtFirst);
+	bool RunFragment(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
 
-	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst);
+	void OnFragmentComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
+
+	void OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
 
 protected:
-	bool TryBroadcastFragmentAsPrompt(FFlowYapFragment& Fragment);
-
 	bool TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment);
 
 #if WITH_EDITOR

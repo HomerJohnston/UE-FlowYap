@@ -21,7 +21,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	
 	NodeActivationLimit = 0;
 	
-	MultipleFragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
+	FragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
 
 	Interruptible = EFlowYapInterruptible::UseProjectDefaults;
 
@@ -163,25 +163,7 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 	else
 	{
-		switch (MultipleFragmentSequencing)
-		{
-		case EFlowYapMultipleFragmentSequencing::Sequential:
-			{
-				Run(0, false);
-			
-				break;
-			}
-		case EFlowYapMultipleFragmentSequencing::SelectOne:
-			{
-				Run(0, true);
-
-				break;
-			}
-		default:
-			{
-				break;
-			}
-		}
+		RunFragmentsAsDialogue(0, FragmentSequencing);
 	}
 }
 
@@ -197,27 +179,67 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	}
 }
 
+// ================================================================================================
+
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
-	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
+ 	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
 		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-		TryBroadcastFragmentAsPrompt(Fragment);
+		if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
+		{
+			continue;
+		}
+
+		Fragment.IncrementActivations();
+
+		GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, Fragment.GetIndexInDialogue());
 	}
 }
 
 void UFlowNode_YapDialogue::RunFragmentAsPrompt(uint8 FragmentIndex)
 {
+	RunFragment(FragmentIndex, EFlowYapMultipleFragmentSequencing::Prompt);
+}
+
+// ================================================================================================
+
+void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+{	
+	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
+	{
+		if (RunFragment(FragmentIndex, SequencingMode))
+		{
+			return;
+		}
+	}
+
+	// TODO edge case if the bottom fragments null out first?
+	if (StartIndex >= Fragments.Num())
+	{
+		TriggerOutput(FName("Out"), true);		
+	}
+	else
+	{
+		if (SequencingMode != EFlowYapMultipleFragmentSequencing::Prompt)
+		{
+			TriggerOutput(FName("Bypass"), true);
+		}
+	}
+}
+
+bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+{
 	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
 	if (!TryBroadcastFragmentAsDialogue(Fragment))
 	{
-		return;
+		return false;
 	}
 
 	UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
-	
+		
 	TriggerOutput(FName("FragmentStart", FragmentIndex + 1));
 
 	const FFlowYapBit& Bit = Fragment.GetBit();
@@ -232,75 +254,24 @@ void UFlowNode_YapDialogue::RunFragmentAsPrompt(uint8 FragmentIndex)
 
 	if (Time == 0)
 	{
-		OnFragmentComplete(FragmentIndex, true);
+		OnFragmentComplete(FragmentIndex, SequencingMode);
 	}
 	else
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, true), Time, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, SequencingMode), Time, false);
 	}
-	
+		
 #if WITH_EDITOR
 	UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
 	RunningFragmentIndex = FragmentIndex;
 	FragmentStartedTime = GetWorld()->GetTimeSeconds();
 #endif
-	return;
+
+	return true;
 }
 
-void UFlowNode_YapDialogue::Run(uint8 StartIndex, bool bStopAtFirst)
-{
-	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
-	{
-		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
-
-		if (!TryBroadcastFragmentAsDialogue(Fragment))
-		{
-			continue;
-		}
-
-		UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
-		
-		TriggerOutput(FName("FragmentStart", FragmentIndex + 1));
-
-		const FFlowYapBit& Bit = Fragment.GetBit();
-
-		double Time = Bit.GetTime();
-
-		if (Time == 0)
-		{
-			UE_LOGFMT(FlowYap, Warning, "Encountered 0 time for fragment containing text: {0}, using project default minimum instead", Bit.GetDialogueText().ToString());
-			Time = UFlowYapProjectSettings::Get()->GetMinimumFragmentTime();
-		}
-
-		if (Time == 0)
-		{
-			OnFragmentComplete(FragmentIndex, bStopAtFirst);
-		}
-		else
-		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, bStopAtFirst), Time, false);
-		}
-		
-#if WITH_EDITOR
-		UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
-		RunningFragmentIndex = FragmentIndex;
-		FragmentStartedTime = GetWorld()->GetTimeSeconds();
-#endif
-		return;
-	}
-
-	if (StartIndex >= Fragments.Num())
-	{
-		TriggerOutput(FName("Out"), true);		
-	}
-	else
-	{
-		TriggerOutput(FName("Bypass"), true);
-	}
-}
-
-void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAtFirst)
-{
+void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+{	
 	const FFlowYapBit& Bit = Fragments[FragmentIndex].GetBit();
 	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
@@ -311,11 +282,11 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAt
 	
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, bStopAtFirst), PaddingTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, SequencingMode), PaddingTime, false);
 	}
 	else
 	{
-		OnPaddingTimeComplete(FragmentIndex, bStopAtFirst);
+		OnPaddingTimeComplete(FragmentIndex, SequencingMode);
 	}
 
 #if WITH_EDITOR
@@ -324,35 +295,21 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bStopAt
 }
 
 
-void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bStopAtFirst)
+void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
 {
 #if WITH_EDITOR
 	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
 	RunningFragmentIndex.Reset();
 #endif
 	
-	if (!bStopAtFirst)
+	if (SequencingMode == EFlowYapMultipleFragmentSequencing::Sequential)
 	{
-		Run(FragmentIndex + 1, bStopAtFirst);
+		RunFragmentsAsDialogue(FragmentIndex + 1, SequencingMode);
 	}
 	else
 	{
 		TriggerOutput(FName("Out"), true);		
 	}
-}
-
-bool UFlowNode_YapDialogue::TryBroadcastFragmentAsPrompt(FFlowYapFragment& Fragment)
-{
-	if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
-	{
-		return false;
-	}
-
-	Fragment.IncrementActivations();
-
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, Fragment.GetIndexInDialogue());
-
-	return true;
 }
 
 bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment)
@@ -443,7 +400,7 @@ bool UFlowNode_YapDialogue::GetUsesMultipleOutputs()
 
 EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing() const
 {
-	return MultipleFragmentSequencing;
+	return FragmentSequencing;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
@@ -491,14 +448,14 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 
 void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
-	uint8 AsInt = static_cast<uint8>(MultipleFragmentSequencing);
+	uint8 AsInt = static_cast<uint8>(FragmentSequencing);
 
 	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
 	{
 		AsInt = 0;
 	}
 
-	MultipleFragmentSequencing = static_cast<EFlowYapMultipleFragmentSequencing>(AsInt);
+	FragmentSequencing = static_cast<EFlowYapMultipleFragmentSequencing>(AsInt);
 }
 
 void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)

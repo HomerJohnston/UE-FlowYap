@@ -22,6 +22,6 @@ public:
 
 	UPROPERTY(Transient)
 	uint8 FragmentIndex;
-	
+
 	void Select(UObject* WorldContextObject);
 };
