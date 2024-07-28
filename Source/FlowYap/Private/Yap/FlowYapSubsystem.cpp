@@ -15,7 +15,7 @@
 FFlowYapActiveConversation::FFlowYapActiveConversation()
 {
 	FlowAsset = nullptr;
-	Conversation = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Conversation");
+	Conversation = FGameplayTag::EmptyTag;
 }
 
 bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
@@ -73,6 +73,46 @@ void UFlowYapSubsystem::RemoveConversationListener(UObject* RemovedListener)
 {
 	Listeners.Remove(RemovedListener);
 }
+
+void UFlowYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode)
+{
+	if (TaggedFragments.Contains(FragmentTag))
+	{
+		UE_LOGFMT(FlowYap, Warning, "Tried to register tagged fragment with tag [{0}] but this tag was already registered! Find and fix the duplicate tag usage.", FragmentTag.ToString()); // TODO if I pass in the full fragment I could log the dialogue text to make this easier for designers?
+		return;
+	}
+	
+	TaggedFragments.Add(FragmentTag, DialogueNode);
+}
+
+FFlowYapFragment* UFlowYapSubsystem::FindTaggedFragment(const FGameplayTag& FragmentTag)
+{
+	UFlowNode_YapDialogue** DialoguePtr = TaggedFragments.Find(FragmentTag);
+
+	if (DialoguePtr)
+	{
+		return (*DialoguePtr)->FindTaggedFragment(FragmentTag);
+	}
+
+	return nullptr;
+}
+
+void UFlowYapSubsystem::RegisterBitReplacement(const FGameplayTag& FragmentTag, FFlowYapBitReplacement& BitReplacement)
+{
+	BitReplacements.Add(FragmentTag, BitReplacement);
+}
+
+void UFlowYapSubsystem::ClearBitReplacement(const FGameplayTag& FragmentTag)
+{
+	BitReplacements.Remove(FragmentTag);
+}
+
+FFlowYapBitReplacement* UFlowYapSubsystem::GetBitReplacement(const FGameplayTag& FragmentTag)
+{
+	return BitReplacements.Find(FragmentTag);	
+}
+
+
 
 bool UFlowYapSubsystem::StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {

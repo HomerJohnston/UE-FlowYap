@@ -36,14 +36,14 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	FFlowYapBit Bit;
-
-	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
-	int32 LocalActivationLimit = 0;
-
+	
 	/** How many times is this fragment allowed to broadcast? This count persists in the world scope (resets on level load). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 GlobalActivationLimit = 0;
+	
+	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	int32 LocalActivationLimit = 0;
 	
 	UPROPERTY(EditAnywhere)
 	FGameplayTag FragmentTag;
@@ -62,6 +62,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 LocalActivationCount = 0;
+
+#if WITH_EDITORONLY_DATA
+protected:
+	bool bBitReplaced = false;
+#endif
 
 	// ==========================================
 	// API
@@ -85,6 +90,10 @@ public:
 	const TOptional<uint8>& GetCommonPaddingSetting() const { return CommonPaddingSetting; }
 	
 	void IncrementActivations();
+
+	const FGameplayTag& GetFragmentTag() const { return FragmentTag; } 
+
+	void ReplaceBit(const FFlowYapBitReplacement& ReplacementBit);
 	
 #if WITH_EDITOR
 public:
@@ -105,5 +114,6 @@ public:
 
 	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
 
+	bool GetBitReplaced() const { return bBitReplaced; }
 #endif
 };

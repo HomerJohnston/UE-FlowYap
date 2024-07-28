@@ -5,6 +5,7 @@
 #include "FlowYapBit.generated.h"
 
 class UFlowYapCharacter;
+struct FFlowYapBitReplacement;
 
 UENUM(BlueprintType)
 enum class EFlowYapInterruptible : uint8
@@ -20,6 +21,8 @@ struct FLOWYAP_API FFlowYapBit
 {
 	GENERATED_BODY()
 
+	FFlowYapBit();
+	
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
 protected:
@@ -74,10 +77,10 @@ public:
 	const FSlateBrush* GetSpeakerPortraitBrush() const;; // TODO make sure this works
 
 #if WITH_EDITOR
-	FName GetMoodKey();
-#else
+	FName GetMoodKeyLazyInit();
+#endif
+
 	FName GetMoodKey() const;
-#endif	
 
 	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetInterruptible() const;
@@ -94,6 +97,9 @@ protected:
 	double GetTextTime() const;
 
 	double GetAudioTime() const { return CachedAudioTime; }
+
+public:
+	FFlowYapBit& operator=(const FFlowYapBitReplacement& Replacement);
 	
 	// --------------------------------------------------------------------------------------------
 	// EDITOR API

@@ -1,6 +1,7 @@
 #pragma once
 #include "Nodes/FlowNode.h"
 #include "Yap/FlowYapFragment.h"
+#include "Yap/FlowYapBitReplacement.h"
 
 #include "FlowNode_YapReplaceFragment.generated.h"
 
@@ -13,25 +14,13 @@ class FLOWYAP_API UFlowNode_YapReplaceFragment : public UFlowNode
 
 protected:
 	UPROPERTY(EditAnywhere)
-	FName PromptName;
+	FGameplayTag TargetFragmentTag;
+
+	UPROPERTY(EditAnywhere)
+	bool bReplacePermanently = true;
 	
 	UPROPERTY(EditAnywhere)
-	FName DialogueEntry;
-
-	UPROPERTY(EditAnywhere)
-	FGuid DialogueNodeGUID;
-
-	UPROPERTY(EditAnywhere)
-	FFlowYapFragment NewFragment;
-
-	UPROPERTY(EditAnywhere)
-	FGameplayTag TargetPrompt;
-
-	UPROPERTY(EditAnywhere)
-	FGameplayTag TargetFragment;
-	
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
+	FFlowYapBitReplacement NewData;
 
 public:
 	UFlowNode_YapReplaceFragment();
@@ -40,6 +29,8 @@ public:
 
 	FString GetNodeCategory() const override;
 
+	virtual void ExecuteInput(const FName& PinName) override;
+	
 #if WITH_EDITOR
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 #endif

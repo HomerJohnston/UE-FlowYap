@@ -55,7 +55,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag DialogueTag;
-		
+	
 	// STATE
 protected:
 	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
@@ -85,6 +85,8 @@ public:
 	uint8 GetNumFragments() const;
 
 	int16 FindFragmentIndex(FFlowYapFragment* Fragment) const;
+
+	FFlowYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
 	
 	// -------------------
 
@@ -124,6 +126,8 @@ public:
 	
 	void AddFragment();
 
+	FText GetNodeTitle() const override;
+	
 	bool GetDynamicTitleColor(FLinearColor& OutColor) const override;
 
 	bool CanUserAddInput() const override { return false; }

@@ -38,12 +38,10 @@ FYapEditorStyle::~FYapEditorStyle()
 
 void FYapEditorStyle::OnPatchComplete()
 {
-	/*
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 	Initialize();
 
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
-	*/
 }
 
 void FYapEditorStyle::Initialize()
@@ -58,6 +56,7 @@ void FYapEditorStyle::Initialize()
 	Set("ImageBrush.Icon.AudioTime",	new IMAGE_BRUSH("DialogueNodeIcons/AudioTime",	Icon16));
 	Set("ImageBrush.Icon.TextTime",		new IMAGE_BRUSH("DialogueNodeIcons/TextTime",	Icon16));
 	Set("ImageBrush.Icon.Timer",		new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
+	Set("ImageBrush.Icon.LocalLimit",	new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
 
 	Set("SliderStyle.FragmentTimePadding", FSliderStyle(FSliderStyle::GetDefault())
 		.SetBarThickness(0.f)
@@ -67,6 +66,13 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::LightGray))
 		);
 
+	Set("ButtonStyle.ActivationLimit", FButtonStyle(FButtonStyle::GetDefault())
+		.SetNormal(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DeepGray_SemiTrans))
+		.SetHovered(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DarkGray_Trans))
+		.SetPressed(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DimGray_Trans))
+		.SetNormalPadding(0)
+		.SetPressedPadding(0));
+		
 	Set("ProgressBarStyle.FragmentTimePadding", FProgressBarStyle()
 	.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
 	.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))

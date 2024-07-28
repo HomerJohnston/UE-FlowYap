@@ -1,11 +1,24 @@
 #include "Yap/FlowYapBit.h"
 
+#include "Yap/FlowYapBitReplacement.h"
 #include "Yap/FlowYapCharacter.h"
 #include "Yap/FlowYapProjectSettings.h"
 #include "Yap/FlowYapTextCalculator.h"
 
 // --------------------------------------------------------------------------------------------
 // PUBLIC API
+
+FFlowYapBit::FFlowYapBit()
+{
+#if WITH_EDITOR
+	const TArray<FName>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
+
+	if (Keys.Num() > 0)
+	{
+		MoodKey = Keys[0];
+	}
+#endif
+}
 
 #if WITH_EDITOR
 const FSlateBrush* FFlowYapBit::GetSpeakerPortraitBrush() const
@@ -18,7 +31,7 @@ const FSlateBrush* FFlowYapBit::GetSpeakerPortraitBrush() const
 	return nullptr;
 }
 
-FName FFlowYapBit::GetMoodKey()
+FName FFlowYapBit::GetMoodKeyLazyInit()
 {
 	if (MoodKey == NAME_None)
 	{
@@ -32,12 +45,12 @@ FName FFlowYapBit::GetMoodKey()
 	
 	return MoodKey;
 }
-#else
+#endif
+
 FName FFlowYapBit::GetMoodKey() const
 {
 	return MoodKey;
 }
-#endif
 
 bool FFlowYapBit::GetInterruptible() const
 {
@@ -98,6 +111,33 @@ double FFlowYapBit::GetTextTime() const
 			
 	double Min = ProjectSettings->GetMinimumAutoTextTimeLength();
 	return FMath::Max(CachedWordCount * SecondsPerWord, Min);
+}
+
+
+// --------------------------------------------------------------------------------------------
+// Public
+
+#define REPLACE(X) if (Replacement.X.IsSet()) {X = Replacement.X.GetValue(); }  
+
+FFlowYapBit& FFlowYapBit::operator=(const FFlowYapBitReplacement& Replacement)
+{
+	REPLACE(Character);
+	REPLACE(TitleText);
+	
+	if (Replacement.DialogueText.IsSet())
+	{
+		DialogueText = Replacement.DialogueText.GetValue();
+	};
+	
+	REPLACE(DialogueAudioAsset);
+	REPLACE(MoodKey);
+	REPLACE(bUseProjectDefaultTimeSettings);
+	REPLACE(TimeMode);
+	REPLACE(ManualTime);
+	REPLACE(CachedWordCount);
+	REPLACE(CachedAudioTime);
+	
+	return *this;
 }
 
 // --------------------------------------------------------------------------------------------

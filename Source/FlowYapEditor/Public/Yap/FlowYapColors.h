@@ -30,6 +30,8 @@ namespace YapColor
 	DECLARE_COLOR(DarkOrange,		0.280, 0.180, 0.040);
 	DECLARE_COLOR(DeepOrange,		0.100, 0.050, 0.010);
 
+	DECLARE_COLOR(LightYellow,		0.900, 0.850, 0.250);
+	
 	DECLARE_COLOR(LightRed,			0.950, 0.340, 0.420);
 	DECLARE_COLOR(Red,				0.950, 0.040, 0.060);
 	DECLARE_COLOR(DarkRed,			0.250, 0.010, 0.030);

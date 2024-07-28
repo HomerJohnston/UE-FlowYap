@@ -68,6 +68,7 @@ protected:
 	
 	EVisibility			GlobalActivationLimiter_Visibility() const;
 	EVisibility			GlobalActivationDot_Visibility() const;
+	FSlateColor			GlobalActivationEarth_ColorAndOpacity() const;
 	FSlateColor			GlobalActivationDot_ColorAndOpacity() const;
 	FReply				GlobalActivationDot_OnClicked();
 	

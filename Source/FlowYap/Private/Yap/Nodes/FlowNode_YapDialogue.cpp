@@ -123,6 +123,19 @@ int16 UFlowNode_YapDialogue::FindFragmentIndex(FFlowYapFragment* InFragment) con
 	return INDEX_NONE;
 }
 
+FFlowYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
+{
+	for (FFlowYapFragment& Fragment : Fragments)
+	{
+		if (Fragment.GetFragmentTag() == Tag)
+		{
+			return &Fragment;
+		}
+	}
+
+	return nullptr;
+}
+
 bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
 {
 	return bIsPlayerPrompt;
@@ -140,9 +153,23 @@ int32 UFlowNode_YapDialogue::GetNodeActivationLimit() const
 
 void UFlowNode_YapDialogue::InitializeInstance()
 {
-	UE_LOG(FlowYap, Warning, TEXT("InitializeInstance"));
-
 	Super::InitializeInstance();
+
+	for (FFlowYapFragment& Fragment : Fragments)
+	{
+		if (Fragment.GetFragmentTag().IsValid())
+		{
+			UFlowYapSubsystem* Subsystem = GetWorld()->GetSubsystem<UFlowYapSubsystem>();
+			Subsystem->RegisterTaggedFragment(Fragment.GetFragmentTag(), this);
+			
+			FFlowYapBitReplacement* BitReplacement = Subsystem->GetBitReplacement(Fragment.GetFragmentTag());
+
+			if (BitReplacement)
+			{
+				Fragment.ReplaceBit(*BitReplacement);
+			}
+		}
+	}
 }
 
 void UFlowNode_YapDialogue::OnActivate()
@@ -231,7 +258,7 @@ void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMul
 		}
 	}
 
-	if (bSuccess)
+	if (bSuccess && GetConnection("Out").NodeGuid.IsValid())
 	{
 		TriggerOutput(FName("Out"), true);
 	}
@@ -323,7 +350,15 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 		}
 	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			TriggerOutput(FName("Out"), true);		
+			if (GetConnection("Out").NodeGuid.IsValid())
+			{
+				TriggerOutput(FName("Out"), true);
+			}
+			else 
+			{
+				TriggerOutput(FName("Bypass"), true);
+			}
+
 			break;
 		}
 	case EFlowYapMultipleFragmentSequencing::Prompt:
@@ -385,6 +420,16 @@ void UFlowNode_YapDialogue::AddFragment()
 
 	OnReconstructionRequested.ExecuteIfBound();
 	*/
+}
+
+FText UFlowNode_YapDialogue::GetNodeTitle() const
+{
+	if (IsTemplate())
+	{
+		return FText::FromString("Dialogue");
+	}
+
+	return FText::FromString("Yap Dialogue");
 }
 
 #if WITH_EDITOR

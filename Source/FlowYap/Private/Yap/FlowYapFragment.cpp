@@ -72,6 +72,13 @@ void FFlowYapFragment::IncrementActivations()
 	LocalActivationCount++;
 }
 
+void FFlowYapFragment::ReplaceBit(const FFlowYapBitReplacement& ReplacementBit)
+{
+	Bit = ReplacementBit;
+
+	bBitReplaced = true;
+}
+
 #if WITH_EDITOR
 void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {

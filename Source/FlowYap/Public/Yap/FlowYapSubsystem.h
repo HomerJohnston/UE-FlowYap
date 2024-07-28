@@ -1,6 +1,6 @@
 #pragma once
 #include "GameplayTagContainer.h"
-
+#include "Yap/FlowYapBitReplacement.h"
 #include "FlowYapSubsystem.generated.h"
 
 class UFlowNode_YapDialogue;
@@ -84,7 +84,15 @@ protected:
 	/**  */
 	UPROPERTY(Transient)
 	TMap<FGuid, FYapFragmentActivationCount> GlobalFragmentActivationCounts;
-	
+
+	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, UFlowNode_YapDialogue*> TaggedFragments;
+
+	/** Stores overrides of bit replacements. Can only store one at a time, new assignments simply replace the old one. */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, FFlowYapBitReplacement> BitReplacements;
+
 	// ------------------------------------------
 	// PUBLIC API
 public:
@@ -94,6 +102,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveConversationListener(UObject* RemovedListener);
 
+	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
+
+	FFlowYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
+
+	void RegisterBitReplacement(const FGameplayTag& FragmentTag, FFlowYapBitReplacement& BitReplacement);
+
+	void ClearBitReplacement(const FGameplayTag& FragmentTag);
+
+	FFlowYapBitReplacement* GetBitReplacement(const FGameplayTag& FragmentTag);
+	
 	// ------------------------------------------
 	// FLOW YAP API - These are called by Yap classes
 protected:
