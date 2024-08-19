@@ -27,11 +27,6 @@ void UFlowNode_YapReplaceFragment::ExecuteInput(const FName& PinName)
 {
 	Super::ExecuteInput(PinName);
 
-	if (bReplacePermanently)
-	{
-		GetWorld()->GetSubsystem<UFlowYapSubsystem>()->RegisterBitReplacement(TargetFragmentTag, NewData);
-	}
-
 	// TODO is this a bad idea? Can I save the changes to the flow node? Other systems Moth made do it so maybe it's 
 	FFlowYapFragment* Fragment = GetWorld()->GetSubsystem<UFlowYapSubsystem>()->FindTaggedFragment(TargetFragmentTag);
 

@@ -15,9 +15,6 @@ class FLOWYAP_API UFlowNode_YapReplaceFragment : public UFlowNode
 protected:
 	UPROPERTY(EditAnywhere)
 	FGameplayTag TargetFragmentTag;
-
-	UPROPERTY(EditAnywhere)
-	bool bReplacePermanently = true;
 	
 	UPROPERTY(EditAnywhere)
 	FFlowYapBitReplacement NewData;

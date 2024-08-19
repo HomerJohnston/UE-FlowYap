@@ -109,15 +109,6 @@ public:
 	/**  */
 	FFlowYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
 
-	/**  */
-	void RegisterBitReplacement(const FGameplayTag& FragmentTag, FFlowYapBitReplacement& BitReplacement);
-
-	/**  */
-	void ClearBitReplacement(const FGameplayTag& FragmentTag);
-
-	/**  */
-	FFlowYapBitReplacement* GetBitReplacement(const FGameplayTag& FragmentTag);
-	
 	// ------------------------------------------
 	// FLOW YAP API - These are called by Yap classes
 protected:

@@ -101,23 +101,6 @@ FFlowYapFragment* UFlowYapSubsystem::FindTaggedFragment(const FGameplayTag& Frag
 	return nullptr;
 }
 
-void UFlowYapSubsystem::RegisterBitReplacement(const FGameplayTag& FragmentTag, FFlowYapBitReplacement& BitReplacement)
-{
-	BitReplacements.Add(FragmentTag, BitReplacement);
-}
-
-void UFlowYapSubsystem::ClearBitReplacement(const FGameplayTag& FragmentTag)
-{
-	BitReplacements.Remove(FragmentTag);
-}
-
-FFlowYapBitReplacement* UFlowYapSubsystem::GetBitReplacement(const FGameplayTag& FragmentTag)
-{
-	return BitReplacements.Find(FragmentTag);	
-}
-
-
-
 bool UFlowYapSubsystem::StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {
 	return ActiveConversation.StartConversation(OwningAsset, Conversation);

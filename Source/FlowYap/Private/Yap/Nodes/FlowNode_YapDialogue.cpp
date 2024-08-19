@@ -161,13 +161,6 @@ void UFlowNode_YapDialogue::InitializeInstance()
 		{
 			UFlowYapSubsystem* Subsystem = GetWorld()->GetSubsystem<UFlowYapSubsystem>();
 			Subsystem->RegisterTaggedFragment(Fragment.GetFragmentTag(), this);
-			
-			FFlowYapBitReplacement* BitReplacement = Subsystem->GetBitReplacement(Fragment.GetFragmentTag());
-
-			if (BitReplacement)
-			{
-				Fragment.ReplaceBit(*BitReplacement);
-			}
 		}
 	}
 }

@@ -69,8 +69,9 @@ protected:
 	
 	// ---------------------------------------------------
 	TSharedRef<SBox>	CreateActivationLimiterWidget();
-	
+
 	EVisibility			ActivationLimiter_Visibility() const;
+	FText				ActivationLimiter_Text() const;	
 	EVisibility			ActivationDot_Visibility() const;
 	FSlateColor			ActivationDot_ColorAndOpacity() const;
 	FReply				ActivationDot_OnClicked();
@@ -168,8 +169,6 @@ protected:
 
 	bool FragmentFocused() const;
 
-	FFlowYapBitReplacement* GetBitReplacement() const;
-	
 	// ------------------------------------------
 	// OVERRIDES
 public:
