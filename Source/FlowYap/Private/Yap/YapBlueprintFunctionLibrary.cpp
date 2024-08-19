@@ -7,5 +7,5 @@
 
 void UYapBlueprintFunctionLibrary::SelectPrompt(FYapPromptHandle Handle)
 {
-	Handle.Select(GEditor->PlayWorld);
+	Handle.RunPrompt(GEditor->PlayWorld);
 }

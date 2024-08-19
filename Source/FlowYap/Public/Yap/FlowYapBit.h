@@ -110,11 +110,11 @@ public:
 	void SetCharacter(TSoftObjectPtr<UFlowYapCharacter> InCharacter) { Character = InCharacter; }
 	
 	void SetTitleText(const FText& InText) { TitleText = InText; }
-
+	
 	void SetDialogueText(const FText& InText);
-
+	
 	void SetDialogueAudioAsset(UObject* InAsset);
-
+	
 	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
 	
 	void SetMoodKey(const FName& NewValue) { MoodKey = NewValue; };

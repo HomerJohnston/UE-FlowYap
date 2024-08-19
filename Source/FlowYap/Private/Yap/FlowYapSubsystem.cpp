@@ -8,7 +8,7 @@
 #include "Logging/StructuredLog.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapLog.h"
-#include "Yap/IFlowYapConversationListener.h"
+#include "..\..\Public\Yap\FlowYapConversationHandler.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
@@ -61,15 +61,19 @@ UFlowYapSubsystem::UFlowYapSubsystem()
 {
 }
 
-void UFlowYapSubsystem::AddConversationListener(UObject* NewListener)
+void UFlowYapSubsystem::AddConversationHandler(UObject* NewListener)
 {
-	if (NewListener->Implements<UFlowYapConversationListener>())
+	if (NewListener->Implements<UFlowYapConversationHandler>())
 	{
 		Listeners.AddUnique(NewListener);
 	}
+	else
+	{
+		UE_LOGFMT(FlowYap, Warning, "Tried to register a conversation handler, {0} but it does not implement the FlowYapConversationHandler interface!");
+	}
 }
 
-void UFlowYapSubsystem::RemoveConversationListener(UObject* RemovedListener)
+void UFlowYapSubsystem::RemoveConversationHandler(UObject* RemovedListener)
 {
 	Listeners.Remove(RemovedListener);
 }
@@ -155,7 +159,7 @@ void UFlowYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 F
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IFlowYapConversationListener::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
+		IFlowYapConversationHandler::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
 	}
 }
 
@@ -164,10 +168,6 @@ void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, 
 	FGuid DialogueGUID = Dialogue->GetGuid();
 	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
 	const FFlowYapBit& Bit = Fragment->GetBit();
-
-	FYapFragmentActivationCount& FragmentActivationCount = GlobalFragmentActivationCounts.FindOrAdd(DialogueGUID);
-	int32& Count = FragmentActivationCount.Counts.FindOrAdd(FragmentIndex);
-	Count += 1;
 
 	FGameplayTag ConversationName;
 
@@ -179,7 +179,7 @@ void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, 
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IFlowYapConversationListener::Execute_OnDialogueStart(Listener, ConversationName, Bit);
+		IFlowYapConversationHandler::Execute_OnDialogueStart(Listener, ConversationName, Bit);
 	}
 }
 
@@ -197,30 +197,11 @@ void UFlowYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerD
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IFlowYapConversationListener::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
+		IFlowYapConversationHandler::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
 	}
 }
 
-int32 UFlowYapSubsystem::GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
-{
-	FGuid DialogueGUID = OwnerDialogue->GetGuid();
-
-	FYapFragmentActivationCount* FragmentActivationCount = GlobalFragmentActivationCounts.Find(DialogueGUID);
-
-	if (FragmentActivationCount)
-	{
-		int32* Count = FragmentActivationCount->Counts.Find(FragmentIndex);
-
-		if (Count)
-		{
-			return *Count;
-		}
-	}
-
-	return 0;
-}
-
-void UFlowYapSubsystem::ActivatePrompt(FYapPromptHandle& Handle)
+void UFlowYapSubsystem::RunPrompt(FYapPromptHandle& Handle)
 {
 	//BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
 
@@ -240,7 +221,7 @@ void UFlowYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IFlowYapConversationListener::Execute_OnConversationStarts(Listener, Name);
+		IFlowYapConversationHandler::Execute_OnConversationStarts(Listener, Name);
 	}
 }
 
@@ -249,7 +230,7 @@ void UFlowYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IFlowYapConversationListener::Execute_OnConversationEnds(Listener, Name);
+		IFlowYapConversationHandler::Execute_OnConversationEnds(Listener, Name);
 	}
 }
 

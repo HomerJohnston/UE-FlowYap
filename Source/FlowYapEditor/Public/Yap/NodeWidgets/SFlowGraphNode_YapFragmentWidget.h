@@ -8,6 +8,7 @@ class SMultiLineEditableText;
 class SFlowGraphNode_YapDialogueWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
+struct FFlowYapBitReplacement;
 
 class SMultiLineEditableTextBox;
 
@@ -32,6 +33,9 @@ protected:
 	uint8 FragmentIndex = 0;
 
 	bool bCtrlPressed = false;
+
+	uint64 LastBitReplacementCacheFrame = 0;
+	FFlowYapBitReplacement* CachedBitReplacement = nullptr;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -64,21 +68,12 @@ protected:
 	FSlateColor			Dialogue_BorderBackgroundColor() const;
 	
 	// ---------------------------------------------------
-	TSharedRef<SBox>	CreateGlobalActivationLimiterWidget();
+	TSharedRef<SBox>	CreateActivationLimiterWidget();
 	
-	EVisibility			GlobalActivationLimiter_Visibility() const;
-	EVisibility			GlobalActivationDot_Visibility() const;
-	FSlateColor			GlobalActivationEarth_ColorAndOpacity() const;
-	FSlateColor			GlobalActivationDot_ColorAndOpacity() const;
-	FReply				GlobalActivationDot_OnClicked();
-	
-	// ---------------------------------------------------
-	TSharedRef<SBox>	CreateLocalActivationLimiterWidget();
-	
-	EVisibility			LocalActivationLimiter_Visibility() const;
-	EVisibility			LocalActivationDot_Visibility() const;
-	FSlateColor			LocalActivationDot_ColorAndOpacity() const;
-	FReply				LocalActivationDot_OnClicked();
+	EVisibility			ActivationLimiter_Visibility() const;
+	EVisibility			ActivationDot_Visibility() const;
+	FSlateColor			ActivationDot_ColorAndOpacity() const;
+	FReply				ActivationDot_OnClicked();
 	
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTagPreviewWidget();
@@ -173,6 +168,8 @@ protected:
 
 	bool FragmentFocused() const;
 
+	FFlowYapBitReplacement* GetBitReplacement() const;
+	
 	// ------------------------------------------
 	// OVERRIDES
 public:

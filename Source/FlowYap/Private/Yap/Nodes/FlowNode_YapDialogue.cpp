@@ -216,7 +216,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	{
 		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-		if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
+		if (Fragment.IsActivationLimitMet())
 		{
 			continue;
 		}
@@ -370,7 +370,7 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 
 bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment)
 {
-	if (Fragment.IsLocalActivationLimitMet() || Fragment.IsGlobalActivationLimitMet(this))
+	if (Fragment.IsActivationLimitMet())
 	{
 		return false;
 	}

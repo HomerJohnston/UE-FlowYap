@@ -20,43 +20,6 @@ FFlowYapFragment::~FFlowYapFragment()
 {
 }
 
-int32 FFlowYapFragment::GetGlobalActivationCount(UFlowNode_YapDialogue* Dialogue) const
-{
-	// Safety check because the widgets call into this, and it will crash if the widget is calling this without an actual preview entity selected
-	UWorld* World = Dialogue->GetWorld();
-
-#if WITH_EDITOR
-	if (!World && GEditor->PlayWorld)
-	{
-		World = GEditor->PlayWorld;
-	}
-#endif
-	
-	if (!World || World->WorldType != EWorldType::Game && World->WorldType != EWorldType::PIE && World->WorldType != EWorldType::GamePreview)
-	{
-		return 0;
-	}
-	
-	UFlowYapSubsystem* Subsystem = World->GetSubsystem<UFlowYapSubsystem>();
-	
-	return Subsystem->GetGlobalActivationCount(Dialogue, IndexInDialogue);
-}
-
-bool FFlowYapFragment::IsGlobalActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const
-{
-	if (GlobalActivationLimit <= 0)
-	{
-		return false;
-	}
-	
-	return GetGlobalActivationCount(Dialogue) >= GlobalActivationLimit;
-}
-
-bool FFlowYapFragment::IsActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const
-{
-	return IsLocalActivationLimitMet() || IsGlobalActivationLimitMet(Dialogue);
-}
-
 float FFlowYapFragment::GetPaddingToNextFragment() const
 {
 	if (CommonPaddingSetting.IsSet())
@@ -69,7 +32,7 @@ float FFlowYapFragment::GetPaddingToNextFragment() const
 
 void FFlowYapFragment::IncrementActivations()
 {
-	LocalActivationCount++;
+	ActivationCount++;
 }
 
 void FFlowYapFragment::ReplaceBit(const FFlowYapBitReplacement& ReplacementBit)

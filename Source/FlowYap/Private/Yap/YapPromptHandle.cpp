@@ -15,7 +15,7 @@ FYapPromptHandle::FYapPromptHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 
 	FragmentIndex = InFragmentIndex;
 }
 
-void FYapPromptHandle::Select(UObject* WorldContextObject)
+void FYapPromptHandle::RunPrompt(UObject* WorldContextObject)
 {
 	UWorld* World = WorldContextObject->GetWorld();
 
@@ -26,6 +26,6 @@ void FYapPromptHandle::Select(UObject* WorldContextObject)
 	
 	UFlowYapSubsystem* Subsystem = World->GetSubsystem<UFlowYapSubsystem>();
 
-	Subsystem->ActivatePrompt(*this);
+	Subsystem->RunPrompt(*this);
 }
 

@@ -5,6 +5,7 @@
 #define SEMITRANS 0.95
 #define TRANS 0.70
 #define GLASS 0.20
+#define SUPERGLASS 0.05
 
 #define DECLARE_COLOR_TRAN(Name, RR, GG, BB, AA)\
 inline FLinearColor Name = FLinearColor(RR, GG, BB, AA);\
@@ -18,7 +19,10 @@ inline FLinearColor Name##Hovered_Trans = FLinearColor(HOVER * RR, HOVER * GG, H
 inline FLinearColor Name##Pressed_Trans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, TRANS * AA);\
 inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, GLASS);\
 inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, GLASS * AA);\
-inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, GLASS * AA)
+inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, GLASS * AA);\
+inline FLinearColor Name##_SuperGlass = FLinearColor(RR, GG, BB, SUPERGLASS);\
+inline FLinearColor Name##Hovered_SuperGlass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, SUPERGLASS * AA);\
+inline FLinearColor Name##Pressed_SuperGlass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, SUPERGLASS * AA)
 
 #define DECLARE_COLOR(Name, RR, GG, BB) DECLARE_COLOR_TRAN(Name, RR, GG, BB, 1.000)
 
@@ -31,6 +35,7 @@ namespace YapColor
 	DECLARE_COLOR(DeepOrange,		0.100, 0.050, 0.010);
 
 	DECLARE_COLOR(LightYellow,		0.900, 0.850, 0.250);
+	DECLARE_COLOR(Yellow,			0.850, 0.800, 0.050);
 	
 	DECLARE_COLOR(LightRed,			0.950, 0.340, 0.420);
 	DECLARE_COLOR(Red,				0.950, 0.040, 0.060);

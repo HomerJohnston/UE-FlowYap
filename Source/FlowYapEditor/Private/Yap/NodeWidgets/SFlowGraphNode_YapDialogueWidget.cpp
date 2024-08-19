@@ -280,7 +280,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	bool bFirstFragment = true;
 	bool bLastFragment = false;
 
-	uint8 Spacing = GetDefault<UFlowYapEditorSettings>()->GetDialogueRowSpacing(); // TODO put this into project settings
+	uint8 Spacing = GetDefault<UFlowYapEditorSettings>()->GetDialogueRowSpacing();
 	uint8 Padding = 1 + Spacing * 8;
 	
 	for (uint8 FragmentIndex = 0; FragmentIndex < GetFlowYapDialogueNodeMutable()->GetNumFragments(); ++FragmentIndex)

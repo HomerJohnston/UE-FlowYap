@@ -6,11 +6,10 @@
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
-class IFlowYapConversationListener;
+class IFlowYapConversationHandler;
 struct FFlowYapBit;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFlowYapConversationEvent, FName, ConversationName);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, ConversationName, const FFlowYapBit&, DialogueInfo);
 
 // ================================================================================================
@@ -54,6 +53,8 @@ struct FYapFragmentActivationCount
 	TMap<uint8, int32> Counts;
 };
 
+// ================================================================================================
+
 UCLASS()
 class FLOWYAP_API UFlowYapSubsystem : public UWorldSubsystem
 {
@@ -75,15 +76,13 @@ protected:
 	//UPROPERTY(Transient)
 	//TArray<FName> ConversationQueue;
 
+	/**  */
 	UPROPERTY(Transient)
 	FFlowYapActiveConversation ActiveConversation;
 
-	UPROPERTY(Transient)
-	TArray<UObject*> Listeners;
-
 	/**  */
 	UPROPERTY(Transient)
-	TMap<FGuid, FYapFragmentActivationCount> GlobalFragmentActivationCounts;
+	TArray<UObject*> Listeners;
 
 	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
 	UPROPERTY(Transient)
@@ -96,46 +95,61 @@ protected:
 	// ------------------------------------------
 	// PUBLIC API
 public:
+	/** When a conversation starts */
 	UFUNCTION(BlueprintCallable)
-	void AddConversationListener(UObject* NewListener);
+	void AddConversationHandler(UObject* NewListener);
 
+	/**  */
 	UFUNCTION(BlueprintCallable)
-	void RemoveConversationListener(UObject* RemovedListener);
+	void RemoveConversationHandler(UObject* RemovedListener);
 
+	/**  */
 	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
 
+	/**  */
 	FFlowYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
 
+	/**  */
 	void RegisterBitReplacement(const FGameplayTag& FragmentTag, FFlowYapBitReplacement& BitReplacement);
 
+	/**  */
 	void ClearBitReplacement(const FGameplayTag& FragmentTag);
 
+	/**  */
 	FFlowYapBitReplacement* GetBitReplacement(const FGameplayTag& FragmentTag);
 	
 	// ------------------------------------------
 	// FLOW YAP API - These are called by Yap classes
 protected:
+	/**  */
 	bool StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by ConversationStart node
 
+	/**  */
 	void EndCurrentConversation(); // Called by ConversationEnd node
 
+	/**  */
 	void BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
 
+	/**  */
 	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
+	/**  */
 	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
 
-	int32 GetGlobalActivationCount(UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
-
-	void ActivatePrompt(FYapPromptHandle& Handle);
+	/**  */
+	void RunPrompt(FYapPromptHandle& Handle);
 
 public:
+	/**  */
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 protected:
+	/**  */
 	void OnConversationStarts_Internal(const FGameplayTag& Name);
 
+	/**  */
 	void OnConversationEnds_Internal(const FGameplayTag& Name);
 
+	/**  */
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 };

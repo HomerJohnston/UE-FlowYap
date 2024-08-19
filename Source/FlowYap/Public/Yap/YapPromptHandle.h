@@ -23,5 +23,5 @@ public:
 	UPROPERTY(Transient)
 	uint8 FragmentIndex;
 
-	void Select(UObject* WorldContextObject);
+	void RunPrompt(UObject* WorldContextObject);
 };

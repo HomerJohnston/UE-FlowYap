@@ -14,6 +14,8 @@ class SGameplayTagPicker;
 
 /**
  * Widget for editing a Gameplay Tag.
+ *
+ * This version is modified so that it only displays a child/subtag in the combo box. The original engine combo box always displays the full tag.
  */
 class SGameplayTagComboFiltered : public SCompoundWidget
 {

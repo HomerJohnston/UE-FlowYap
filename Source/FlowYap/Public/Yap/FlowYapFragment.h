@@ -36,14 +36,10 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	FFlowYapBit Bit;
-	
-	/** How many times is this fragment allowed to broadcast? This count persists in the world scope (resets on level load). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
-	int32 GlobalActivationLimit = 0;
-	
+
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
-	int32 LocalActivationLimit = 0;
+	int32 ActivationLimit = 0;
 	
 	UPROPERTY(EditAnywhere)
 	FGameplayTag FragmentTag;
@@ -61,7 +57,7 @@ protected:
 	uint8 IndexInDialogue = 0; 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 LocalActivationCount = 0;
+	int32 ActivationCount = 0;
 
 #if WITH_EDITORONLY_DATA
 protected:
@@ -73,15 +69,9 @@ protected:
 public:
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
-	int32 GetLocalActivationCount() const { return LocalActivationCount; }
-	int32 GetLocalActivationLimit() const { return LocalActivationLimit; }
-	bool IsLocalActivationLimitMet() const { if (LocalActivationLimit <= 0) return false; return (LocalActivationCount >= LocalActivationLimit); }
-	
-	int32 GetGlobalActivationCount(UFlowNode_YapDialogue* WorldContextObject) const;
-	int32 GetGlobalActivationLimit() const { return GlobalActivationLimit; }
-	bool IsGlobalActivationLimitMet(UFlowNode_YapDialogue* WorldContextObject) const;
-
-	bool IsActivationLimitMet(UFlowNode_YapDialogue* Dialogue) const;
+	int32 GetActivationCount() const { return ActivationCount; }
+	int32 GetActivationLimit() const { return ActivationLimit; }
+	bool IsActivationLimitMet() const { if (ActivationLimit <= 0) return false; return (ActivationCount >= ActivationLimit); }
 	
 	const FFlowYapBit& GetBit() const { return Bit; }
 
@@ -108,8 +98,6 @@ public:
 	
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 	
-	//void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
-
 	void SetPaddingToNextFragment(float NewValue) { PaddingToNextFragment = NewValue; }
 
 	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }

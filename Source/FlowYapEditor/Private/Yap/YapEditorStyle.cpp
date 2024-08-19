@@ -38,10 +38,11 @@ FYapEditorStyle::~FYapEditorStyle()
 
 void FYapEditorStyle::OnPatchComplete()
 {
+	/*
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 	Initialize();
-
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
+	*/
 }
 
 void FYapEditorStyle::Initialize()

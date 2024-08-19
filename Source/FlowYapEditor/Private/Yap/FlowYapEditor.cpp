@@ -57,6 +57,9 @@ void FFlowYapEditorModule::RegisterAssetCategories(IAssetTools& AssetTools)
 
 void FFlowYapEditorModule::RegisterAssetTypeActions(IAssetTools& AssetTools)
 {
+	// TODO
+	// 0>FlowYapEditor.cpp(60): Warning C5103 : pasting '(' and 'AssetTools' does not result in a valid preprocessing token
+    // 0>FlowYapEditor.cpp(16): Reference  : in expansion of macro 'REGISTER_ASSET_TYPE_ACTION'
 	REGISTER_ASSET_TYPE_ACTION(AssetTools, Character);
 }
 

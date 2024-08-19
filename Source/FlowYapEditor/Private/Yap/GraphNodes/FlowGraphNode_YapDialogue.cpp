@@ -14,8 +14,6 @@ UFlowGraphNode_YapDialogue::UFlowGraphNode_YapDialogue()
 
 TSharedPtr<SGraphNode> UFlowGraphNode_YapDialogue::CreateVisualWidget()
 {
-	GetFlowNode()->OnReconstructionRequested.ExecuteIfBound();
-
 	return SNew(SFlowGraphNode_YapDialogueWidget, this);
 }
 
@@ -121,7 +119,6 @@ void UFlowGraphNode_YapDialogue::SwapFragmentPinConnections(uint8 FragmentIndexA
 	}
 }
 
-// TODO name
 void UFlowGraphNode_YapDialogue::SwapPinConnections(uint8 OutputIndexA, uint8 OutputIndexB)
 {
 	UEdGraphPin* PinA = OutputPins[OutputIndexA];

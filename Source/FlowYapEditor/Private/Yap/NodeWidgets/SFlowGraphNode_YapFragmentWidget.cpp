@@ -25,15 +25,15 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
+#include "Yap/FlowYapBitReplacement.h"
 
 void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex)
 {
 	Owner = InOwner;
 	FragmentIndex = InFragmentIndex;
 	
-
 	// Find the FragmentTag property
-	GetFlowYapDialogueNode()->GetClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Fragments));
+	//GetFlowYapDialogueNode()->GetClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Fragments));
 	
 	ChildSlot
 	[
@@ -92,14 +92,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 				.VAlign(VAlign_Top)
 				.Padding(0, -4, -4, 0)
 				[
-					CreateGlobalActivationLimiterWidget()
-				]
-				+ SOverlay::Slot()
-				.HAlign(HAlign_Right)
-				.VAlign(VAlign_Top)
-				.Padding(0, 14, -4, 0)
-				[
-					CreateLocalActivationLimiterWidget()
+					CreateActivationLimiterWidget()
 				]
 			]
 			// -------------------
@@ -231,7 +224,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 			.HScrollBar(HScrollBar)
 			.VScrollBar(VScrollBar)
 		]
-		/* TODO hatch overlay for disabled fragments?
+		// TODO hatch overlay for disabled fragments?
 		+ SOverlay::Slot()
 		.Padding(-2)
 		[
@@ -242,7 +235,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility)
 			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor)
 		]
-		*/
+		
 	];
 }
 
@@ -272,6 +265,13 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight() cons
 
 FText SFlowGraphNode_YapFragmentWidget::Dialogue_Text() const
 {
+	FFlowYapBitReplacement* BitReplacement = GetBitReplacement();
+	
+	if (BitReplacement && BitReplacement->DialogueText.IsSet())
+	{
+		return BitReplacement->DialogueText.GetValue();
+	}
+	
 	return GetFragment()->Bit.GetDialogueText();
 }
 
@@ -299,7 +299,14 @@ FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
-{	
+{
+	FFlowYapBitReplacement* BitReplacement = GetBitReplacement();
+	
+	if (BitReplacement)
+	{
+		return YapColor::Yellow;
+	}
+	
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::Noir;
 }
 
@@ -314,12 +321,12 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 			Color = YapColor::White;
 		}
 		
-		Color = (GetFragment()->IsActivationLimitMet(GetFlowYapDialogueNode())) ? YapColor::DarkRed : YapColor::LightGray;
+		Color = (GetFragment()->IsActivationLimitMet()) ? YapColor::DarkRed : YapColor::LightGray;
 	}
 	
 	Color = GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::LightGray;
 
-	if (GetFragment()->GetBitReplaced())
+	if (GetBitReplacement())
 	{
 		Color *= YapColor::LightYellow;
 	}
@@ -329,217 +336,27 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility() const
 {
-	return GetFragment()->GetLocalActivationLimit() > 0 ? EVisibility::Visible : EVisibility::Collapsed;
+	FFlowYapBitReplacement* BitReplacement = GetBitReplacement();
+	
+	return BitReplacement ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor() const
 {
-	return YapColor::Error;
-	
-	// TODO
-	/*
-	if (GEditor->PlayWorld)
-	{
-		return GetFragment()->GetActivationCount() < GetFragment()->GetLocalActivationLimit() ? YapColor::LightBlue_Glass : YapColor::Red_Trans;
-	}
-	else
-	{
-		return YapColor::Orange_Trans;
-	}
-	*/
-}
-
-// ================================================================================================
-// GLOBAL ACTIVATION LIMITER WIDGET
-// ------------------------------------------------------------------------------------------------
-
-TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateGlobalActivationLimiterWidget()
-{
-	TSharedRef<SVerticalBox> ActivationLimiter_VerticalBox = SNew(SVerticalBox);
-
-	if (GetFragment()->GlobalActivationLimit <= 1)
-	{
-		int32 Size = 16;// i < ActivationCount ? 16 : 12;
-		ActivationLimiter_VerticalBox->AddSlot()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.AutoHeight()
-		.Padding(0)
-		[
-			SNew(SBox)
-			.WidthOverride(Size)
-			.HeightOverride(Size)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Padding(0)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_Visibility)
-			[
-				SNew(SButton)
-				.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
-				.ContentPadding(0)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_OnClicked)
-				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle global activation limit"))
-				[
-					SNew(SOverlay)
-					+ SOverlay::Slot()
-					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(Size, Size))
-						//.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
-						.Image(FAppStyle::GetBrush("Icons.World"))
-						//.Image(FAppStyle::GetBrush("Icons.Refresh"))
-						//.Image(FAppStyle::GetBrush("GenericCommands.Redo"))
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationEarth_ColorAndOpacity)
-					]
-					+ SOverlay::Slot()
-					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(8, 8))
-						//.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
-						//.Image(FAppStyle::GetBrush("Icons.World"))
-						//.Image(FAppStyle::GetBrush("Icons.Refresh"))
-						.Image(FAppStyle::GetBrush("GenericCommands.Redo"))
-						//.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity)
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity)
-					]
-				]
-			]
-		];
-	}
-	else
-	{			
-		ActivationLimiter_VerticalBox->AddSlot()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.AutoHeight()
-		[
-			SNew(STextBlock)
-			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(GetFragment()->GetGlobalActivationCount(GetFlowYapDialogueNode())), FText::AsNumber(GetFragment()->GetGlobalActivationLimit())))
-			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity)
-			//.TextStyle(&NormalText)
-			.Justification(ETextJustify::Center)
-		];
-	}
-
-	return SNew(SBox)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::GlobalActivationLimiter_Visibility)
-	[
-		ActivationLimiter_VerticalBox
-	];
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::GlobalActivationLimiter_Visibility() const
-{
-	const FFlowYapFragment* Fragment = GetFragment();
-	
-	if (GEditor->PlayWorld)
-	{
-		return (Fragment->GlobalActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
-	}
-	else
-	{
-		if (IsHovered() || Fragment->GlobalActivationLimit > 0)
-		{
-			return EVisibility::Visible;
-		}
-	}
-
-	return EVisibility::Collapsed;
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_Visibility() const
-{	
-	if (DialogueBox->HasKeyboardFocus())
-	{
-		return EVisibility::Collapsed;
-	}
-
-	if (IsHovered() || GetFragment()->GlobalActivationLimit > 0)
-	{
-		return EVisibility::Visible;
-	}
-
-	return EVisibility::Collapsed;
-}
-
-FSlateColor SFlowGraphNode_YapFragmentWidget::GlobalActivationEarth_ColorAndOpacity() const
-{
-	int32 ActivationLimit = GetFragment()->GlobalActivationLimit;
-
-	if (ActivationLimit == 0)
-	{
-		return YapColor::DarkGray;
-	}
-	
-	FLinearColor Color = YapColor::LightBlue;
-	
-	if (GEditor->PlayWorld)
-	{		
-		if (GetFragment()->IsGlobalActivationLimitMet(GetFlowYapDialogueNode()))
-		{
-			Color = YapColor::DarkRed;
-		}
-	}
-	
-	return Color;
-}
-
-FSlateColor SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_ColorAndOpacity() const
-{
-	int32 ActivationLimit = GetFragment()->GlobalActivationLimit;
-
-	if (ActivationLimit == 0)
-	{
-		return YapColor::DarkGray;
-	}
-	
-	FLinearColor Color = YapColor::LightGreen;
-	
-	if (GEditor->PlayWorld)
-	{		
-		if (GetFragment()->IsGlobalActivationLimitMet(GetFlowYapDialogueNode()))
-		{
-			Color = YapColor::DarkRed;
-		}
-	}
-	
-	return Color;
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::GlobalActivationDot_OnClicked()
-{
-	FFlowYapFragment* Fragment = GetFragment();
-	
-	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change activation limit"), GetFlowYapDialogueNode());
-	
-	// TODO ignore input during PIE?
-	if (Fragment->GlobalActivationLimit > 0)
-	{
-		Fragment->GlobalActivationLimit = 0;
-	}
-	else
-	{
-		Fragment->GlobalActivationLimit = 1;
-	}
-
-	FFlowYapTransactions::EndModify();
-	
-	return FReply::Handled();
+	return YapColor::LightYellow_SuperGlass;
 }
 
 // ================================================================================================
 // LOCAL ACTIVATION LIMITER WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterWidget()
+TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateActivationLimiterWidget()
 {
 	TSharedRef<SVerticalBox> ActivationLimiter_VerticalBox = SNew(SVerticalBox);
 
-	int32 LocalActivationCount = GetFragment()->LocalActivationCount;
+	int32 LocalActivationCount = GetFragment()->ActivationCount;
 
-	if (GetFragment()->LocalActivationLimit <= 1)
+	if (GetFragment()->ActivationLimit <= 1)
 	{
 		int32 Size = 16;// i < ActivationCount ? 16 : 12;
 		ActivationLimiter_VerticalBox->AddSlot()
@@ -554,21 +371,33 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterW
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			.Padding(0)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_Visibility)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_Visibility)
 			[
 				SNew(SButton)
 				.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
 				.ContentPadding(0)
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_OnClicked)
 				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle local activation limit"))
 				[
-					SNew(SImage)
-					.DesiredSizeOverride(FVector2D(Size, Size))
-					//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.LocalLimit"))
-					.Image(FAppStyle::GetBrush("GenericCommands.Redo"))
-					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity)
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(Size, Size))
+						//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.LocalLimit"))
+						.Image(FAppStyle::GetBrush("GenericCommands.Redo"))
+						.ColorAndOpacity(YapColor::LightGray)
+					]
+					+ SOverlay::Slot()
+					[
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(Size, Size))
+						//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.LocalLimit"))
+						.Image(FAppStyle::GetBrush("SourceControl.StatusIcon.Off"))
+						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_ColorAndOpacity)
+					]
 				]
 			]
 		];
@@ -581,7 +410,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterW
 		.AutoHeight()
 		[
 			SNew(STextBlock)
-			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(LocalActivationCount), FText::AsNumber(GetFragment()->GetLocalActivationLimit())))
+			.Text(FText::Join(FText::FromString("/"), FText::AsNumber(LocalActivationCount), FText::AsNumber(GetFragment()->GetActivationLimit())))
 			.ColorAndOpacity(YapColor::White)
 			//.TextStyle(&NormalText)
 			.Justification(ETextJustify::Center)
@@ -589,23 +418,23 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateLocalActivationLimiterW
 	}
 
 	return SNew(SBox)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::LocalActivationLimiter_Visibility)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Visibility)
 	[
 		ActivationLimiter_VerticalBox
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationLimiter_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Visibility() const
 {
 	const FFlowYapFragment* Fragment = GetFragment();
 	
 	if (GEditor->PlayWorld)
 	{
-		return (Fragment->LocalActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
+		return (Fragment->ActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
 	}
 	else
 	{
-		if (IsHovered() || Fragment->LocalActivationLimit > 0)
+		if (IsHovered() || Fragment->ActivationLimit > 0)
 		{
 			return EVisibility::Visible;
 		}
@@ -614,14 +443,14 @@ EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationLimiter_Visibility(
 	return EVisibility::Collapsed;
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationDot_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::ActivationDot_Visibility() const
 {
 	if (DialogueBox->HasKeyboardFocus())
 	{
 		return EVisibility::Collapsed;
 	}
 	
-	if (IsHovered() || GetFragment()->GetLocalActivationLimit() > 0)
+	if (IsHovered() || GetFragment()->GetActivationLimit() > 0)
 	{
 		return EVisibility::Visible;
 	}
@@ -629,20 +458,20 @@ EVisibility SFlowGraphNode_YapFragmentWidget::LocalActivationDot_Visibility() co
 	return EVisibility::Collapsed;
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ActivationDot_ColorAndOpacity() const
 {
-	int32 ActivationLimit = GetFragment()->LocalActivationLimit;
+	int32 ActivationLimit = GetFragment()->ActivationLimit;
 
 	if (ActivationLimit == 0)
 	{
-		return YapColor::DarkGray;
+		return YapColor::DarkGray_Glass;
 	}
 	
-	FLinearColor Color = YapColor::LightOrange;
+	FLinearColor Color = YapColor::Red;
 	
 	if (GEditor->PlayWorld)
 	{		
-		if (GetFragment()->IsActivationLimitMet(GetFlowYapDialogueNode()))
+		if (GetFragment()->IsActivationLimitMet())
 		{
 			Color = YapColor::DarkRed;
 		}
@@ -651,20 +480,20 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::LocalActivationDot_ColorAndOpacity
 	return Color;
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::LocalActivationDot_OnClicked()
+FReply SFlowGraphNode_YapFragmentWidget::ActivationDot_OnClicked()
 {
 	FFlowYapFragment* Fragment = GetFragment();
 	
 	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change activation limit"), GetFlowYapDialogueNode());
 	
 	// TODO ignore input during PIE?
-	if (Fragment->LocalActivationLimit > 0)
+	if (Fragment->ActivationLimit > 0)
 	{
-		Fragment->LocalActivationLimit = 0;
+		Fragment->ActivationLimit = 0;
 	}
 	else
 	{
-		Fragment->LocalActivationLimit = 1;
+		Fragment->ActivationLimit = 1;
 	}
 
 	FFlowYapTransactions::EndModify();
@@ -1681,6 +1510,27 @@ bool SFlowGraphNode_YapFragmentWidget::FragmentFocused() const
 	return (Owner->GetFocusedFragmentIndex(FocusedFragmentIndex) && FocusedFragmentIndex == FragmentIndex);
 }
 
+FFlowYapBitReplacement* SFlowGraphNode_YapFragmentWidget::GetBitReplacement() const
+{
+	SFlowGraphNode_YapFragmentWidget* MutableThis = const_cast<SFlowGraphNode_YapFragmentWidget*>(this);
+	
+	if (GEditor->PlayWorld)
+	{
+		if (GFrameCounter != MutableThis->LastBitReplacementCacheFrame)
+		{
+			if (GetFragment()->GetFragmentTag().IsValid())
+			{
+				MutableThis->CachedBitReplacement = GEditor->PlayWorld->GetSubsystem<UFlowYapSubsystem>()->GetBitReplacement(GetFragment()->GetFragmentTag());
+				MutableThis->LastBitReplacementCacheFrame = GFrameCounter;
+			}
+		}
+
+		return MutableThis->CachedBitReplacement;
+	}
+
+	return nullptr;
+}
+
 // ================================================================================================
 // OVERRIDES
 // ================================================================================================
@@ -1709,6 +1559,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		Owner->ClearTypingFocus();
 	}
+	
 }
 
 #undef LOCTEXT_NAMESPACE

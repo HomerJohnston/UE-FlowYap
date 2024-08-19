@@ -21,7 +21,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	FFlowYapBitReplacement NewData;
-
+	
 public:
 	UFlowNode_YapReplaceFragment();
 
