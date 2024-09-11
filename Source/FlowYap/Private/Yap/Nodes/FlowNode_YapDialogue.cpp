@@ -509,7 +509,7 @@ void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
 	uint8 AsInt = static_cast<uint8>(FragmentSequencing);
 
-	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
+	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::Prompt))
 	{
 		AsInt = 0;
 	}

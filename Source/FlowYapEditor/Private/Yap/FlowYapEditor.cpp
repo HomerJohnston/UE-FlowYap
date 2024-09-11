@@ -4,7 +4,12 @@
 
 #include "AssetToolsModule.h"
 #include "Yap/AssetFactory_FlowYapCharacter.h"
+#include "Yap/Customizations/DetailCustomization_FlowYapDialogueNode.h"
+#include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredStyle.h"
+
+#include "Yap/Customizations/DetailCustomization_FlowYapDialogueNode.h"
+#include "Yap/Customizations/PropertyCustomization_FlowYapFragment.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -18,68 +23,40 @@ EAssetTypeCategories::Type FFlowYapEditorModule::FlowYapAssetCategory;
 #define UNREGISTER_CLASS_CUSTOMIZATION(_MODULE_, _NAME_) _MODULE_##.UnregisterCustomClassLayout("FlowYap" ###_NAME_##)
 #pragma endregion
 
-void FFlowYapEditorModule::EnableMultipleInputs()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Enable Multiple Inputs Command"));
-}
-
 void FFlowYapEditorModule::StartupModule()
 {
-	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+	AssetCategory = { "FlowYap", LOCTEXT("FlowYap", "FlowYap") };
+	
+	AssetTypeActions =
 	{
-		IAssetTools& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		RegisterAssetCategories(AssetToolsModule);
-		RegisterAssetTypeActions(AssetToolsModule);
-	}
+		MakeShareable(new FAssetTypeActions_FlowYapCharacter())
+	};
 
+	DetailCustomizations =
+	{
+		{
+			UFlowNode_YapDialogue::StaticClass(),
+			FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYapDialogueNode::MakeInstance)
+		}
+	};
+
+	// const UScriptStruct& Struct, const FOnGetPropertyTypeCustomizationInstance DetailLayout
+	PropertyCustomizations =
+	{
+		{
+			*FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance)
+		}
+	};
+	
+	StartupModuleBase();
+	
+	// TODO fix this retardation into my style proper
 	FGameplayTagFilteredStyle::Initialize();
 }
 
 void FFlowYapEditorModule::ShutdownModule()
 {
-	if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
-	{
-		IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		UnregisterAssetTypeActions(AssetTools);
-	}
-
-	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
-	{
-		FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		UnregisterDetailCustomizations(PropertyEditorModule);
-	}
-}
-
-void FFlowYapEditorModule::RegisterAssetCategories(IAssetTools& AssetTools)
-{
-	FlowYapAssetCategory = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("FlowYap")), LOCTEXT("FlowYap", "FlowYap"));
-}
-
-void FFlowYapEditorModule::RegisterAssetTypeActions(IAssetTools& AssetTools)
-{
-	// TODO
-	// 0>FlowYapEditor.cpp(60): Warning C5103 : pasting '(' and 'AssetTools' does not result in a valid preprocessing token
-    // 0>FlowYapEditor.cpp(16): Reference  : in expansion of macro 'REGISTER_ASSET_TYPE_ACTION'
-	REGISTER_ASSET_TYPE_ACTION(AssetTools, Character);
-}
-
-void FFlowYapEditorModule::RegisterAssetTypeAction(IAssetTools& AssetTools, const TSharedRef<IAssetTypeActions> Action)
-{
-	AssetTools.RegisterAssetTypeActions(Action);
-	CreatedAssetTypeActions.Add(Action);
-}
-
-void FFlowYapEditorModule::UnregisterDetailCustomizations(FPropertyEditorModule& PropertyEditorModule)
-{
-	PropertyEditorModule.NotifyCustomizationModuleChanged();
-}
-
-void FFlowYapEditorModule::UnregisterAssetTypeActions(IAssetTools& AssetTools)
-{
-	for (int32 i = 0; i < CreatedAssetTypeActions.Num(); i++)
-		AssetTools.UnregisterAssetTypeActions(CreatedAssetTypeActions[i].ToSharedRef());
-
-	CreatedAssetTypeActions.Empty();
+	ShutdownModuleBase();
 }
 
 EAssetTypeCategories::Type FFlowYapEditorModule::GetAssetCategory()
@@ -88,5 +65,5 @@ EAssetTypeCategories::Type FFlowYapEditorModule::GetAssetCategory()
 }
 
 #undef LOCTEXT_NAMESPACE
-    
+
 IMPLEMENT_MODULE(FFlowYapEditorModule, FlowYapEditor)

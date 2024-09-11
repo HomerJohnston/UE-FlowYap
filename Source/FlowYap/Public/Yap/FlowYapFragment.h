@@ -29,6 +29,8 @@ public:
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
+	friend class SFlowYapBitDetailsWidget;
+	friend class FPropertyCustomization_FlowYapFragment;
 #endif
 	
 	// ==========================================
@@ -102,6 +104,6 @@ public:
 
 	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
 
-	bool GetBitReplaced() const { return bBitReplaced; }
+	bool GetBitReplaced() const;
 #endif
 };

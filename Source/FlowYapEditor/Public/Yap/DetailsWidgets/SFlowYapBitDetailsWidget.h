@@ -16,20 +16,20 @@ struct FGameplayTag;
 
 enum class EFlowYapErrorLevel : uint8;
 
-class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
+class SFlowYapBitDetailsWidget : public SCompoundWidget
 {
 	// ------------------------------------------
 	// STATE
 protected:
-	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
+	TSharedPtr<IPropertyHandle> PropertyHandle;
+	
+	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue = nullptr;
 
-	TSharedPtr<SMultiLineEditableText> DialogueBox;
+	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
-
-	uint8 FragmentIndex = 0;
 
 	bool bCtrlPressed = false;
 
@@ -39,9 +39,9 @@ protected:
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
-	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
+	SLATE_USER_ARGS(SFlowYapBitDetailsWidget){}
 	SLATE_END_ARGS()
-	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
+	void Construct(const FArguments& InArgs, TSharedPtr<IPropertyHandle> InPropertyHandle, UFlowNode_YapDialogue* InDialogue);
 
 	// ------------------------------------------
 	// WIDGETS
@@ -163,16 +163,10 @@ protected:
 	// ------------------------------------------
 	// HELPERS
 protected:
-	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
-
 	FFlowYapFragment* GetFragment() const;
-
-	bool FragmentFocused() const;
 
 	// ------------------------------------------
 	// OVERRIDES
 public:
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
-
-	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };

@@ -22,6 +22,8 @@ struct FLOWYAP_API FFlowYapBit
 	GENERATED_BODY()
 
 	FFlowYapBit();
+
+	friend class FPropertyCustomization_FlowYapFragment;
 	
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS

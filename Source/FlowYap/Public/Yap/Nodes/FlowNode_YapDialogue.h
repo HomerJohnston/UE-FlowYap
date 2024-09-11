@@ -21,24 +21,31 @@ ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragment
 
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
 
+// TODO: make this NotBlueprintable
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select node(s) and tap SHIFT key to show all node contents"))
+UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select node(s) and tap SHIFT key to show all node contents"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
 
-friend class SFlowGraphNode_YapDialogueWidget;
-friend class SFlowGraphNode_YapFragmentWidget;
-friend class UFlowYapSubsystem;
+#if WITH_EDITOR
+	friend class SFlowGraphNode_YapDialogueWidget;
+	friend class SFlowGraphNode_YapFragmentWidget;
+	friend class FDetailCustomization_FlowYapDialogueNode;
+	friend class SFlowYapBitDetailsWidget;
+	friend class FPropertyCustomization_FlowYapFragment;
+#endif
+
+	friend class UFlowYapSubsystem;
 
 public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
 protected:	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FFlowYapFragment> Fragments;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)

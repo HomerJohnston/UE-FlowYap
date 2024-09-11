@@ -42,10 +42,13 @@ public class FlowYapEditor : ModuleRules
                 "ToolMenus",
                 
                 "UMG",
+                "UMGEditor",
                 
                 "DeveloperSettings",
                 
-                "BlueprintGraph", "LiveCoding"
+                "BlueprintGraph", "LiveCoding",
+                
+                "GPGEditorModuleHelper"
             }
         );
     }

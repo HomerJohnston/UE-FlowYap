@@ -36,7 +36,8 @@ bool SFlowGraphNode_YapDialogueWidget::bStylesInitialized = false;
 // ------------------------------------------
 // CONSTRUCTION
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
-{	
+{
+	
 	GraphNode = InNode;
 	FlowGraphNode = InNode;
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
@@ -89,8 +90,13 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	.SetShadowColorAndOpacity(FLinearColor::Black)
 	.SetHighlightColor(FLinearColor(0.02f, 0.3f, 0.0f));
 
+	double StartTime = FPlatformTime::Seconds();
+
 	UpdateGraphNode();
 
+	double EndTime = FPlatformTime::Seconds();
+
+	//UE_LOG(LogTemp, Warning, TEXT("Construct took %f ms"), 1000 * (EndTime - StartTime));
 }
 
 // ------------------------------------------
@@ -102,6 +108,8 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
+	double StartTime = FPlatformTime::Seconds();
+
 	TSharedRef<SWidget> Title = SFlowGraphNode::CreateTitleWidget(NodeTitle);
 
 	TSharedPtr<SCheckBox> InterruptibleCheckBox;
@@ -118,7 +126,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
 	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
 	
-	return SNew(SHorizontalBox)
+	TSharedRef<SWidget> Widget = SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
 	.FillWidth(1.0)
 	.HAlign(HAlign_Fill)
@@ -198,6 +206,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			]
 		]
 	];
+
+	double EndTime = FPlatformTime::Seconds();
+
+	//UE_LOG(LogTemp, Warning, TEXT("CreateTitleWidget took %f ms"), 1000 * (EndTime - StartTime));
+
+	return Widget;
 }
 
 ECheckBoxState SFlowGraphNode_YapDialogueWidget::PlayerPromptCheckBox_IsChecked() const
@@ -274,6 +288,8 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
+	double StartTime = FPlatformTime::Seconds();
+
 	SAssignNew(FragmentBox, SVerticalBox);
 
 	bool bSingleFragment = GetFlowYapDialogueNodeMutable()->GetNumFragments() == 1;
@@ -336,13 +352,19 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		CreateBottomBarWidget()
 	];
 
-	return SNew(SBorder)
+	TSharedRef<SWidget> Widget = SNew(SBorder)
 	.BorderImage(FAppStyle::GetBrush("NoBorder"))
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
 	[
 		FragmentBox.ToSharedRef()
 	];
+
+	double EndTime = FPlatformTime::Seconds();
+
+	//UE_LOG(LogTemp, Warning, TEXT("CreateNodeContentArea took %f ms"), 1000 * (EndTime - StartTime));
+
+	return Widget;
 }
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(uint8 f) const

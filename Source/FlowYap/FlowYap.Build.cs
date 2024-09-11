@@ -34,6 +34,7 @@ public class FlowYap : ModuleRules
 				"Flow",
 				"GameplayTags",
 				"Projects",
+				"AIModule"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

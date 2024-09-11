@@ -69,4 +69,9 @@ void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropert
 	}
 }
 
+bool FFlowYapFragment::GetBitReplaced() const
+{
+	return bBitReplaced;
+}
+
 #endif

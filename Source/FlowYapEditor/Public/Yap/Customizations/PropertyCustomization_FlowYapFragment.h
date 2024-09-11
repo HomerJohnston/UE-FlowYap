@@ -1,54 +1,76 @@
 #pragma once
 
-#include "CoreMinimal.h"
-
-struct FFlowYapFragment;
-class SObjectPropertyEntryBox;
-class SMultiLineEditableText;
-class SFlowGraphNode_YapDialogueWidget;
-class UFlowNode_YapDialogue;
-class UFlowGraphNode_YapDialogue;
-struct FFlowYapBitReplacement;
+#include "IPropertyTypeCustomization.h"
 
 class SMultiLineEditableTextBox;
-
+class UFlowNode_YapDialogue;
+struct FFlowYapFragment;
 struct FGameplayTag;
-
 enum class EFlowYapErrorLevel : uint8;
 
-class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
+class FPropertyCustomization_FlowYapFragment : public IPropertyTypeCustomization
 {
-	// ------------------------------------------
-	// STATE
-protected:
-	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
+	TSharedPtr<IPropertyHandle> FragmentHandle;
 
-	TSharedPtr<SMultiLineEditableText> DialogueBox;
+	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
+	
+	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
+	
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 
-	bool bCursorContained = false;
+	bool bCtrlPressed = false;
+	
 	bool MoodKeySelectorMenuOpen = false;
 
-	uint8 FragmentIndex = 0;
+	TSharedPtr<IPropertyHandle> BitHandle;
 
-	bool bCtrlPressed = false;
+	TSharedPtr<IPropertyHandle> Bit_CharacterHandle;
 
-	uint64 LastBitReplacementCacheFrame = 0;
-	FFlowYapBitReplacement* CachedBitReplacement = nullptr;
+	TSharedPtr<IPropertyHandle> Bit_TitleTextHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_DialogueTextHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_DialogueAudioAssetHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_MoodKeyHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_bUseProjectDefaultTimeSettingsHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_TimeModeHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_InterruptibleHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_ManualTimeHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_CachedWordCountHandle;
+
+	TSharedPtr<IPropertyHandle> Bit_CachedAudioTimeHandle;
 	
-	// ------------------------------------------
-	// CONSTRUCTION
+	TSharedPtr<IPropertyHandle> ActivationLimitHandle;
+
+	TSharedPtr<IPropertyHandle> FragmentTagHandle;
+
+	TSharedPtr<IPropertyHandle> PaddingToNextFragmentHandle;
+
+	TSharedPtr<IPropertyHandle> CommonPaddingSettingHandle;
+
+	
 public:
-	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
-	SLATE_END_ARGS()
-	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
+	static  TSharedRef<IPropertyTypeCustomization> MakeInstance()
+	{
+		return MakeShareable(new FPropertyCustomization_FlowYapFragment());
+	}
+
+	void CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+	void Init(TSharedRef<IPropertyHandle> InPropertyHandle);
+	
+	void CustomizeChildren(TSharedRef<IPropertyHandle> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
 	// ------------------------------------------
 	// WIDGETS
 protected:
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateFragmentWidget();
-
 	FOptionalSize		Fragment_WidthOverride() const;
 	EVisibility			FragmentBottomSection_Visibility() const;
 
@@ -163,16 +185,16 @@ protected:
 	// ------------------------------------------
 	// HELPERS
 protected:
-	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+	FFlowYapFragment*	GetFragment() const;
 
-	FFlowYapFragment* GetFragment() const;
-
-	bool FragmentFocused() const;
-
+	bool IsHovered() const { return false; };
+	
+	bool InErrorState() const;
+	
 	// ------------------------------------------
 	// OVERRIDES
 public:
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
 
-	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	
 };
