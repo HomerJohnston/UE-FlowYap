@@ -51,7 +51,13 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TOptional<uint8> CommonPaddingSetting;
-	
+
+	UPROPERTY(EditAnywhere)
+	bool bShowOnStartPin = false;
+
+	UPROPERTY(EditAnywhere)
+	bool bShowOnEndPin = false;
+
 	// ==========================================
 	// STATE
 protected:
@@ -61,6 +67,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 ActivationCount = 0;
 
+	UPROPERTY()
+	FGuid Guid;
+	
 #if WITH_EDITORONLY_DATA
 protected:
 	bool bBitReplaced = false;
@@ -69,6 +78,7 @@ protected:
 	// ==========================================
 	// API
 public:
+	// TODO I don't think fragments should know where their position is!
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
 	int32 GetActivationCount() const { return ActivationCount; }
@@ -86,6 +96,8 @@ public:
 	const FGameplayTag& GetFragmentTag() const { return FragmentTag; } 
 
 	void ReplaceBit(const FFlowYapBitReplacement& ReplacementBit);
+
+	const FGuid& GetGuid() { return Guid; }
 	
 #if WITH_EDITOR
 public:
@@ -105,5 +117,9 @@ public:
 	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
 
 	bool GetBitReplaced() const;
+
+	bool GetShowOnStartPin() const { return bShowOnStartPin; }
+	
+	bool GetShowOnEndPin() const { return bShowOnEndPin; }
 #endif
 };

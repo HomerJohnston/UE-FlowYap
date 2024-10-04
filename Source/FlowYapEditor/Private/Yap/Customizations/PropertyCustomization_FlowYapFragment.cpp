@@ -24,7 +24,18 @@
 void FPropertyCustomization_FlowYapFragment::CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	Init(InPropertyHandle);
-	
+
+	HeaderRow.NameContent()
+	[
+		InPropertyHandle->CreatePropertyNameWidget()
+	];
+
+	/*
+	HeaderRow.ValueContent()
+	[
+		InPropertyHandle->CreatePropertyValueWidget()
+	];
+	/*
 	HeaderRow.WholeRowContent()
 	[
 		//SNew(FPropertyCustomization_FlowYapFragment, PropertyHandle.ToSharedPtr(), Dialogue)
@@ -136,6 +147,7 @@ void FPropertyCustomization_FlowYapFragment::CustomizeHeader(TSharedRef<IPropert
 			]
 		]
 	];
+	*/
 }
 
 void FPropertyCustomization_FlowYapFragment::Init(TSharedRef<IPropertyHandle> InPropertyHandle)
@@ -1733,14 +1745,7 @@ FFlowYapFragment* FPropertyCustomization_FlowYapFragment::GetFragment() const
 
 bool FPropertyCustomization_FlowYapFragment::InErrorState() const
 {
-	FFlowYapFragment* Fragment = GetFragment();
-
-	if (Fragment == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("omg"));
-	}
-	
-	return !Fragment || !Dialogue.IsValid();
+	return !GetFragment() || !Dialogue.IsValid();
 }
 
 FSlateColor FPropertyCustomization_FlowYapFragment::GetNodeTitleColor() const

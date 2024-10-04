@@ -56,6 +56,7 @@ FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) co
 
 void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex)
 {
+	/*
 	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
 
 	// For each fragment from the very bottom up to the inserted index, copy pins downward from above
@@ -79,10 +80,12 @@ void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 Insertio
 			}
 		}
 	}
+	*/
 }
 
 void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentIndex)
 {
+	/*
 	uint8 LastFragmentIndex = GetFlowYapNode()->GetNumFragments() - 1;
 	
 	// For each fragment from the deleted index downwards, copy pins upward from below
@@ -107,15 +110,55 @@ void UFlowGraphNode_YapDialogue::UpdatePinsForFragmentDeletion(uint8 FragmentInd
 			}
 		}
 	}
+	*/
 }
 
 void UFlowGraphNode_YapDialogue::SwapFragmentPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB)
 {
 	uint8 BasePinsNum = GetBasePinsNum();
+
+	int32 AStartPinIndex = -1;
+	int32 BStartPinIndex = -1;
+	int32 AEndPinIndex = -1;
+	int32 BEndPinIndex = -1;
 	
-	for (int i = 0; i <  GetNumPinsPerFragment(); ++i)
+	for (uint8 i = 0; i < OutputPins.Num(); ++i)
 	{
-		SwapPinConnections(BasePinsNum + FragmentIndexA *  GetNumPinsPerFragment() + i, BasePinsNum + FragmentIndexB *  GetNumPinsPerFragment() + i);
+		UEdGraphPin* Pin = OutputPins[i];
+
+		FName AA = FName("FragmentStart", FragmentIndexA);
+		FName AB = FName("FragmentStart", FragmentIndexA + 1);
+		
+		if (Pin->PinName == FName("FragmentStart", FragmentIndexA + 1))
+		{
+			AStartPinIndex = i;
+			continue;
+		}
+		else if (Pin->PinName == FName("FragmentEnd", FragmentIndexA + 1))
+		{
+			AEndPinIndex = i;
+			continue;
+		}
+		else if (Pin->PinName == FName("FragmentStart", FragmentIndexB + 1))
+		{
+			BStartPinIndex = i;
+			continue;
+		}
+		else if (Pin->PinName == FName("FragmentEnd", FragmentIndexB + 1))
+		{
+			BEndPinIndex = i;
+			continue;
+		}
+	}
+
+	if (AStartPinIndex >= 0 && BStartPinIndex >= 0)
+	{
+		SwapPinConnections(AStartPinIndex, BStartPinIndex);
+	}
+	
+	if (AEndPinIndex >= 0 && BEndPinIndex >= 0)
+	{
+		SwapPinConnections(AEndPinIndex, BEndPinIndex);
 	}
 }
 

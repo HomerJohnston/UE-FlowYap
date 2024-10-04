@@ -357,7 +357,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
 	[
-		FragmentBox.ToSharedRef()
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(STextBlock)
+			.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
+			.Text(INVTEXT("SPEECH"))
+		]
+		+ SVerticalBox::Slot()
+		[
+			FragmentBox.ToSharedRef()
+		]
 	];
 
 	double EndTime = FPlatformTime::Seconds();
@@ -482,7 +493,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(ui
 TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftFragmentPane(uint8 FragmentIndex)
 {
 	return SNew(SBox)
-	//.WidthOverride(40)
+	.WidthOverride(32)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -876,9 +887,10 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragmentDown(uint8 FragmentIndex)
 
 void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 By)
 {
+	GetFlowYapDialogueNodeMutable()->SwapFragments(FragmentIndex, FragmentIndex + By);
+	
 	FlowGraphNode_YapDialogue->SwapFragmentPinConnections(FragmentIndex, FragmentIndex + By);
 
-	GetFlowYapDialogueNodeMutable()->SwapFragments(FragmentIndex, FragmentIndex + By);
 
 	if (FocusedFragmentIndex.IsSet())
 	{

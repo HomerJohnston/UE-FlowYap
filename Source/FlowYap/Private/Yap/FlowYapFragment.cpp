@@ -14,6 +14,8 @@
 FFlowYapFragment::FFlowYapFragment()
 {
 	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddRaw(this, &FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle); // TODO is this safe!?
+
+	Guid = FGuid::NewGuid();
 }
 
 FFlowYapFragment::~FFlowYapFragment()

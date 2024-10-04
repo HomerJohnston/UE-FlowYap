@@ -7,6 +7,7 @@
 #include "ScopedTransaction.h"
 #include "Editor.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Yap/FlowYapUtil.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredEditorUtilities.h"
 
 #define LOCTEXT_NAMESPACE "GameplayTagCombo"
@@ -131,16 +132,14 @@ bool SGameplayTagComboFiltered::ShowClearButton() const
 
 FText SGameplayTagComboFiltered::GetText() const
 {
-	return LOCTEXT("GameplayTagCombo", "Pick Tag");
+	//return LOCTEXT("GameplayTagCombo", "Pick Tag");
 
-	/*
 	if (TagAttribute.Get() == FGameplayTag::EmptyTag)
 	{
 		return LOCTEXT("GameplayTagCombo", "Pick Tag");
 	}
 	
 	return FText::FromString(FlowYapUtil::GetFilteredSubTag(Filter, TagAttribute.Get()));
-	*/
 }
 
 FText SGameplayTagComboFiltered::GetToolTipText() const

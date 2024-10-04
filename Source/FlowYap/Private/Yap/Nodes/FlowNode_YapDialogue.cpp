@@ -13,6 +13,8 @@
 
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
+	SupportedClimateZones = ECcClimateZone::ALL;
+	
 	Category = TEXT("Yap");
 
 	NodeStyle = EFlowNodeStyle::Custom;
@@ -27,8 +29,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 
 	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
-
-	OutputPins.Add(FName("Bypass"));
 
 #if WITH_EDITOR
 	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EFlowYap_TagFilter::Prompts);
@@ -255,7 +255,7 @@ void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMul
 	{
 		TriggerOutput(FName("Out"), true);
 	}
-	else 
+	else if (GetConnection("Bypass").NodeGuid.IsValid())
 	{
 		TriggerOutput(FName("Bypass"), true);
 	}
@@ -462,17 +462,14 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 	return FragmentSequencing;
 }
 
+/*
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
 {
 	TArray<FFlowPin> ContextInputPins;
-
-	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
-	{
-		ContextInputPins.Add(FName("Condition", Index));
-	}
 	
 	return ContextInputPins;
 }
+*/
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
@@ -486,8 +483,22 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 
 	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
 	{
-		ContextOutputPins.Add(FName("FragmentStart", Index));
-		ContextOutputPins.Add(FName("FragmentEnd", Index));
+		FFlowYapFragment& Fragment = Fragments[Index];
+		
+		if (Fragments[Index - 1].GetShowOnStartPin())
+		{
+			ContextOutputPins.Add(FName("FragmentStart_" + Fragment.GetGuid().ToString()));
+		}
+
+		if (Fragments[Index - 1].GetShowOnEndPin())
+		{
+			ContextOutputPins.Add(FName("FragmentEnd_" + Fragment.GetGuid().ToString()));
+		}
+	}
+
+	if (bEnableBypassPin) // TODO bypass pin should only be enabled if dialog, or all of its fragments, have conditions
+	{
+		OutputPins.Add(FName("Bypass"));
 	}
 	
 	return ContextOutputPins;

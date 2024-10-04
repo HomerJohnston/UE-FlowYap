@@ -40,5 +40,4 @@ public:
 
 protected:
 	uint8 GetBasePinsNum() const;
-	uint8 GetNumPinsPerFragment() const { return 2; };
 };

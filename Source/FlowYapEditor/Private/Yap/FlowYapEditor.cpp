@@ -34,18 +34,13 @@ void FFlowYapEditorModule::StartupModule()
 
 	DetailCustomizations =
 	{
-		{
-			UFlowNode_YapDialogue::StaticClass(),
-			FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYapDialogueNode::MakeInstance)
-		}
+		//{ UFlowNode_YapDialogue::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYapDialogueNode::MakeInstance) }
 	};
 
 	// const UScriptStruct& Struct, const FOnGetPropertyTypeCustomizationInstance DetailLayout
 	PropertyCustomizations =
 	{
-		{
-			*FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance)
-		}
+		//{ *FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance) }
 	};
 	
 	StartupModuleBase();

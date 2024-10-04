@@ -17,11 +17,23 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 	COUNT		UMETA(Hidden)
 };
 
+UENUM(BlueprintType, meta = (Bitflags))
+enum class ECcClimateZone : uint8
+{
+	NONE = 0 UMETA(Hidden),
+	Spring = 0x00000000 << 0,
+	Summer = 0x00000001 << 1,
+	Fall = 0x00000002 << 2,
+	Winter = 0x00000003 << 3,
+	ALL = Spring | Summer | Fall | Winter UMETA(Hidden)
+};
+
+ENUM_RANGE_BY_VALUES(ECcClimateZone, ECcClimateZone::Spring, ECcClimateZone::Summer, ECcClimateZone::Fall, ECcClimateZone::Winter);
 ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragmentSequencing::COUNT);
 
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
 
-// TODO: make this NotBlueprintable
+// TODO: make this NotBlueprintable, I have it blueprintable to make it easier to check details customizaitons for dev
 /**
  * Emits a FlowYap Dialogue Fragment
  */
@@ -42,7 +54,10 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 
 public:
 	UFlowNode_YapDialogue();
-
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true, Bitmask, BitmaskEnum = "/Script/MyGame.ECcClimateZone"))
+	ECcClimateZone SupportedClimateZones;
+	
 	// SETTINGS
 protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -62,6 +77,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag DialogueTag;
+
+	UPROPERTY(EditAnywhere)
+	bool bEnableBypassPin = false;
 	
 	// STATE
 protected:
@@ -149,7 +167,7 @@ public:
 
 	EFlowYapMultipleFragmentSequencing GetMultipleFragmentSequencing() const;
 	
-	virtual TArray<FFlowPin> GetContextInputs() override;
+	//virtual TArray<FFlowPin> GetContextInputs() override;
 
 	virtual TArray<FFlowPin> GetContextOutputs() override;
 	

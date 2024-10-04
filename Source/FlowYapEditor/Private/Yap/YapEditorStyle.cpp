@@ -9,6 +9,7 @@
 FYapEditorStyle::FYapEditorStyle()
 	: FSlateStyleSet("YapEditor")
 {
+	SetParentStyleName(FAppStyle::GetAppStyleSetName());
 	SetContentRoot(FPaths::ProjectPluginsDir() / TEXT("FlowYap/Resources"));
 	SetCoreContentRoot(FPaths::EngineContentDir() / TEXT("Editor/Slate"));
 
@@ -38,11 +39,9 @@ FYapEditorStyle::~FYapEditorStyle()
 
 void FYapEditorStyle::OnPatchComplete()
 {
-	/*
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 	Initialize();
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
-	*/
 }
 
 void FYapEditorStyle::Initialize()
@@ -54,11 +53,18 @@ void FYapEditorStyle::Initialize()
 	const FVector2f Icon32(32.f);
 	const FVector2f Icon40(40.f);
 	
-	Set("ImageBrush.Icon.AudioTime",	new IMAGE_BRUSH("DialogueNodeIcons/AudioTime",	Icon16));
-	Set("ImageBrush.Icon.TextTime",		new IMAGE_BRUSH("DialogueNodeIcons/TextTime",	Icon16));
-	Set("ImageBrush.Icon.Timer",		new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
-	Set("ImageBrush.Icon.LocalLimit",	new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
+	Set("ImageBrush.Icon.AudioTime",		new IMAGE_BRUSH("DialogueNodeIcons/AudioTime",	Icon16));
+	Set("ImageBrush.Icon.TextTime",			new IMAGE_BRUSH("DialogueNodeIcons/TextTime",	Icon16));
+	Set("ImageBrush.Icon.Timer",			new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
+	Set("ImageBrush.Icon.LocalLimit",		new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
 
+	Set("ImageBrush.Border.SharpSquare",				new BOX_BRUSH("Border_SharpSquare", FMargin(4 / 8.0f)));
+	Set("ImageBrush.Border.DeburredSquare",				new BOX_BRUSH("Border_DeburredSquare", FMargin(4 / 8.0f)));
+	Set("ImageBrush.Border.RoundedSquare",				new BOX_BRUSH("Border_RoundedSquare", FMargin(4 / 8.0f)));
+	Set("ImageBrush.Box.SolidWhite",					new BOX_BRUSH("Box_SolidWhite", FMargin(4 / 8.0f)));
+	Set("ImageBrush.Box.SolidWhite.DeburredCorners",	new BOX_BRUSH("Box_SolidWhite_DeburredCorners", FMargin(4 / 8.0f)));
+	Set("ImageBrush.Box.SolidWhite.RoundedCorners",		new BOX_BRUSH("Box_SolidWhite_RoundedCorners", FMargin(4 / 8.0f)));
+	
 	Set("SliderStyle.FragmentTimePadding", FSliderStyle(FSliderStyle::GetDefault())
 		.SetBarThickness(0.f)
 		///.SetNormalBarImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Red))
@@ -78,4 +84,23 @@ void FYapEditorStyle::Initialize()
 	.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
 	.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))
 	.SetEnableFillAnimation(false));
+
+	const ISlateStyle* ParentStyle = GetParentStyle();
+	
+	NormalText = ParentStyle->GetWidgetStyle<FTextBlockStyle>("NormalText");
+
+	Set("Text.TitleText", FTextBlockStyle(NormalText)
+		.SetFont(DEFAULT_FONT("Italic", 10))
+		.SetColorAndOpacity(YapColor::Gray)
+	);
+	
+	Set("Text.DialogueText", FTextBlockStyle(NormalText)
+		.SetFont(DEFAULT_FONT("Regular", 10))
+		.SetColorAndOpacity(YapColor::White)
+	);
+	
+	Set("Text.NodeHeader", FTextBlockStyle(NormalText)
+		.SetFont(DEFAULT_FONT("Regular", 20))
+		.SetColorAndOpacity(YapColor::White)
+	);
 }

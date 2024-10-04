@@ -84,6 +84,12 @@ protected:
 	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
 
 	// ---------------------------------------------------
+	TSharedRef<SWidget> CreateConditionWidgets();
+
+	TSharedRef<SWidget> CreateConditionWidget();
+	
+	// ---------------------------------------------------
+
 	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
 	
 	TOptional<float>	FragmentTimePadding_Percent() const;
@@ -94,7 +100,7 @@ protected:
 	FText				FragmentTimePadding_ToolTipText() const;
 	
 	// ------------------------------------------
-	TSharedRef<SBox>	CreatePortraitWidget();
+	TSharedRef<SWidget>	CreatePortraitWidget();
 
 	EVisibility			PortraitImage_Visibility() const;
 	const FSlateBrush*	PortraitImage_Image() const;
@@ -169,6 +175,8 @@ protected:
 
 	bool FragmentFocused() const;
 
+	TSharedRef<SWidget> CreateWrappedTextBlock(FText (SFlowGraphNode_YapFragmentWidget::*wtf)() const, FString TextStyle) const;
+	
 	// ------------------------------------------
 	// OVERRIDES
 public:
