@@ -78,8 +78,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag DialogueTag;
 
-	UPROPERTY(EditAnywhere)
-	bool bEnableBypassPin = false;
+	UPROPERTY(EditAnywhere, Instanced)
+	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
 	
 	// STATE
 protected:
@@ -88,6 +88,10 @@ protected:
 
 	UPROPERTY()
 	FTimerHandle TimerHandle;
+
+#if WITH_EDITOR
+	TMap<uint8, TArray<FName>> FragmentPins;
+#endif
 	
 	// API
 public:
@@ -105,7 +109,7 @@ public:
 
 	int32 GetNodeActivationLimit() const;
 	
-	const TArray<FFlowYapFragment>& GetFragments();
+	const TArray<FFlowYapFragment>& GetFragments() const;
 
 	uint8 GetNumFragments() const;
 
@@ -123,6 +127,7 @@ public:
 
 	bool GetInterruptible() const;
 	
+	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; };
 
 protected:
 	void BroadcastPrompts();
@@ -138,6 +143,8 @@ protected:
 
 	void OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
 
+	bool BypassPinRequired() const;
+	
 protected:
 	bool TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment);
 

@@ -100,7 +100,7 @@ const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& Request
 	*/
 }
 
-const TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments()
+const TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragments() const
 {
 	return Fragments;
 }
@@ -361,6 +361,24 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 	}
 }
 
+bool UFlowNode_YapDialogue::BypassPinRequired() const
+{
+	if (Conditions.Num() > 0)
+	{
+		return true;
+	}
+
+	for (const FFlowYapFragment& Fragment : Fragments)
+	{
+		if (Fragment.GetConditions().Num() == 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment)
 {
 	if (Fragment.IsActivationLimitMet())
@@ -422,7 +440,7 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 		return FText::FromString("Dialogue");
 	}
 
-	return FText::FromString("Yap Dialogue");
+	return FText::FromString(" ");
 }
 
 #if WITH_EDITOR
@@ -481,22 +499,28 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 
 	TArray<FFlowPin> ContextOutputPins;
 
-	for (uint8 Index = 1; Index <= Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
+	FragmentPins.Empty();
+
+	for (uint8 Index = 0; Index < Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
 	{
 		FFlowYapFragment& Fragment = Fragments[Index];
 		
-		if (Fragments[Index - 1].GetShowOnStartPin())
+		if (Fragments[Index].GetShowOnStartPin())
 		{
-			ContextOutputPins.Add(FName("FragmentStart_" + Fragment.GetGuid().ToString()));
+			FName Pin = FName("FragmentStart_" + Fragment.GetGuid().ToString());
+			ContextOutputPins.Add(Pin);
+			FragmentPins.FindOrAdd(Index).Add(Pin);
 		}
 
-		if (Fragments[Index - 1].GetShowOnEndPin())
+		if (Fragments[Index].GetShowOnEndPin())
 		{
-			ContextOutputPins.Add(FName("FragmentEnd_" + Fragment.GetGuid().ToString()));
+			FName Pin = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
+			ContextOutputPins.Add(Pin);
+			FragmentPins.FindOrAdd(Index).Add(Pin);
 		}
 	}
 
-	if (bEnableBypassPin) // TODO bypass pin should only be enabled if dialog, or all of its fragments, have conditions
+	if (BypassPinRequired())
 	{
 		OutputPins.Add(FName("Bypass"));
 	}
@@ -597,7 +621,9 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 FString UFlowNode_YapDialogue::GetNodeDescription() const
 {
-	return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, DialogueTag);
+	return "";
+	
+	//return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, DialogueTag);
 }
 
 void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const

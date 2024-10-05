@@ -14,10 +14,12 @@ class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 protected:
 	UFlowGraphNode_YapDialogue* FlowGraphNode_YapDialogue = nullptr;
 
-	TSharedPtr<SVerticalBox> FragmentBox;
-	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
+	TSharedPtr<SBox> DialogueInputBoxArea;
+	TSharedPtr<SBox> DialogueOutputBoxArea;
+	
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
 	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
+	
 	TSharedPtr<SBox> BypassOutputBox;
 
 	// TODO make style set junk, for both this and Fragment widget. Pull it out of
@@ -46,6 +48,7 @@ protected:
 	
 	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
+
 	static FButtonStyle MoveFragmentButtonStyle;
 	static bool bStylesInitialized;
 	
@@ -80,11 +83,15 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
 
+	TSharedRef<SWidget> CreateContentHeader();
+	TSharedRef<SWidget> CreateFragmentBoxes();
+
+	FText				NodeHeader_Text() const;
 	EVisibility			FragmentRowHighlight_Visibility(uint8 f) const;
 	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex);
+	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex) const;
 
 	EVisibility			FragmentSeparator_Visibility() const;
 	FSlateColor			FragmentSeparator_ColorAndOpacity() const;
@@ -114,7 +121,7 @@ protected:
 	TSharedRef<SBox>	CreateRightFragmentPane();
 	
 	// ------------------------------------------
-	TSharedRef<SHorizontalBox> CreateBottomBarWidget();
+	TSharedRef<SHorizontalBox> CreateContentFooter();
 
 	EVisibility			FragmentSequencingButton_Visibility() const;
 	FReply				FragmentSequencingButton_OnClicked();
@@ -124,6 +131,13 @@ protected:
 	EVisibility			BottomAddFragmentButton_Visibility() const;
 	FReply				BottomAddFragmentButton_OnClicked();
 
+	// UNSORTED
+
+	TSharedRef<SWidget> CreateDialogueTagPreviewWidget() const;
+	FText DialogueTagPreview_Text() const;
+	TSharedRef<SWidget> CreateConditionWidgets();
+	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition);
+	
 	// ------------------------------------------
 	// PUBLIC API & THEIR HELPERS
 public:
@@ -177,8 +191,6 @@ public:
 	
 protected:
 	void AddInPin(const TSharedRef<SGraphPin> PinToAdd);
-
-	void AddConditionPin(const TSharedRef<SGraphPin> PinToAdd);
 
 	void AddOutPin(const TSharedRef<SGraphPin>& PinToAdd);
 

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+class UFlowYapCondition;
 struct FFlowYapFragment;
 class SObjectPropertyEntryBox;
 class SMultiLineEditableText;
@@ -76,17 +77,14 @@ protected:
 	FReply				ActivationDot_OnClicked();
 	
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentTagPreviewWidget();
 
-	EVisibility			FragmentTagPreview_Visibility() const;
 	FText				FragmentTagPreview_Text() const;
-	FSlateColor			FragmentTagPreview_BorderBackgroundColor() const;
 	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
 
 	// ---------------------------------------------------
-	TSharedRef<SWidget> CreateConditionWidgets();
+	TSharedRef<SWidget> CreateConditionWidgets() const;
 
-	TSharedRef<SWidget> CreateConditionWidget();
+	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition) const;
 	
 	// ---------------------------------------------------
 

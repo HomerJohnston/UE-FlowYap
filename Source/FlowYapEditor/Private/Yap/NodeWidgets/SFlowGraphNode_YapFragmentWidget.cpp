@@ -27,6 +27,8 @@
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 #include "Yap/FlowYapBitReplacement.h"
+#include "Yap/FlowYapCondition.h"
+#include "Yap/Helpers/FlowYapWidgetHelper.h"
 
 constexpr int32 PAD1 = 2;
 constexpr int32 PAD2 = 4;
@@ -60,13 +62,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 			+ SHorizontalBox::Slot()
 			.HAlign(HAlign_Fill)
 			.AutoWidth()
-			.Padding(0, 0, 2, 0)
+			.Padding(0, 0, 0, 0)
 			[
-				CreateFragmentTagPreviewWidget()
+				FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text)
 			]
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(2, 0, 0, 0)
+			.Padding(0, 0, 0, 0)
 			[
 				CreateConditionWidgets()
 			]
@@ -93,15 +95,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 			[
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot()
-				.Padding(0, 0, 0, 2)
-				.AutoHeight()
-				[
-					CreateTitleTextWidget()
-				]
-				+ SVerticalBox::Slot()
-				.Padding(0, 2, 0, 0)
+				.Padding(0, 0, 0, 0)
 				.VAlign(VAlign_Fill)
-				.MaxHeight(51)
 				[
 					CreateDialogueWidget()
 					/*
@@ -132,6 +127,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 						CreateActivationLimiterWidget()
 					]
 					*/
+				]
+				+ SVerticalBox::Slot()
+				.Padding(0, 4, 0, 0)
+				.AutoHeight()
+				[
+					CreateTitleTextWidget()
 				]
 			]
 		]
@@ -482,42 +483,6 @@ FReply SFlowGraphNode_YapFragmentWidget::ActivationDot_OnClicked()
 // FRAGMENT TAG OVERLAY WIDGET (OVER DIALOGUE, PREVIEW PURPOSE ONLY)
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagPreviewWidget()
-{	
-	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
-	.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_BorderBackgroundColor)
-	.Padding(4, 0, 4, 0)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility)
-	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
-	.VAlign(VAlign_Center)
-	.HAlign(HAlign_Center)
-	[
-		SNew(STextBlock)
-		.Text(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text)
-		.IsEnabled(false)
-		.Font(FAppStyle::GetFontStyle("SmallFont"))
-	];
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() const
-{
-	return EVisibility::Visible;
-	/*
-	if (GetFragment()->FragmentTag == FGameplayTag::EmptyTag || DialogueBox->HasKeyboardFocus())
-	{
-		return EVisibility::Collapsed;
-	}
-
-	if (!GetFragment()->FragmentTag.IsValid())
-	{
-		return EVisibility::HitTestInvisible;
-	}
-		
-	return EVisibility::HitTestInvisible;
-	*/
-}
-
 FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 {
 	// Pass tag from the properties
@@ -528,7 +493,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 
 	if (Text.IsEmptyOrWhitespace())
 	{
-		return INVTEXT("No Tag");
+		return INVTEXT("---");
 	}
 	else
 	{
@@ -536,59 +501,34 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 	}
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_BorderBackgroundColor() const
-{
-	return YapColor::DeepGray_SemiTrans;
-	/*
-	if (DialogueBox->HasKeyboardFocus())
-	{
-		return YapColor::DeepGray_Glass;
-	}
-	
-	return YapColor::DeepGray_SemiTrans;
-	*/
-}
-
-FLinearColor SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity() const
-{
-	return YapColor::White;
-	
-	/*
-	if (DialogueBox->HasKeyboardFocus())
-	{
-		return YapColor::Gray_Trans;
-	}
-	
-	return YapColor::White;
-	*/
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets() const
 {
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
 
-	Box->AddSlot()
-	[
-		CreateConditionWidget()
-	];
+	for (const UFlowYapCondition* Condition : GetFragment()->GetConditions())
+	{
+		Box->AddSlot()
+		.Padding(4, 0, 0, 0)
+		[
+			FFlowYapWidgetHelper::CreateConditionWidget(Condition)
+		];	
+	}
 	
 	return Box;
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidget()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidget(const UFlowYapCondition* Condition) const
 {
-	return SNew(SOverlay)
-	+ SOverlay::Slot()
-	[
-		SNew(SBorder)
-		.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
-		.BorderBackgroundColor(YapColor::DarkOrangeRed)
-	]
-	+ SOverlay::Slot()
-	.Padding(4, 4)
+	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
+	
+	return SNew(SBorder)
+	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderBackgroundColor(YapColor::DarkOrangeRed)
+	.VAlign(VAlign_Center)
+	.HAlign(HAlign_Center)
 	[
 		SNew(STextBlock)
-		.Text(INVTEXT("TestTestTest"))
+		.Text(FText::FromString(Description))
 		.ColorAndOpacity(YapColor::White)
 		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
 	];
@@ -1056,7 +996,11 @@ FReply SFlowGraphNode_YapFragmentWidget::MoodKeyMenuEntry_OnClicked(FName NewVal
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
-	return CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText");
+	return SNew(SBox)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
+	[
+		CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText")
+	];
 
 	//return SAssignNew(TitleTextBox, STextBlock)
 	//.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
@@ -1076,7 +1020,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
 		return EVisibility::Visible;
 	}
 	
-	return UFlowYapProjectSettings::Get()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Hidden : EVisibility::Visible;
+	return UFlowYapProjectSettings::Get()->GetHideTitleTextOnNPCDialogueNodes() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::TitleText_Text() const
@@ -1583,9 +1527,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateWrappedTextBlock(FTe
 	
 	return SNew(SBorder)
 	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
-	.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_BorderBackgroundColor)
+	.BorderBackgroundColor(YapColor::DeepGray)
 	.Padding(4, 2, 4, 2)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility)
 	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
 	[
 		SNew(STextBlock)

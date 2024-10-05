@@ -4,6 +4,7 @@
 
 #include "FlowYapFragment.generated.h"
 
+class UFlowYapCondition;
 class UFlowNode_YapDialogue;
 
 UENUM()
@@ -58,6 +59,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bShowOnEndPin = false;
 
+	UPROPERTY(EditAnywhere, Instanced)
+	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
+	
 	// ==========================================
 	// STATE
 protected:
@@ -121,5 +125,7 @@ public:
 	bool GetShowOnStartPin() const { return bShowOnStartPin; }
 	
 	bool GetShowOnEndPin() const { return bShowOnEndPin; }
+
+	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; }
 #endif
 };

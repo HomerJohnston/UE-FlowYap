@@ -41,17 +41,13 @@ UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 
 FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
-	if (GetFlowYapNode()->GetIsPlayerPrompt())
-	{
-		return YapColor::White;
-	}
-
 	return YapColor::LightGray;
 }
 
 FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
 {
-	return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
+	//return FSlateIcon(FAppStyle::GetAppStyleSetName(), "ShowFlagsMenu.SubMenu.Developer");
+	return FSlateIcon();
 }
 
 void UFlowGraphNode_YapDialogue::UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex)

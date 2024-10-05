@@ -57,6 +57,7 @@ void FYapEditorStyle::Initialize()
 	Set("ImageBrush.Icon.TextTime",			new IMAGE_BRUSH("DialogueNodeIcons/TextTime",	Icon16));
 	Set("ImageBrush.Icon.Timer",			new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
 	Set("ImageBrush.Icon.LocalLimit",		new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
+	Set("ImageBrush.Icon.Audio",			new IMAGE_BRUSH("Icon_Audio",	Icon16));
 
 	Set("ImageBrush.Border.SharpSquare",				new BOX_BRUSH("Border_SharpSquare", FMargin(4 / 8.0f)));
 	Set("ImageBrush.Border.DeburredSquare",				new BOX_BRUSH("Border_DeburredSquare", FMargin(4 / 8.0f)));
@@ -100,7 +101,7 @@ void FYapEditorStyle::Initialize()
 	);
 	
 	Set("Text.NodeHeader", FTextBlockStyle(NormalText)
-		.SetFont(DEFAULT_FONT("Regular", 20))
+		.SetFont(DEFAULT_FONT("Bold", 16))
 		.SetColorAndOpacity(YapColor::White)
 	);
 }

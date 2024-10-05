@@ -13,6 +13,7 @@
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapColors.h"
+#include "Yap/FlowYapCondition.h"
 #include "Yap/FlowYapEditorSettings.h"
 #include "Yap/FlowYapEditorSubsystem.h"
 #include "Yap/FlowYapFragment.h"
@@ -22,6 +23,7 @@
 #include "Yap/FlowYapTransactions.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/GraphNodes/FlowGraphNode_YapDialogue.h"
+#include "Yap/Helpers/FlowYapWidgetHelper.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/SFlowYapGraphPinExec.h"
 
@@ -37,7 +39,6 @@ bool SFlowGraphNode_YapDialogueWidget::bStylesInitialized = false;
 // CONSTRUCTION
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {
-	
 	GraphNode = InNode;
 	FlowGraphNode = InNode;
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
@@ -80,23 +81,8 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 		bStylesInitialized = true;
 	}
-	
-	// TODO move this to my style
-	NormalText = FTextBlockStyle()
-	.SetFont(FCoreStyle::GetDefaultFontStyle("Regular", 10))
-	.SetFontSize(10)
-	.SetColorAndOpacity(FSlateColor::UseForeground())
-	.SetShadowOffset(FVector2D::ZeroVector)
-	.SetShadowColorAndOpacity(FLinearColor::Black)
-	.SetHighlightColor(FLinearColor(0.02f, 0.3f, 0.0f));
-
-	double StartTime = FPlatformTime::Seconds();
 
 	UpdateGraphNode();
-
-	double EndTime = FPlatformTime::Seconds();
-
-	//UE_LOG(LogTemp, Warning, TEXT("Construct took %f ms"), 1000 * (EndTime - StartTime));
 }
 
 // ------------------------------------------
@@ -108,8 +94,6 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
-	double StartTime = FPlatformTime::Seconds();
-
 	TSharedRef<SWidget> Title = SFlowGraphNode::CreateTitleWidget(NodeTitle);
 
 	TSharedPtr<SCheckBox> InterruptibleCheckBox;
@@ -128,11 +112,23 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	
 	TSharedRef<SWidget> Widget = SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
-	.FillWidth(1.0)
-	.HAlign(HAlign_Fill)
-	.Padding(12,0,2,0)
+	.HAlign(HAlign_Left)
+	.Padding(-8,0,2,0)
+	.AutoWidth()
 	[
-		Title
+		FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapDialogueWidget::DialogueTagPreview_Text)
+	]
+	+ SHorizontalBox::Slot()
+	.HAlign(HAlign_Left)
+	.Padding(2,0,2,0)
+	.AutoWidth()
+	[
+		CreateConditionWidgets()
+	]
+	+ SHorizontalBox::Slot()
+	.HAlign(HAlign_Fill)
+	[
+		SNew(SSpacer)
 	]
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Right)
@@ -206,11 +202,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			]
 		]
 	];
-
-	double EndTime = FPlatformTime::Seconds();
-
-	//UE_LOG(LogTemp, Warning, TEXT("CreateTitleWidget took %f ms"), 1000 * (EndTime - StartTime));
-
+	
 	return Widget;
 }
 
@@ -288,40 +280,116 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
-	double StartTime = FPlatformTime::Seconds();
+	TSharedRef<SVerticalBox> ContentVerticalBox = SNew(SVerticalBox)
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.Padding(0, 5, 0, 5)
+	[
+		CreateContentHeader()
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		CreateFragmentBoxes()
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		CreateContentFooter()
+	];
 
-	SAssignNew(FragmentBox, SVerticalBox);
+	/*
+	ContentVerticalBox->AddSlot()
+	.AutoHeight()
+	.Padding(0,0)
+	[
+		CreateContentFooter()
+	];
 
-	bool bSingleFragment = GetFlowYapDialogueNodeMutable()->GetNumFragments() == 1;
+	TSharedRef<SWidget> Widget = SNew(SBorder)
+	.BorderImage(FAppStyle::GetBrush("NoBorder"))
+	.HAlign(HAlign_Fill)
+	.VAlign(VAlign_Fill)
+	[
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 2, 0, 4)
+		[
+			SAssignNew(HeaderBox, SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			[
+				SNew(STextBlock)
+				.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
+				.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Text)
+			]
+		]
+		+ SVerticalBox::Slot()
+		.Padding(0, 4, 0, 0)
+		[
+			ContentVerticalBox
+		]
+	];
+	*/
+	
+	return ContentVerticalBox;
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
+{
+	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox)
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(4, 0, 0, 0)
+	[
+		SAssignNew(DialogueInputBoxArea, SBox)
+	]
+	+ SHorizontalBox::Slot()
+	.FillWidth(1.0)
+	[
+		SNew(STextBlock)
+		.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
+		.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Text)
+	]
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(0, 0, 4, 0)
+	[
+		SAssignNew(DialogueOutputBoxArea, SBox)
+	];
+
+	return Box;
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
+{
+	bool bSingleFragment = GetFlowYapDialogueNode()->GetNumFragments() == 1;
 	bool bFirstFragment = true;
 	bool bLastFragment = false;
 
-	uint8 Spacing = GetDefault<UFlowYapEditorSettings>()->GetDialogueRowSpacing();
-	uint8 Padding = 1 + Spacing * 8;
+	TSharedRef<SVerticalBox> FragmentBoxes = SNew(SVerticalBox);
 	
-	for (uint8 FragmentIndex = 0; FragmentIndex < GetFlowYapDialogueNodeMutable()->GetNumFragments(); ++FragmentIndex)
+	for (uint8 FragmentIndex = 0; FragmentIndex < GetFlowYapDialogueNode()->GetNumFragments(); ++FragmentIndex)
 	{
-		FFlowYapFragment& Fragment = GetFlowYapDialogueNodeMutable()->GetFragmentsMutable()[FragmentIndex];
+		const FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragments()[FragmentIndex];
 
-		if (FragmentIndex == GetFlowYapDialogueNodeMutable()->GetNumFragments() - 1)
+		if (FragmentIndex == GetFlowYapDialogueNode()->GetNumFragments() - 1)
 		{
 			bLastFragment = true;
 		}
 		
 		TSharedPtr<SFlowGraphNode_YapFragmentWidget> NewFragmentWidget = MakeShared<SFlowGraphNode_YapFragmentWidget>();
 
-		FragmentWidgets.Add(NewFragmentWidget);
-
-		FragmentBox->AddSlot()
+		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, 0, 0, 0)
+		.Padding(0, bFirstFragment ? 0 : 12, 0, 12)
 		[
 			CreateFragmentSeparatorWidget(FragmentIndex)
-		];	
+		];
 		
-		FragmentBox->AddSlot()
+		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 1 : Padding, 0, bSingleFragment || bLastFragment ? 2 : Padding)
+		.Padding(0, 0, 0, 0)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
@@ -344,38 +412,20 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		
 		bFirstFragment = false;
 	};
-	
-	FragmentBox->AddSlot()
-	.AutoHeight()
-	.Padding(0,0)
-	[
-		CreateBottomBarWidget()
-	];
 
-	TSharedRef<SWidget> Widget = SNew(SBorder)
-	.BorderImage(FAppStyle::GetBrush("NoBorder"))
-	.HAlign(HAlign_Fill)
-	.VAlign(VAlign_Fill)
-	[
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(STextBlock)
-			.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
-			.Text(INVTEXT("SPEECH"))
-		]
-		+ SVerticalBox::Slot()
-		[
-			FragmentBox.ToSharedRef()
-		]
-	];
+	return FragmentBoxes;
+}
 
-	double EndTime = FPlatformTime::Seconds();
-
-	//UE_LOG(LogTemp, Warning, TEXT("CreateNodeContentArea took %f ms"), 1000 * (EndTime - StartTime));
-
-	return Widget;
+FText SFlowGraphNode_YapDialogueWidget::NodeHeader_Text() const
+{
+	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		return INVTEXT("PLAYER PROMPT");
+	}
+	else
+	{
+		return INVTEXT("SPEAK");
+	}
 }
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(uint8 f) const
@@ -404,26 +454,18 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgro
 }
 
 
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex)
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex) const
 {
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
 	
 	Box->AddSlot()
 	.HAlign(HAlign_Fill)
-	.Padding(0, -2, 0, -2)
+	.Padding(0, 0, 0, 0)
 	[
-		SNew(SButton)
-		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.ToolTipText(LOCTEXT("DialogueNode", "Insert new fragment"))
-		.ContentPadding(FMargin(0, 2, 0, 2))
-		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_Visibility)
-		.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked, FragmentIndex)			
-		[
-			SNew(SImage)
-			.Image(FAppStyle::GetBrush("Menu.Separator"))
-			.DesiredSizeOverride(FVector2D(1, 1))
-			.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
-		]
+		SNew(SImage)
+		.Image(FAppStyle::GetBrush("Menu.Separator"))
+		.DesiredSizeOverride(FVector2D(1, 1))
+		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSeparator_ColorAndOpacity)
 	];
 
 	return Box;
@@ -475,7 +517,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(ui
 	.AutoWidth()
 	.VAlign(VAlign_Top)
 	[
-		SAssignNew(FragmentWidgets[FragmentWidgets.Num() -1], SFlowGraphNode_YapFragmentWidget, this, FragmentIndex)
+		SNew(SFlowGraphNode_YapFragmentWidget, this, FragmentIndex)
 	]
 	// RIGHT PANE
 	+ SHorizontalBox::Slot()
@@ -511,14 +553,6 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftFragmentPane(uint8 
 			[
 				CreateLeftSideNodeBox()
 			]
-			/*
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.HAlign(HAlign_Center)
-			[
-				CreateActivationLimiterWidget(FragmentIndex)
-			]
-			*/
 		]
 	];
 }
@@ -700,19 +734,20 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane()
 // BOTTOM BAR
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateBottomBarWidget()
+TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 {
 	return SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.HAlign(HAlign_Left)
-	.Padding(0, 0, 6, 0)
+	.Padding(0, 2, 6, 2)
 	[
 		SNew(SBox)
-		//.WidthOverride(40)
+		.WidthOverride(24)
+		.HeightOverride(24)
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		.Padding(0, 0)
+		.Padding(0)
 		[
 			SNew(SButton)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
@@ -732,6 +767,8 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateBottomBarWidg
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
 	[
+		SNew(SSpacer)
+		/*
 		SNew(SButton)
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
@@ -747,15 +784,17 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateBottomBarWidg
 				.ColorAndOpacity(DialogueButtonsColor)
 			]
 		]
+		*/
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.HAlign(HAlign_Center)
-	.Padding(0, -2, 0, -2)
+	.Padding(0, 2, 2, 2)
 	[
 		SAssignNew(BypassOutputBox, SBox)
 		.HAlign(HAlign_Center)
-		//.WidthOverride(40)
+		.WidthOverride(24)
+		.HeightOverride(24)
 		.Padding(0)
 	];
 }
@@ -853,8 +892,71 @@ FReply SFlowGraphNode_YapDialogueWidget::BottomAddFragmentButton_OnClicked()
 	return FReply::Handled();
 }
 
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateDialogueTagPreviewWidget() const
+{	
+	return SNew(SBorder)
+	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderBackgroundColor(YapColor::DeepGray)
+	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
+	.VAlign(VAlign_Center)
+	.HAlign(HAlign_Center)
+	[
+		SNew(STextBlock)
+		.Text(this, &SFlowGraphNode_YapDialogueWidget::DialogueTagPreview_Text)
+		.IsEnabled(false)
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
+	];
+}
+
+FText SFlowGraphNode_YapDialogueWidget::DialogueTagPreview_Text() const
+{
+	FText Text = FText::FromString(UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, GetFlowYapDialogueNode()->GetDialogueTag()));
+
+	if (Text.IsEmptyOrWhitespace())
+	{
+		return INVTEXT("---");
+	}
+	else
+	{
+		return Text;
+	}
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
+{
+	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
+
+	for (const UFlowYapCondition* Condition : GetFlowYapDialogueNode()->GetConditions())
+	{
+		Box->AddSlot()
+		.Padding(4, 0, 0, 0)
+		[
+			FFlowYapWidgetHelper::CreateConditionWidget(Condition)
+		];	
+	}
+	
+	return Box;
+}
+
 // ------------------------------------------
 // PUBLIC API & THEIR HELPERS
+
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidget(const UFlowYapCondition* Condition)
+{
+	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
+	
+	return SNew(SBorder)
+	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderBackgroundColor(YapColor::DarkOrangeRed)
+	.VAlign(VAlign_Center)
+	.HAlign(HAlign_Center)
+	[
+		SNew(STextBlock)
+		.Text(FText::FromString(Description))
+		.ColorAndOpacity(YapColor::White)
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
+	];
+}
 
 void SFlowGraphNode_YapDialogueWidget::DeleteFragment(uint8 FragmentIndex)
 {
@@ -1073,10 +1175,6 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		{
 			AddInPin(PinToAdd);
 		}
-		else if (PinName.IsEqual("Condition", ENameCase::IgnoreCase, false))
-		{
-			AddConditionPin(PinToAdd);
-		}
 		else
 		{
 			UE_LOGFMT(FlowYap, Warning, "Invalid input pin name: {0}", PinName);
@@ -1095,6 +1193,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		{
 			AddBypassPin(PinToAdd);
 		}
+		/*
 		else if (PinName.IsEqual("FragmentEnd", ENameCase::IgnoreCase, false))
 		{
 			AddFragmentEndPin(PinToAdd);
@@ -1103,6 +1202,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		{
 			AddFragmentStartPin(PinToAdd);
 		}
+		*/
 		else
 		{
 			UE_LOGFMT(FlowYap, Warning, "Invalid output pin name: {0}", PinName);
@@ -1134,58 +1234,10 @@ void SFlowGraphNode_YapDialogueWidget::AddInPin(const TSharedRef<SGraphPin> PinT
 	LeftMargins.Top = 0;
 	//LeftMargins.Right = 0;
 	LeftMargins.Bottom = 0;
-	
-	FragmentInputBoxes[0]->InsertSlot(0)
-	.HAlign(HAlign_Left)
-	.VAlign(VAlign_Top)
-	.AutoHeight()
-	.Padding(0)
-	[
-		PinToAdd
-	];
+
+	DialogueInputBoxArea->SetContent(PinToAdd);
 
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "In"));
-}
-
-void SFlowGraphNode_YapDialogueWidget::AddConditionPin(const TSharedRef<SGraphPin> PinToAdd)
-{
-	int32 Index = InputPins.Num() - 1; // Assume In pin is always added first
-	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
-
-	if (!FragmentInputBoxes.IsValidIndex(Index))
-	{
-		UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD INPUT PIN: %s, perhaps node is corrupt?"
-							"Copy paste this node and delete the old one. "
-							"First Node dialogue entry: %s"),
-							*PinObj->GetName(),
-							*GetFlowYapDialogueNodeMutable()->GetFragments()[0].Bit.GetDialogueText().ToString());
-		return;
-	}
-		
-	FMargin LeftMargins = Settings->GetInputPinPadding();
-
-	LeftMargins.Top = 0;
-	//LeftMargins.Right = 0;
-	LeftMargins.Bottom = 0;
-	
-	FragmentInputBoxes[Index]->AddSlot()
-	.HAlign(HAlign_Left)
-	.VAlign(VAlign_Fill)
-	[
-		SNew(SSpacer)
-	];
-
-	FragmentInputBoxes[Index]->AddSlot()
-	.HAlign(HAlign_Left)
-	.VAlign(VAlign_Bottom)
-	.AutoHeight()
-	.Padding(0)
-	[
-		PinToAdd
-	];
-
-	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Condition"));
-	PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? ConnectedConditionPinColor : DisconnectedConditionPinColor);
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& PinToAdd)
@@ -1195,15 +1247,8 @@ void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& Pi
 	//RightMargins.Left = 0;
 	RightMargins.Bottom = 0;
 	RightMargins.Top = 0;
-	
-	FragmentOutputBoxes[0]->InsertSlot(0)
-	.HAlign(HAlign_Right)
-	.VAlign(VAlign_Top)
-	.AutoHeight()
-	.Padding(0)
-	[
-		PinToAdd
-	];
+
+	DialogueOutputBoxArea->SetContent(PinToAdd);
 	
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
 	PinToAdd->SetColorAndOpacity(YapColor::White);
