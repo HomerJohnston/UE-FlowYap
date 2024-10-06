@@ -47,6 +47,7 @@ public:
 	// ------------------------------------------
 	// WIDGETS
 protected:
+	EVisibility BarAboveDialogue_Visibility() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -79,13 +80,15 @@ protected:
 	// ------------------------------------------
 
 	FText				FragmentTagPreview_Text() const;
-	FLinearColor		FragmentTagPreview_ColorAndOpacity() const;
+	EVisibility			FragmentTagPreview_Visibility() const;
 
 	// ---------------------------------------------------
 	TSharedRef<SWidget> CreateConditionWidgets() const;
 
 	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition) const;
 	
+	EVisibility			ConditionWidgets_Visibility() const;
+
 	// ---------------------------------------------------
 
 	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
@@ -163,6 +166,8 @@ protected:
 	EVisibility			AudioAssetErrorState_Visibility() const;
 	FSlateColor			AudioAssetErrorState_ColorAndOpacity() const;
 	EFlowYapErrorLevel	AudioAssetErrorLevel() const;
+
+	EVisibility			AudioButton_Visibility() const;
 
 	// ------------------------------------------
 	// HELPERS

@@ -58,6 +58,9 @@ void FYapEditorStyle::Initialize()
 	Set("ImageBrush.Icon.Timer",			new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
 	Set("ImageBrush.Icon.LocalLimit",		new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
 	Set("ImageBrush.Icon.Audio",			new IMAGE_BRUSH("Icon_Audio",	Icon16));
+	Set("ImageBrush.Icon.Tag",				new IMAGE_BRUSH("Icon_Tag",	Icon16));
+
+	Set("ImageBrush.Brush.DiagonalLine",	new IMAGE_BRUSH("Brush_Diagonal_16px", Icon16));
 
 	Set("ImageBrush.Border.SharpSquare",				new BOX_BRUSH("Border_SharpSquare", FMargin(4 / 8.0f)));
 	Set("ImageBrush.Border.DeburredSquare",				new BOX_BRUSH("Border_DeburredSquare", FMargin(4 / 8.0f)));
@@ -65,6 +68,7 @@ void FYapEditorStyle::Initialize()
 	Set("ImageBrush.Box.SolidWhite",					new BOX_BRUSH("Box_SolidWhite", FMargin(4 / 8.0f)));
 	Set("ImageBrush.Box.SolidWhite.DeburredCorners",	new BOX_BRUSH("Box_SolidWhite_DeburredCorners", FMargin(4 / 8.0f)));
 	Set("ImageBrush.Box.SolidWhite.RoundedCorners",		new BOX_BRUSH("Box_SolidWhite_RoundedCorners", FMargin(4 / 8.0f)));
+
 	
 	Set("SliderStyle.FragmentTimePadding", FSliderStyle(FSliderStyle::GetDefault())
 		.SetBarThickness(0.f)

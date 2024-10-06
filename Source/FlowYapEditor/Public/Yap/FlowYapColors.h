@@ -39,6 +39,7 @@ namespace YapColor
 
 	DECLARE_COLOR(OrangeRed,		0.920, 0.070, 0.020);
 	DECLARE_COLOR(DarkOrangeRed,	0.600, 0.050, 0.010);
+	DECLARE_COLOR(DeepOrangeRed,	0.300, 0.030, 0.005);
 	
 	DECLARE_COLOR(LightRed,			0.950, 0.340, 0.420);
 	DECLARE_COLOR(Red,				0.950, 0.040, 0.060);
@@ -48,12 +49,14 @@ namespace YapColor
 	DECLARE_COLOR(LightGreen,		0.340, 1.000, 0.420);
 	DECLARE_COLOR(Green,			0.180, 0.950, 0.220);
 	DECLARE_COLOR(DarkGreen,		0.020, 0.150, 0.050);
+	DECLARE_COLOR(DarkGreenGray,	0.080, 0.200, 0.100);
 	DECLARE_COLOR(DeepGreen,		0.015, 0.040, 0.020);
 
 	DECLARE_COLOR(LightBlue,		0.340, 0.420, 1.000);
 	DECLARE_COLOR(Blue,				0.040, 0.060, 0.950);
 	DECLARE_COLOR(DimBlue,			0.030, 0.040, 0.350);
 	DECLARE_COLOR(DarkBlue,			0.010, 0.010, 0.100);
+	DECLARE_COLOR(DarkBlueGray,		0.100, 0.080, 0.200);
 	DECLARE_COLOR(DeepBlue,			0.010, 0.010, 0.500);
 
 	DECLARE_COLOR(White,			1.000, 1.000, 1.000);

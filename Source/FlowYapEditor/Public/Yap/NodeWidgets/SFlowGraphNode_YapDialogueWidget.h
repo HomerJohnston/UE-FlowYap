@@ -18,7 +18,7 @@ protected:
 	TSharedPtr<SBox> DialogueOutputBoxArea;
 	
 	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
-	TArray<TSharedPtr<SVerticalBox>> FragmentOutputBoxes;
+	TArray<TSharedPtr<SOverlay>> FragmentOutputBoxes;
 	
 	TSharedPtr<SBox> BypassOutputBox;
 
@@ -31,14 +31,6 @@ protected:
 	FLinearColor ConnectedEndPinColor;
 	FLinearColor DisconnectedEndPinColor;
 	FLinearColor DisconnectedEndPinColor_Prompt;
-
-	FLinearColor ConnectedStartPinColor;
-	FLinearColor DisconnectedStartPinColor;
-
-	FLinearColor ConnectedInterruptPinColor;	
-	FLinearColor DisconnectedInterruptPinColor;	
-	FLinearColor ConnectedInterruptPinColor_Disabled;	
-	FLinearColor DisconnectedInterruptPinColor_Disabled;	
 	
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
@@ -135,6 +127,9 @@ protected:
 
 	TSharedRef<SWidget> CreateDialogueTagPreviewWidget() const;
 	FText DialogueTagPreview_Text() const;
+	EVisibility DialogueTagPreview_Visibility() const;
+
+	EVisibility ConditionWidgets_Visibility() const;
 	TSharedRef<SWidget> CreateConditionWidgets();
 	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition);
 	
@@ -196,9 +191,7 @@ protected:
 
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 
-	void AddFragmentStartPin(const TSharedRef<SGraphPin>& PinToAdd);
-
-	void AddFragmentEndPin(const TSharedRef<SGraphPin>& PinToAdd);
+	void AddFragmentPin(const TSharedRef<SGraphPin>& PinToAdd, int32 FragmentIndex);
 
 public:
 	void CreateStandardPinWidget(UEdGraphPin* Pin) override;

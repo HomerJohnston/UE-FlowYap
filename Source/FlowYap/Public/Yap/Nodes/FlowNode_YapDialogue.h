@@ -8,6 +8,23 @@ class UFlowYapCharacter;
 
 enum class EFlowYapInterruptible : uint8;
 
+#if WITH_EDITOR
+enum class EFlowYapPinStyle : uint8
+{
+	Standard,
+	Hyphen
+};
+
+struct FFlowYapPinInfo
+{
+	FLinearColor DisconnectedColor = FLinearColor::White; 
+	FLinearColor ConnectedColor = FLinearColor::White;
+	FText ToolTip = INVTEXT("Pin Connection");
+	EFlowYapPinStyle PinStyle = EFlowYapPinStyle::Standard;
+	int BottomPadding = 0;
+};
+#endif
+
 UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
@@ -89,8 +106,10 @@ protected:
 	UPROPERTY()
 	FTimerHandle TimerHandle;
 
-#if WITH_EDITOR
-	TMap<uint8, TArray<FName>> FragmentPins;
+#if WITH_EDITORONLY_DATA
+public:
+	TMap<FName, FFlowYapPinInfo> PinInfo;
+	TMap<FName, FGuid> FragmentPinMap;
 #endif
 	
 	// API
@@ -192,6 +211,8 @@ public:
 
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
 
+	int32 GetFragmentIndex(const FGuid& Guid) const;
+	
 protected:
 	TOptional<uint8> RunningFragmentIndex;
 

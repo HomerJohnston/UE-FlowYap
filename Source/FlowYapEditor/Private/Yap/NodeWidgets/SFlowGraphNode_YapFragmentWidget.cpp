@@ -44,6 +44,11 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 	];
 }
 
+EVisibility SFlowGraphNode_YapFragmentWidget::BarAboveDialogue_Visibility() const
+{
+	return (ConditionWidgets_Visibility() != EVisibility::Visible && FragmentTagPreview_Visibility() != EVisibility::Visible) ? EVisibility::Collapsed : EVisibility::Visible;
+}
+
 // ================================================================================================
 // FRAGMENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -51,88 +56,127 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 {
 	return SNew(SBox)
-	.WidthOverride(this, &SFlowGraphNode_YapFragmentWidget::Fragment_WidthOverride)
 	[
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(0, 0, 0, 2)
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Fill)
-			.AutoWidth()
-			.Padding(0, 0, 0, 0)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.VAlign(VAlign_Bottom)
+			.Padding(0, 0, 0, 20)
 			[
-				FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text)
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0, 0, 0, 0)
-			[
-				CreateConditionWidgets()
+				SNew(SBox)
+				.HeightOverride(32)
+				.WidthOverride(32)
+				.Padding(2, 0)
+				[
+					FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
+				]
 			]
 		]
-		+ SVerticalBox::Slot()
-		.Padding(0, 2, 0, 0)
-		.AutoHeight()
+		+ SHorizontalBox::Slot()
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Top)
-			.AutoWidth()
-			.Padding(0, 0, 2, 0)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(0, 0, 0, 0)
 			[
-				// TODO this function eats up almost 2ms... optimize it 
-				CreatePortraitWidget()
-			]
-			+ SHorizontalBox::Slot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.FillWidth(1.0f)
-			.Padding(2, 0, 0, 0)
-			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot()
-				.Padding(0, 0, 0, 0)
-				.VAlign(VAlign_Fill)
+				SNew(SBox)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::BarAboveDialogue_Visibility)
 				[
-					CreateDialogueWidget()
-					/*
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Fill)
+					.Padding(0, 0, 0, 4)
+					[
+						CreateConditionWidgets()
+					]
+					+ SHorizontalBox::Slot()
+					.HAlign(HAlign_Right)
+					.AutoWidth()
+					.Padding(0, 0, 0, 4)
+					[
+						FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility)
+					]
+				]
+			]
+			+ SVerticalBox::Slot()
+			.Padding(0, 0, 0, 0)
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Top)
+				.AutoWidth()
+				.Padding(0, 0, 2, 0)
+				[
 					SNew(SOverlay)
 					+ SOverlay::Slot()
 					[
-						CreateDialogueWidget()
+						// TODO this function eats up almost 2ms... optimize it 
+						CreatePortraitWidget()
 					]
 					+ SOverlay::Slot()
-					.HAlign(HAlign_Right)
 					.VAlign(VAlign_Bottom)
-					.Padding(4, 4, 4, 4)
-					[
-						CreateFragmentTagPreviewWidget()
-					]
-					+ SOverlay::Slot()
-					.HAlign(HAlign_Fill)
-					.VAlign(VAlign_Bottom)
-					.Padding(0, 0, 0, -2)
-					[
-						CreateFragmentTimePaddingWidget()
-					]
-					+ SOverlay::Slot()
 					.HAlign(HAlign_Right)
-					.VAlign(VAlign_Top)
-					.Padding(0, -4, -4, 0)
+					.Padding(0, 0, -4, -4)
 					[
-						CreateActivationLimiterWidget()
+						SNew(SButton)
+						.ButtonColorAndOpacity(YapColor::Transparent)
+						.ForegroundColor(YapColor::Green)
+						.ContentPadding(0)
+						.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+						.Visibility(this, &SFlowGraphNode_YapFragmentWidget::AudioButton_Visibility)
+						//.ToolTip(INVTEXT("Test"))
+						[
+							SNew(SOverlay)
+							+ SOverlay::Slot()
+							[
+								SNew(SImage)
+								.Image(FCoreStyle::Get().GetBrush("Icons.FilledCircle"))
+								.DesiredSizeOverride(FVector2D(24, 24))
+								.ColorAndOpacity(YapColor::DarkBlueGray)
+							]
+							+ SOverlay::Slot()
+							.Padding(4,4)
+							[
+								SNew(SImage)
+								.DesiredSizeOverride(FVector2D(16, 16))
+								.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Audio"))
+							]
+						]
 					]
-					*/
 				]
-				+ SVerticalBox::Slot()
-				.Padding(0, 4, 0, 0)
-				.AutoHeight()
+				+ SHorizontalBox::Slot()
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.FillWidth(1.0f)
+				.Padding(2, 0, 0, 0)
 				[
-					CreateTitleTextWidget()
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.Padding(0, 0, 0, 0)
+					.VAlign(VAlign_Fill)
+					[
+						CreateDialogueWidget()
+						/*
+						+ SOverlay::Slot()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Bottom)
+						.Padding(0, 0, 0, -2)
+						[
+							CreateFragmentTimePaddingWidget()
+						]
+						*/
+					]
+					+ SVerticalBox::Slot()
+					.Padding(0, 4, 0, 0)
+					.AutoHeight()
+					[
+						CreateTitleTextWidget()
+					]
 				]
 			]
 		]
@@ -493,7 +537,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 
 	if (Text.IsEmptyOrWhitespace())
 	{
-		return INVTEXT("---");
+		return INVTEXT("");
 	}
 	else
 	{
@@ -501,14 +545,25 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 	}
 }
 
+EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() const
+{
+	return GetFragment()->FragmentTag.IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets() const
 {
-	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
+	TSharedRef<SScrollBox> Box = SNew(SScrollBox)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ConditionWidgets_Visibility)
+	.ScrollBarVisibility(EVisibility::Collapsed)
+	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+	.AllowOverscroll(EAllowOverscroll::No)
+	.AnimateWheelScrolling(true)
+	.Orientation(Orient_Horizontal);
 
 	for (const UFlowYapCondition* Condition : GetFragment()->GetConditions())
 	{
 		Box->AddSlot()
-		.Padding(4, 0, 0, 0)
+		.Padding(0, 0, 4, 0)
 		[
 			FFlowYapWidgetHelper::CreateConditionWidget(Condition)
 		];	
@@ -532,6 +587,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidget(cons
 		.ColorAndOpacity(YapColor::White)
 		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
 	];
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::ConditionWidgets_Visibility() const
+{
+	return (GetFragment()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
 // ================================================================================================
@@ -1491,6 +1551,11 @@ EFlowYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() cons
 
 	CachedErrorLevel = EFlowYapErrorLevel::OK;
 	return CachedErrorLevel;
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::AudioButton_Visibility() const
+{
+	return GetFragment()->GetBit().HasDialogueAudioAsset() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 // ================================================================================================

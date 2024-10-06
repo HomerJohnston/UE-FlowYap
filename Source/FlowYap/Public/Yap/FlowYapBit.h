@@ -32,11 +32,11 @@ protected:
 	TSoftObjectPtr<UFlowYapCharacter> Character;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
-	FText TitleText;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
 	FText DialogueText;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
+	FText TitleText;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
@@ -80,6 +80,8 @@ public:
 
 #if WITH_EDITOR
 	FName GetMoodKeyLazyInit();
+
+	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
 #endif
 
 	FName GetMoodKey() const;

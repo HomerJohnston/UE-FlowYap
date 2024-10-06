@@ -480,49 +480,66 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 	return FragmentSequencing;
 }
 
-/*
-TArray<FFlowPin> UFlowNode_YapDialogue::GetContextInputs()
-{
-	TArray<FFlowPin> ContextInputPins;
-	
-	return ContextInputPins;
-}
-*/
-
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
-	if (bIsPlayerPrompt)
-	{
-		// No normal out!
-		OutputPins.Remove(FName("Out"));
-	}
+	FragmentPinMap.Empty();
+	PinInfo.Empty();
 
 	TArray<FFlowPin> ContextOutputPins;
 
-	FragmentPins.Empty();
+	if (bIsPlayerPrompt)
+	{
+		OutputPins.Remove(FName("Out"));
+	}
+	else
+	{
+		FFlowYapPinInfo NewPinInfo;
+		NewPinInfo.ToolTip = INVTEXT("Out");
+		PinInfo.Add("Out", NewPinInfo);
+	}
 
-	for (uint8 Index = 0; Index < Fragments.Num(); ++Index) // using 1-based indexing because UE is annoying, FName(X,0) becomes X and FName(X,1) becomes X_0... wtf?
+	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
 	{
 		FFlowYapFragment& Fragment = Fragments[Index];
 		
+		if (Fragments[Index].GetShowOnEndPin() || bIsPlayerPrompt)
+		{
+			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
+			FragmentPinMap.Add(PinName, Fragment.GetGuid());
+			ContextOutputPins.Add(PinName);
+			
+			FFlowYapPinInfo NewPinInfo;
+			NewPinInfo.ToolTip = INVTEXT("On End");
+			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
+			NewPinInfo.BottomPadding = 54;
+
+			if (!bIsPlayerPrompt)
+			{
+				NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
+			}
+			
+			PinInfo.Add(PinName, NewPinInfo);
+		}
+		
 		if (Fragments[Index].GetShowOnStartPin())
 		{
-			FName Pin = FName("FragmentStart_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(Pin);
-			FragmentPins.FindOrAdd(Index).Add(Pin);
-		}
+			FName PinName = FName("FragmentStart_" + Fragment.GetGuid().ToString());
+			ContextOutputPins.Add(PinName);
+			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 
-		if (Fragments[Index].GetShowOnEndPin())
-		{
-			FName Pin = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(Pin);
-			FragmentPins.FindOrAdd(Index).Add(Pin);
+			FFlowYapPinInfo NewPinInfo;
+			NewPinInfo.ToolTip = INVTEXT("On Start");
+			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
+			NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
+			NewPinInfo.BottomPadding = 4;
+
+			PinInfo.Add(PinName, NewPinInfo);
 		}
 	}
 
 	if (BypassPinRequired())
 	{
-		OutputPins.Add(FName("Bypass"));
+		ContextOutputPins.Add(FName("Bypass"));
 	}
 	
 	return ContextOutputPins;
@@ -617,6 +634,19 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 	UpdateFragmentIndices();
 
 	//OnReconstructionRequested.ExecuteIfBound();
+}
+
+int32 UFlowNode_YapDialogue::GetFragmentIndex(const FGuid& Guid) const
+{
+	for (int32 i = 0; i < Fragments.Num(); ++i)
+	{
+		if (Fragments[i].GetGuid() == Guid)
+		{
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 FString UFlowNode_YapDialogue::GetNodeDescription() const

@@ -54,10 +54,10 @@ protected:
 	TOptional<uint8> CommonPaddingSetting;
 
 	UPROPERTY(EditAnywhere)
-	bool bShowOnStartPin = false;
-
-	UPROPERTY(EditAnywhere)
 	bool bShowOnEndPin = false;
+	
+	UPROPERTY(EditAnywhere)
+	bool bShowOnStartPin = false;
 
 	UPROPERTY(EditAnywhere, Instanced)
 	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
@@ -101,7 +101,7 @@ public:
 
 	void ReplaceBit(const FFlowYapBitReplacement& ReplacementBit);
 
-	const FGuid& GetGuid() { return Guid; }
+	const FGuid& GetGuid() const { return Guid; }
 	
 #if WITH_EDITOR
 public:
