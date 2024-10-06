@@ -60,20 +60,20 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
+		.VAlign(VAlign_Bottom)
+		.Padding(0, 0, 0, 20)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.VAlign(VAlign_Bottom)
-			.Padding(0, 0, 0, 20)
+			SNew(SSpacer)
+			.Size(32)
+			/*
+			SNew(SBox)
+			.HeightOverride(32)
+			.WidthOverride(32)
+			.Padding(2, 0)
 			[
-				SNew(SBox)
-				.HeightOverride(32)
-				.WidthOverride(32)
-				.Padding(2, 0)
-				[
-					FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
-				]
+				FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
 			]
+			*/
 		]
 		+ SHorizontalBox::Slot()
 		[
@@ -148,6 +148,19 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							]
 						]
 					]
+					+ SOverlay::Slot()
+					.Padding(-32, 0, 0, 0)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Left)
+					[
+						SNew(SBox)
+						.HeightOverride(32)
+						.WidthOverride(32)
+						.Padding(2, 0)
+						[
+							FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
+						]
+					]
 				]
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Fill)
@@ -159,8 +172,23 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 					+ SVerticalBox::Slot()
 					.Padding(0, 0, 0, 0)
 					.VAlign(VAlign_Fill)
+					.HAlign(HAlign_Fill)
 					[
 						CreateDialogueWidget()
+						
+						/*
+						SNew(SMultiLineEditableTextBox)
+						.Style(FYapEditorStyle::Get(), "EditableTextBoxStyle.Dialogue")
+						.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+						.TextStyle(FYapEditorStyle::Get(), "Text.DialogueText")
+						.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
+						.Padding(2)
+						.AutoWrapText(false)
+						.AlwaysShowScrollbars(true)
+						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
+						*/
+						
+						//CreateDialogueWidget()
 						/*
 						+ SOverlay::Slot()
 						.HAlign(HAlign_Fill)
@@ -177,6 +205,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 					[
 						CreateTitleTextWidget()
 					]
+				]
+				+ SHorizontalBox::Slot()
+				.Padding(0, 0, -8, 0)
+				.MaxWidth(4)
+				.AutoWidth()
+				[
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+					.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+					.BarFillType(EProgressBarFillType::BottomToTop)
 				]
 			]
 		]
@@ -218,18 +258,37 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility()
 // DIALOGUE WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
-	TSharedRef<SScrollBar> HScrollBar = SNew(SScrollBar)
+	TSharedRef<SScrollBox> ScrollBox = SNew(SScrollBox)
 	.Orientation(Orient_Horizontal)
-	.Thickness(this, &SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness)
-	.Padding(-1);
+	.ScrollBarVisibility(EVisibility::Collapsed)
+	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+	.AllowOverscroll(EAllowOverscroll::No)
+	.AnimateWheelScrolling(true);
+
+	ScrollBox->AddSlot()
+	.Padding(6,4,6,4)
+	[
+		SNew(STextBlock)
+		.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+		//.TextStyle( FYapEditorStyle::Get(), *TextStyle )
+		.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
+		.AutoWrapText(false)
+
+		//CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::Dialogue_Text, "Text.DialogueText")
+	];
+
+	return SNew(SBorder)
+	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderBackgroundColor(YapColor::DeepGray)
+	.ColorAndOpacity(YapColor::White)
+	.Padding(0)
+	[
+		ScrollBox
+	];
 	
-	TSharedRef<SScrollBar> VScrollBar = SNew(SScrollBar)
-	.Orientation(Orient_Vertical)
-	.Thickness(this, &SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness)
-	.Padding(-1);
-	
+#if 0
 	return SNew(SBox)
 	//.MinDesiredHeight(58) // This is the normal height of the full portrait widget
 	//.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight)
@@ -263,6 +322,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		]
 		*/
 	];
+#endif
 }
 
 FVector2D SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness() const
@@ -724,6 +784,13 @@ void SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged(float 
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity() const
 {
+	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+
+	if (GetFragment()->GetPaddingToNextFragment() > MaxPaddedSetting)
+	{
+		return YapColor::DarkBlue;
+	}
+	
 	if (GEditor->PlayWorld)
 	{
 		const TOptional<uint8>& RunningIndex = GetFlowYapDialogueNode()->RunningFragmentIndex;
@@ -739,8 +806,8 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOp
 
 		return YapColor::DarkGray;
 	}
-	
-	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::LightBlue : YapColor::White;
+
+	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::LightBlue : YapColor::Blue;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText() const
@@ -1601,7 +1668,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateWrappedTextBlock(FTe
 		.TextStyle( FYapEditorStyle::Get(), *TextStyle )
 		.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
 		.AutoWrapText(false)
-		.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
+		//.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
 		//.HScrollBar(HScrollBar)
 		//.VScrollBar(VScrollBar)
 		//.AlwaysShowScrollbars(true)

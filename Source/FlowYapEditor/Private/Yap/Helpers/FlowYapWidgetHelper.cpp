@@ -9,7 +9,7 @@
 TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(const UFlowYapCondition* Condition)
 {
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "-";
-	FLinearColor Color = IsValid(Condition) ? YapColor::DarkGreenGray : YapColor::DeepOrangeRed;
+	FLinearColor Color = IsValid(Condition) ? Condition->GetNodeColor() : YapColor::DeepOrangeRed;
 	
 	return SNew(SBorder)
 	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
@@ -34,6 +34,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateActivationCounterWidget(int A, i
 	return SNew(SVerticalBox)
 	+ SVerticalBox::Slot()
 	.VAlign(VAlign_Bottom)
+	.Padding(0, 0, 0, -1)
 	[
 		SNew(STextBlock)
 		.Text(FText::AsNumber(A))
@@ -53,6 +54,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateActivationCounterWidget(int A, i
 	]
 	+ SVerticalBox::Slot()
 	.VAlign(VAlign_Top)
+	.Padding(0, -1, 0, 0)
 	[
 		SNew(STextBlock)
 		.Text(Denominator)

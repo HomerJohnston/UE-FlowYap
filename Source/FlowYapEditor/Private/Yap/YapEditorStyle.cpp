@@ -84,7 +84,19 @@ void FYapEditorStyle::Initialize()
 		.SetPressed(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DimGray_Trans))
 		.SetNormalPadding(0)
 		.SetPressedPadding(0));
-		
+
+	const FScrollBarStyle DialogueScrollBarStyle = FScrollBarStyle(FCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("ScrollBar"))
+		.SetThickness(2);
+
+	Set("ScrollBarStyle.Dialogue", DialogueScrollBarStyle);
+	
+	Set("EditableTextBoxStyle.Dialogue", FEditableTextBoxStyle(FEditableTextBoxStyle::GetDefault())
+		.SetBackgroundImageNormal(BOX_BRUSH("Box_SolidWhite_DeburredCorners", FMargin(4 / 8.0f)))
+		.SetBackgroundColor(YapColor::DeepGray)
+		.SetScrollBarStyle(DialogueScrollBarStyle)
+		.SetHScrollBarPadding(0)
+		.SetVScrollBarPadding(0));
+	
 	Set("ProgressBarStyle.FragmentTimePadding", FProgressBarStyle()
 	.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
 	.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))

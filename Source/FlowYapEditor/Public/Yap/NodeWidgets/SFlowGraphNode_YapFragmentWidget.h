@@ -55,7 +55,7 @@ protected:
 	EVisibility			FragmentBottomSection_Visibility() const;
 
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateDialogueWidget();
+	TSharedRef<SWidget>	CreateDialogueWidget();
 
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;

@@ -118,7 +118,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(-12, -3, 16, -3)
+		.Padding(-12, -5, 16, -6)
 		[
 			FFlowYapWidgetHelper::CreateActivationCounterWidget(GetFlowYapDialogueNode()->GetNodeActivationCount(), GetFlowYapDialogueNode()->GetNodeActivationLimit())
 		]
@@ -297,6 +297,31 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 		SNew(STextBlock)
 		.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
 		.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Text)
+	]
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(4, 0)
+	[
+		SNew(SBox)
+		.WidthOverride(24)
+		.HeightOverride(24)
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		.Padding(0)
+		[
+			SNew(SButton)
+			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+			.ContentPadding(FMargin(0, 1, 0, 1))
+			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
+			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_OnClicked)
+			.ToolTipText(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText)
+			[
+				SNew(SImage)
+				.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
+				.DesiredSizeOverride(FVector2D(16, 16))
+				.Image(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Image)
+			]
+		]
 	]
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Fill)
@@ -686,6 +711,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane()
 TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 {
 	return SNew(SHorizontalBox)
+	/*
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.HAlign(HAlign_Left)
@@ -712,6 +738,7 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 			]
 		]
 	]
+	*/
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)

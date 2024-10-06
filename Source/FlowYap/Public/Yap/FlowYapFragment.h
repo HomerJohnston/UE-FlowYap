@@ -47,7 +47,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FGameplayTag FragmentTag;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	float PaddingToNextFragment = 0;
 
 	UPROPERTY(EditAnywhere)
