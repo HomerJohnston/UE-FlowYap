@@ -8,23 +8,6 @@ class UFlowYapCharacter;
 
 enum class EFlowYapInterruptible : uint8;
 
-#if WITH_EDITOR
-enum class EFlowYapPinStyle : uint8
-{
-	Standard,
-	Hyphen
-};
-
-struct FFlowYapPinInfo
-{
-	FLinearColor DisconnectedColor = FLinearColor::White; 
-	FLinearColor ConnectedColor = FLinearColor::White;
-	FText ToolTip = INVTEXT("Pin Connection");
-	EFlowYapPinStyle PinStyle = EFlowYapPinStyle::Standard;
-	int BottomPadding = 0;
-};
-#endif
-
 UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
@@ -34,22 +17,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 	COUNT		UMETA(Hidden)
 };
 
-UENUM(BlueprintType, meta = (Bitflags))
-enum class ECcClimateZone : uint8
-{
-	NONE = 0 UMETA(Hidden),
-	Spring = 0x00000000 << 0,
-	Summer = 0x00000001 << 1,
-	Fall = 0x00000002 << 2,
-	Winter = 0x00000003 << 3,
-	ALL = Spring | Summer | Fall | Winter UMETA(Hidden)
-};
-
-ENUM_RANGE_BY_VALUES(ECcClimateZone, ECcClimateZone::Spring, ECcClimateZone::Summer, ECcClimateZone::Fall, ECcClimateZone::Winter);
-ENUM_RANGE_BY_COUNT(EFlowYapMultipleFragmentSequencing, EFlowYapMultipleFragmentSequencing::COUNT);
-
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
-
 // TODO: make this NotBlueprintable, I have it blueprintable to make it easier to check details customizaitons for dev
 /**
  * Emits a FlowYap Dialogue Fragment
@@ -71,10 +39,7 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 
 public:
 	UFlowNode_YapDialogue();
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = true, Bitmask, BitmaskEnum = "/Script/MyGame.ECcClimateZone"))
-	ECcClimateZone SupportedClimateZones;
-	
+		
 	// SETTINGS
 protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -107,9 +72,24 @@ protected:
 	FTimerHandle TimerHandle;
 
 #if WITH_EDITORONLY_DATA
-public:
-	TMap<FName, FFlowYapPinInfo> PinInfo;
+private:
+	UPROPERTY()
 	TMap<FName, FGuid> FragmentPinMap;
+	
+	UPROPERTY()
+	FName OutPin;
+	
+	UPROPERTY()
+	TArray<FName> OnStartPins;
+	
+	UPROPERTY()
+	TArray<FName> OnEndPins;
+
+	UPROPERTY()
+	TArray<FName> OptionalPins;
+
+	UPROPERTY()
+	FName BypassPin;
 #endif
 	
 	// API

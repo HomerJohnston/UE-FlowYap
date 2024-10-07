@@ -27,10 +27,6 @@ protected:
 	FTextBlockStyle NormalText;
 
 	FLinearColor DialogueButtonsColor;
-
-	FLinearColor ConnectedEndPinColor;
-	FLinearColor DisconnectedEndPinColor;
-	FLinearColor DisconnectedEndPinColor_Prompt;
 	
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
@@ -66,23 +62,30 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	ECheckBoxState		PlayerPromptCheckBox_IsChecked() const;
-	void				PlayerPromptCheckBox_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	ECheckBoxState		InterruptibleToggle_IsChecked() const;
 	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	FSlateColor			InterruptibleToggleIcon_ColorAndOpacity() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
+	
+	// ------------------------------------------
 
 	TSharedRef<SWidget> CreateContentHeader();
-	TSharedRef<SWidget> CreateFragmentBoxes();
 
+	EVisibility			FragmentSequencingButton_Visibility() const;
+	FReply				FragmentSequencingButton_OnClicked();
+	const FSlateBrush*	FragmentSequencingButton_Image() const;
+	FText				FragmentSequencingButton_ToolTipText() const;
+	FSlateColor			FragmentSequencingButton_ColorAndOpacity() const;
+	
 	FText				NodeHeader_Text() const;
 	EVisibility			FragmentRowHighlight_Visibility(uint8 f) const;
 	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 
 	// ------------------------------------------
+	TSharedRef<SWidget> CreateFragmentBoxes();
+
 	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex) const;
 
 	EVisibility			FragmentSeparator_Visibility() const;
@@ -92,20 +95,8 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentRowWidget(uint8 FragmentIndex);
 	
-	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftFragmentPane(uint8 FragmentIndex);
-	
-	// ------------------------------------------
-	TSharedRef<SBox>	CreateFragmentControlsWidget(uint8 FragmentIndex);
 
-	EVisibility			FragmentControls_Visibility(uint8 FragmentIndex) const;
-	EVisibility			MoveFragmentUpButton_Visibility(uint8 FragmentIndex) const;
-	FReply				MoveFragmentUpButton_OnClicked(uint8 FragmentIndex);
-	EVisibility			DeleteFragmentButton_Visibility(uint8 FragmentIndex) const;
-	FReply				DeleteFragmentButton_OnClicked(uint8 FragmentIndex);
-	EVisibility			MoveFragmentDownButton_Visibility(uint8 FragmentIndex) const;
-	FReply				MoveFragmentDownButton_OnClicked(uint8 FragmentIndex);
-	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 	
@@ -115,11 +106,6 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateContentFooter();
 
-	EVisibility			FragmentSequencingButton_Visibility() const;
-	FReply				FragmentSequencingButton_OnClicked();
-	const FSlateBrush*	FragmentSequencingButton_Image() const;
-	FText				FragmentSequencingButton_ToolTipText() const;
-	FSlateColor			FragmentSequencingButton_ColorAndOpacity() const;
 	EVisibility			BottomAddFragmentButton_Visibility() const;
 	FReply				BottomAddFragmentButton_OnClicked();
 

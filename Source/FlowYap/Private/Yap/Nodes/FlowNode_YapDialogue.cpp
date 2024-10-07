@@ -13,8 +13,6 @@
 
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
-	SupportedClimateZones = ECcClimateZone::ALL;
-	
 	Category = TEXT("Yap");
 
 	NodeStyle = EFlowNodeStyle::Custom;
@@ -483,19 +481,22 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
 	FragmentPinMap.Empty();
-	PinInfo.Empty();
+	OutPin = NAME_None;
+	OnStartPins.Empty();
+	OnEndPins.Empty();
+	OptionalPins.Empty();
+	BypassPin = NAME_None;
 
 	TArray<FFlowPin> ContextOutputPins;
 
 	if (bIsPlayerPrompt)
 	{
 		OutputPins.Remove(FName("Out"));
+		OutPin = "";
 	}
 	else
 	{
-		FFlowYapPinInfo NewPinInfo;
-		NewPinInfo.ToolTip = INVTEXT("Out");
-		PinInfo.Add("Out", NewPinInfo);
+		OutPin = "Out";
 	}
 
 	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
@@ -507,18 +508,22 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 			ContextOutputPins.Add(PinName);
-			
+
+			/*
 			FFlowYapPinInfo NewPinInfo;
 			NewPinInfo.ToolTip = INVTEXT("On End");
 			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
 			NewPinInfo.BottomPadding = 54;
-
+			*/
+			
 			if (!bIsPlayerPrompt)
 			{
-				NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
+				//NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
+				OptionalPins.Add(PinName);
 			}
 			
-			PinInfo.Add(PinName, NewPinInfo);
+			//PinInfo.Add(PinName, NewPinInfo);
+			OnEndPins.Add(PinName);
 		}
 		
 		if (Fragments[Index].GetShowOnStartPin())
@@ -527,13 +532,17 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 			ContextOutputPins.Add(PinName);
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 
+			/*
 			FFlowYapPinInfo NewPinInfo;
 			NewPinInfo.ToolTip = INVTEXT("On Start");
 			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
 			NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
 			NewPinInfo.BottomPadding = 4;
+			*/
+			OptionalPins.Add(PinName);
 
-			PinInfo.Add(PinName, NewPinInfo);
+			//PinInfo.Add(PinName, NewPinInfo);
+			OnStartPins.Add(PinName);
 		}
 	}
 
