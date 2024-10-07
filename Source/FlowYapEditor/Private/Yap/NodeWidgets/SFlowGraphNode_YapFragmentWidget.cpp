@@ -836,38 +836,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Border.DeburredSquare"))
 			.BorderBackgroundColor(YapColor::Gray_Glass)
 		]
-		
-		/*
-		+ SOverlay::Slot()
-		.VAlign(VAlign_Bottom)
-		.HAlign(HAlign_Right)
-		.Padding(6, 0, 2, 2)
-		[
-			CreateMoodKeySelectorWidget()
-		]
-		*/
-		/*
-		+ SOverlay::Slot()
-		.VAlign(VAlign_Top)
-		.HAlign(HAlign_Fill)
-		.Padding(2, 2, 2, 0)
-		[
-			SNew(SBox)
-			.MaxDesiredWidth(54)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_Visibility)
-			[
-				SNew(SObjectPropertyEntryBox)
-				.DisplayBrowse(false)
-				.DisplayThumbnail(false)
-				.DisplayUseSelected(false)
-				.AllowedClass(UFlowYapCharacter::StaticClass())
-				.EnableContentPicker(true)
-				.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_ObjectPath)
-				.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_OnObjectChanged)
-				.ToolTipText(LOCTEXT("FragmentBitCharacter_Tooltip", "Select a Character."))
-			]
-		]
-		*/
 	]
 	+ SOverlay::Slot()
 	[

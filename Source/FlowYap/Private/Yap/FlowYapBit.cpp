@@ -23,7 +23,13 @@ FFlowYapBit::FFlowYapBit()
 #if WITH_EDITOR
 const FSlateBrush* FFlowYapBit::GetSpeakerPortraitBrush() const
 {
-	if (Character)
+	if (Character.IsPending())
+	{
+		UE_LOG(FlowYap, Warning, TEXT("Synchronously loading portrait brushes. This should ONLY happen during editor time!"))
+		Character.LoadSynchronous();
+	}
+	
+	if (Character.IsValid())
 	{
 		return Character->GetPortraitBrush(MoodKey);
 	}
