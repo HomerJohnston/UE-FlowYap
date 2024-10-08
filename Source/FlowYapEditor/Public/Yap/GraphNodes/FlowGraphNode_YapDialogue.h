@@ -18,6 +18,9 @@ public:
 	UFlowGraphNode_YapDialogue();
 
 public:
+	FFlowGraphNodeEvent OnYapNodeChanged;
+	
+public:
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
 	bool ShowPaletteIconOnNode() const override;

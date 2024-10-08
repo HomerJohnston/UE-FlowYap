@@ -185,6 +185,18 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 }
 
+void UFlowNode_YapDialogue::OnPassThrough_Implementation()
+{
+	if (GetIsPlayerPrompt())
+	{
+		TriggerOutput("Bypass", true, EFlowPinActivationType::PassThrough);
+	}
+	else
+	{
+		TriggerOutput("Out", true, EFlowPinActivationType::PassThrough);
+	}
+}
+
 bool UFlowNode_YapDialogue::GetInterruptible() const
 {
 	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
@@ -361,11 +373,19 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 
 bool UFlowNode_YapDialogue::BypassPinRequired() const
 {
+	// Player prompts always need a bypass node for passthrough usage
+	if (GetIsPlayerPrompt())
+	{
+		return true;
+	}
+
+	// If there are any conditions, we will need a bypass node in case all conditions are false
 	if (Conditions.Num() > 0)
 	{
 		return true;
 	}
 
+	// If all of the fragments have conditions, we will need a bypass node in case all fragments are unusable
 	for (const FFlowYapFragment& Fragment : Fragments)
 	{
 		if (Fragment.GetConditions().Num() == 0)

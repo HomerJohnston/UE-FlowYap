@@ -99,9 +99,16 @@ protected:
 
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
+
+	EVisibility			EnableOnStartPinButton_Visibility(uint8 FragmentIndex) const;
+	EVisibility			EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const;
+	
+	FReply				EnableOnStartPinButton_OnClicked(uint8 FragmentIndex);
+	FReply				EnableOnEndPinButton_OnClicked(uint8 FragmentIndex);
+
 	
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateRightFragmentPane();
+	TSharedRef<SBox>	CreateRightFragmentPane(uint8 FragmentIndex);
 	
 	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateContentFooter();

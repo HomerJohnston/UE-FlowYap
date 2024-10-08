@@ -100,6 +100,7 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 		PortraitBrushes.Add(MoodKey, PortraitBrush);
 	}
 }
+
 #endif
 
 #undef LOCTEXT_NAMESPACE

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "FlowYapEntity.h"
+#include "Engine/PointLight.h"
+#include "Engine/SpotLight.h"
 
 #include "FlowYapCharacter.generated.h"
 

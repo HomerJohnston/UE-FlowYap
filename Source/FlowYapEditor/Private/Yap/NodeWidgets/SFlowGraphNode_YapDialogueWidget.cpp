@@ -70,6 +70,9 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 		bStylesInitialized = true;
 	}
 
+	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
+	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
+	
 	UpdateGraphNode();
 }
 
@@ -231,10 +234,12 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
+	TSharedPtr<SVerticalBox> Content; 
+	
 	return SNew(SBox)
 	.WidthOverride(400)
 	[
-		SNew(SVerticalBox)
+		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(0, 5, 0, 5)
@@ -466,7 +471,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(ui
 	.AutoWidth()
 	.VAlign(VAlign_Fill)
 	[
-		CreateRightFragmentPane()
+		CreateRightFragmentPane(FragmentIndex)
 	];
 }
 
@@ -522,17 +527,90 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 // RIGHT PANE OF FRAGMENT ROW
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane()
+
+EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility(uint8 FragmentIndex) const
 {
-	TSharedRef<SOverlay> RightSideNodeBox = SNew(SOverlay);
-	/*
-	+ SVerticalBox::Slot()
+	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
+
+	if (Fragment)
+	{
+		return Fragment->GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
+EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const
+{
+	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		return EVisibility::Collapsed;
+	}
+	
+	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
+
+	if (Fragment)
+	{
+		return Fragment->GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
+FReply SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked(uint8 FragmentIndex)
+{
+	GetFragmentMutable(FragmentIndex)->bShowOnStartPin = true;
+
+	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
+	
+	return FReply::Handled();
+}
+
+FReply SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked(uint8 FragmentIndex)
+{
+	GetFragmentMutable(FragmentIndex)->bShowOnEndPin = true;
+
+	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
+
+	return FReply::Handled();
+}
+
+TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane(uint8 FragmentIndex)
+{
+	TSharedRef<SOverlay> RightSideNodeBox = SNew(SOverlay)
+	+ SOverlay::Slot()
 	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Fill)
+	.VAlign(VAlign_Bottom)
+	.Padding(4, 0, 2, 6)
 	[
-		SNew(SSpacer)
+		SNew(SBox)
+		.WidthOverride(10)
+		.HeightOverride(10)
+		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility, FragmentIndex)
+		[
+			SNew(SButton)
+			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked, FragmentIndex)
+			.ButtonColorAndOpacity(YapColor::LightGray)
+			.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
+		]
+	]
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Bottom)
+	.Padding(4, 0, 2, 56)
+	[
+		SNew(SBox)
+		.WidthOverride(10)
+		.HeightOverride(10)
+		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility, FragmentIndex)
+		[
+			SNew(SButton)
+			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked, FragmentIndex)
+			.ButtonColorAndOpacity(YapColor::LightGray)
+			.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
+		]
 	];
-	*/
+	
 	FragmentOutputBoxes.Add(RightSideNodeBox);
 	
 	return SNew(SBox)

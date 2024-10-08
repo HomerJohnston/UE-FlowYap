@@ -22,7 +22,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Select node(s) and tap SHIFT key to show all node contents"))
+UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = " "))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -124,6 +124,8 @@ public:
 
 	void ExecuteInput(const FName& PinName) override;
 
+	void OnPassThrough_Implementation() override;
+	
 	bool GetInterruptible() const;
 	
 	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; };

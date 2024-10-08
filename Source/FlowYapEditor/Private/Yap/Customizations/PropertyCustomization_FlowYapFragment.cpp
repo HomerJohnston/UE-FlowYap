@@ -21,6 +21,11 @@
 #define LOCTEXT_NAMESPACE "FlowYap"
 
 
+TSharedRef<IPropertyTypeCustomization> FPropertyCustomization_FlowYapFragment::MakeInstance()
+{
+	return MakeShared<FPropertyCustomization_FlowYapFragment>();
+}
+
 void FPropertyCustomization_FlowYapFragment::CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
 	Init(InPropertyHandle);

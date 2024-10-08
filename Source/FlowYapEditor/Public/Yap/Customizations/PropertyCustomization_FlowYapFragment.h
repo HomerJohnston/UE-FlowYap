@@ -56,10 +56,7 @@ class FPropertyCustomization_FlowYapFragment : public IPropertyTypeCustomization
 
 	
 public:
-	static  TSharedRef<IPropertyTypeCustomization> MakeInstance()
-	{
-		return MakeShareable(new FPropertyCustomization_FlowYapFragment());
-	}
+	static  TSharedRef<IPropertyTypeCustomization> MakeInstance();
 
 	void CustomizeHeader(TSharedRef<IPropertyHandle> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
