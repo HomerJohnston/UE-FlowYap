@@ -48,6 +48,9 @@ public:
 	// WIDGETS
 protected:
 	EVisibility BarAboveDialogue_Visibility() const;
+	int32 GetFragmentActivationCount() const;
+	int32 GetFragmentActivationLimit() const;
+	
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -91,7 +94,9 @@ protected:
 
 	// ---------------------------------------------------
 
+	/*
 	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
+	*/
 	
 	TOptional<float>	FragmentTimePadding_Percent() const;
 	float				FragmentTimePadding_Value() const;
@@ -109,6 +114,7 @@ protected:
 	EVisibility			CharacterSelect_Visibility() const;
 	FString				CharacterSelect_ObjectPath() const;
 	void				CharacterSelect_OnObjectChanged(const FAssetData& InAssetData);
+	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
 

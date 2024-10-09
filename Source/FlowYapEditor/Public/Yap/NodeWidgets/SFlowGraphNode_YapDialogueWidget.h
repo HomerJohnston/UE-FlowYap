@@ -59,6 +59,9 @@ public:
 	// ------------------------------------------
 	// WIDGETS
 protected:
+	int32 GetDialogueActivationCount() const;
+
+	int32 GetDialogueActivationLimit() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
@@ -71,6 +74,7 @@ protected:
 	
 	// ------------------------------------------
 
+	FSlateColor NodeHeader_Color() const;
 	TSharedRef<SWidget> CreateContentHeader();
 
 	EVisibility			FragmentSequencingButton_Visibility() const;

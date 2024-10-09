@@ -25,41 +25,91 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(const UFlowYapCo
 	];
 }
 
-TSharedRef<SWidget> FFlowYapWidgetHelper::CreateActivationCounterWidget(int A, int B)
+FText SActivationCounterWidget::NumeratorText() const
 {
-	FText Denominator = B > 0 ? FText::AsNumber(B) : INVTEXT("\x221E");
-	FLinearColor NumeratorColor = A > 0 ? YapColor::LightGray : YapColor::DarkGray;
-	FLinearColor DenominatorColor = B > 0 ? YapColor::LightGray : YapColor::DarkGray;
+	int32 Value = ActivationCount.Get();
+	return FText::AsNumber(Value);
+}
+
+FText SActivationCounterWidget::DenominatorText() const
+{
+	int32 Value = ActivationLimit.Get();
+	return Value > 0 ? FText::AsNumber(Value) : INVTEXT("\x221E");
+}
+
+FSlateColor SActivationCounterWidget::NumeratorColor() const
+{
+	int32 ActivationCountVal = ActivationCount.Get();
+
+	if (ActivationCountVal == 0)
+	{
+		return YapColor::DarkGray;
+	}
 	
-	return SNew(SVerticalBox)
-	+ SVerticalBox::Slot()
-	.VAlign(VAlign_Bottom)
-	.Padding(0, 0, 0, -1)
+	int32 ActivationLimitVal = ActivationLimit.Get();
+
+	if (ActivationLimitVal > 0)
+	{
+		return ActivationCountVal >= ActivationLimitVal ? YapColor::Red : YapColor::LightGray;
+	}
+	
+	return ActivationCountVal > 0 ? YapColor::LightGray : YapColor::DarkGray;
+}
+
+FSlateColor SActivationCounterWidget::DenominatorColor() const
+{
+	int32 ActivationLimitVal = ActivationLimit.Get();
+
+	if (ActivationLimitVal > 0 && ActivationCount.Get() >= ActivationLimitVal)
+	{
+		return YapColor::Red;
+	}
+	
+	return ActivationLimitVal > 0 ? YapColor::LightGray : YapColor::DarkGray;
+}
+
+void SActivationCounterWidget::Construct(const FArguments& InArgs)
+{
+	ActivationCount = InArgs._ActivationCount;
+	ActivationLimit = InArgs._ActivationLimit;
+	FontHeight = InArgs._FontHeight;
+	
+	ChildSlot
 	[
-		SNew(STextBlock)
-		.Text(FText::AsNumber(A))
-		.ColorAndOpacity(NumeratorColor)
-		.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
-		.Justification(ETextJustify::Center)
-	]
-	+ SVerticalBox::Slot()
-	.AutoHeight()
-	.Padding(4, 0, 4, 0)
-	[
-		SNew(SSeparator)
-		.Orientation(Orient_Horizontal)
-		.Thickness(1)
-		.ColorAndOpacity(YapColor::DarkGray)
-		.SeparatorImage(FAppStyle::GetBrush("WhiteBrush"))
-	]
-	+ SVerticalBox::Slot()
-	.VAlign(VAlign_Top)
-	.Padding(0, -1, 0, 0)
-	[
-		SNew(STextBlock)
-		.Text(Denominator)
-		.ColorAndOpacity(DenominatorColor)
-		.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
-		.Justification(ETextJustify::Center)
+		SNew(SBox)
+		.WidthOverride(20 + 2 * (FontHeight - 8))
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.VAlign(VAlign_Bottom)
+			.Padding(0, 0, 0, (FontHeight - 8))
+			[
+				SNew(STextBlock)
+				.Text(this, &SActivationCounterWidget::NumeratorText)
+				.ColorAndOpacity(this, &SActivationCounterWidget::NumeratorColor)
+				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
+				.Justification(ETextJustify::Center)
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(4, 0, 4, 0)
+			[
+				SNew(SSeparator)
+				.Orientation(Orient_Horizontal)
+				.Thickness(1)
+				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
+				.SeparatorImage(FAppStyle::GetBrush("WhiteBrush"))
+			]
+			+ SVerticalBox::Slot()
+			.VAlign(VAlign_Top)
+			.Padding(0, (FontHeight - 8), 0, 0)
+			[
+				SNew(STextBlock)
+				.Text(this, &SActivationCounterWidget::DenominatorText)
+				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
+				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
+				.Justification(ETextJustify::Center)
+			]
+		]
 	];
 }

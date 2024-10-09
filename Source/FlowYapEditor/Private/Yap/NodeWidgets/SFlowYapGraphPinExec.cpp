@@ -7,6 +7,8 @@ void SFlowYapGraphPinExec::Construct(const FArguments& InArgs, UEdGraphPin* InPi
 	SGraphPinExec::Construct(SGraphPinExec::FArguments(), InPin);
 	bUsePinColorForText = true;
 
+	// TODO
+	
 	const FSlateBrush* Temp = FAppStyle::Get().GetBrush("Icons.Minus");
 	
 	Test.ImageSize = FVector2D(12, 4);
@@ -14,7 +16,7 @@ void SFlowYapGraphPinExec::Construct(const FArguments& InArgs, UEdGraphPin* InPi
 	Test.SetResourceObject(Temp->GetResourceObject());
 	//PortraitBrush.SetUVRegion(FBox2D(FVector2D(0.125,0), FVector2D(0.875,1)));
 	Test.SetUVRegion(FBox2D(FVector2D(0,0), FVector2D(1,1)));
-	Test.DrawAs = ESlateBrushDrawType::Border;
+	Test.DrawAs = ESlateBrushDrawType::Image;
 	Test.Margin = 2;
 	
 	CachedImg_Pin_ConnectedHovered = FAppStyle::GetBrush(TEXT("Icons.Minus"/*"Graph.ExecPin.ConnectedHovered"*/));

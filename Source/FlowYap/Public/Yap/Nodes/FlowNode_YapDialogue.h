@@ -39,7 +39,7 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 
 public:
 	UFlowNode_YapDialogue();
-		
+
 	// SETTINGS
 protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -210,5 +210,7 @@ public:
 	
 	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
 
+	bool ActivationLimitsMet() const;
+	
 #endif // WITH_EDITOR
 };

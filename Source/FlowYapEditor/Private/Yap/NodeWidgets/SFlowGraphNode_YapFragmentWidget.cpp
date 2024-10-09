@@ -49,6 +49,16 @@ EVisibility SFlowGraphNode_YapFragmentWidget::BarAboveDialogue_Visibility() cons
 	return (ConditionWidgets_Visibility() != EVisibility::Visible && FragmentTagPreview_Visibility() != EVisibility::Visible) ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
+int32 SFlowGraphNode_YapFragmentWidget::GetFragmentActivationCount() const
+{
+	return GetFragment()->GetActivationCount();
+}
+
+int32 SFlowGraphNode_YapFragmentWidget::GetFragmentActivationLimit() const
+{
+	return GetFragment()->GetActivationLimit();
+}
+
 // ================================================================================================
 // FRAGMENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -59,23 +69,23 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
 		.VAlign(VAlign_Bottom)
+		.HAlign(HAlign_Center)
+		.AutoWidth()
 		.Padding(0, 0, 0, 20)
 		[
-			SNew(SSpacer)
-			.Size(32)
-			/*
-			SNew(SBox)
-			.HeightOverride(32)
-			.WidthOverride(32)
-			.Padding(2, 0)
+			SNew(SBox).WidthOverride(32)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
 			[
-				FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
+				SNew(SActivationCounterWidget)
+				.ActivationCount(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationCount)
+				.ActivationLimit(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationLimit)
+				.FontHeight(10)
 			]
-			*/
 		]
 		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill)
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
@@ -148,19 +158,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							]
 						]
 					]
-					+ SOverlay::Slot()
-					.Padding(-32, 0, 0, 0)
-					.VAlign(VAlign_Center)
-					.HAlign(HAlign_Left)
-					[
-						SNew(SBox)
-						.HeightOverride(32)
-						.WidthOverride(32)
-						.Padding(2, 0)
-						[
-							FFlowYapWidgetHelper::CreateActivationCounterWidget(0, GetFragment()->GetActivationLimit())
-						]
-					]
 				]
 				+ SHorizontalBox::Slot()
 				.HAlign(HAlign_Fill)
@@ -174,30 +171,28 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 					.VAlign(VAlign_Fill)
 					.HAlign(HAlign_Fill)
 					[
-						CreateDialogueWidget()
-						
-						/*
-						SNew(SMultiLineEditableTextBox)
-						.Style(FYapEditorStyle::Get(), "EditableTextBoxStyle.Dialogue")
-						.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
-						.TextStyle(FYapEditorStyle::Get(), "Text.DialogueText")
-						.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
-						.Padding(2)
-						.AutoWrapText(false)
-						.AlwaysShowScrollbars(true)
-						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
-						*/
-						
-						//CreateDialogueWidget()
-						/*
+						SNew(SOverlay)
 						+ SOverlay::Slot()
-						.HAlign(HAlign_Fill)
-						.VAlign(VAlign_Bottom)
-						.Padding(0, 0, 0, -2)
 						[
-							CreateFragmentTimePaddingWidget()
+							CreateDialogueWidget()
 						]
-						*/
+						+ SOverlay::Slot()
+						.VAlign(VAlign_Bottom)
+						.Padding(0, 0, 0, 2)
+						[
+							SNew(SBox)
+							.HeightOverride(2)
+							[
+								SNew(SProgressBar)
+								.BorderPadding(0)
+								.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+								.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
+								.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+								.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
+								.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText)
+							]
+						]
+						
 					]
 					+ SVerticalBox::Slot()
 					.Padding(0, 4, 0, 0)
@@ -205,18 +200,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 					[
 						CreateTitleTextWidget()
 					]
-				]
-				+ SHorizontalBox::Slot()
-				.Padding(0, 0, -8, 0)
-				.MaxWidth(4)
-				.AutoWidth()
-				[
-					SNew(SProgressBar)
-					.BorderPadding(0)
-					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
-					.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
-					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
-					.BarFillType(EProgressBarFillType::BottomToTop)
 				]
 			]
 		]
@@ -658,6 +641,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::ConditionWidgets_Visibility() cons
 // FRAGMENT TIME PADDING WIDGET
 // ------------------------------------------------------------------------------------------------
 
+/*
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTimePaddingWidget()
 {
 	return SNew(SBox)
@@ -689,6 +673,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTimePaddingW
 		]
 	];
 }
+*/
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
@@ -788,7 +773,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOp
 
 	if (GetFragment()->GetPaddingToNextFragment() > MaxPaddedSetting)
 	{
-		return YapColor::DarkBlue;
+		return YapColor::Blue_Trans;
 	}
 	
 	if (GEditor->PlayWorld)
@@ -801,13 +786,13 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOp
 
 		if (RunningIndex == GetFragment()->IndexInDialogue)
 		{
-			return YapColor::White;
+			return YapColor::White_Trans;
 		}
 
-		return YapColor::DarkGray;
+		return YapColor::DarkGray_Trans;
 	}
 
-	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::LightBlue : YapColor::Blue;
+	return GetFragment()->GetCommonPaddingSetting().IsSet() ? YapColor::DimGray_Trans : YapColor::LightBlue_Trans;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText() const
@@ -827,8 +812,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	.Padding(0, 0, 0, 0)
 	[
 		SNew(SBox)
-		.WidthOverride(74)
-		.HeightOverride(74)
+		.WidthOverride(64)
+		.HeightOverride(64)
 		[
 			SNew(SBorder)
 			.HAlign(HAlign_Center)
@@ -854,7 +839,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 		[
 			SNew(STextBlock)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::MissingPortraitWarning_Visibility)
-			.Text(LOCTEXT("FragmentCharacterMissing", "Character\nMissing"))
+			.Text(LOCTEXT("FragmentCharacterMissing", "?"))
 			.Justification(ETextJustify::Center)
 		]
 	];

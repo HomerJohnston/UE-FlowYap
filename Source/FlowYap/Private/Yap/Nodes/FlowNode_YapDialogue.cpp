@@ -169,7 +169,7 @@ void UFlowNode_YapDialogue::OnActivate()
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
-	if (NodeActivationLimit > 0 && NodeActivationCount++ >= NodeActivationLimit)
+	if (NodeActivationLimit > 0 && NodeActivationCount >= NodeActivationLimit)
 	{
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
 		return;
@@ -263,6 +263,8 @@ void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMul
 
 	if (bSuccess && GetConnection("Out").NodeGuid.IsValid())
 	{
+		NodeActivationCount++;
+
 		TriggerOutput(FName("Out"), true);
 	}
 	else if (GetConnection("Bypass").NodeGuid.IsValid())
@@ -281,9 +283,25 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, EFlowYapMultipleFra
 	}
 
 	UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
-		
-	TriggerOutput(FName("FragmentStart", FragmentIndex + 1));
 
+	if (Fragment.GetShowOnStartPin())
+	{
+		FName StartPinName("FragmentStart_" + Fragment.GetGuid().ToString());
+
+#if !UE_BUILD_SHIPPING
+		if (OutputPins.Contains(StartPinName))
+		{
+			TriggerOutput(StartPinName, true);
+		}
+		else
+		{
+			LogError(FString::Printf(TEXT("Disconnected start pin!"), *StartPinName.ToString()));
+		}
+#else
+		TriggerOutput(FName(StartPinName.ToString()), true);
+#endif
+	}
+	
 	const FFlowYapBit& Bit = Fragment.GetBit();
 
 	double Time = Bit.GetTime();
@@ -313,14 +331,36 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, EFlowYapMultipleFra
 }
 
 void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
-{	
-	const FFlowYapBit& Bit = Fragments[FragmentIndex].GetBit();
+{
+	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
+
+	const FFlowYapBit& Bit = Fragment.GetBit();
 	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
 
 	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();
 
-	TriggerOutput(FName("FragmentEnd", FragmentIndex + 1), true);
+	Fragment.IncrementActivations();
+
+	if (Fragment.GetShowOnEndPin() || GetIsPlayerPrompt())
+	{
+		FName EndPinName("FragmentEnd_" + Fragment.GetGuid().ToString());
+
+#if !UE_BUILD_SHIPPING
+		if (OutputPins.Contains(EndPinName))
+		{
+			NodeActivationCount++;
+			TriggerOutput(EndPinName, true);
+		}
+		else
+		{
+			LogError(FString::Printf(TEXT("Disconnected end pin!"), *EndPinName.ToString()));
+		}
+#else
+		NodeActivationCount++;
+		TriggerOutput(EndPinName, true);
+#endif
+	}
 	
 	if (PaddingTime > 0)
 	{
@@ -355,6 +395,7 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapM
 		{
 			if (GetConnection("Out").NodeGuid.IsValid())
 			{
+				NodeActivationCount++;
 				TriggerOutput(FName("Out"), true);
 			}
 			else 
@@ -403,9 +444,7 @@ bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fra
 	{
 		return false;
 	}
-
-	Fragment.IncrementActivations();
-
+	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueStart(this, Fragment.GetIndexInDialogue());
 
 	return true;
@@ -695,6 +734,27 @@ void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, T
 	}
 
 	bArg = false;
+}
+
+bool UFlowNode_YapDialogue::ActivationLimitsMet() const
+{
+	if (GetNodeActivationLimit() > 0 && GetNodeActivationCount() >= GetNodeActivationLimit())
+	{
+		return true;
+	}
+
+	for (int i = 0; i < Fragments.Num(); ++i)
+	{
+		int32 ActivationLimit = Fragments[i].GetActivationLimit();
+		int32 ActivationCount = Fragments[i].GetActivationCount();
+
+		if (ActivationLimit == 0 || ActivationCount < ActivationLimit)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const

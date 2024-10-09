@@ -1,4 +1,5 @@
 #pragma once
+#include "Widgets/SUserWidget.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/YapEditorStyle.h"
 
@@ -42,6 +43,30 @@ public:
 			]
 		];
 	}
+};
 
-	static TSharedRef<SWidget> CreateActivationCounterWidget(int A, int B);
+class SActivationCounterWidget : public SCompoundWidget
+{
+	public:
+	SLATE_USER_ARGS( SActivationCounterWidget )
+		: _FontHeight(8) {}
+
+	SLATE_ATTRIBUTE(int32, ActivationCount)
+	SLATE_ATTRIBUTE(int32, ActivationLimit)
+	SLATE_ARGUMENT(int32, FontHeight)
+	
+	SLATE_END_ARGS()
+
+	TAttribute<int32> ActivationCount;
+	TAttribute<int32> ActivationLimit;
+	int32 FontHeight;
+	
+	FText NumeratorText() const;
+	FText DenominatorText() const;
+
+	FSlateColor NumeratorColor() const;
+	FSlateColor DenominatorColor() const;
+	
+	// MUST Provide this function for SNew to call!
+	virtual void Construct( const FArguments& InArgs );
 };

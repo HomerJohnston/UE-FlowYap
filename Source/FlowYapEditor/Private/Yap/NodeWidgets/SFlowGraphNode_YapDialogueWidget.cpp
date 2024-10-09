@@ -76,6 +76,16 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	UpdateGraphNode();
 }
 
+int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
+{
+	return GetFlowYapDialogueNode()->GetNodeActivationCount();
+}
+
+int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit() const
+{
+	return GetFlowYapDialogueNode()->GetNodeActivationLimit();
+}
+
 // ------------------------------------------
 // WIDGETS
 
@@ -109,7 +119,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.AutoWidth()
 		.Padding(-12, -5, 16, -6)
 		[
-			FFlowYapWidgetHelper::CreateActivationCounterWidget(GetFlowYapDialogueNode()->GetNodeActivationCount(), GetFlowYapDialogueNode()->GetNodeActivationLimit())
+			SNew(SActivationCounterWidget)
+			.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)
+			.ActivationLimit(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit)
+			.FontHeight(8)
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
@@ -198,6 +211,8 @@ ECheckBoxState SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_IsChecked()
 
 void SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState)
 {
+	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Toggle Interruptible"), GetFlowYapDialogueNodeMutable());
+
 	if (GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
 	{
 		GetFlowYapDialogueNodeMutable()->Interruptible = EFlowYapInterruptible::UseProjectDefaults;
@@ -210,6 +225,8 @@ void SFlowGraphNode_YapDialogueWidget::InterruptibleToggle_OnCheckStateChanged(E
 	{
 		GetFlowYapDialogueNodeMutable()->Interruptible = EFlowYapInterruptible::NotInterruptible;
 	}
+
+	FFlowYapTransactions::EndModify();
 }
 
 FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOpacity() const
@@ -259,6 +276,16 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	];
 }
 
+FSlateColor SFlowGraphNode_YapDialogueWidget::NodeHeader_Color() const
+{
+	if (GetFlowYapDialogueNode()->ActivationLimitsMet())
+	{
+		return YapColor::Red;
+	}
+	
+	return YapColor::White;// GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::LightGreen : YapColor::White;
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 {
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox)
@@ -274,6 +301,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 		SNew(STextBlock)
 		.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
 		.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Text)
+		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Color)
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
@@ -530,11 +558,16 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 
 EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility(uint8 FragmentIndex) const
 {
+	if (GEditor->IsPlayingSessionInEditor())
+	{
+		return EVisibility::Collapsed;
+	}
+	
 	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
 
 	if (Fragment)
 	{
-		return Fragment->GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
+		return Fragment->GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
 	}
 
 	return EVisibility::Collapsed;
@@ -542,6 +575,11 @@ EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility(
 
 EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const
 {
+	if (GEditor->IsPlayingSessionInEditor())
+	{
+		return EVisibility::Collapsed;
+	}
+	
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
 		return EVisibility::Collapsed;
@@ -559,19 +597,27 @@ EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(ui
 
 FReply SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked(uint8 FragmentIndex)
 {
+	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnStart Pin"), GetFlowYapDialogueNodeMutable());
+
 	GetFragmentMutable(FragmentIndex)->bShowOnStartPin = true;
 
 	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
-	
+
+	FFlowYapTransactions::EndModify();
+
 	return FReply::Handled();
 }
 
 FReply SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked(uint8 FragmentIndex)
 {
+	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNodeMutable());
+	
 	GetFragmentMutable(FragmentIndex)->bShowOnEndPin = true;
 
 	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
 
+	FFlowYapTransactions::EndModify();
+	
 	return FReply::Handled();
 }
 
@@ -590,14 +636,14 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane(uint8
 		[
 			SNew(SButton)
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked, FragmentIndex)
-			.ButtonColorAndOpacity(YapColor::LightGray)
+			.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 			.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
 		]
 	]
 	+ SOverlay::Slot()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Bottom)
-	.Padding(4, 0, 2, 56)
+	.Padding(4, 0, 2, 46)
 	[
 		SNew(SBox)
 		.WidthOverride(10)
@@ -606,7 +652,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane(uint8
 		[
 			SNew(SButton)
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked, FragmentIndex)
-			.ButtonColorAndOpacity(YapColor::LightGray)
+			.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 			.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
 		]
 	];
@@ -653,7 +699,7 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.HAlign(HAlign_Center)
-	.Padding(0, 2, 2, 2)
+	.Padding(0, 2, 3, 2)
 	[
 		SAssignNew(BypassOutputBox, SBox)
 		.HAlign(HAlign_Center)
@@ -678,6 +724,8 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_OnClicked()
 	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueNodeChangeSequencing", "Change dialogue node sequencing setting"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->CycleFragmentSequencingMode();
+
+	FFlowYapTransactions::EndModify();
 	
 	return FReply::Handled();
 }
@@ -1016,7 +1064,7 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 	
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
-		// TODO a custom brush style could be less obtuse
+		// TODO a custom brush style
 		return FAppStyle::GetBrush(TEXT("Graph.ReadOnlyBorder"));
 	}
 
@@ -1169,7 +1217,7 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 	{
 		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
 		PinToAdd->SetToolTipText(INVTEXT("On End"));
-		BottomPadding = 54;
+		BottomPadding = 44;
 	}
 	
 	FragmentOutputBoxes[FragmentIndex]->AddSlot()
