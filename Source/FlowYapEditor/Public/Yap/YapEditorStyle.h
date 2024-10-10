@@ -20,6 +20,4 @@ protected:
 	void OnPatchComplete();
 
 	void Initialize();
-
-	FTextBlockStyle NormalText;
 };

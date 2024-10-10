@@ -104,7 +104,8 @@ protected:
 	void				FragmentTimePadding_OnValueChanged(float X);
 	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
 	FText				FragmentTimePadding_ToolTipText() const;
-	
+
+	FSlateColor PortraitImage_BorderBackgroundColor() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreatePortraitWidget();
 

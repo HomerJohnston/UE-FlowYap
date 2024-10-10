@@ -137,7 +137,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		.Padding(-12, -5, 16, -6)
+		.Padding(-8, -5, 16, -6)
 		[
 			SNew(SActivationCounterWidget)
 			.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)

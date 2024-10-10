@@ -171,8 +171,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 					.VAlign(VAlign_Fill)
 					.HAlign(HAlign_Fill)
 					[
+						SNew(SBox)
+						.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
+						[
 						SNew(SOverlay)
 						+ SOverlay::Slot()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
 						[
 							CreateDialogueWidget()
 						]
@@ -191,6 +196,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 								.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
 								.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
 							]
+						]
 						]
 						
 					]
@@ -243,70 +249,32 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility()
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
-	TSharedRef<SScrollBox> ScrollBox = SNew(SScrollBox)
-	.Orientation(Orient_Horizontal)
-	.ScrollBarVisibility(EVisibility::Collapsed)
-	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-	.AllowOverscroll(EAllowOverscroll::No)
-	.AnimateWheelScrolling(true);
-
-	ScrollBox->AddSlot()
-	.Padding(6,4,6,4)
-	[
-		SNew(STextBlock)
-		.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
-		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
-		//.TextStyle( FYapEditorStyle::Get(), *TextStyle )
-		.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
-		.AutoWrapText(false)
-
-		//CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::Dialogue_Text, "Text.DialogueText")
-	];
-
 	return SNew(SBorder)
 	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
 	.BorderBackgroundColor(YapColor::DeepGray)
 	.ColorAndOpacity(YapColor::White)
 	.Padding(0)
 	[
-		ScrollBox
-	];
-	
-#if 0
-	return SNew(SBox)
-	//.MinDesiredHeight(58) // This is the normal height of the full portrait widget
-	//.MaxDesiredHeight(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight)
-	.Padding(0, 0, 0, 0)
-	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
+		SNew(SScrollBox)
+		.Orientation(Orient_Horizontal)
+		.ScrollBarVisibility(EVisibility::Collapsed)
+		.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+		.AllowOverscroll(EAllowOverscroll::No)
+		.AnimateWheelScrolling(true)
+		+ SScrollBox::Slot()
+		.Padding(0,0,0,0)
+		.FillSize(1.0)
 		[
-			CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::Dialogue_Text, "Text.DialogueText")
-			//SAssignNew(DialogueBox, STextBlock)
-			//.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
-			//.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
-			//.Margin(FMargin(0,0,0,0))
-			//.Padding(FMargin(4))
-			//.BackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor)
-			//.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor)
-			//.HScrollBar(HScrollBar)
-			//.VScrollBar(VScrollBar)
+			SNew(SMultiLineEditableTextBox)
+			.Padding(FMargin(4, 2))
+			.Style(FYapEditorStyle::Get(), "EditableTextBox.Dialogue")
+			.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+			.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
+			.RevertTextOnEscape(true)
+			.ModiferKeyForNewLine(EModifierKey::Shift)
+			.HintText(INVTEXT("<None>"))
 		]
-		/*
-		// TODO hatch overlay for disabled fragments?
-		+ SOverlay::Slot()
-		.Padding(-2)
-		[
-			SNew(SBorder)
-			//.BorderImage(FAppStyle::GetBrush("Menu.Background")) // Filled, Square, bit dark
-			.BorderImage(FAppStyle::GetBrush("Graph.StateNode.Body")) // Filled, rounded nicely
-			//.BorderImage(FAppStyle::GetBrush("Brushes.Panel")) // Filled, Square, Dark
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility)
-			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor)
-		]
-		*/
 	];
-#endif
 }
 
 FVector2D SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness() const
@@ -342,7 +310,7 @@ void SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted(const FText& Com
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeDialogueTextChanged", "Dialogue Text Changed"), GetFlowYapDialogueNode());
 
-	if (CommitType == ETextCommit::OnEnter || CommitType == ETextCommit::OnUserMovedFocus)
+	if (CommitType == ETextCommit::OnEnter)
 	{
 		GetFragment()->Bit.SetDialogueText(CommittedText);
 	}
@@ -352,7 +320,7 @@ void SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted(const FText& Com
 
 FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 {
-	return LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking");
+	return LOCTEXT("DialogueText_Tooltip", "Spoken dialogue");
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
@@ -795,6 +763,11 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText() const
 	return FText::Format(LOCTEXT("Fragment", "Delay: {0}"), GetFragment()->GetPaddingToNextFragment());
 }
 
+FSlateColor SFlowGraphNode_YapFragmentWidget::PortraitImage_BorderBackgroundColor() const
+{
+	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::LightGray_Trans : YapColor::Gray_Glass;
+}
+
 // ================================================================================================
 // PORTRAIT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -807,14 +780,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	.Padding(0, 0, 0, 0)
 	[
 		SNew(SBox)
-		.WidthOverride(64)
-		.HeightOverride(64)
+		.WidthOverride(68)
+		.HeightOverride(68)
 		[
 			SNew(SBorder)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Border.DeburredSquare"))
-			.BorderBackgroundColor(YapColor::Gray_Glass)
+			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::PortraitImage_BorderBackgroundColor)
 		]
 	]
 	+ SOverlay::Slot()
@@ -1073,20 +1046,29 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
 	return SNew(SBox)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
-	.ToolTipText(LOCTEXT("TitleText_Tooltip", "Title text may be used to build player's dialogue selection list."))
+	.ToolTipText(LOCTEXT("TitleText_Tooltip", "Title text"))
 	[
-		CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText")
+		SNew(SScrollBox)
+		.Orientation(Orient_Horizontal)
+		.ScrollBarVisibility(EVisibility::Collapsed)
+		.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+		.AllowOverscroll(EAllowOverscroll::No)
+		.AnimateWheelScrolling(true)
+		+ SScrollBox::Slot()
+		.Padding(0,0,0,0)
+		.FillSize(1.0)
+		[
+			SNew(SMultiLineEditableTextBox)
+			.Padding(FMargin(4, 2))
+			.Style(FYapEditorStyle::Get(), "EditableTextBox.TitleText")
+			.Text(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Text)
+			.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted)
+			.RevertTextOnEscape(true)
+			.ModiferKeyForNewLine(EModifierKey::Shift)
+			.HintText(INVTEXT("<None>"))
+		]
+		//CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText")
 	];
-
-	//return SAssignNew(TitleTextBox, STextBlock)
-	//.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
-	//.Text(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Text);
-	//.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted)
-	//.OverflowPolicy(ETextOverflowPolicy::Ellipsis)
-	//.IsEnabled(false)
-	//.Padding(2)
-	//.HintText(LOCTEXT("TitleText_Hint", "Enter optional title text"))
-	//.ToolTipText(LOCTEXT("TitleText_Tooltip", "Title text may be used to build player's dialogue selection list."));
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
@@ -1101,14 +1083,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
 
 FText SFlowGraphNode_YapFragmentWidget::TitleText_Text() const
 {
-	FText Text = GetFragment()->Bit.GetTitleText();
-
-	if (Text.IsEmpty())
-	{
-		return FText(INVTEXT("<None>"));
-	}
-	
-	return Text;
+	return GetFragment()->Bit.GetTitleText();
 }
 
 void SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType)

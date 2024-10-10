@@ -101,23 +101,39 @@ void FYapEditorStyle::Initialize()
 	.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
 	.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))
 	.SetEnableFillAnimation(false));
-
+	
 	const ISlateStyle* ParentStyle = GetParentStyle();
 	
-	NormalText = ParentStyle->GetWidgetStyle<FTextBlockStyle>("NormalText");
+	FTextBlockStyle NormalTextStyle = ParentStyle->GetWidgetStyle<FTextBlockStyle>("NormalText");
 
-	Set("Text.TitleText", FTextBlockStyle(NormalText)
-		.SetFont(DEFAULT_FONT("Italic", 10))
-		.SetColorAndOpacity(YapColor::Gray)
-	);
+	FTextBlockStyle DialogueTextStyle = NormalTextStyle
+		.SetColorAndOpacity(YapColor::White);
 	
-	Set("Text.DialogueText", FTextBlockStyle(NormalText)
-		.SetFont(DEFAULT_FONT("Regular", 10))
-		.SetColorAndOpacity(YapColor::White)
-	);
-	
-	Set("Text.NodeHeader", FTextBlockStyle(NormalText)
+	FTextBlockStyle TitleTextStyle = NormalTextStyle
+		.SetColorAndOpacity(YapColor::YellowGray)
+		.SetFont(DEFAULT_FONT("Italic", 9));
+
+	Set("Text.NodeHeader", FTextBlockStyle(NormalTextStyle)
 		.SetFont(DEFAULT_FONT("Bold", 16))
-		.SetColorAndOpacity(YapColor::White)
+		.SetColorAndOpacity(YapColor::White));
+		
+	const FEditableTextBoxStyle& NormalEditableTextBoxStyle = FAppStyle::GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
+	
+	Set("EditableTextBox.Dialogue", FEditableTextBoxStyle(NormalEditableTextBoxStyle)
+		.SetTextStyle(DialogueTextStyle)
+		.SetBackgroundImageNormal(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageHovered(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageFocused(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageReadOnly(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundColor(FStyleColors::Recessed)
+	);
+	
+	Set("EditableTextBox.TitleText", FEditableTextBoxStyle(NormalEditableTextBoxStyle)
+		.SetTextStyle(TitleTextStyle)
+		.SetBackgroundImageNormal(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageHovered(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageFocused(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundImageReadOnly(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
+		.SetBackgroundColor(FStyleColors::Recessed)
 	);
 }
