@@ -13,7 +13,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 {
 	Sequential	,
 	SelectOne	,
-	Prompt		,
+	Prompt		, // TODO should this one get deleted???
 	COUNT		UMETA(Hidden)
 };
 
@@ -22,7 +22,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = " "))
+UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Emits Yap dialogue events"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -127,6 +127,8 @@ public:
 	void OnPassThrough_Implementation() override;
 	
 	bool GetInterruptible() const;
+
+	EFlowYapInterruptible GetInterruptibleSetting() const;
 	
 	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; };
 

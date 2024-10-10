@@ -182,6 +182,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 						[
 							SNew(SBox)
 							.HeightOverride(2)
+							.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText)
 							[
 								SNew(SProgressBar)
 								.BorderPadding(0)
@@ -189,7 +190,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 								.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
 								.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
 								.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
-								.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_ToolTipText)
 							]
 						]
 						
@@ -255,6 +255,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 	[
 		SNew(STextBlock)
 		.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
 		//.TextStyle( FYapEditorStyle::Get(), *TextStyle )
 		.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
 		.AutoWrapText(false)
@@ -351,13 +352,7 @@ void SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted(const FText& Com
 
 FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 {
-	uint8 FocusedFragmentIndex;
-	if (Owner->GetFocusedFragmentIndex(FocusedFragmentIndex) && FocusedFragmentIndex == FragmentIndex)
-	{
-		return LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking");
-	}
-
-	return GetFragment()->Bit.GetTitleText().IsEmptyOrWhitespace() ? LOCTEXT("DialogueText_Tooltip", "No title text") : FText::Format(LOCTEXT("DialogueText_Tooltip", "Title Text: {0}"), GetFragment()->Bit.GetTitleText());
+	return LOCTEXT("DialogueText_Tooltip", "To be displayed during speaking");
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
@@ -1078,6 +1073,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
 	return SNew(SBox)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
+	.ToolTipText(LOCTEXT("TitleText_Tooltip", "Title text may be used to build player's dialogue selection list."))
 	[
 		CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText")
 	];
@@ -1105,7 +1101,14 @@ EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
 
 FText SFlowGraphNode_YapFragmentWidget::TitleText_Text() const
 {
-	return GetFragment()->Bit.GetTitleText();
+	FText Text = GetFragment()->Bit.GetTitleText();
+
+	if (Text.IsEmpty())
+	{
+		return FText(INVTEXT("<None>"));
+	}
+	
+	return Text;
 }
 
 void SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType)
@@ -1598,7 +1601,7 @@ bool SFlowGraphNode_YapFragmentWidget::FragmentFocused() const
 	return (Owner->GetFocusedFragmentIndex(FocusedFragmentIndex) && FocusedFragmentIndex == FragmentIndex);
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateWrappedTextBlock(FText(SFlowGraphNode_YapFragmentWidget::*wtf)() const, FString TextStyle) const
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateWrappedTextBlock(FText(SFlowGraphNode_YapFragmentWidget::*TextDelegate)() const, FString TextStyle) const
 {
 	TSharedRef<SScrollBar> HScrollBar = SNew(SScrollBar)
 	.Orientation(Orient_Horizontal)
@@ -1617,7 +1620,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateWrappedTextBlock(FTe
 	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
 	[
 		SNew(STextBlock)
-		.Text(this, wtf)
+		.Text(this, TextDelegate)
 		.TextStyle( FYapEditorStyle::Get(), *TextStyle )
 		.WrappingPolicy(ETextWrappingPolicy::DefaultWrapping)
 		.AutoWrapText(false)

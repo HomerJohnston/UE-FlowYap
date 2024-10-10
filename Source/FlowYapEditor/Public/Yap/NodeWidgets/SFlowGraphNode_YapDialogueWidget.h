@@ -62,6 +62,7 @@ protected:
 	int32 GetDialogueActivationCount() const;
 
 	int32 GetDialogueActivationLimit() const;
+	EVisibility InterruptibleToggleIconOff_Visibility() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	

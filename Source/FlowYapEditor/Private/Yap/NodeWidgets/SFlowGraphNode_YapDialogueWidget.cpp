@@ -86,6 +86,26 @@ int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit() const
 	return GetFlowYapDialogueNode()->GetNodeActivationLimit();
 }
 
+EVisibility SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibility() const
+{
+	switch (GetFlowYapDialogueNode()->GetInterruptibleSetting())
+	{
+		case EFlowYapInterruptible::UseProjectDefaults:
+		{
+			return UFlowYapProjectSettings::Get()->GetDialogueInterruptibleByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
+		}
+		case EFlowYapInterruptible::Interruptible:
+		{
+			return EVisibility::Collapsed;
+		}
+		case EFlowYapInterruptible::NotInterruptible:
+		{
+			return EVisibility::Visible;
+		}
+	}
+	return (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
+}
+
 // ------------------------------------------
 // WIDGETS
 
@@ -173,10 +193,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 						+ SOverlay::Slot()
 						[
 							SNew(SImage)
-							.ColorAndOpacity(YapColor::LightRed)
+							.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOpacity)
 							.DesiredSizeOverride(FVector2D(16, 16))
 							.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
-							.Visibility_Lambda([this](){return ( GetFlowYapDialogueNodeMutable()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
+							.Visibility(this, &SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibility)
+							//.Visibility_Lambda([this](){return ( GetFlowYapDialogueNodeMutable()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
 						]
 					]
 				]
@@ -282,8 +303,25 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::NodeHeader_Color() const
 	{
 		return YapColor::Red;
 	}
+
+	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		return YapColor::White;
+	}
+
+	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
+	{
+		case EFlowYapMultipleFragmentSequencing::SelectOne:
+		{
+			return YapColor::Gray;
+		}
+		case EFlowYapMultipleFragmentSequencing::Sequential:
+		{
+			return YapColor::Gray;
+		}
+	}
 	
-	return YapColor::White;// GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::LightGreen : YapColor::White;
+	return YapColor::Error;
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
@@ -772,11 +810,11 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndO
 	{
 	case EFlowYapMultipleFragmentSequencing::Sequential:
 		{
-			return YapColor::DarkGray;
+			return YapColor::LightBlue;
 		}
 	case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			return YapColor::Orange;
+			return YapColor::LightOrange;
 		}
 	default:
 		{
@@ -1061,13 +1099,15 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 	{
 		return FAppStyle::GetBrush(TEXT("Graph.Node.ShadowSelected"));
 	}
-	
+
+	/*
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
 		// TODO a custom brush style
 		return FAppStyle::GetBrush(TEXT("Graph.ReadOnlyBorder"));
 	}
-
+	*/
+	
 	return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
 }
 

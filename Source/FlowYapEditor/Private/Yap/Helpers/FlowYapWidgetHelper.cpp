@@ -73,11 +73,13 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs)
 	ActivationCount = InArgs._ActivationCount;
 	ActivationLimit = InArgs._ActivationLimit;
 	FontHeight = InArgs._FontHeight;
+
 	
 	ChildSlot
 	[
 		SNew(SBox)
 		.WidthOverride(20 + 2 * (FontHeight - 8))
+		.ToolTipText(INVTEXT("Activation Count / Activation Limit"))
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()

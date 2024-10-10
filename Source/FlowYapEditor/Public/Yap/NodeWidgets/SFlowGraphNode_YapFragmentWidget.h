@@ -184,7 +184,7 @@ protected:
 
 	bool FragmentFocused() const;
 
-	TSharedRef<SWidget> CreateWrappedTextBlock(FText (SFlowGraphNode_YapFragmentWidget::*wtf)() const, FString TextStyle) const;
+	TSharedRef<SWidget> CreateWrappedTextBlock(FText (SFlowGraphNode_YapFragmentWidget::*TextDelegate)() const, FString TextStyle) const;
 	
 	// ------------------------------------------
 	// OVERRIDES

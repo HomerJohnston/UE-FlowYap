@@ -209,6 +209,11 @@ bool UFlowNode_YapDialogue::GetInterruptible() const
 	}
 }
 
+EFlowYapInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
+{
+	return Interruptible;
+}
+
 // ================================================================================================
 
 void UFlowNode_YapDialogue::BroadcastPrompts()
@@ -426,6 +431,11 @@ bool UFlowNode_YapDialogue::BypassPinRequired() const
 		return true;
 	}
 
+	if (GetNodeActivationLimit() > 0)
+	{
+		return true;
+	}
+	
 	// If all of the fragments have conditions, we will need a bypass node in case all fragments are unusable
 	for (const FFlowYapFragment& Fragment : Fragments)
 	{
