@@ -75,6 +75,8 @@ EFlowYapTimeMode FFlowYapBit::GetTimeMode() const
 
 double FFlowYapBit::GetTime() const
 {
+	// TODO clamp minimums from project settings
+	
 	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 	
 	EFlowYapTimeMode ActualTimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeModeSetting() : TimeMode;

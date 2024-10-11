@@ -160,7 +160,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
 		.AutoWidth()
-		.Padding(2,-2,-27,-2)
+		.Padding(2, -2, -25, -2)
 		[
 			SNew(SBox)
 			.WidthOverride(20)
@@ -313,11 +313,11 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::NodeHeader_Color() const
 	{
 		case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
-			return YapColor::Gray;
+			return YapColor::White;
 		}
 		case EFlowYapMultipleFragmentSequencing::Sequential:
 		{
-			return YapColor::Gray;
+			return YapColor::White;
 		}
 	}
 	
@@ -389,6 +389,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	bool bLastFragment = false;
 
 	TSharedRef<SVerticalBox> FragmentBoxes = SNew(SVerticalBox);
+
+	FragmentWidgets.Empty();
 	
 	for (uint8 FragmentIndex = 0; FragmentIndex < GetFlowYapDialogueNode()->GetNumFragments(); ++FragmentIndex)
 	{
@@ -399,8 +401,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 			bLastFragment = true;
 		}
 		
-		TSharedPtr<SFlowGraphNode_YapFragmentWidget> NewFragmentWidget = MakeShared<SFlowGraphNode_YapFragmentWidget>();
-
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
 		.Padding(0, bFirstFragment ? 0 : 15, 0, 15)
@@ -412,23 +412,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 		.AutoHeight()
 		.Padding(0, 0, 0, 0)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			[
-				CreateFragmentRowWidget(FragmentIndex)
-			]
-			/*
-			+ SOverlay::Slot()
-			.Padding(26, 0)
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			[
-				SNew(SBorder)
-				.BorderImage(FAppStyle::GetBrush("Graph.StateNode.Body")) // Filled, rounded nicely
-				.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility, FragmentIndex)
-				.BorderBackgroundColor(this, &SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgroundColor, FragmentIndex)
-			]
-			*/
+			CreateFragmentRowWidget(FragmentIndex)
 		];
 		
 		bFirstFragment = false;
@@ -524,11 +508,18 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(uint8 Index
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(uint8 FragmentIndex)
 {
+	TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget = SNew(SFlowGraphNode_YapFragmentWidget, this, FragmentIndex);
+
+	FragmentWidgets.Add(FragmentWidget);
+	
+	return FragmentWidget.ToSharedRef();
+	/*
 	return SNew(SHorizontalBox)
 	// MIDDLE PANE
 	+ SHorizontalBox::Slot()
 	.VAlign(VAlign_Center)
 	.HAlign(HAlign_Fill)
+	.Padding(0, 0, 32, 0)
 	[
 		SNew(SFlowGraphNode_YapFragmentWidget, this, FragmentIndex)
 	]
@@ -539,6 +530,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(ui
 	[
 		CreateRightFragmentPane(FragmentIndex)
 	];
+	*/
 }
 
 // ================================================================================================
@@ -580,8 +572,6 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 {
 	TSharedRef<SVerticalBox> LeftSideNodeBox = SNew(SVerticalBox);
 
-	FragmentInputBoxes.Add(LeftSideNodeBox);
-
 	return SNew(SBox)
 	.MinDesiredHeight(16)
 	[
@@ -617,12 +607,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(ui
 	{
 		return EVisibility::Collapsed;
 	}
-	
-	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
-	{
-		return EVisibility::Collapsed;
-	}
-	
+		
 	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
 
 	if (Fragment)
@@ -681,7 +666,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane(uint8
 	+ SOverlay::Slot()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Bottom)
-	.Padding(4, 0, 2, 46)
+	.Padding(4, 0, 2, 26)
 	[
 		SNew(SBox)
 		.WidthOverride(10)
@@ -695,7 +680,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateRightFragmentPane(uint8
 		]
 	];
 	
-	FragmentOutputBoxes.Add(RightSideNodeBox);
+	//FragmentOutputBoxes.Add(RightSideNodeBox);
 	
 	return SNew(SBox)
 	.MinDesiredWidth(32) // Unreal's input nodes are larger than its output nodes. The left side will be 32 px wide. The right side will be about 27 px wide without this. Thanks Epic.
@@ -1139,16 +1124,8 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	
 	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 	{
-		if (PinName.IsEqual(FName("In"), ENameCase::IgnoreCase, false))
-		{
-			AddInPin(PinToAdd);
-		}
-		else
-		{
-			UE_LOGFMT(FlowYap, Warning, "Invalid input pin name: {0}", PinName);
-			return;
-		}
-		
+		AddInPin(PinToAdd);
+
 		InputPins.Add(PinToAdd);
 	}
 	else
@@ -1163,8 +1140,6 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 		}
 		else
 		{
-			const UFlowNode_YapDialogue* Temp = GetFlowYapDialogueNode();
-			
 			const FGuid* FragmentGuid = GetFlowYapDialogueNode()->FragmentPinMap.Find(PinName);
 
 			if (!FragmentGuid)
@@ -1227,6 +1202,7 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 {
 	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
 
+	/*
 	if (!FragmentOutputBoxes.IsValidIndex(FragmentIndex))
 	{
 		UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD OUTPUT PIN: %s, perhaps node is corrupt? "
@@ -1236,6 +1212,7 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 						*GetFlowYapDialogueNodeMutable()->GetFragments()[0].Bit.GetDialogueText().ToString());
 		return;
 	}
+	*/
 	
 	FMargin RightMargins = Settings->GetInputPinPadding();
 	RightMargins.Bottom = 0;
@@ -1257,13 +1234,25 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 	{
 		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
 		PinToAdd->SetToolTipText(INVTEXT("On End"));
+		BottomPadding = 24;
+	}
+	else
+	{
+		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
+		PinToAdd->SetToolTipText(INVTEXT("Prompt Out"));
+		Alignment = VAlign_Top;
 		BottomPadding = 44;
 	}
-	
-	FragmentOutputBoxes[FragmentIndex]->AddSlot()
+
+	TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget = FragmentWidgets[FragmentIndex];
+
+	TSharedPtr<SOverlay> Box = FragmentWidget->GetPinContainer();
+
+	Box->AddSlot()
+	//FragmentOutputBoxes[FragmentIndex]->AddSlot()
 	.HAlign(HAlign_Right)
 	.VAlign(Alignment)
-	.Padding(0, -10, 4, BottomPadding)
+	.Padding(0, 0, 4, BottomPadding)
 	[
 		PinToAdd
 	];

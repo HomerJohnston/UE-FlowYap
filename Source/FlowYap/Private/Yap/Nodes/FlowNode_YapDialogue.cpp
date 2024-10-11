@@ -169,20 +169,24 @@ void UFlowNode_YapDialogue::OnActivate()
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
-	if (NodeActivationLimit > 0 && NodeActivationCount >= NodeActivationLimit)
+	if (ActivationLimitsMet())
 	{
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
 		return;
 	}
 
-	if (bIsPlayerPrompt)
+	if (GetIsPlayerPrompt())
 	{
 		BroadcastPrompts();
 	}
 	else
 	{
-		RunFragmentsAsDialogue(0, FragmentSequencing, false);
+		RunFragments();
 	}
+}
+
+void UFlowNode_YapDialogue::Cleanup()
+{
 }
 
 void UFlowNode_YapDialogue::OnPassThrough_Implementation()
@@ -244,136 +248,122 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	}
 }
 
-void UFlowNode_YapDialogue::RunPromptAsDialogue(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 {
-	if (!RunFragment(FragmentIndex, EFlowYapMultipleFragmentSequencing::Prompt))
+	if (!RunFragment(FragmentIndex))
 	{
 		// TODO log error? This should never happen?
 		
 		TriggerOutput(FName("Bypass"), true);
 	}
+
+	++NodeActivationCount;
 }
 
 // ================================================================================================
 
-void UFlowNode_YapDialogue::RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode, bool bSuccess)
+void UFlowNode_YapDialogue::RunFragments()
 {
-	for (uint8 FragmentIndex = StartIndex; FragmentIndex < Fragments.Num(); ++FragmentIndex)
+	bool bStartedSuccessfully = false;
+	
+	for (uint8 i = 0; i < Fragments.Num(); ++i)
 	{
-		if (RunFragment(FragmentIndex, SequencingMode))
+		switch (FragmentSequencing)
 		{
-			return;
+			case EFlowYapMultipleFragmentSequencing::SelectOne:
+			{
+				bStartedSuccessfully = RunFragment(i, false);
+				break;
+			}
+			case EFlowYapMultipleFragmentSequencing::Sequential:
+			{
+				bStartedSuccessfully = RunFragment(i, true);
+				break;
+			}
+		}
+
+		if (bStartedSuccessfully)
+		{
+			break;
 		}
 	}
-
-	if (bSuccess && GetConnection("Out").NodeGuid.IsValid())
+	
+	if (bStartedSuccessfully)
 	{
-		NodeActivationCount++;
-
-		TriggerOutput(FName("Out"), true);
+		++NodeActivationCount;
 	}
-	else if (GetConnection("Bypass").NodeGuid.IsValid())
+	else
 	{
 		TriggerOutput(FName("Bypass"), true);
 	}
 }
 
-bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, bool bRunNext)
 {
-	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
-
-	if (!TryBroadcastFragmentAsDialogue(Fragment))
+	if (!Fragments.IsValidIndex(FragmentIndex))
 	{
 		return false;
 	}
+	
+	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-	UE_LOGFMT(FlowYap, Display, "Activating fragment {0}", FragmentIndex);
-
-	if (Fragment.GetShowOnStartPin())
+	if (TryBroadcastFragment(Fragment))
 	{
-		FName StartPinName("FragmentStart_" + Fragment.GetGuid().ToString());
+		Fragment.IncrementActivations();
 
-#if !UE_BUILD_SHIPPING
-		if (OutputPins.Contains(StartPinName))
+#if WITH_EDITOR
+		RunningFragmentIndex = FragmentIndex;
+		FragmentStartedTime = GetWorld()->GetTimeSeconds();
+#endif
+
+		FName StartPinName = Fragment.GetStartPinName();
+		
+		if (StartPinName != NAME_None)
 		{
 			TriggerOutput(StartPinName, true);
 		}
+
+		double Time = Fragment.GetBit().GetTime();
+
+		if (Time == 0)
+		{
+			OnFragmentComplete(FragmentIndex, bRunNext);
+		}
 		else
 		{
-			LogError(FString::Printf(TEXT("Disconnected start pin!"), *StartPinName.ToString()));
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, bRunNext), Time, false);
 		}
-#else
-		TriggerOutput(FName(StartPinName.ToString()), true);
-#endif
-	}
-	
-	const FFlowYapBit& Bit = Fragment.GetBit();
 
-	double Time = Bit.GetTime();
-
-	if (Time == 0)
-	{
-		UE_LOGFMT(FlowYap, Warning, "Encountered 0 time for fragment containing text: {0}, using project default minimum instead", Bit.GetDialogueText().ToString());
-		Time = UFlowYapProjectSettings::Get()->GetMinimumFragmentTime();
-	}
-
-	if (Time == 0)
-	{
-		OnFragmentComplete(FragmentIndex, SequencingMode);
+		return true;
 	}
 	else
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, SequencingMode), Time, false);
+		return false;
 	}
-		
-#if WITH_EDITOR
-	UE_LOG(FlowYap, Warning, TEXT("Setting running fragment index"));
-	RunningFragmentIndex = FragmentIndex;
-	FragmentStartedTime = GetWorld()->GetTimeSeconds();
-#endif
-
-	return true;
 }
 
-void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bRunNext)
 {
 	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-	const FFlowYapBit& Bit = Fragment.GetBit();
-	
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
 
 	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();
 
-	Fragment.IncrementActivations();
+	const FName EndPinName = Fragment.GetEndPinName();
 
-	if (Fragment.GetShowOnEndPin() || GetIsPlayerPrompt())
+	if (!GetIsPlayerPrompt() && Fragment.GetShowOnEndPin())
 	{
-		FName EndPinName("FragmentEnd_" + Fragment.GetGuid().ToString());
-
-#if !UE_BUILD_SHIPPING
-		if (OutputPins.Contains(EndPinName))
-		{
-			NodeActivationCount++;
-			TriggerOutput(EndPinName, true);
-		}
-		else
-		{
-			LogError(FString::Printf(TEXT("Disconnected end pin!"), *EndPinName.ToString()));
-		}
-#else
-		NodeActivationCount++;
 		TriggerOutput(EndPinName, true);
-#endif
 	}
 	
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, SequencingMode), PaddingTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, bRunNext), PaddingTime, false);
 	}
 	else
 	{
-		OnPaddingTimeComplete(FragmentIndex, SequencingMode);
+		OnPaddingTimeComplete(FragmentIndex, bRunNext);
 	}
 
 #if WITH_EDITOR
@@ -382,38 +372,35 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, EFlowYapMult
 }
 
 
-void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode)
+void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bRunNext)
 {
 #if WITH_EDITOR
 	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
 	RunningFragmentIndex.Reset();
 #endif
 
-	switch (SequencingMode)
+	if (GetIsPlayerPrompt())
 	{
-	case EFlowYapMultipleFragmentSequencing::Sequential:
-		{
-			RunFragmentsAsDialogue(FragmentIndex + 1, SequencingMode, true);
-			break;
-		}
-	case EFlowYapMultipleFragmentSequencing::SelectOne:
-		{
-			if (GetConnection("Out").NodeGuid.IsValid())
-			{
-				NodeActivationCount++;
-				TriggerOutput(FName("Out"), true);
-			}
-			else 
-			{
-				TriggerOutput(FName("Bypass"), true);
-			}
+		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-			break;
-		}
-	case EFlowYapMultipleFragmentSequencing::Prompt:
+		FName EndPinName("PromptOut_" + Fragment.GetGuid().ToString());
+
+		TriggerOutput(EndPinName, true);
+	}
+	else
+	{
+		if (bRunNext)
 		{
-			break;
+			for (uint8 NextIndex = FragmentIndex + 1; NextIndex < Fragments.Num(); ++NextIndex)
+			{
+				if (RunFragment(NextIndex))
+				{
+					return;
+				}
+			}
 		}
+
+		TriggerOutput(FName("Out"), true);
 	}
 }
 
@@ -448,8 +435,13 @@ bool UFlowNode_YapDialogue::BypassPinRequired() const
 	return true;
 }
 
-bool UFlowNode_YapDialogue::TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment)
+bool UFlowNode_YapDialogue::TryBroadcastFragment(FFlowYapFragment& Fragment)
 {
+	if (!Fragment.CheckConditions())
+	{
+		return false;
+	}
+	
 	if (Fragment.IsActivationLimitMet())
 	{
 		return false;
@@ -572,46 +564,31 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 	{
 		FFlowYapFragment& Fragment = Fragments[Index];
 		
-		if (Fragments[Index].GetShowOnEndPin() || bIsPlayerPrompt)
+		if (Fragment.GetShowOnEndPin())
 		{
 			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 			ContextOutputPins.Add(PinName);
 
-			/*
-			FFlowYapPinInfo NewPinInfo;
-			NewPinInfo.ToolTip = INVTEXT("On End");
-			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
-			NewPinInfo.BottomPadding = 54;
-			*/
-			
-			if (!bIsPlayerPrompt)
-			{
-				//NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
-				OptionalPins.Add(PinName);
-			}
-			
-			//PinInfo.Add(PinName, NewPinInfo);
+			OptionalPins.Add(PinName);
 			OnEndPins.Add(PinName);
 		}
 		
-		if (Fragments[Index].GetShowOnStartPin())
+		if (Fragment.GetShowOnStartPin())
 		{
 			FName PinName = FName("FragmentStart_" + Fragment.GetGuid().ToString());
 			ContextOutputPins.Add(PinName);
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 
-			/*
-			FFlowYapPinInfo NewPinInfo;
-			NewPinInfo.ToolTip = INVTEXT("On Start");
-			NewPinInfo.DisconnectedColor = FLinearColor(0.300, 0.030, 0.005, 1.0);
-			NewPinInfo.PinStyle = EFlowYapPinStyle::Hyphen;
-			NewPinInfo.BottomPadding = 4;
-			*/
 			OptionalPins.Add(PinName);
-
-			//PinInfo.Add(PinName, NewPinInfo);
 			OnStartPins.Add(PinName);
+		}
+
+		if (GetIsPlayerPrompt())
+		{
+			FName PinName = FName("PromptOut_" + Fragment.GetGuid().ToString());
+			ContextOutputPins.Add(PinName);
+			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 		}
 	}
 

@@ -124,6 +124,8 @@ public:
 
 	void ExecuteInput(const FName& PinName) override;
 
+	void Cleanup() override;
+	
 	void OnPassThrough_Implementation() override;
 	
 	bool GetInterruptible() const;
@@ -136,20 +138,20 @@ protected:
 	void BroadcastPrompts();
 
 protected:
-	void RunPromptAsDialogue(uint8 Uint8);
+	void RunPrompt(uint8 Uint8);
+	
+	void RunFragments();
 
-	void RunFragmentsAsDialogue(uint8 StartIndex, EFlowYapMultipleFragmentSequencing SequencingMode, bool bSuccess);
+	bool RunFragment(uint8 FragmentIndex, bool bRunNext = false);
 
-	bool RunFragment(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
+	void OnFragmentComplete(uint8 FragmentIndex, bool bRunNext);
 
-	void OnFragmentComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
-
-	void OnPaddingTimeComplete(uint8 FragmentIndex, EFlowYapMultipleFragmentSequencing SequencingMode);
+	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bRunNext);
 
 	bool BypassPinRequired() const;
 	
 protected:
-	bool TryBroadcastFragmentAsDialogue(FFlowYapFragment& Fragment);
+	bool TryBroadcastFragment(FFlowYapFragment& Fragment);
 
 #if WITH_EDITOR
 public:

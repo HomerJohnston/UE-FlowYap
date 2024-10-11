@@ -17,9 +17,6 @@ protected:
 	TSharedPtr<SBox> DialogueInputBoxArea;
 	TSharedPtr<SBox> DialogueOutputBoxArea;
 	
-	TArray<TSharedPtr<SVerticalBox>> FragmentInputBoxes;
-	TArray<TSharedPtr<SOverlay>> FragmentOutputBoxes;
-	
 	TSharedPtr<SBox> BypassOutputBox;
 
 	// TODO make style set junk, for both this and Fragment widget. Pull it out of
@@ -50,6 +47,8 @@ protected:
 
 	TOptional<uint8> FlashFragmentIndex; 
 	double FlashHighlight = 0.0;
+
+	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
 	
 	// ------------------------------------------
 	// CONSTRUCTION

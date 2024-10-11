@@ -36,6 +36,8 @@ protected:
 
 	uint64 LastBitReplacementCacheFrame = 0;
 	FFlowYapBitReplacement* CachedBitReplacement = nullptr;
+
+	bool bRunning;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -50,7 +52,9 @@ protected:
 	EVisibility BarAboveDialogue_Visibility() const;
 	int32 GetFragmentActivationCount() const;
 	int32 GetFragmentActivationLimit() const;
-	
+
+	TSharedRef<SWidget> CreateAudioPreviewWidget();
+	TSharedRef<SWidget> CreateFragmentHighlightWidget();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -187,10 +191,25 @@ protected:
 
 	TSharedRef<SWidget> CreateWrappedTextBlock(FText (SFlowGraphNode_YapFragmentWidget::*TextDelegate)() const, FString TextStyle) const;
 	
+	EVisibility			RowHighlight_Visibility() const;
+	FSlateColor			RowHighlight_BorderBackgroundColor() const;
+	
 	// ------------------------------------------
 	// OVERRIDES
 public:
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
 
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	
+	TSharedRef<SOverlay>	CreateRightFragmentPane();
+
+	TSharedPtr<SOverlay>	PinContainer;
+
+	TSharedPtr<SOverlay> GetPinContainer() { return PinContainer; }
+	
+	EVisibility			EnableOnStartPinButton_Visibility() const;
+	EVisibility			EnableOnEndPinButton_Visibility() const;
+	
+	FReply				EnableOnStartPinButton_OnClicked();
+	FReply				EnableOnEndPinButton_OnClicked();
 };

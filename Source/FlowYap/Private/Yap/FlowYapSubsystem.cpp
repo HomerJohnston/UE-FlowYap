@@ -188,7 +188,7 @@ void UFlowYapSubsystem::RunPrompt(FYapPromptHandle& Handle)
 {
 	//BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
 
-	Handle.DialogueNode->RunPromptAsDialogue(Handle.FragmentIndex);
+	Handle.DialogueNode->RunPrompt(Handle.FragmentIndex);
 }
 
 // =====================================================================================================

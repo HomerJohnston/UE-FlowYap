@@ -26,6 +26,7 @@ public:
 	FFlowYapFragment();
 	
 	~FFlowYapFragment();
+	bool CheckConditions() { return true; };
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -102,6 +103,10 @@ public:
 	void ReplaceBit(const FFlowYapBitReplacement& ReplacementBit);
 
 	const FGuid& GetGuid() const { return Guid; }
+
+	FName GetStartPinName();
+
+	FName GetEndPinName();
 	
 #if WITH_EDITOR
 public:

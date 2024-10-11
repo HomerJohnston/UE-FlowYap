@@ -44,6 +44,32 @@ void FFlowYapFragment::ReplaceBit(const FFlowYapBitReplacement& ReplacementBit)
 	bBitReplaced = true;
 }
 
+FName FFlowYapFragment::GetStartPinName()
+{
+	if (GetShowOnStartPin())
+	{
+		// TODO cache this at editor time
+		return FName("FragmentStart_" + GetGuid().ToString());
+	}
+	else
+	{
+		return NAME_None;
+	}
+}
+
+FName FFlowYapFragment::GetEndPinName()
+{
+	if (GetShowOnEndPin())
+ 	{
+ 		// TODO cache this at editor time
+ 		return FName("FragmentEnd_" + GetGuid().ToString());
+ 	}
+ 	else
+ 	{
+ 		return NAME_None;
+ 	}
+}
+
 #if WITH_EDITOR
 void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {
