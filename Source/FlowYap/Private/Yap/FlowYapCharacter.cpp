@@ -16,9 +16,9 @@ UFlowYapCharacter::UFlowYapCharacter()
 	// TODO I need validation code to check if the character's portrait keys array matches the project or not
 	if (Portraits.Num() == 0)
 	{
-		for (FName MoodKey : Settings->GetMoodKeys())
+		for (FGameplayTag MoodKey : Settings->GetMoodKeys())
 		{
-			if (MoodKey == NAME_None)
+			if (!MoodKey.IsValid())
 			{
 				UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
 				continue;
@@ -29,7 +29,7 @@ UFlowYapCharacter::UFlowYapCharacter()
 	}
 }
 
-const TMap<FName, TObjectPtr<UTexture2D>> UFlowYapCharacter::GetPortraits()
+const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& UFlowYapCharacter::GetPortraits() const
 {
 	return Portraits;
 }
@@ -52,12 +52,12 @@ void UFlowYapCharacter::PostEditChangeProperty(FPropertyChangedEvent& PropertyCh
 	}
 }
 
-TMap<FName, FSlateBrush> UFlowYapCharacter::GetPortraitBrushes()
+const TMap<FGameplayTag, FSlateBrush>& UFlowYapCharacter::GetPortraitBrushes()
 {
 	return PortraitBrushes;
 }
 
-const FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FName& MoodKey) const
+const FSlateBrush* UFlowYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
 {
 	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
 
@@ -75,9 +75,9 @@ void UFlowYapCharacter::RebuildPortraitBrushes()
 {
 	PortraitBrushes.Empty(Portraits.Num());
 	
-	for (const TPair<FName, TObjectPtr<UTexture2D>>& PortraitsKVP : Portraits)
+	for (const TPair<FGameplayTag, TObjectPtr<UTexture2D>>& PortraitsKVP : Portraits)
 	{
-		const FName& MoodKey = PortraitsKVP.Key;
+		const FGameplayTag& MoodKey = PortraitsKVP.Key;
 		UTexture2D* Portrait = PortraitsKVP.Value;
 
 		FSlateBrush PortraitBrush;

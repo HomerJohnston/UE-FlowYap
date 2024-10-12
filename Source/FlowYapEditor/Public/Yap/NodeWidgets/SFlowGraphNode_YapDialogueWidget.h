@@ -69,12 +69,14 @@ protected:
 	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	FSlateColor			InterruptibleToggleIcon_ColorAndOpacity() const;
 
+	FOptionalSize		NodeWidth() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
 	
 	// ------------------------------------------
 
 	FSlateColor NodeHeader_Color() const;
+	FText NodeSequencing_Text() const;
 	TSharedRef<SWidget> CreateContentHeader();
 
 	EVisibility			FragmentSequencingButton_Visibility() const;
@@ -110,10 +112,6 @@ protected:
 	FReply				EnableOnStartPinButton_OnClicked(uint8 FragmentIndex);
 	FReply				EnableOnEndPinButton_OnClicked(uint8 FragmentIndex);
 
-	
-	// ------------------------------------------
-	TSharedRef<SBox>	CreateRightFragmentPane(uint8 FragmentIndex);
-	
 	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateContentFooter();
 
@@ -196,4 +194,6 @@ public:
 	const FFlowYapFragment* GetFragment(uint8 FragmentIndex) const;
 
 	FFlowYapFragment* GetFragmentMutable(uint8 FragmentIndex);
+
+	FLinearColor TestColor() const;
 };

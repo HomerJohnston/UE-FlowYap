@@ -48,7 +48,6 @@ void SFlowYapBitDetailsWidget::Construct(const FArguments& InArgs, TSharedPtr<IP
 TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateFragmentWidget()
 {	
 	return SNew(SBox)
-	.WidthOverride(this, &SFlowYapBitDetailsWidget::Fragment_WidthOverride)
 	[
 		SNew(SVerticalBox)
 		// ===================
@@ -157,7 +156,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateFragmentWidget()
 
 FOptionalSize SFlowYapBitDetailsWidget::Fragment_WidthOverride() const
 {
-	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment();
+	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidth();
 }
 
 EVisibility SFlowYapBitDetailsWidget::FragmentBottomSection_Visibility() const
@@ -862,13 +861,13 @@ TSharedRef<SBox> SFlowYapBitDetailsWidget::CreateMoodKeySelectorWidget()
 {
 	TSharedPtr<SBox> Box;
 	FMenuBuilder MenuBuilder(true, nullptr);
-	FName SelectedMoodKey = GetCurrentMoodKey();
+	FGameplayTag SelectedMoodKey = GetCurrentMoodKey();
 
-	for (const FName& MoodKey : UFlowYapProjectSettings::Get()->GetMoodKeys())
+	for (const FGameplayTag& MoodKey : UFlowYapProjectSettings::Get()->GetMoodKeys())
 	{
-		if (MoodKey == NAME_None)
+		if (!MoodKey.IsValid())
 		{
-			UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
+			UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains an invalid entry. Clean this up!"));
 			continue;
 		}
 		
@@ -927,7 +926,7 @@ const FSlateBrush* SFlowYapBitDetailsWidget::MoodKeyBrush_GetBrush() const
 	return GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyBrush(GetCurrentMoodKey());
 }
 
-FName SFlowYapBitDetailsWidget::GetCurrentMoodKey() const
+FGameplayTag SFlowYapBitDetailsWidget::GetCurrentMoodKey() const
 {
 	return GetFragment()->Bit.GetMoodKey();
 }
@@ -936,7 +935,7 @@ FName SFlowYapBitDetailsWidget::GetCurrentMoodKey() const
 // MOOD KEY MENU ENTRY WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FName InIconName, bool bSelected, const FText& InLabel, FName InTextStyle)
+TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FGameplayTag MoodKey, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
 	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 		
@@ -944,10 +943,10 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FName
 
 	TSharedPtr<SImage> PortraitIconImage;
 		
-	FString IconPath = ProjectSettings->GetPortraitIconPath(InIconName);
+	FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
 
 	// TODO this is dumb, cache FSlateIcons or FSlateBrushes in the subsystem instead?
-	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyIcon(InIconName);
+	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
 	
 	FSlateBrush Brush;
 	Brush.ImageSize = FVector2D(16, 16);
@@ -955,7 +954,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FName
 	
 	TSharedRef<FDeferredCleanupSlateBrush> MoodKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
 	
-	if (!InIconName.IsNone())
+	if (MoodKey.IsValid())
 	{
 		HBox->AddSlot()
 		.AutoWidth()
@@ -989,7 +988,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FName
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 	.ButtonColorAndOpacity(FLinearColor(1,1,1,0.25))
 	.ClickMethod(EButtonClickMethod::MouseDown)
-	.OnClicked(this, &SFlowYapBitDetailsWidget::MoodKeyMenuEntry_OnClicked, InIconName)
+	.OnClicked(this, &SFlowYapBitDetailsWidget::MoodKeyMenuEntry_OnClicked, MoodKey)
 	[
 		SAssignNew(PortraitIconImage, SImage)
 		.ColorAndOpacity(FSlateColor::UseForeground())
@@ -997,7 +996,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateMoodKeyMenuEntryWidget(FName
 	];
 }
 
-FReply SFlowYapBitDetailsWidget::MoodKeyMenuEntry_OnClicked(FName NewValue)
+FReply SFlowYapBitDetailsWidget::MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeMoodKeyChanged", "Portrait Key Changed"), Dialogue.Get());
 

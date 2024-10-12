@@ -110,6 +110,7 @@ protected:
 	FText				FragmentTimePadding_ToolTipText() const;
 
 	FSlateColor PortraitImage_BorderBackgroundColor() const;
+	FText PortraitWidget_ToolTipText() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreatePortraitWidget();
 
@@ -133,6 +134,7 @@ protected:
 
 	FReply				MoodKeyMenuEntry_OnClicked(FName NewValue);
 
+	FText TitleText_ToolTipText() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 

@@ -26,7 +26,7 @@ public:
 	FFlowYapFragment();
 	
 	~FFlowYapFragment();
-	bool CheckConditions() { return true; };
+	bool CheckConditions() { return true; }
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -72,7 +72,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 ActivationCount = 0;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	FGuid Guid;
 	
 #if WITH_EDITORONLY_DATA
@@ -132,5 +132,8 @@ public:
 	bool GetShowOnEndPin() const { return bShowOnEndPin; }
 
 	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; }
+	
+	void ResetGUID() { Guid = FGuid::NewGuid(); };
+
 #endif
 };

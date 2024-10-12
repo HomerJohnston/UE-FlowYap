@@ -11,7 +11,7 @@
 FFlowYapBit::FFlowYapBit()
 {
 #if WITH_EDITOR
-	const TArray<FName>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
+	const TArray<FGameplayTag>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
 
 	if (Keys.Num() > 0)
 	{
@@ -37,11 +37,11 @@ const FSlateBrush* FFlowYapBit::GetSpeakerPortraitBrush() const
 	return nullptr;
 }
 
-FName FFlowYapBit::GetMoodKeyLazyInit()
+FGameplayTag FFlowYapBit::GetMoodKeyLazyInit()
 {
-	if (MoodKey == NAME_None)
+	if (!MoodKey.IsValid())
 	{
-		const TArray<FName>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
+		const TArray<FGameplayTag>& Keys = UFlowYapProjectSettings::Get()->GetMoodKeys();
 
 		if (Keys.Num() > 0)
 		{
@@ -53,7 +53,7 @@ FName FFlowYapBit::GetMoodKeyLazyInit()
 }
 #endif
 
-FName FFlowYapBit::GetMoodKey() const
+FGameplayTag FFlowYapBit::GetMoodKey() const
 {
 	return MoodKey;
 }
@@ -125,25 +125,23 @@ double FFlowYapBit::GetTextTime() const
 // --------------------------------------------------------------------------------------------
 // Public
 
-#define REPLACE(X) if (Replacement.X.IsSet()) {X = Replacement.X.GetValue(); }  
 
 FFlowYapBit& FFlowYapBit::operator=(const FFlowYapBitReplacement& Replacement)
 {
-	REPLACE(Character);
-	REPLACE(TitleText);
-	
-	if (Replacement.DialogueText.IsSet())
-	{
-		DialogueText = Replacement.DialogueText.GetValue();
-	};
-	
-	REPLACE(DialogueAudioAsset);
-	REPLACE(MoodKey);
-	REPLACE(bUseProjectDefaultTimeSettings);
-	REPLACE(TimeMode);
-	REPLACE(ManualTime);
-	REPLACE(CachedWordCount);
-	REPLACE(CachedAudioTime);
+#define FLOWYAP_REPLACE(X) if (Replacement.X.IsSet()) {X = Replacement.X.GetValue(); }  
+
+	FLOWYAP_REPLACE(Character);
+	FLOWYAP_REPLACE(TitleText);
+	FLOWYAP_REPLACE(DialogueText);
+	FLOWYAP_REPLACE(DialogueAudioAsset);
+	FLOWYAP_REPLACE(MoodKey);
+	FLOWYAP_REPLACE(bUseProjectDefaultTimeSettings);
+	FLOWYAP_REPLACE(TimeMode);
+	FLOWYAP_REPLACE(ManualTime);
+	FLOWYAP_REPLACE(CachedWordCount);
+	FLOWYAP_REPLACE(CachedAudioTime);
+
+#undef FLOWYAP_REPLACE
 	
 	return *this;
 }

@@ -217,4 +217,6 @@ public:
 	bool ActivationLimitsMet() const;
 	
 #endif // WITH_EDITOR
+
+	virtual void PostEditImport() override;
 };

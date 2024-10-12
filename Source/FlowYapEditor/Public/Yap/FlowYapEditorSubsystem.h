@@ -2,6 +2,8 @@
 
 #include "Textures/SlateIcon.h"
 
+#include "GameplayTagContainer.h"
+
 #include "FlowYapEditorSubsystem.generated.h"
 
 class UFlowYapCharacter;
@@ -29,8 +31,8 @@ class UFlowYapEditorSubsystem : public UEditorSubsystem
 
 private:
 	UPROPERTY(Transient)
-	TMap<FName, UTexture2D*> MoodKeyIconTextures;
-	TMap<FName, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
+	TMap<FGameplayTag, UTexture2D*> MoodKeyIconTextures;
+	TMap<FGameplayTag, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
 
 protected:
 	static FCheckBoxStyles CheckBoxStyles;
@@ -41,9 +43,9 @@ protected:
 public:
 	void UpdateMoodKeyIconsMap();
 	
-	UTexture2D* GetMoodKeyIcon(FName MoodKey);
+	UTexture2D* GetMoodKeyIcon(FGameplayTag MoodKey);
 
-	const FSlateBrush* GetMoodKeyBrush(FName Name);
+	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;

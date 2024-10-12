@@ -31,7 +31,7 @@ public:
 protected:
 	// TODO: editing this needs to tell you that you need to restart the editor somehow. Details customization with a big warning bar in slate surrounding these settings after they're modified??
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TArray<FName> MoodKeys;
+	TArray<FGameplayTag> MoodKeys;
 
 	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -84,6 +84,9 @@ public:
 	UPROPERTY(Config, EditAnywhere)
 	FGameplayTag DialogueTagsParent;
 
+	UPROPERTY(Config, EditAnywhere)
+	FGameplayTag MoodTagsParent;
+	
 	TMap<EFlowYap_TagFilter, FGameplayTag*> TagContainers;
 	
 	TMulticastDelegate<void()> OnMoodKeysChanged;
@@ -93,9 +96,12 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath MoodKeyIconPath;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -50, ClampMax = +200, UIMin = -50, UIMax = +200))
-	int32 DialogueWidthAdjustment;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 300, ClampMax = 1000, UIMin = 200, UIMax = 600))
+	int32 DialogueWidth;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 32, ClampMax = 128, UIMin = 16, UIMax = 128, Multiple = 16))
+	int32 PortraitSize;
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHideTitleTextOnNPCDialogueNodes = true;
 
@@ -105,6 +111,10 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSubclassOf<UFlowYapAudioTimeCacher> AudioTimeCacher;
 
+	/** Turn off to hide the quick pin-enabling buttons, useful if you want smaller graph nodes, requires graph refresh */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bShowPinEnableButtons = true;
+	
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
 	TMultiMap<FName, TMap<UClass*, EFlowYap_TagFilter>> TagFilterSubscriptions;
 #endif
@@ -115,9 +125,9 @@ public:
 
 	virtual FText GetSectionText() const override { return INVTEXT("Settings"); }
 
-	FString GetPortraitIconPath(FName Key) const;
+	FString GetPortraitIconPath(FGameplayTag Key) const;
 
-	const TArray<FName>& GetMoodKeys() const;
+	const TArray<FGameplayTag>& GetMoodKeys() const;
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -129,8 +139,10 @@ public:
 	
 	UClass* GetDialogueAssetClass() const;
 
-	int32 GetDialogueWidthAdjustment() const;
+	int32 GetDialogueWidth() const;
 
+	int32 GetPortraitSize() const { return PortraitSize; }
+	
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
 
 	int32 GetTextWordsPerMinute() const;
@@ -149,6 +161,8 @@ public:
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
+	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
+	
 #if WITH_EDITOR
 public:
 	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?

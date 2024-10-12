@@ -744,6 +744,16 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
+void UFlowNode_YapDialogue::PostEditImport()
+{
+	Super::PostEditImport();
+
+	for (FFlowYapFragment& Fragment : Fragments)
+	{
+		Fragment.ResetGUID();
+	}
+}
+
 FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const
 {
 	return nullptr;

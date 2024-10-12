@@ -108,12 +108,12 @@ protected:
 	EVisibility			MoodKeySelector_Visibility() const;
 	void				MoodKeySelector_OnMenuOpenChanged(bool bMenuOpen);
 	const FSlateBrush*	MoodKeyBrush_GetBrush() const;
-	FName				GetCurrentMoodKey() const;
+	FGameplayTag		GetCurrentMoodKey() const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FGameplayTag MoodKey, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FReply				MoodKeyMenuEntry_OnClicked(FName NewValue);
+	FReply				MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue);
 
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();

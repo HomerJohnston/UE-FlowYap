@@ -117,6 +117,10 @@ void FYapEditorStyle::Initialize()
 		.SetFont(DEFAULT_FONT("Bold", 16))
 		.SetColorAndOpacity(YapColor::White));
 		
+	Set("Text.NodeSequencing", FTextBlockStyle(NormalTextStyle)
+		.SetFont(DEFAULT_FONT("Italic", 9))
+		.SetColorAndOpacity(YapColor::White));
+	
 	const FEditableTextBoxStyle& NormalEditableTextBoxStyle = FAppStyle::GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
 	
 	Set("EditableTextBox.Dialogue", FEditableTextBoxStyle(NormalEditableTextBoxStyle)

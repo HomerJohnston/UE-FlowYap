@@ -31,7 +31,7 @@ struct FFlowYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FName> MoodKey = NAME_None;
+	TOptional<FGameplayTag> MoodKey = FGameplayTag::EmptyTag;
 
 	/**  */
 	UPROPERTY(EditAnywhere)

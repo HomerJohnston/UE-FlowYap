@@ -18,15 +18,14 @@ public:
 protected:
 	/** Avatar icons to use in dialogue UI, the "calm" value can be considered as default */
 	UPROPERTY(EditAnywhere, EditFixedSize, meta=(ReadOnlyKeys))
-	TMap<FName, TObjectPtr<UTexture2D>> Portraits;
+	TMap<FGameplayTag, TObjectPtr<UTexture2D>> Portraits;
 
 public:
-	const TMap<FName, TObjectPtr<UTexture2D>> GetPortraits();
+	const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& GetPortraits() const;
 	
-
 #if WITH_EDITORONLY_DATA
 protected:
-	TMap<FName, FSlateBrush> PortraitBrushes;
+	TMap<FGameplayTag, FSlateBrush> PortraitBrushes;
 #endif
 	
 #if WITH_EDITOR
@@ -35,9 +34,9 @@ public:
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	TMap<FName, FSlateBrush> GetPortraitBrushes();
+	const TMap<FGameplayTag, FSlateBrush>& GetPortraitBrushes();
 
-	const FSlateBrush* GetPortraitBrush(const FName& MoodKey) const;
+	const FSlateBrush* GetPortraitBrush(const FGameplayTag& MoodKey) const;
 
 private:
 	void RebuildPortraitBrushes();

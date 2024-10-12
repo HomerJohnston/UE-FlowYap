@@ -187,7 +187,7 @@ void FPropertyCustomization_FlowYapFragment::Init(TSharedRef<IPropertyHandle> In
 
 FOptionalSize FPropertyCustomization_FlowYapFragment::Fragment_WidthOverride() const
 {
-	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment();
+	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidth();
 }
 
 EVisibility FPropertyCustomization_FlowYapFragment::FragmentBottomSection_Visibility() const
@@ -841,8 +841,8 @@ TSharedRef<SBox> FPropertyCustomization_FlowYapFragment::CreatePortraitWidget()
 		.Padding(0, 0, 0, 0)
 		[
 			SNew(SBox)
-			.WidthOverride(58)//(74)
-			.HeightOverride(58)//(74)
+			.WidthOverride(UFlowYapProjectSettings::Get()->GetPortraitSize() + 10)// 58 // 74
+			.HeightOverride(UFlowYapProjectSettings::Get()->GetPortraitSize() + 10)// 58 // 74
 			[
 				SNew(SBorder)
 				.HAlign(HAlign_Center)
@@ -993,11 +993,11 @@ TSharedRef<SBox> FPropertyCustomization_FlowYapFragment::CreateMoodKeySelectorWi
 {
 	TSharedPtr<SBox> Box;
 	FMenuBuilder MenuBuilder(true, nullptr);
-	FName SelectedMoodKey = GetCurrentMoodKey();
+	FGameplayTag SelectedMoodKey = GetCurrentMoodKey();
 
-	for (const FName& MoodKey : UFlowYapProjectSettings::Get()->GetMoodKeys())
+	for (const FGameplayTag& MoodKey : UFlowYapProjectSettings::Get()->GetMoodKeys())
 	{
-		if (MoodKey == NAME_None)
+		if (!MoodKey.IsValid())
 		{
 			UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
 			continue;
@@ -1058,11 +1058,11 @@ const FSlateBrush* FPropertyCustomization_FlowYapFragment::MoodKeyBrush_GetBrush
 	return GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyBrush(GetCurrentMoodKey());
 }
 
-FName FPropertyCustomization_FlowYapFragment::GetCurrentMoodKey() const
+FGameplayTag FPropertyCustomization_FlowYapFragment::GetCurrentMoodKey() const
 {
 	if (InErrorState())
 	{
-		return NAME_None;
+		return FGameplayTag::EmptyTag;
 	}
 	
 	return GetFragment()->Bit.GetMoodKey();
@@ -1072,7 +1072,7 @@ FName FPropertyCustomization_FlowYapFragment::GetCurrentMoodKey() const
 // MOOD KEY MENU ENTRY WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEntryWidget(FName InIconName, bool bSelected, const FText& InLabel, FName InTextStyle)
+TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEntryWidget(FGameplayTag MoodKey, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
 	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 		
@@ -1080,10 +1080,10 @@ TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEnt
 
 	TSharedPtr<SImage> PortraitIconImage;
 		
-	FString IconPath = ProjectSettings->GetPortraitIconPath(InIconName);
+	FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
 
 	// TODO this is dumb, cache FSlateIcons or FSlateBrushes in the subsystem instead?
-	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyIcon(InIconName);
+	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
 	
 	FSlateBrush Brush;
 	Brush.ImageSize = FVector2D(16, 16);
@@ -1091,7 +1091,7 @@ TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEnt
 	
 	TSharedRef<FDeferredCleanupSlateBrush> MoodKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
 	
-	if (!InIconName.IsNone())
+	if (MoodKey.IsValid())
 	{
 		HBox->AddSlot()
 		.AutoWidth()
@@ -1125,7 +1125,7 @@ TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEnt
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 	.ButtonColorAndOpacity(FLinearColor(1,1,1,0.25))
 	.ClickMethod(EButtonClickMethod::MouseDown)
-	.OnClicked(this, &FPropertyCustomization_FlowYapFragment::MoodKeyMenuEntry_OnClicked, InIconName)
+	.OnClicked(this, &FPropertyCustomization_FlowYapFragment::MoodKeyMenuEntry_OnClicked, MoodKey)
 	[
 		SAssignNew(PortraitIconImage, SImage)
 		.ColorAndOpacity(FSlateColor::UseForeground())
@@ -1133,7 +1133,7 @@ TSharedRef<SWidget> FPropertyCustomization_FlowYapFragment::CreateMoodKeyMenuEnt
 	];
 }
 
-FReply FPropertyCustomization_FlowYapFragment::MoodKeyMenuEntry_OnClicked(FName NewValue)
+FReply FPropertyCustomization_FlowYapFragment::MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue)
 {
 	if (InErrorState())
 	{

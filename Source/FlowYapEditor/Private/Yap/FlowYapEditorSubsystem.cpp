@@ -16,13 +16,13 @@ void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 {
 	const UFlowYapProjectSettings* ProjectSettings = UFlowYapProjectSettings::Get();
 
-	const TArray<FName>& MoodKeys = ProjectSettings->GetMoodKeys();
+	const TArray<FGameplayTag>& MoodKeys = ProjectSettings->GetMoodKeys();
 
 	MoodKeyIconTextures.Empty(MoodKeys.Num());
 
-	for (const FName& MoodKey : MoodKeys)
+	for (const FGameplayTag& MoodKey : MoodKeys)
 	{
-		if (MoodKey.IsNone())
+		if (!MoodKey.IsValid())
 		{
 			continue;
 		}
@@ -46,7 +46,7 @@ void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 	}
 }
 
-UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FName MoodKey)
+UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
 {
 	UTexture2D** Texture = MoodKeyIconTextures.Find(MoodKey);
 
@@ -58,13 +58,14 @@ UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FName MoodKey)
 	return nullptr;
 }
 
-const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FName Name)
+const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 {
 	TSharedPtr<FSlateBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
 	return Brush ? Brush->Get() : nullptr;
 }
 
+// TODO move these to my editor style
 #define INITALIZE_CHECKBOX_STYLE(Name, Col) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
 	CheckBoxStyles.Name.CheckedImage.TintColor = YapColor::Col;\
 	CheckBoxStyles.Name.CheckedHoveredImage.TintColor = YapColor::Col##Hovered;\

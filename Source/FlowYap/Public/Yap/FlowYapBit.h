@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FlowYapTimeMode.h"
+#include "GameplayTagContainer.h"
 
 #include "FlowYapBit.generated.h"
 
@@ -41,7 +42,7 @@ protected:
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName MoodKey = NAME_None;
+	FGameplayTag MoodKey;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bUseProjectDefaultTimeSettings = true;
@@ -79,12 +80,12 @@ public:
 	const FSlateBrush* GetSpeakerPortraitBrush() const;; // TODO make sure this works
 
 #if WITH_EDITOR
-	FName GetMoodKeyLazyInit();
+	FGameplayTag GetMoodKeyLazyInit();
 
 	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
 #endif
 
-	FName GetMoodKey() const;
+	FGameplayTag GetMoodKey() const;
 
 	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetInterruptible() const;
@@ -121,7 +122,7 @@ public:
 	
 	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
 	
-	void SetMoodKey(const FName& NewValue) { MoodKey = NewValue; };
+	void SetMoodKey(const FGameplayTag& NewValue) { MoodKey = NewValue; };
 
 	bool GetUseProjectDefaultTimeSettings() const { return bUseProjectDefaultTimeSettings; }
 	

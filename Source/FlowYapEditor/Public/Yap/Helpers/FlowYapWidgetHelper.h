@@ -21,6 +21,7 @@ public:
 		.HAlign(HAlign_Center)
 		.Padding(4, 0, 4, 0)
 		.Visibility(Object, VisibilityDelegate)
+		.ToolTipText(INVTEXT("Gameplay tag for this element"))
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()

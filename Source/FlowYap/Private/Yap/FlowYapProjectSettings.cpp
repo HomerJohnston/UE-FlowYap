@@ -15,7 +15,7 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 
 	bDefaultInterruptibleSetting = true;
 	
-	DialogueWidthAdjustment = 0;
+	DialogueWidth = 0;
 
 	TextWordsPerMinute = 120;
 	
@@ -33,6 +33,8 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 
 	DialogueTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Dialogue");
 
+	MoodTagsParent = UGameplayTagsManager::Get().AddNativeGameplayTag("Yap.Mood");
+
 	TagContainers =
 	{
 		{ EFlowYap_TagFilter::Conditions, &ConditionTagsParent },
@@ -49,7 +51,7 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 }
 
 #if WITH_EDITOR
-FString UFlowYapProjectSettings::GetPortraitIconPath(FName Key) const
+FString UFlowYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 {
 	if (MoodKeyIconPath.Path == "")
 	{
@@ -59,7 +61,7 @@ FString UFlowYapProjectSettings::GetPortraitIconPath(FName Key) const
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
 }
 
-const TArray<FName>& UFlowYapProjectSettings::GetMoodKeys() const
+const TArray<FGameplayTag>& UFlowYapProjectSettings::GetMoodKeys() const
 {
 	return MoodKeys;
 }
@@ -81,9 +83,9 @@ UClass* UFlowYapProjectSettings::GetDialogueAssetClass() const
 	return DialogueAssetClass;
 }
 
-int32 UFlowYapProjectSettings::GetDialogueWidthAdjustment() const
+int32 UFlowYapProjectSettings::GetDialogueWidth() const
 {
-	return DialogueWidthAdjustment;
+	return DialogueWidth;
 }
 
 bool UFlowYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const
