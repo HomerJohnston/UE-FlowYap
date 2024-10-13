@@ -62,6 +62,7 @@ protected:
 
 	int32 GetDialogueActivationLimit() const;
 	EVisibility InterruptibleToggleIconOff_Visibility() const;
+	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
@@ -69,7 +70,6 @@ protected:
 	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
 	FSlateColor			InterruptibleToggleIcon_ColorAndOpacity() const;
 
-	FOptionalSize		NodeWidth() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
 	
@@ -143,6 +143,8 @@ protected:
 public:
 	bool GetIsSelected() const { return bIsSelected; };
 
+	void SetSelected();
+
 	bool GetShiftHooked() const { return bShiftHooked; };
 	
 	void SetFocusedFragmentIndex(uint8 FragmentIndex);
@@ -161,8 +163,6 @@ public:
 	
 	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
 
-	void ForceUpdateGraphNode() { UpdateGraphNode(); };
-	
 protected:
 	void SetFlashFragment(uint8 FragmentIndex);
 	
@@ -178,6 +178,7 @@ public:
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
 
 	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
+
 	
 protected:
 	void AddInPin(const TSharedRef<SGraphPin> PinToAdd);

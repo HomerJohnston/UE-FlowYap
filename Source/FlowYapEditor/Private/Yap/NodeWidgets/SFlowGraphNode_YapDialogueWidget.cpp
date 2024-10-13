@@ -29,7 +29,8 @@
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
-constexpr int32 NUM_PINS_PER_FRAGMENT {2};
+constexpr int32 YAP_MIN_NODE_WIDTH = 275;
+constexpr int32 YAP_DEFAULT_NODE_WIDTH = 400;
 
 // TODO move to a proper style
 FButtonStyle SFlowGraphNode_YapDialogueWidget::MoveFragmentButtonStyle;
@@ -106,6 +107,10 @@ EVisibility SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibil
 	return (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
 }
 
+void SFlowGraphNode_YapDialogueWidget::OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg)
+{
+}
+
 // ------------------------------------------
 // WIDGETS
 
@@ -115,8 +120,6 @@ EVisibility SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibil
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
-	TSharedRef<SWidget> Title = SFlowGraphNode::CreateTitleWidget(NodeTitle);
-
 	TSharedPtr<SCheckBox> InterruptibleCheckBox;
 
 	// TODO move to a proper style
@@ -138,7 +141,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.AutoWidth()
 		.Padding(-8, -5, 16, -6)
 		[
-			SNew(SActivationCounterWidget)
+			SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnActivationLimitChanged))
 			.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)
 			.ActivationLimit(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit)
 			.FontHeight(8)
@@ -265,11 +268,6 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 	}
 }
 
-FOptionalSize SFlowGraphNode_YapDialogueWidget::NodeWidth() const
-{
-	return UFlowYapProjectSettings::Get()->GetDialogueWidth();
-}
-
 // ================================================================================================
 // NODE CONTENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -277,9 +275,11 @@ FOptionalSize SFlowGraphNode_YapDialogueWidget::NodeWidth() const
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
 	TSharedPtr<SVerticalBox> Content; 
+
+	int32 Width = FMath::Max(YAP_MIN_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment());
 	
 	return SNew(SBox)
-	.WidthOverride(this, &SFlowGraphNode_YapDialogueWidget::NodeWidth)
+	.WidthOverride(Width)
 	[
 		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
@@ -366,39 +366,46 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
-	.Padding(4, 0)
+	.Padding(8, 0, 8, 0)
 	[
 		SNew(SBox)
-		.WidthOverride(24)
 		.HeightOverride(24)
-		.HAlign(HAlign_Center)
+		.WidthOverride(90)
 		.VAlign(VAlign_Center)
 		.Padding(0)
 		[
 			SNew(SButton)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ContentPadding(FMargin(0, 1, 0, 1))
+			.ContentPadding(FMargin(2, 1, 2, 1))
 			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_OnClicked)
 			.ToolTipText(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText)
 			[
-				SNew(SImage)
-				.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
-				.DesiredSizeOverride(FVector2D(16, 16))
-				.Image(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Image)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.Padding(0, 0, 4, 0)
+				.VAlign(VAlign_Center)
+				.AutoWidth()
+				[
+					SNew(SImage)
+					.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
+					.DesiredSizeOverride(FVector2D(16, 16))
+					.Image(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Image)
+				]
+				+ SHorizontalBox::Slot()
+				.Padding(4, 0, 0, 0)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
+					.TextStyle(FYapEditorStyle::Get(), "Text.NodeSequencing")
+					.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeSequencing_Text)
+					.Justification(ETextJustify::Left)
+					.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
+				]
 			]
 		]
-	]
-	+ SHorizontalBox::Slot()
-	.AutoWidth()
-	.Padding(4, 0)
-	.VAlign(VAlign_Center)
-	[
-		SNew(STextBlock)
-		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
-		.TextStyle(FYapEditorStyle::Get(), "Text.NodeSequencing")
-		.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeSequencing_Text)
-		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
 	]
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Fill)
@@ -918,6 +925,18 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 B
 	{
 		FocusedFragmentIndex = FocusedFragmentIndex.GetValue() + By;
 	}
+}
+
+void SFlowGraphNode_YapDialogueWidget::SetSelected()
+{
+	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
+
+	if (!GraphEditor)
+	{
+		return;
+	}
+
+	GraphEditor->SelectSingleNode(GraphNode);
 }
 
 void SFlowGraphNode_YapDialogueWidget::SetFocusedFragmentIndex(uint8 InFragment)

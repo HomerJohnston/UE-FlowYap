@@ -156,7 +156,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateFragmentWidget()
 
 FOptionalSize SFlowYapBitDetailsWidget::Fragment_WidthOverride() const
 {
-	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidth();
+	return 360 + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment();
 }
 
 EVisibility SFlowYapBitDetailsWidget::FragmentBottomSection_Visibility() const

@@ -24,6 +24,7 @@ FString FFlowYapEngineUtils::GetFlowYapPluginDir()
 	return EnginePluginDir;
 }
 
+// TODO get rid of this?
 void FFlowYapEngineUtils::MakeTexture2DGrayscaleDestructive(UTexture2D* Texture)
 {
 	uint8* TextureData = static_cast<uint8*>(Texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE));

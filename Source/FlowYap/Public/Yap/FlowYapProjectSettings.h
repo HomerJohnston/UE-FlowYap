@@ -96,11 +96,11 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath MoodKeyIconPath;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 300, ClampMax = 1000, UIMin = 200, UIMax = 600))
-	int32 DialogueWidth;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -200, UIMin = -200, UIMax = 1000))
+	int32 DialogueWidthAdjustment;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 32, ClampMax = 128, UIMin = 16, UIMax = 128, Multiple = 16))
-	int32 PortraitSize;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 64, ClampMax = 128, UIMin = 64, UIMax = 128, Multiple = 32))
+	int32 PortraitSize = 64;
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHideTitleTextOnNPCDialogueNodes = true;
@@ -130,6 +130,8 @@ public:
 	const TArray<FGameplayTag>& GetMoodKeys() const;
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
+	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 #endif
 
 public:
@@ -139,7 +141,7 @@ public:
 	
 	UClass* GetDialogueAssetClass() const;
 
-	int32 GetDialogueWidth() const;
+	int32 GetDialogueWidthAdjustment() const;
 
 	int32 GetPortraitSize() const { return PortraitSize; }
 	

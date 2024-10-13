@@ -58,6 +58,11 @@ FSlateColor SActivationCounterWidget::NumeratorColor() const
 
 FSlateColor SActivationCounterWidget::DenominatorColor() const
 {
+	if (Denominator->HasKeyboardFocus())
+	{
+		return YapColor::White;
+	}
+	
 	int32 ActivationLimitVal = ActivationLimit.Get();
 
 	if (ActivationLimitVal > 0 && ActivationCount.Get() >= ActivationLimitVal)
@@ -68,18 +73,18 @@ FSlateColor SActivationCounterWidget::DenominatorColor() const
 	return ActivationLimitVal > 0 ? YapColor::LightGray : YapColor::DarkGray;
 }
 
-void SActivationCounterWidget::Construct(const FArguments& InArgs)
+void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted)
 {
 	ActivationCount = InArgs._ActivationCount;
 	ActivationLimit = InArgs._ActivationLimit;
 	FontHeight = InArgs._FontHeight;
 
+	TArray<TCHAR> Numbers { '0', '1', '2', '3',	'4', '5', '6', '7', '8', '9' };
 	
 	ChildSlot
 	[
 		SNew(SBox)
 		.WidthOverride(20 + 2 * (FontHeight - 8))
-		.ToolTipText(INVTEXT("Activation Count / Activation Limit"))
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
@@ -91,6 +96,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs)
 				.ColorAndOpacity(this, &SActivationCounterWidget::NumeratorColor)
 				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
 				.Justification(ETextJustify::Center)
+				.ToolTipText(INVTEXT("Activation count"))
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
@@ -106,11 +112,14 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Top)
 			.Padding(0, (FontHeight - 8), 0, 0)
 			[
-				SNew(STextBlock)
+				SAssignNew(Denominator, SEditableText)
 				.Text(this, &SActivationCounterWidget::DenominatorText)
 				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
 				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
 				.Justification(ETextJustify::Center)
+				.OnTextCommitted(OnTextCommitted)
+				.OnIsTypedCharValid(FOnIsTypedCharValid::CreateLambda([Numbers](const TCHAR InCh) { return Numbers.Contains(InCh); }))
+				.ToolTipText(INVTEXT("Activation limit, use 0 for infinite"))
 			]
 		]
 	];

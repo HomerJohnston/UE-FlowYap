@@ -32,7 +32,7 @@ class UFlowYapEditorSubsystem : public UEditorSubsystem
 private:
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, UTexture2D*> MoodKeyIconTextures;
-	TMap<FGameplayTag, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes; // TODO is this safe? I fucking suck at memory management
+	TMap<FGameplayTag, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes;
 
 protected:
 	static FCheckBoxStyles CheckBoxStyles;

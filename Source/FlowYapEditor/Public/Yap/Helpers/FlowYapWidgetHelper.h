@@ -67,7 +67,11 @@ class SActivationCounterWidget : public SCompoundWidget
 
 	FSlateColor NumeratorColor() const;
 	FSlateColor DenominatorColor() const;
+
+	TSharedPtr<SEditableText> Denominator;
 	
 	// MUST Provide this function for SNew to call!
-	virtual void Construct( const FArguments& InArgs );
+	virtual void Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted);
+
+	void TestTest(const FText&, ETextCommit::Type) { UE_LOG(LogTemp, Warning, TEXT("Yes it worked")); };
 };

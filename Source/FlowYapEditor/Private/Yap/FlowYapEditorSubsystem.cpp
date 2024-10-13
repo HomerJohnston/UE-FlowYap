@@ -19,6 +19,7 @@ void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 	const TArray<FGameplayTag>& MoodKeys = ProjectSettings->GetMoodKeys();
 
 	MoodKeyIconTextures.Empty(MoodKeys.Num());
+	MoodKeyIconBrushes.Empty(MoodKeys.Num());
 
 	for (const FGameplayTag& MoodKey : MoodKeys)
 	{

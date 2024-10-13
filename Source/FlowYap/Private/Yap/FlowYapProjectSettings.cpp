@@ -15,7 +15,7 @@ UFlowYapProjectSettings::UFlowYapProjectSettings()
 
 	bDefaultInterruptibleSetting = true;
 	
-	DialogueWidth = 0;
+	DialogueWidthAdjustment = 0;
 
 	TextWordsPerMinute = 120;
 	
@@ -55,7 +55,7 @@ FString UFlowYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 {
 	if (MoodKeyIconPath.Path == "")
 	{
-		return FFlowYapEngineUtils::GetFlowYapPluginDir() / FString::Format(TEXT("Resources/MoodKeys/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
+		return FPaths::ProjectDir() / FString::Format(TEXT("Resources/Yap/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
 	}
 	
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { MoodKeyIconPath.Path, Key.ToString() });
@@ -78,14 +78,37 @@ void UFlowYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	}
 }
 
+void UFlowYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+	FName PropertyName = PropertyChangedEvent.Property->GetFName();
+	FName MemberPropertyName = PropertyChangedEvent.MemberProperty->GetFName();
+
+	FName one = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
+	FName two = PropertyChangedEvent.PropertyChain.GetTail()->GetValue()->GetFName();
+	
+	FString ProjectDir = FPaths::ProjectDir();
+	
+	FString FullPathDir = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ProjectDir);
+	
+	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodKeyIconPath))
+	{
+		if (two == "Path")
+		{
+			MoodKeyIconPath.Path = MoodKeyIconPath.Path.RightChop(FullPathDir.Len());
+		}
+	}
+}
+
 UClass* UFlowYapProjectSettings::GetDialogueAssetClass() const
 {	
 	return DialogueAssetClass;
 }
 
-int32 UFlowYapProjectSettings::GetDialogueWidth() const
+int32 UFlowYapProjectSettings::GetDialogueWidthAdjustment() const
 {
-	return DialogueWidth;
+	return DialogueWidthAdjustment;
 }
 
 bool UFlowYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const

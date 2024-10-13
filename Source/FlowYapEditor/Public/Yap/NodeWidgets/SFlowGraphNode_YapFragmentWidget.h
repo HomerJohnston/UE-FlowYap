@@ -24,9 +24,13 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
 
-	TSharedPtr<SMultiLineEditableText> DialogueBox;
+	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 
+	TSharedPtr<SOverlay> PortraitWidget;
+
+	TSharedPtr<SWidget> Test;
+	
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 
@@ -38,6 +42,14 @@ protected:
 	FFlowYapBitReplacement* CachedBitReplacement = nullptr;
 
 	bool bRunning;
+
+	bool bShowSettings = false;
+
+	TSharedPtr<SBox> CentreBox;
+	TSharedPtr<SWidget> CentreDialogueWidget;
+	TSharedPtr<SWidget> CentreSettingsWidget;
+	TSharedPtr<SWidget> CreateCentreDialogueWidget();
+	TSharedPtr<SWidget> CreateCentreSettingsWidget();
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -54,11 +66,14 @@ protected:
 	int32 GetFragmentActivationLimit() const;
 
 	TSharedRef<SWidget> CreateAudioPreviewWidget();
+	bool AudioPreviewButton_IsEnabled() const;
+	TSharedRef<SWidget> CreateAudioPreviewWidget(TAttribute<EVisibility> Attribute);
+
 	TSharedRef<SWidget> CreateFragmentHighlightWidget();
+	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
-	FOptionalSize		Fragment_WidthOverride() const;
 	EVisibility			FragmentBottomSection_Visibility() const;
 
 	// ------------------------------------------
@@ -111,8 +126,10 @@ protected:
 
 	FSlateColor PortraitImage_BorderBackgroundColor() const;
 	FText PortraitWidget_ToolTipText() const;
+	FReply PortraitWidget_OnClicked();
+	
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreatePortraitWidget();
+	TSharedRef<SOverlay>	CreatePortraitWidget();
 
 	EVisibility			PortraitImage_Visibility() const;
 	const FSlateBrush*	PortraitImage_Image() const;
@@ -127,12 +144,12 @@ protected:
 	EVisibility			MoodKeySelector_Visibility() const;
 	void				MoodKeySelector_OnMenuOpenChanged(bool bMenuOpen);
 	const FSlateBrush*	MoodKeyBrush_GetBrush() const;
-	FName				GetCurrentMoodKey() const;
+	FGameplayTag		GetCurrentMoodKey() const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FName InIconName = FName(), bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FReply				MoodKeyMenuEntry_OnClicked(FName NewValue);
+	FReply				MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue);
 
 	FText TitleText_ToolTipText() const;
 	// ------------------------------------------
@@ -214,4 +231,6 @@ public:
 	
 	FReply				EnableOnStartPinButton_OnClicked();
 	FReply				EnableOnEndPinButton_OnClicked();
+
+	bool GetNodeSelected() const;
 };

@@ -4,12 +4,8 @@
 
 #include "AssetToolsModule.h"
 #include "Yap/AssetFactory_FlowYapCharacter.h"
-#include "Yap/Customizations/DetailCustomization_FlowYapDialogueNode.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredStyle.h"
-
-#include "Yap/Customizations/DetailCustomization_FlowYapDialogueNode.h"
-#include "Yap/Customizations/PropertyCustomization_FlowYapFragment.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
