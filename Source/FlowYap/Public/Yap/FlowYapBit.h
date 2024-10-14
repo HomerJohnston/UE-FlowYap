@@ -74,10 +74,14 @@ public:
 
 	const FText& GetDialogueText() const { return DialogueText; }
 
+	FText& GetDialogueTextMutable() { return DialogueText; }
+	
+	FText& GetTitleTextMutable() { return TitleText; }
+
 	template<class T>
 	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }
 
-	const FSlateBrush* GetSpeakerPortraitBrush() const;; // TODO make sure this works
+	const FSlateBrush* GetSpeakerPortraitBrush() const;
 
 #if WITH_EDITOR
 	FGameplayTag GetMoodKeyLazyInit();
@@ -95,6 +99,7 @@ public:
 	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
 	double GetTime() const;
+	
 
 protected:
 	double GetManualTime() const { return ManualTime; }

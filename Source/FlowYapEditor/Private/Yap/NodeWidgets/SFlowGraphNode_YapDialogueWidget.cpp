@@ -7,14 +7,9 @@
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Logging/StructuredLog.h"
-#include "Widgets/Input/SSlider.h"
-#include "Widgets/Input/SSpinBox.h"
-#include "Widgets/Input/SVolumeControl.h"
-#include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/FlowYapCondition.h"
-#include "Yap/FlowYapEditorSettings.h"
 #include "Yap/FlowYapEditorSubsystem.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapInputTracker.h"
@@ -109,6 +104,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibil
 
 void SFlowGraphNode_YapDialogueWidget::OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg)
 {
+	GetFlowYapDialogueNodeMutable()->NodeActivationLimit = FCString::Atoi(*Text.ToString());
 }
 
 // ------------------------------------------
@@ -301,7 +297,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	];
 }
 
-FSlateColor SFlowGraphNode_YapDialogueWidget::NodeHeader_Color() const
+FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader() const
 {
 	if (GetFlowYapDialogueNode()->ActivationLimitsMet())
 	{
@@ -328,7 +324,7 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::NodeHeader_Color() const
 	return YapColor::Error;
 }
 
-FText SFlowGraphNode_YapDialogueWidget::NodeSequencing_Text() const
+FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
@@ -349,6 +345,8 @@ FText SFlowGraphNode_YapDialogueWidget::NodeSequencing_Text() const
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 {
+	FLinearColor RandomColor = FLinearColor::MakeRandomColor();
+	
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
@@ -359,27 +357,33 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	[
-		SNew(STextBlock)
-		.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
-		.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Text)
-		.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::NodeHeader_Color)
+		SNew(SButton)
+		.ButtonStyle(&FYapEditorStyle::Get().Styles().Button.SequencingSelector)
+		.ButtonStyle(FYapEditorStyle::Get(), "Button.SequencingSelector")
+		[
+			SNew(STextBlock)
+			.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
+			.Text(this, &SFlowGraphNode_YapDialogueWidget::Text_NodeHeader)
+			//.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader)
+			.ColorAndOpacity(RandomColor)
+		]
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.Padding(8, 0, 8, 0)
 	[
-		SNew(SBox)
+		SAssignNew(FragmentSequencingButton_Box, SBox)
+		.Visibility(Visibility_FragmentSequencingButton())
+		.VAlign(VAlign_Center)
 		.HeightOverride(24)
 		.WidthOverride(90)
-		.VAlign(VAlign_Center)
 		.Padding(0)
 		[
-			SNew(SButton)
+			SAssignNew(FragmentSequencingButton_Button, SButton)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 			.ContentPadding(FMargin(2, 1, 2, 1))
-			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
-			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_OnClicked)
-			.ToolTipText(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText)
+			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton)
+			.ToolTipText(ToolTipText_FragmentSequencingButton())
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
@@ -387,22 +391,21 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 				.VAlign(VAlign_Center)
 				.AutoWidth()
 				[
-					SNew(SImage)
-					.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
+					SAssignNew(FragmentSequencingButton_Image, SImage)
+					.ColorAndOpacity(ColorAndOpacity_FragmentSequencingButton())
 					.DesiredSizeOverride(FVector2D(16, 16))
-					.Image(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Image)
+					.Image(Image_FragmentSequencingButton())
 				]
 				+ SHorizontalBox::Slot()
 				.Padding(4, 0, 0, 0)
 				.HAlign(HAlign_Fill)
 				.VAlign(VAlign_Center)
 				[
-					SNew(STextBlock)
-					.Visibility(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility)
+					SAssignNew(FragmentSequencingButton_Text, STextBlock)
 					.TextStyle(FYapEditorStyle::Get(), "Text.NodeSequencing")
-					.Text(this, &SFlowGraphNode_YapDialogueWidget::NodeSequencing_Text)
+					.Text(Text_FragmentSequencingButton())
 					.Justification(ETextJustify::Left)
-					.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity)
+					.ColorAndOpacity(ColorAndOpacity_FragmentSequencingButton())
 				]
 			]
 		]
@@ -425,9 +428,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 {
-	bool bSingleFragment = GetFlowYapDialogueNode()->GetNumFragments() == 1;
 	bool bFirstFragment = true;
-	bool bLastFragment = false;
 
 	TSharedRef<SVerticalBox> FragmentBoxes = SNew(SVerticalBox);
 
@@ -435,13 +436,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	
 	for (uint8 FragmentIndex = 0; FragmentIndex < GetFlowYapDialogueNode()->GetNumFragments(); ++FragmentIndex)
 	{
-		const FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragments()[FragmentIndex];
-
-		if (FragmentIndex == GetFlowYapDialogueNode()->GetNumFragments() - 1)
-		{
-			bLastFragment = true;
-		}
-		
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
 		.Padding(0, bFirstFragment ? 0 : 15, 0, 15)
@@ -462,7 +456,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	return FragmentBoxes;
 }
 
-FText SFlowGraphNode_YapDialogueWidget::NodeHeader_Text() const
+FText SFlowGraphNode_YapDialogueWidget::Text_NodeHeader() const
 {
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
@@ -708,7 +702,7 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 	];
 }
 
-EVisibility SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibility() const
+EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_FragmentSequencingButton() const
 {
 	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
 	{
@@ -718,18 +712,28 @@ EVisibility SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Visibilit
 	return (GetFlowYapDialogueNode()->GetNumFragments() > 1) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-FReply SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_OnClicked()
+FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueNodeChangeSequencing", "Change dialogue node sequencing setting"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->CycleFragmentSequencingMode();
 
+	FragmentSequencingButton_Box->SetVisibility(Visibility_FragmentSequencingButton());
+
+	FragmentSequencingButton_Button->SetToolTipText(ToolTipText_FragmentSequencingButton());
+	
+	FragmentSequencingButton_Image->SetImage(Image_FragmentSequencingButton());
+	FragmentSequencingButton_Image->SetColorAndOpacity(ColorAndOpacity_FragmentSequencingButton());
+
+	FragmentSequencingButton_Text->SetText(Text_FragmentSequencingButton());
+	FragmentSequencingButton_Text->SetColorAndOpacity(ColorAndOpacity_FragmentSequencingButton());
+	
 	FFlowYapTransactions::EndModify();
 	
 	return FReply::Handled();
 }
 
-const FSlateBrush* SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Image() const
+const FSlateBrush* SFlowGraphNode_YapDialogueWidget::Image_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
@@ -746,7 +750,7 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_Im
 	return FAppStyle::Get().GetBrush("Icons.Error"); 
 }
 
-FText SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText() const
+FText SFlowGraphNode_YapDialogueWidget::ToolTipText_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
@@ -765,7 +769,7 @@ FText SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ToolTipText() c
 	}
 }
 
-FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentSequencingButton_ColorAndOpacity() const
+FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
@@ -1155,12 +1159,6 @@ void SFlowGraphNode_YapDialogueWidget::AddInPin(const TSharedRef<SGraphPin> PinT
 {
 	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
 		
-	FMargin LeftMargins = Settings->GetInputPinPadding();
-
-	LeftMargins.Top = 0;
-	//LeftMargins.Right = 0;
-	LeftMargins.Bottom = 0;
-
 	DialogueInputBoxArea->SetContent(PinToAdd);
 
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "In"));
@@ -1168,11 +1166,6 @@ void SFlowGraphNode_YapDialogueWidget::AddInPin(const TSharedRef<SGraphPin> PinT
 
 void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& PinToAdd)
 {
-	FMargin RightMargins = Settings->GetInputPinPadding();
-
-	RightMargins.Bottom = 0;
-	RightMargins.Top = 0;
-
 	DialogueOutputBoxArea->SetContent(PinToAdd);
 	
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
@@ -1189,25 +1182,9 @@ void SFlowGraphNode_YapDialogueWidget::AddBypassPin(const TSharedRef<SGraphPin>&
 void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin>& PinToAdd, int32 FragmentIndex)
 {
 	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
-
-	/*
-	if (!FragmentOutputBoxes.IsValidIndex(FragmentIndex))
-	{
-		UE_LOG(FlowYap, Warning, TEXT("COULD NOT ADD OUTPUT PIN: %s, perhaps node is corrupt? "
-						"Copy paste this node and delete the old one. "
-						"First Node dialogue entry: %s"),
-						*PinObj->GetName(),
-						*GetFlowYapDialogueNodeMutable()->GetFragments()[0].Bit.GetDialogueText().ToString());
-		return;
-	}
-	*/
 	
-	FMargin RightMargins = Settings->GetInputPinPadding();
-	RightMargins.Bottom = 0;
-	RightMargins.Top = 0;
-
 	EVerticalAlignment Alignment = VAlign_Bottom;
-	int BottomPadding = 0; 
+	int BottomPadding; 
 
 	FName PinName = PinObj->GetFName();
 	const UFlowNode_YapDialogue* Node = GetFlowYapDialogueNode();
@@ -1237,7 +1214,6 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 	TSharedPtr<SOverlay> Box = FragmentWidget->GetPinContainer();
 
 	Box->AddSlot()
-	//FragmentOutputBoxes[FragmentIndex]->AddSlot()
 	.HAlign(HAlign_Right)
 	.VAlign(Alignment)
 	.Padding(0, 0, 4, BottomPadding)

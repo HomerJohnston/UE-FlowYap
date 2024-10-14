@@ -120,6 +120,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 				.OnTextCommitted(OnTextCommitted)
 				.OnIsTypedCharValid(FOnIsTypedCharValid::CreateLambda([Numbers](const TCHAR InCh) { return Numbers.Contains(InCh); }))
 				.ToolTipText(INVTEXT("Activation limit, use 0 for infinite"))
+				.SelectAllTextWhenFocused(true)
 			]
 		]
 	];

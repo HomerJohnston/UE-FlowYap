@@ -48,6 +48,11 @@ protected:
 	TOptional<uint8> FlashFragmentIndex; 
 	double FlashHighlight = 0.0;
 
+	TSharedPtr<SBox> FragmentSequencingButton_Box;
+	TSharedPtr<SButton> FragmentSequencingButton_Button;
+	TSharedPtr<SImage> FragmentSequencingButton_Image;
+	TSharedPtr<STextBlock> FragmentSequencingButton_Text;
+	
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
 	
 	// ------------------------------------------
@@ -75,17 +80,17 @@ protected:
 	
 	// ------------------------------------------
 
-	FSlateColor NodeHeader_Color() const;
-	FText NodeSequencing_Text() const;
+	FSlateColor ColorAndOpacity_NodeHeader() const;
+	FText Text_FragmentSequencingButton() const;
 	TSharedRef<SWidget> CreateContentHeader();
 
-	EVisibility			FragmentSequencingButton_Visibility() const;
-	FReply				FragmentSequencingButton_OnClicked();
-	const FSlateBrush*	FragmentSequencingButton_Image() const;
-	FText				FragmentSequencingButton_ToolTipText() const;
-	FSlateColor			FragmentSequencingButton_ColorAndOpacity() const;
+	EVisibility			Visibility_FragmentSequencingButton() const;
+	FReply				OnClicked_FragmentSequencingButton();
+	const FSlateBrush*	Image_FragmentSequencingButton() const;
+	FText				ToolTipText_FragmentSequencingButton() const;
+	FSlateColor			ColorAndOpacity_FragmentSequencingButton() const;
 	
-	FText				NodeHeader_Text() const;
+	FText				Text_NodeHeader() const;
 	EVisibility			FragmentRowHighlight_Visibility(uint8 f) const;
 	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 

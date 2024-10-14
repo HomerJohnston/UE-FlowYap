@@ -8,7 +8,7 @@
 #include "Logging/StructuredLog.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapLog.h"
-#include "..\..\Public\Yap\FlowYapConversationHandler.h"
+#include "Yap/FlowYapConversationHandler.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 

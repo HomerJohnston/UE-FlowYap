@@ -24,7 +24,6 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 protected:
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
 
-	TSharedPtr<SMultiLineEditableTextBox> DialogueBox;
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 
 	TSharedPtr<SOverlay> PortraitWidget;
@@ -44,13 +43,21 @@ protected:
 	bool bRunning;
 
 	bool bShowSettings = false;
+	bool bTitleTextExpanded;
 
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SWidget> CentreDialogueWidget;
 	TSharedPtr<SWidget> CentreSettingsWidget;
 	TSharedPtr<SWidget> CreateCentreDialogueWidget();
 	TSharedPtr<SWidget> CreateCentreSettingsWidget();
-	
+
+	bool bDialogueExpanded = false;
+	TSharedPtr<SWidget> ExpandedDialogueWidget;
+	TSharedPtr<SWidget> ExpandedTitleTextWidget;
+	TSharedPtr<SOverlay> FragmentOverlay;
+
+	TSharedPtr<SButton> TitleTextEditButtonWidget;
+	TSharedPtr<SButton> DialogueEditButtonWidget;
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
@@ -61,55 +68,50 @@ public:
 	// ------------------------------------------
 	// WIDGETS
 protected:
-	EVisibility BarAboveDialogue_Visibility() const;
+	EVisibility Visibility_UpperFragmentBar() const;
 	int32 GetFragmentActivationCount() const;
 	int32 GetFragmentActivationLimit() const;
 
 	TSharedRef<SWidget> CreateAudioPreviewWidget();
-	bool AudioPreviewButton_IsEnabled() const;
+	bool Enabled_AudioPreviewButton() const;
 	TSharedRef<SWidget> CreateAudioPreviewWidget(TAttribute<EVisibility> Attribute);
 
 	TSharedRef<SWidget> CreateFragmentHighlightWidget();
 	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
+	EVisibility Visibility_FragmentRowNormalControls() const;
+	TSharedRef<SWidget> CreateUpperFragmentBar();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
-	EVisibility			FragmentBottomSection_Visibility() const;
+	EVisibility			Visibility_FragmentBottomSection() const;
 
+	FReply OnClicked_DialogueExpandButton();
+	EVisibility Visibility_DialogueEdit() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueWidget();
 
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
 	FText				Dialogue_Text() const;
-	void				Dialogue_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
-	FText				Dialogue_ToolTipText() const;
-	FSlateColor			Dialogue_BackgroundColor() const;
-	FSlateColor			Dialogue_ForegroundColor() const;
+	void				OnTextCommitted_Dialogue(const FText& CommittedText, ETextCommit::Type CommitType);
+	FText				ToolTipText_Dialogue() const;
+	FSlateColor			BackgroundColor_Dialogue() const;
+	FSlateColor			ForegroundColor_Dialogue() const;
 
-	EVisibility			DialogueBackground_Visibility() const;
-	FSlateColor			Dialogue_BorderBackgroundColor() const;
-	
-	// ---------------------------------------------------
-	TSharedRef<SBox>	CreateActivationLimiterWidget();
-
-	EVisibility			ActivationLimiter_Visibility() const;
-	FText				ActivationLimiter_Text() const;	
-	EVisibility			ActivationDot_Visibility() const;
-	FSlateColor			ActivationDot_ColorAndOpacity() const;
-	FReply				ActivationDot_OnClicked();
-	
+	EVisibility			Visibility_DialogueBackground() const;
+	FSlateColor			BorderBackgroundColor_Dialogue() const;
+		
 	// ------------------------------------------
 
 	FText				FragmentTagPreview_Text() const;
-	EVisibility			FragmentTagPreview_Visibility() const;
+	EVisibility			Visibility_FragmentTagPreview() const;
 
 	// ---------------------------------------------------
 	TSharedRef<SWidget> CreateConditionWidgets() const;
 
 	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition) const;
 	
-	EVisibility			ConditionWidgets_Visibility() const;
+	EVisibility			Visibility_ConditionWidgets() const;
 
 	// ---------------------------------------------------
 
@@ -126,32 +128,34 @@ protected:
 
 	FSlateColor PortraitImage_BorderBackgroundColor() const;
 	FText PortraitWidget_ToolTipText() const;
-	FReply PortraitWidget_OnClicked();
+	FReply OnClicked_PortraitWidget();
 	
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreatePortraitWidget();
 
-	EVisibility			PortraitImage_Visibility() const;
-	const FSlateBrush*	PortraitImage_Image() const;
-	EVisibility			MissingPortraitWarning_Visibility() const;
-	EVisibility			CharacterSelect_Visibility() const;
-	FString				CharacterSelect_ObjectPath() const;
-	void				CharacterSelect_OnObjectChanged(const FAssetData& InAssetData);
+	EVisibility			Visibility_PortraitImage() const;
+	const FSlateBrush*	Image_PortraitImage() const;
+	EVisibility			Visibility_MissingPortraitWarning() const;
+	EVisibility			Visibility_CharacterSelect() const;
+	FString				ObjectPath_CharacterSelect() const;
+	void				OnObjectChanged_CharacterSelect(const FAssetData& InAssetData);
 	
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
 
-	EVisibility			MoodKeySelector_Visibility() const;
-	void				MoodKeySelector_OnMenuOpenChanged(bool bMenuOpen);
-	const FSlateBrush*	MoodKeyBrush_GetBrush() const;
+	EVisibility			Visibility_MoodKeySelector() const;
+	void				OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen);
+	const FSlateBrush*	Image_MoodKeySelector() const;
 	FGameplayTag		GetCurrentMoodKey() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FReply				MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue);
+	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
 
 	FText TitleText_ToolTipText() const;
+	EVisibility TitleTextEdit_Visibility() const;
+	FReply TitleTextExpandButton_OnClicked();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 
@@ -212,7 +216,8 @@ protected:
 	
 	EVisibility			RowHighlight_Visibility() const;
 	FSlateColor			RowHighlight_BorderBackgroundColor() const;
-	
+
+	void SetNodeSelected();
 	// ------------------------------------------
 	// OVERRIDES
 public:
@@ -226,11 +231,11 @@ public:
 
 	TSharedPtr<SOverlay> GetPinContainer() { return PinContainer; }
 	
-	EVisibility			EnableOnStartPinButton_Visibility() const;
-	EVisibility			EnableOnEndPinButton_Visibility() const;
+	EVisibility			Visibility_EnableOnStartPinButton() const;
+	EVisibility			Visibility_EnableOnEndPinButton() const;
 	
-	FReply				EnableOnStartPinButton_OnClicked();
-	FReply				EnableOnEndPinButton_OnClicked();
+	FReply				OnClicked_EnableOnStartPinButton();
+	FReply				OnClicked_EnableOnEndPinButton();
 
 	bool GetNodeSelected() const;
 };

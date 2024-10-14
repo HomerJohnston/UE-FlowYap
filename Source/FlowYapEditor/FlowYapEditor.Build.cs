@@ -48,7 +48,10 @@ public class FlowYapEditor : ModuleRules
                 
                 "BlueprintGraph", "LiveCoding",
                 
-                "GPGEditorModuleHelper"
+                "GPGEditorModuleHelper", 
+                "EditorWidgets",
+                "ToolWidgets"
+                
             }
         );
     }

@@ -6,6 +6,8 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Yap/FlowYapColors.h"
 
+//FYapStyles FYapEditorStyle::Styles;
+
 FYapEditorStyle::FYapEditorStyle()
 	: FSlateStyleSet("YapEditor")
 {
@@ -46,29 +48,21 @@ void FYapEditorStyle::OnPatchComplete()
 
 void FYapEditorStyle::Initialize()
 {
-	const FVector2f Icon16(16.f);
-	const FVector2f Icon20(20.f);
-	const FVector2f Icon22(22.f);
-	const FVector2f Icon25(25.f);
-	const FVector2f Icon32(32.f);
-	const FVector2f Icon40(40.f);
-	
-	Set("ImageBrush.Icon.AudioTime",		new IMAGE_BRUSH("DialogueNodeIcons/AudioTime",	Icon16));
-	Set("ImageBrush.Icon.TextTime",			new IMAGE_BRUSH("DialogueNodeIcons/TextTime",	Icon16));
-	Set("ImageBrush.Icon.Timer",			new IMAGE_BRUSH("DialogueNodeIcons/Timer",		Icon16));
-	Set("ImageBrush.Icon.LocalLimit",		new IMAGE_BRUSH("DialogueNodeIcons/LocalLimit",	Icon16));
-	Set("ImageBrush.Icon.Audio",			new IMAGE_BRUSH("Icon_Audio",	Icon16));
-	Set("ImageBrush.Icon.Tag",				new IMAGE_BRUSH("Icon_Tag",	Icon16));
+#define YAP_BOX_BRUSH(MEMBER, FILENAME, MARGIN_SIZE, TOTAL_SIZE) Styles().MEMBER = MakeShareable(new BOX_BRUSH("FILENAME", FMargin(MARGIN_SIZE / TOTAL_SIZE)))
+#define YAP_IMAGE_BRUSH(MEMBER, FILENAME, BRUSH_SIZE) Styles().MEMBER = MakeShareable(new IMAGE_BRUSH("FILENAME", FVector2f(BRUSH_SIZE)))
 
-	Set("ImageBrush.Brush.DiagonalLine",	new IMAGE_BRUSH("Brush_Diagonal_16px", Icon16));
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.AudioTime,		"DialogueNodeIcons/AudioTime",	16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.TextTime,		"DialogueNodeIcons/TextTime",	16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.Timer,			"DialogueNodeIcons/Timer",		16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.LocalLimit,		"DialogueNodeIcons/LocalLimit",	16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.Speaker,		"Icon_Audio",					16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.Tag,			"Icon_Tag",						16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.DialogueExpand,	"Icon_DialogueExpand",			16);
+	YAP_IMAGE_BRUSH(ImageBrush.Icon.Edit,			"Icon_Edit",					16);
 
-	Set("ImageBrush.Border.SharpSquare",				new BOX_BRUSH("Border_SharpSquare", FMargin(4 / 8.0f)));
-	Set("ImageBrush.Border.DeburredSquare",				new BOX_BRUSH("Border_DeburredSquare", FMargin(4 / 8.0f)));
-	Set("ImageBrush.Border.RoundedSquare",				new BOX_BRUSH("Border_RoundedSquare", FMargin(4 / 8.0f)));
-	Set("ImageBrush.Box.SolidWhite",					new BOX_BRUSH("Box_SolidWhite", FMargin(4 / 8.0f)));
-	Set("ImageBrush.Box.SolidWhite.DeburredCorners",	new BOX_BRUSH("Box_SolidWhite_DeburredCorners", FMargin(4 / 8.0f)));
-	Set("ImageBrush.Box.SolidWhite.RoundedCorners",		new BOX_BRUSH("Box_SolidWhite_RoundedCorners", FMargin(4 / 8.0f)));
-
+	YAP_BOX_BRUSH(ImageBrush.Border.SharpSquare,	"Border_SharpSquare",		4,	8);
+	YAP_BOX_BRUSH(ImageBrush.Border.DeburredSquare, "Border_DeburredSquare",	4,	8);
+	YAP_BOX_BRUSH(ImageBrush.Border.RoundedSquare,	"Border_RoundedSquare",		4,	8);
 	
 	Set("SliderStyle.FragmentTimePadding", FSliderStyle(FSliderStyle::GetDefault())
 		.SetBarThickness(0.f)
@@ -78,12 +72,19 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::LightGray))
 		);
 
-	Set("ButtonStyle.ActivationLimit", FButtonStyle(FButtonStyle::GetDefault())
-		.SetNormal(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DarkGray))
-		.SetHovered(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DimGray))
-		.SetPressed(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DeepGray))
+	Styles().Button.SequencingSelector = FButtonStyle(FButtonStyle::GetDefault())
+		.SetNormal(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DeepGray))
+		.SetHovered(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DarkGray))
+		.SetPressed(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::Noir))
 		.SetNormalPadding(FMargin(0, 0, 0, 0))
-		.SetPressedPadding(FMargin(0, 1, 0, -1)));
+		.SetPressedPadding(FMargin(0, 1, 0, -1));
+	
+	Styles().Button.ActivationLimit = FButtonStyle(FButtonStyle::GetDefault())
+		.SetNormal(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DeepGray))
+		.SetHovered(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::DarkGray))
+		.SetPressed(CORE_BOX_BRUSH("Common/ButtonHoverHint", FMargin(4 / 16.0f), YapColor::Noir))
+		.SetNormalPadding(FMargin(0, 0, 0, 0))
+		.SetPressedPadding(FMargin(0, 1, 0, -1));
 
 	const FScrollBarStyle DialogueScrollBarStyle = FScrollBarStyle(FCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("ScrollBar"))
 		.SetThickness(2);
@@ -113,6 +114,9 @@ void FYapEditorStyle::Initialize()
 		.SetColorAndOpacity(YapColor::YellowGray)
 		.SetFont(DEFAULT_FONT("Italic", 9));
 
+	Set("TextStyle.TextBlock.Dialogue", DialogueTextStyle);
+	Set("TextStyle.TextBlock.TitleText", TitleTextStyle);
+	
 	Set("Text.NodeHeader", FTextBlockStyle(NormalTextStyle)
 		.SetFont(DEFAULT_FONT("Bold", 16))
 		.SetColorAndOpacity(YapColor::White));

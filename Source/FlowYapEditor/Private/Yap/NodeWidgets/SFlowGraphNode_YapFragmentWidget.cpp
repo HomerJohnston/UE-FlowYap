@@ -7,20 +7,13 @@
 #include "PropertyCustomizationHelpers.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
-#include "Logging/StructuredLog.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
-#include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SNumericEntryBox.h"
-#include "Widgets/Input/SSlider.h"
-#include "Widgets/Notifications/SProgressBar.h"
-#include "Widgets/Text/SRichTextBlock.h"
 #include "Yap/FlowYapCharacter.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/FlowYapEditorSubsystem.h"
 #include "Yap/FlowYapFragment.h"
-#include "Yap/FlowYapInputTracker.h"
 #include "Yap/FlowYapProjectSettings.h"
-#include "Yap/FlowYapSubsystem.h"
 #include "Yap/FlowYapTransactions.h"
 #include "Yap/FlowYapUtil.h"
 #include "Yap/YapEditorStyle.h"
@@ -31,11 +24,8 @@
 #include "Yap/FlowYapBitReplacement.h"
 #include "Yap/FlowYapCondition.h"
 #include "Yap/Helpers/FlowYapWidgetHelper.h"
-
-constexpr int32 PAD1 = 2;
-constexpr int32 PAD2 = 4;
-
-#define YAP_DEFAULT_PORTRAIT_SIZE 64
+#include "Yap/Helpers/SYapTextPropertyEditableTextBox.h"
+#include "Yap/Helpers/YapEditableTextPropertyHandle.h"
 
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget()
 {
@@ -74,9 +64,8 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreSettingsWidget
 			.DisplayUseSelected(false)
 			.AllowedClass(UFlowYapCharacter::StaticClass())
 			.EnableContentPicker(true)
-			.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_ObjectPath)
-			.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::CharacterSelect_OnObjectChanged)
-			.ToolTipText(LOCTEXT("FragmentBitCharacter_Tooltip", "Select a Character."))
+			.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect)
+			.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -122,9 +111,9 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::BarAboveDialogue_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_UpperFragmentBar() const
 {
-	return (ConditionWidgets_Visibility() != EVisibility::Visible && FragmentTagPreview_Visibility() != EVisibility::Visible) ? EVisibility::Collapsed : EVisibility::Visible;
+	return (Visibility_ConditionWidgets() != EVisibility::Visible && Visibility_FragmentTagPreview() != EVisibility::Visible) ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 int32 SFlowGraphNode_YapFragmentWidget::GetFragmentActivationCount() const
@@ -142,7 +131,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget()
 	return CreateAudioPreviewWidget(EVisibility::Visible);
 }
 
-bool SFlowGraphNode_YapFragmentWidget::AudioPreviewButton_IsEnabled() const
+bool SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton() const
 {
 	return GetFragment()->GetBit().HasDialogueAudioAsset();
 }
@@ -152,9 +141,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 	return SNew(SButton)
 	.ButtonColorAndOpacity(YapColor::Gray)
 	.ContentPadding(0)
-	.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+	.ButtonStyle(&FYapEditorStyle::Styles().Button.ActivationLimit)
 	.Visibility(Attribute)
-	.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::AudioPreviewButton_IsEnabled)
+	.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton)
 	.ToolTipText(INVTEXT("Play audio"))
 	[
 		SNew(SBox)
@@ -162,7 +151,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 		[
 			SNew(SImage)
 			.DesiredSizeOverride(FVector2D(16, 16))
-			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Audio"))
+			//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Audio"))
+			.Image(FYapEditorStyle::Styles().ImageBrush.Icon.Speaker.Get())
 			.ColorAndOpacity(YapColor::LightGray)
 		]
 	];
@@ -179,6 +169,42 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentHighlightWid
 void SFlowGraphNode_YapFragmentWidget::OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg)
 {
 	GetFragment()->ActivationLimit = FCString::Atoi(*Text.ToString());
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentRowNormalControls() const
+{
+	if (bDialogueExpanded)
+	{
+		return EVisibility::Hidden;
+	}
+	
+	return EVisibility::Visible;
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
+{
+	return SNew(SBox)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_UpperFragmentBar)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill)
+		.Padding(32, 0, 0, 4)
+		[
+			SNew(SBox)
+			.ToolTipText(INVTEXT("Conditions"))
+			[
+				CreateConditionWidgets()
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Right)
+		.AutoWidth()
+		.Padding(0, 0, 32, 4)
+		[
+			FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text, &SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagPreview)
+		]
+	];
 }
 
 // ================================================================================================
@@ -202,28 +228,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 		.AutoHeight()
 		.Padding(0, 0, 0, 0)
 		[
-			SNew(SBox)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::BarAboveDialogue_Visibility)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Fill)
-				.Padding(32, 0, 0, 4)
-				[
-					SNew(SBox)
-					.ToolTipText(INVTEXT("Conditions"))
-					[
-						CreateConditionWidgets()
-					]
-				]
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Right)
-				.AutoWidth()
-				.Padding(0, 0, 32, 4)
-				[
-					FFlowYapWidgetHelper::CreateTagPreviewWidget(this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility)
-				]
-			]
+			CreateUpperFragmentBar()
 		]
 		+ SVerticalBox::Slot()
 		.Padding(0, 0, 0, 0)
@@ -249,41 +254,46 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 			+ SHorizontalBox::Slot()
 			.HAlign(HAlign_Fill)
 			[
-				SNew(SOverlay)
+				SAssignNew(FragmentOverlay, SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Center)
-					.VAlign(VAlign_Top)
-					.AutoWidth()
-					.Padding(0, 0, 2, 0)
+					SNew(SBox)
+					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_FragmentRowNormalControls)
 					[
-						SNew(SOverlay)
-						+ SOverlay::Slot()
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.HAlign(HAlign_Center)
+						.VAlign(VAlign_Top)
+						.AutoWidth()
+						.Padding(0, 0, 2, 0)
 						[
-							// TODO profile is this still slow
-							PortraitWidget.ToSharedRef()
+							SNew(SOverlay)
+							+ SOverlay::Slot()
+							[
+								// TODO profile is this still slow
+								PortraitWidget.ToSharedRef()
+							]
+							+ SOverlay::Slot()
+							.VAlign(VAlign_Bottom)
+							.HAlign(HAlign_Right)
+							.Padding(0, 0, -4, -4)
+							[
+								CreateAudioPreviewWidget(TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::AudioButton_Visibility))
+							]
 						]
-						+ SOverlay::Slot()
-						.VAlign(VAlign_Bottom)
-						.HAlign(HAlign_Right)
-						.Padding(0, 0, -4, -4)
+						+ SHorizontalBox::Slot()
+						.HAlign(HAlign_Fill)
+						.VAlign(VAlign_Fill)
+						.FillWidth(1.0f)
+						.Padding(2, 0, 0, 0)
 						[
-							CreateAudioPreviewWidget(TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::AudioButton_Visibility))
+							CentreBox.ToSharedRef()
 						]
-					]
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Fill)
-					.VAlign(VAlign_Fill)
-					.FillWidth(1.0f)
-					.Padding(2, 0, 0, 0)
-					[
-						CentreBox.ToSharedRef()
 					]
 				]
 				+ SOverlay::Slot()
 				[
+					// TODO can I defer creation of this until later?
 					CreateFragmentHighlightWidget()
 				]
 			]
@@ -300,7 +310,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentBottomSection() const
 {
 	// Always show if there are errors!
 	if (AudioAssetErrorLevel() != EFlowYapErrorLevel::OK)
@@ -326,12 +336,90 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentBottomSection_Visibility()
 	return EVisibility::Collapsed;
 }
 
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
+{
+	if (bDialogueExpanded)
+	{
+		return FReply::Handled();
+	}
+	
+	if (ExpandedDialogueWidget == nullptr)
+	{
+		TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetFragment()->GetBitMutable().GetDialogueTextMutable()));
+		
+		ExpandedDialogueWidget = SNew(SYapTextPropertyEditableTextBox, EditableTextProperty);
+	}
+	
+	FragmentOverlay->AddSlot()
+	[
+		ExpandedDialogueWidget.ToSharedRef()
+	];
+
+	bDialogueExpanded = true;
+
+	SetNodeSelected();
+	
+	return FReply::Handled();
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_DialogueEdit() const
+{
+	return DialogueEditButtonWidget->IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
 // ================================================================================================
 // DIALOGUE WIDGET
 // ------------------------------------------------------------------------------------------------
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
+	DialogueEditButtonWidget = SNew(SButton)
+	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
+	.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			SNew(SScrollBox)
+			.Orientation(Orient_Horizontal)
+			.ScrollBarVisibility(EVisibility::Collapsed)
+			.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+			.AllowOverscroll(EAllowOverscroll::No)
+			.AnimateWheelScrolling(true)
+			+ SScrollBox::Slot()
+			.Padding(0,0,0,0)
+			.FillSize(1.0)
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.TextStyle(FYapEditorStyle::Get(), "TextStyle.TextBlock.Dialogue")
+				.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+			]
+		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(-4)
+		[
+			SNew(SImage)
+			.DesiredSizeOverride(FVector2D(24, 24))
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_DialogueEdit)
+			.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+			.ColorAndOpacity(YapColor::Black)
+		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(0,0)
+		[
+			SNew(SImage)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_DialogueEdit)
+			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+			.ColorAndOpacity(YapColor::White)
+		]
+	];
+	/*
 	return SNew(SBox)
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText)
 	[
@@ -341,7 +429,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		.VAlign(VAlign_Fill)
 		[
 			SNew(SBorder)
-			//.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+			.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
 			.BorderBackgroundColor(YapColor::DeepGray)
 			.ColorAndOpacity(YapColor::White)
 			.Padding(0)
@@ -353,17 +441,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 				.AllowOverscroll(EAllowOverscroll::No)
 				.AnimateWheelScrolling(true)
 				+ SScrollBox::Slot()
-				.Padding(0,0,0,0)
+				.Padding(4)
 				.FillSize(1.0)
 				[
-					SAssignNew(DialogueBox, SMultiLineEditableTextBox)
-					.Padding(FMargin(4, 2))
-					.Style(FYapEditorStyle::Get(), "EditableTextBox.Dialogue")
+					SNew(STextBlock)
+					//.Padding(FMargin(4, 2))
+					//.Style(FYapEditorStyle::Get(), "EditableTextBox.Dialogue")
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
-					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
-					.RevertTextOnEscape(true)
-					.ModiferKeyForNewLine(EModifierKey::Shift)
-					.HintText(INVTEXT("<None>"))
+					//.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted)
+					//.RevertTextOnEscape(true)
+					//.ModiferKeyForNewLine(EModifierKey::Shift)
+					//.HintText(INVTEXT("<None>"))
 				]
 			]
 		]
@@ -384,7 +472,27 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 				.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
 			]
 		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Top)
+		.HAlign(HAlign_Right)
+		.Padding(2)
+		[
+			SNew(SButton)
+			.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+			.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::DialogueExpandButton_OnClicked)
+			.ContentPadding(0)
+			.ToolTipText(INVTEXT("Edit"))
+			[
+				SNew(SImage)
+				.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+				.ColorAndOpacity(YapColor::Gray)
+			]
+		]
 	];
+	*/
+
+	return DialogueEditButtonWidget.ToSharedRef();
 }
 
 FVector2D SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness() const
@@ -416,7 +524,7 @@ FText SFlowGraphNode_YapFragmentWidget::Dialogue_Text() const
 	return GetFragment()->Bit.GetDialogueText();
 }
 
-void SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType)
+void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_Dialogue(const FText& CommittedText, ETextCommit::Type CommitType)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("NodeDialogueTextChanged", "Dialogue Text Changed"), GetFlowYapDialogueNode());
 
@@ -428,7 +536,7 @@ void SFlowGraphNode_YapFragmentWidget::Dialogue_OnTextCommitted(const FText& Com
 	FFlowYapTransactions::EndModify();
 }
 
-FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue() const
 {
 	double PaddingTime = GetFragment()->GetPaddingToNextFragment();
 
@@ -445,7 +553,7 @@ FText SFlowGraphNode_YapFragmentWidget::Dialogue_ToolTipText() const
 	}
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::BackgroundColor_Dialogue() const
 {
 	if (GetFragment()->GetBitReplaced())
 	{
@@ -455,7 +563,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BackgroundColor() const
 	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::White : YapColor::Noir;
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_Dialogue() const
 {
 	FLinearColor Color = YapColor::Error;
 	
@@ -479,176 +587,14 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_ForegroundColor() const
 	return Color;
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::DialogueBackground_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_DialogueBackground() const
 {
 	return GetFragment()->GetBitReplaced() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::Dialogue_BorderBackgroundColor() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_Dialogue() const
 {
 	return YapColor::LightYellow_SuperGlass;
-}
-
-// ================================================================================================
-// LOCAL ACTIVATION LIMITER WIDGET
-// ------------------------------------------------------------------------------------------------
-
-TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateActivationLimiterWidget()
-{
-	TSharedRef<SVerticalBox> ActivationLimiter_VerticalBox = SNew(SVerticalBox);
-	
-	if (GetFragment()->ActivationLimit <= 1)
-	{
-		int32 Size = 16;// i < ActivationCount ? 16 : 12;
-		ActivationLimiter_VerticalBox->AddSlot()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.AutoHeight()
-		.Padding(0)
-		[
-			SNew(SBox)
-			.WidthOverride(Size)
-			.HeightOverride(Size)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Padding(0)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_Visibility)
-			[
-				SNew(SButton)
-				.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
-				.ContentPadding(0)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_OnClicked)
-				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle local activation limit"))
-				[
-					SNew(SOverlay)
-					+ SOverlay::Slot()
-					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(Size, Size))
-						//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.LocalLimit"))
-						.Image(FAppStyle::GetBrush("GenericCommands.Redo"))
-						.ColorAndOpacity(YapColor::LightGreen)
-					]
-					+ SOverlay::Slot()
-					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(Size, Size))
-						//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.LocalLimit"))
-						.Image(FAppStyle::GetBrush("SourceControl.StatusIcon.Off"))
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ActivationDot_ColorAndOpacity)
-					]
-				]
-			]
-		];
-	}
-	else
-	{			
-		ActivationLimiter_VerticalBox->AddSlot()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.AutoHeight()
-		[
-			SNew(STextBlock)
-			.Text(this, &SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Text)
-			.ColorAndOpacity(YapColor::White)
-			//.TextStyle(&NormalText)
-			.Justification(ETextJustify::Center)
-		];
-	}
-
-	return SNew(SBox)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Visibility)
-	[
-		ActivationLimiter_VerticalBox
-	];
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Visibility() const
-{
-	const FFlowYapFragment* Fragment = GetFragment();
-	
-	if (GEditor->PlayWorld)
-	{
-		return (Fragment->ActivationLimit > 0) ? EVisibility::Visible : EVisibility::Collapsed;		
-	}
-	else
-	{
-		if (IsHovered() || Fragment->ActivationLimit > 0)
-		{
-			return EVisibility::Visible;
-		}
-	}
-
-	return EVisibility::Collapsed;
-}
-
-FText SFlowGraphNode_YapFragmentWidget::ActivationLimiter_Text() const
-{
-	return FText::Join
-	(
-		FText::FromString("/"),
-		FText::AsNumber(GetFragment()->GetActivationCount()),
-		FText::AsNumber(GetFragment()->GetActivationLimit())
-	);
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::ActivationDot_Visibility() const
-{
-	if (IsHovered() || GetFragment()->GetActivationLimit() > 0)
-	{
-		return EVisibility::Visible;
-	}
-
-	return EVisibility::Collapsed;
-}
-
-FSlateColor SFlowGraphNode_YapFragmentWidget::ActivationDot_ColorAndOpacity() const
-{
-	int32 ActivationLimit = GetFragment()->ActivationLimit;
-
-	if (ActivationLimit == 0)
-	{
-		return YapColor::DarkGray_Glass;
-	}
-	
-	FLinearColor Color = YapColor::Red;
-	
-	if (GEditor->PlayWorld)
-	{
-		if (GetFragment()->IsActivationLimitMet())
-		{
-			Color = YapColor::Red;
-		}
-		else
-		{
-			Color = YapColor::Transparent;
-		}
-	}
-	
-	return Color;
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::ActivationDot_OnClicked()
-{
-	FFlowYapFragment* Fragment = GetFragment();
-	
-	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change activation limit"), GetFlowYapDialogueNode());
-	
-	// TODO ignore input during PIE?
-	if (Fragment->ActivationLimit > 0)
-	{
-		Fragment->ActivationLimit = 0;
-	}
-	else
-	{
-		Fragment->ActivationLimit = 1;
-	}
-
-	FFlowYapTransactions::EndModify();
-	
-	return FReply::Handled();
 }
 
 // ================================================================================================
@@ -673,7 +619,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 	}
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagPreview() const
 {
 	return GetFragment()->FragmentTag.IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
 }
@@ -681,7 +627,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Visibility() co
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets() const
 {
 	TSharedRef<SScrollBox> Box = SNew(SScrollBox)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::ConditionWidgets_Visibility)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_ConditionWidgets)
 	.ScrollBarVisibility(EVisibility::Collapsed)
 	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
 	.AllowOverscroll(EAllowOverscroll::No)
@@ -716,7 +662,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidget(cons
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::ConditionWidgets_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_ConditionWidgets() const
 {
 	return (GetFragment()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
@@ -763,16 +709,6 @@ float SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Value() const
 	const float MaxPaddedSetting =  UFlowYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
 
 	return GetFragment()->GetPaddingToNextFragment() / MaxPaddedSetting;
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::FragmentTimePaddingSlider_Visibility() const
-{
-	if (GEditor->PlayWorld)
-	{
-		return EVisibility::Hidden;
-	}
-
-	return EVisibility::Visible;
 }
 
 void SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_OnValueChanged(float X)
@@ -875,9 +811,11 @@ FText SFlowGraphNode_YapFragmentWidget::PortraitWidget_ToolTipText() const
 	}
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::PortraitWidget_OnClicked()
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget()
 {
-	if (!bShowSettings)
+	bShowSettings = !bShowSettings;
+
+	if (bShowSettings)
 	{
 		if (CentreSettingsWidget == nullptr)
 		{
@@ -885,6 +823,8 @@ FReply SFlowGraphNode_YapFragmentWidget::PortraitWidget_OnClicked()
 		}
 		
 		CentreBox->SetContent(CentreSettingsWidget.ToSharedRef());
+
+		SetNodeSelected();
 	}
 	else
 	{
@@ -893,17 +833,6 @@ FReply SFlowGraphNode_YapFragmentWidget::PortraitWidget_OnClicked()
 			CentreDialogueWidget = CreateCentreDialogueWidget();
 		}
 		CentreBox->SetContent(CentreDialogueWidget.ToSharedRef());
-	}
-
-	bShowSettings = !bShowSettings;
-
-	UEdGraphNode* GraphNode = GetFlowYapDialogueNode()->GetGraphNode();
-	
-	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(GraphNode->GetGraph());
-
-	if (GraphEditor)
-	{
-		GraphEditor->SelectSingleNode(GraphNode);
 	}
 
 	return FReply::Handled();
@@ -938,7 +867,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::PortraitWidget_ToolTipText)
 		.ContentPadding(0)
-		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::PortraitWidget_OnClicked)
+		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
 		[
 			SNew(SOverlay)
 			+ SOverlay::Slot()
@@ -947,14 +876,14 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			[
 				SNew(SImage)
 				.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-				.Image(this, &SFlowGraphNode_YapFragmentWidget::PortraitImage_Image)
+				.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
 			]
 			+ SOverlay::Slot()
 			.VAlign(VAlign_Center)
 			.HAlign(HAlign_Center)
 			[
 				SNew(STextBlock)
-				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::MissingPortraitWarning_Visibility)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning)
 				.Text(LOCTEXT("FragmentCharacterMissing", "?"))
 				.Justification(ETextJustify::Center)
 			]
@@ -962,7 +891,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::PortraitImage_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 {	
 	if (FragmentFocused())
 	{
@@ -977,12 +906,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::PortraitImage_Visibility() const
 	return EVisibility::Visible;
 }
 
-const FSlateBrush* SFlowGraphNode_YapFragmentWidget::PortraitImage_Image() const
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_PortraitImage() const
 {
 	return GetFragment()->GetBit().GetSpeakerPortraitBrush();
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::MissingPortraitWarning_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
 	const FSlateBrush* Brush = GetFragment()->GetBit().GetSpeakerPortraitBrush();
 
@@ -994,20 +923,13 @@ EVisibility SFlowGraphNode_YapFragmentWidget::MissingPortraitWarning_Visibility(
 	return EVisibility::Visible;
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::CharacterSelect_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_CharacterSelect() const
 {
 	return IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-FString SFlowGraphNode_YapFragmentWidget::CharacterSelect_ObjectPath() const
-{
-	/*
-	if (InErrorState())
-	{
-		return "";
-	}
-	*/
-	
+FString SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect() const
+{	
 	const TSoftObjectPtr<UFlowYapCharacter> Asset = GetFragment()->Bit.GetCharacterAsset();
 
 	if (Asset.IsPending())
@@ -1020,7 +942,7 @@ FString SFlowGraphNode_YapFragmentWidget::CharacterSelect_ObjectPath() const
 	return Asset.ToString();
 }
 
-void SFlowGraphNode_YapFragmentWidget::CharacterSelect_OnObjectChanged(const FAssetData& InAssetData)
+void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAssetData& InAssetData)
 {
 	UObject* Asset = InAssetData.GetAsset();
 
@@ -1042,31 +964,139 @@ void SFlowGraphNode_YapFragmentWidget::CharacterSelect_OnObjectChanged(const FAs
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
-	return SNew(SBox)
+	TitleTextEditButtonWidget = SNew(SButton)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::TitleText_ToolTipText)
+	.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::TitleTextExpandButton_OnClicked)
 	[
-		SNew(SScrollBox)
-		.Orientation(Orient_Horizontal)
-		.ScrollBarVisibility(EVisibility::Collapsed)
-		.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-		.AllowOverscroll(EAllowOverscroll::No)
-		.AnimateWheelScrolling(true)
-		+ SScrollBox::Slot()
-		.Padding(0,0,0,0)
-		.FillSize(1.0)
+		SNew(SOverlay)
+		+ SOverlay::Slot()
 		[
-			SNew(SMultiLineEditableTextBox)
-			.Padding(FMargin(4, 2))
-			.Style(FYapEditorStyle::Get(), "EditableTextBox.TitleText")
-			.Text(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Text)
-			.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted)
-			.RevertTextOnEscape(true)
-			.ModiferKeyForNewLine(EModifierKey::Shift)
-			.HintText(INVTEXT("<None>"))
+			SNew(SScrollBox)
+			.Orientation(Orient_Horizontal)
+			.ScrollBarVisibility(EVisibility::Collapsed)
+			.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+			.AllowOverscroll(EAllowOverscroll::No)
+			.AnimateWheelScrolling(true)
+			+ SScrollBox::Slot()
+			.Padding(0,0,0,0)
+			.FillSize(1.0)
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.TextStyle(FYapEditorStyle::Get(), "TextStyle.TextBlock.TitleText")
+				.Text(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Text)
+			]
 		]
-		//CreateWrappedTextBlock(&SFlowGraphNode_YapFragmentWidget::TitleText_Text, "Text.TitleText")
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(-4)
+		[
+			SNew(SImage)
+			.DesiredSizeOverride(FVector2D(24, 24))
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleTextEdit_Visibility)
+			.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+			.ColorAndOpacity(YapColor::Black)
+			
+		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(0,0)
+		[
+			SNew(SImage)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleTextEdit_Visibility)
+			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+			.ColorAndOpacity(YapColor::White)
+		]
 	];
+	/*
+	return SNew(SOverlay)
+	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
+	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::TitleText_ToolTipText)
+	+ SOverlay::Slot()
+	[
+		SNew(SBorder)
+		.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+		.BorderBackgroundColor(YapColor::DeepGray)
+		.ColorAndOpacity(YapColor::White)
+		.Padding(0)
+		[
+			SNew(SScrollBox)
+			.Orientation(Orient_Horizontal)
+			.ScrollBarVisibility(EVisibility::Collapsed)
+			.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+			.AllowOverscroll(EAllowOverscroll::No)
+			.AnimateWheelScrolling(true)
+			+ SScrollBox::Slot()
+			.Padding(0,0,0,0)
+			.FillSize(1.0)
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				//.Padding(FMargin(4, 2))
+				.TextStyle(FYapEditorStyle::Get(), "TextStyle.TextBlock.TitleText")
+				.Text(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Text)
+				//.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted)
+				//.RevertTextOnEscape(true)
+				//.ModiferKeyForNewLine(EModifierKey::Shift)
+				//.HintText(INVTEXT("<None>"))
+			]
+		]
+	]
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Right)
+	.VAlign(VAlign_Center)
+	.Padding(2)
+	[
+		SNew(SButton)
+		.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+		.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::DialogueExpandButton_OnClicked)
+		.ContentPadding(0)
+		.ToolTipText(INVTEXT("Edit"))
+		[
+			SNew(SImage)
+			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+			.ColorAndOpacity(YapColor::Gray)
+		]
+	];
+	*/
+
+	return TitleTextEditButtonWidget.ToSharedRef();
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::TitleTextEdit_Visibility() const
+{
+	return TitleTextEditButtonWidget->IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::TitleTextExpandButton_OnClicked()
+{
+	if (bTitleTextExpanded)
+	{
+		return FReply::Handled();
+	}
+	
+	if (ExpandedTitleTextWidget == nullptr)
+	{
+		TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetFragment()->GetBitMutable().GetTitleTextMutable()));
+		
+		ExpandedTitleTextWidget = SNew(SYapTextPropertyEditableTextBox, EditableTextProperty);
+	}
+	
+	FragmentOverlay->AddSlot()
+	[
+		ExpandedTitleTextWidget.ToSharedRef()
+	];
+
+	bTitleTextExpanded = true;
+
+	SetNodeSelected();
+	
+	return FReply::Handled();
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::TitleText_Visibility() const
@@ -1596,6 +1626,18 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::RowHighlight_BorderBackgroundColor
 	return YapColor::White_Glass;
 }
 
+void SFlowGraphNode_YapFragmentWidget::SetNodeSelected()
+{
+	UEdGraphNode* GraphNode = GetFlowYapDialogueNode()->GetGraphNode();
+	
+	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(GraphNode->GetGraph());
+
+	if (GraphEditor)
+	{
+		GraphEditor->SelectSingleNode(GraphNode);
+	}
+}
+
 // ================================================================================================
 // OVERRIDES
 // ================================================================================================
@@ -1617,13 +1659,23 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	if (bShowSettings && !Owner->GetIsSelected())
 	{
 		bShowSettings = false;
-		
-		if (CentreDialogueWidget == nullptr)
-		{
-			CentreDialogueWidget = CreateCentreDialogueWidget();
-		}
-		
+				
 		CentreBox->SetContent(CentreDialogueWidget.ToSharedRef());
+	}
+
+	if (bDialogueExpanded && !Owner->GetIsSelected())
+	{
+		bDialogueExpanded = false;
+
+		FragmentOverlay->RemoveSlot(ExpandedDialogueWidget.ToSharedRef());
+	}
+
+	
+	if (bTitleTextExpanded && !Owner->GetIsSelected())
+	{
+		bTitleTextExpanded = false;
+
+		FragmentOverlay->RemoveSlot(ExpandedTitleTextWidget.ToSharedRef());
 	}
 	/*
 	bCtrlPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
@@ -1653,10 +1705,10 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 			SNew(SBox)
 			.WidthOverride(10)
 			.HeightOverride(10)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_Visibility)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
 			[
 				SNew(SButton)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_OnClicked)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton)
 				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 				.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
 			]
@@ -1670,10 +1722,10 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 			SNew(SBox)
 			.WidthOverride(10)
 			.HeightOverride(10)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::EnableOnEndPinButton_Visibility)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
 			[
 				SNew(SButton)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::EnableOnEndPinButton_OnClicked)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton)
 				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 				.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
 			]
@@ -1683,7 +1735,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	return PinContainer.ToSharedRef();
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton() const
 {
 	if (GEditor->IsPlayingSessionInEditor())
 	{
@@ -1693,7 +1745,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_Visibility(
 	return GetFragment()->GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::EnableOnEndPinButton_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton() const
 {
 	if (GEditor->IsPlayingSessionInEditor())
 	{
@@ -1703,7 +1755,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::EnableOnEndPinButton_Visibility() 
 	return GetFragment()->GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_OnClicked()
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnStart Pin"), GetFlowYapDialogueNode());
 
@@ -1716,7 +1768,7 @@ FReply SFlowGraphNode_YapFragmentWidget::EnableOnStartPinButton_OnClicked()
 	return FReply::Handled();
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::EnableOnEndPinButton_OnClicked()
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNode());
 	
@@ -1784,7 +1836,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 		.ButtonColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.75f)))
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.OnMenuOpenChanged(this, &SFlowGraphNode_YapFragmentWidget::MoodKeySelector_OnMenuOpenChanged)
+		.OnMenuOpenChanged(this, &SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodKeySelector)
 		.ToolTipText(LOCTEXT("Fragment", "Choose a mood key"))
 		.ButtonContent()
 		[
@@ -1793,7 +1845,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 			[
 				SAssignNew(PortraitIconImage, SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Image(this, &SFlowGraphNode_YapFragmentWidget::MoodKeyBrush_GetBrush)
+				.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector)
 			]
 		]
 		.MenuContent()
@@ -1805,30 +1857,23 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 	return Box.ToSharedRef();
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::MoodKeySelector_Visibility() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MoodKeySelector() const
 {
 	return IsHovered() || MoodKeySelectorMenuOpen ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-void SFlowGraphNode_YapFragmentWidget::MoodKeySelector_OnMenuOpenChanged(bool bMenuOpen)
+void SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen)
 {
 	MoodKeySelectorMenuOpen = bMenuOpen;
 }
 
-const FSlateBrush* SFlowGraphNode_YapFragmentWidget::MoodKeyBrush_GetBrush() const
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector() const
 {
 	return GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetMoodKeyBrush(GetCurrentMoodKey());
 }
 
 FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
 {
-	/*
-	if (InErrorState())
-	{
-		return FGameplayTag::EmptyTag;
-	}
-	*/
-	
 	return GetFragment()->Bit.GetMoodKey();
 }
 
@@ -1889,7 +1934,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 	.ButtonColorAndOpacity(FLinearColor(1,1,1,0.25))
 	.ClickMethod(EButtonClickMethod::MouseDown)
-	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::MoodKeyMenuEntry_OnClicked, MoodKey)
+	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry, MoodKey)
 	[
 		SAssignNew(PortraitIconImage, SImage)
 		.ColorAndOpacity(FSlateColor::UseForeground())
@@ -1897,7 +1942,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 	];
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::MoodKeyMenuEntry_OnClicked(FGameplayTag NewValue)
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue)
 {
 	/*
 	 *
@@ -1915,11 +1960,5 @@ FReply SFlowGraphNode_YapFragmentWidget::MoodKeyMenuEntry_OnClicked(FGameplayTag
 
 	return FReply::Handled();
 }
-
-
-
-
-
-
 
 #undef LOCTEXT_NAMESPACE
