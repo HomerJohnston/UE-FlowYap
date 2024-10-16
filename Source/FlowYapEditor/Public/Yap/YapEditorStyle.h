@@ -4,81 +4,60 @@
 #include "Styling/SlateStyle.h"
 #include "Delegates/IDelegateInstance.h"
 
-struct FYapIcons
-{
-	TSharedPtr<FSlateImageBrush> AudioTime;
-	TSharedPtr<FSlateImageBrush> TextTime;
-	TSharedPtr<FSlateImageBrush> Timer;
-	TSharedPtr<FSlateImageBrush> LocalLimit;
-	TSharedPtr<FSlateImageBrush> Speaker;
-	TSharedPtr<FSlateImageBrush> Tag;
-	TSharedPtr<FSlateImageBrush> DialogueExpand;
-	TSharedPtr<FSlateImageBrush> Edit;
-};
-
-struct FYapBorders
-{
-	TSharedPtr<FSlateBoxBrush> SharpSquare;
-	TSharedPtr<FSlateBoxBrush> DeburredSquare;
-	TSharedPtr<FSlateBoxBrush> RoundedSquare;
-};
-
-struct FYapBoxes
-{
-	TSharedPtr<FSlateBoxBrush> SolidWhite;
-	TSharedPtr<FSlateBoxBrush> SolidWhiteDeburred;
-	TSharedPtr<FSlateBoxBrush> SolidWhiteRounded;
-};
-
-struct FYapImageBrushes
-{
-	FYapIcons Icon;
-	FYapBorders Border;
-	FYapBoxes Box;
-};
-
-struct FYapSliderStyles
-{
-	FSliderStyle FragmentTimePadding;
-};
-
-struct FYapButtonStyles
-{
-	FButtonStyle SequencingSelector;
-	FButtonStyle ActivationLimit;
-};
+// ==============================================
 
 struct FYapStyles
 {
-	FYapImageBrushes ImageBrush;
-	FYapSliderStyles Slider;
-	FYapButtonStyles Button;
+	FName ImageBrush_Icon_AudioTime;
+	FName ImageBrush_Icon_TextTime;
+	FName ImageBrush_Icon_Timer;
+	FName ImageBrush_Icon_LocalLimit;
+	FName ImageBrush_Icon_Speaker;
+	FName ImageBrush_Icon_Tag;
+	FName ImageBrush_Icon_DialogueExpand;
+	FName ImageBrush_Icon_Edit;
+	
+	FName ImageBrush_Border_SharpSquare;
+	FName ImageBrush_Border_DeburredSquare;
+	FName ImageBrush_Border_RoundedSquare;
+	
+	FName ImageBrush_Box_SolidWhite;
+	FName ImageBrush_Box_SolidWhiteDeburred;
+	FName ImageBrush_Box_SolidWhiteRounded;
+
+	FName SliderStyle_FragmentTimePadding;
+
+	FName ButtonStyle_SequencingSelector;
+	FName ButtonStyle_ActivationLimit;
+
+	FName ScrollBarStyle_DialogueBox;
+
+	FName EditableTextBoxStyle_DialogueBox;
 };
+
+extern FYapStyles YapStyles;
 
 class FYapEditorStyle final : public FSlateStyleSet
 {
 public:
-	FYapStyles Styles_Internal;
+	static TArray<TStrongObjectPtr<UTexture2D>> Textures;
 	
-	static FYapStyles& Styles()
-	{
-		return Get().Styles_Internal;
-	}
-
 	static FYapEditorStyle& Get()
 	{
 		static FYapEditorStyle Instance;
 		return Instance;
 	}
+
+	static const FSlateBrush* GetImageBrush(FName BrushName)
+	{
+		return Get().GetBrush(BrushName);
+	}
 	
 	FYapEditorStyle();
-
 	virtual ~FYapEditorStyle() override;
 
-	FDelegateHandle OnPatchCompleteHandle;
-
 protected:
-	void OnPatchComplete();
-
 	void Initialize();
+	void OnPatchComplete();
+	FDelegateHandle OnPatchCompleteHandle;
 };

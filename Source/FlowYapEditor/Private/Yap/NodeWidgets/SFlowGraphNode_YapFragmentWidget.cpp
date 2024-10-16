@@ -141,7 +141,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 	return SNew(SButton)
 	.ButtonColorAndOpacity(YapColor::Gray)
 	.ContentPadding(0)
-	.ButtonStyle(&FYapEditorStyle::Styles().Button.ActivationLimit)
+	//.ButtonStyle(&FYapEditorStyle::Styles().Button.ActivationLimit)
 	.Visibility(Attribute)
 	.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton)
 	.ToolTipText(INVTEXT("Play audio"))
@@ -152,7 +152,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 			SNew(SImage)
 			.DesiredSizeOverride(FVector2D(16, 16))
 			//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Audio"))
-			.Image(FYapEditorStyle::Styles().ImageBrush.Icon.Speaker.Get())
+			//.Image(FYapEditorStyle::Styles().ImageBrush.Icon.Speaker.Get())
 			.ColorAndOpacity(YapColor::LightGray)
 		]
 	];
@@ -375,7 +375,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
 	DialogueEditButtonWidget = SNew(SButton)
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
-	.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
 	[
 		SNew(SOverlay)
@@ -967,7 +967,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 	TitleTextEditButtonWidget = SNew(SButton)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleText_Visibility)
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::TitleText_ToolTipText)
-	.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+	.ButtonStyle(FYapEditorStyle::Get(),YapStyles.ButtonStyle_ActivationLimit)
 	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::TitleTextExpandButton_OnClicked)
 	[
 		SNew(SOverlay)
@@ -1310,13 +1310,14 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					.HAlign(HAlign_Center)
 					[
 						SNew(SImage)
-						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.AudioTime"))
+						.Image(FYapEditorStyle::GetImageBrush(YapStyles.ImageBrush_Icon_AudioTime))
 					]
 				]
 			]
 		]
 	];
 
+	
 	return Box;
 }
 

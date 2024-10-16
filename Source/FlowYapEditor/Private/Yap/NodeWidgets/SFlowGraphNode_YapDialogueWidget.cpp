@@ -345,8 +345,6 @@ FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 {
-	FLinearColor RandomColor = FLinearColor::MakeRandomColor();
-	
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox)
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
@@ -358,14 +356,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	[
 		SNew(SButton)
-		.ButtonStyle(&FYapEditorStyle::Get().Styles().Button.SequencingSelector)
-		.ButtonStyle(FYapEditorStyle::Get(), "Button.SequencingSelector")
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_SequencingSelector)
 		[
 			SNew(STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), "Text.NodeHeader")
 			.Text(this, &SFlowGraphNode_YapDialogueWidget::Text_NodeHeader)
-			//.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader)
-			.ColorAndOpacity(RandomColor)
+			.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader)
 		]
 	]
 	+ SHorizontalBox::Slot()
