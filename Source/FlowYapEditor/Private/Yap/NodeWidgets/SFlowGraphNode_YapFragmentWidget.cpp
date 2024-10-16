@@ -141,7 +141,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 	return SNew(SButton)
 	.ButtonColorAndOpacity(YapColor::Gray)
 	.ContentPadding(0)
-	//.ButtonStyle(&FYapEditorStyle::Styles().Button.ActivationLimit)
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 	.Visibility(Attribute)
 	.IsEnabled(this, &SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton)
 	.ToolTipText(INVTEXT("Play audio"))
@@ -151,8 +151,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(T
 		[
 			SNew(SImage)
 			.DesiredSizeOverride(FVector2D(16, 16))
-			//.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Audio"))
-			//.Image(FYapEditorStyle::Styles().ImageBrush.Icon.Speaker.Get())
+			.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Speaker))
 			.ColorAndOpacity(YapColor::LightGray)
 		]
 	];
@@ -173,7 +172,7 @@ void SFlowGraphNode_YapFragmentWidget::OnActivationLimitChanged(const FText& Tex
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentRowNormalControls() const
 {
-	if (bDialogueExpanded)
+	if (bDialogueExpanded || bTitleTextExpanded)
 	{
 		return EVisibility::Hidden;
 	}
@@ -351,6 +350,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 	}
 	
 	FragmentOverlay->AddSlot()
+	.Padding(-1, 0, -1, 0)
 	[
 		ExpandedDialogueWidget.ToSharedRef()
 	];
@@ -415,7 +415,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		[
 			SNew(SImage)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_DialogueEdit)
-			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+			.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Edit))
 			.ColorAndOpacity(YapColor::White)
 		]
 	];
@@ -429,7 +429,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		.VAlign(VAlign_Fill)
 		[
 			SNew(SBorder)
-			.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapStyles.ImageBrush_Box_SolidWhiteDeburred))
 			.BorderBackgroundColor(YapColor::DeepGray)
 			.ColorAndOpacity(YapColor::White)
 			.Padding(0)
@@ -650,7 +650,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidget(cons
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
 	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
 	.BorderBackgroundColor(YapColor::DarkOrangeRed)
 	.VAlign(VAlign_Center)
 	.HAlign(HAlign_Center)
@@ -857,7 +857,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			SNew(SBorder)
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
-			.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Border.DeburredSquare"))
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_DeburredSquare))
 			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::PortraitImage_BorderBackgroundColor)
 		]
 	]
@@ -1008,7 +1008,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 		[
 			SNew(SImage)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::TitleTextEdit_Visibility)
-			.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Edit"))
+			.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Edit))
 			.ColorAndOpacity(YapColor::White)
 		]
 	];
@@ -1019,7 +1019,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 	+ SOverlay::Slot()
 	[
 		SNew(SBorder)
-		.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+		.BorderImage(FYapEditorStyle::GetImageBrush(YapStyles.ImageBrush_Box_SolidWhiteDeburred))
 		.BorderBackgroundColor(YapColor::DeepGray)
 		.ColorAndOpacity(YapColor::White)
 		.Padding(0)
@@ -1088,6 +1088,7 @@ FReply SFlowGraphNode_YapFragmentWidget::TitleTextExpandButton_OnClicked()
 	}
 	
 	FragmentOverlay->AddSlot()
+	.Padding(-1, 0, -1, 0)
 	[
 		ExpandedTitleTextWidget.ToSharedRef()
 	];
@@ -1262,7 +1263,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					[
 						SNew(SImage)
 						.ColorAndOpacity(FSlateColor::UseForeground())
-						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Timer"))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Timer))
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -1286,7 +1287,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 						SNew(SBox)
 						[
 							SNew(SImage)
-							.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.TextTime"))
+							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_TextTime))
 						]
 					]
 				]
@@ -1310,7 +1311,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					.HAlign(HAlign_Center)
 					[
 						SNew(SImage)
-						.Image(FYapEditorStyle::GetImageBrush(YapStyles.ImageBrush_Icon_AudioTime))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_AudioTime))
 					]
 				]
 			]

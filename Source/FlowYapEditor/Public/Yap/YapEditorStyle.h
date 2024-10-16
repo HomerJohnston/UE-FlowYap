@@ -6,25 +6,28 @@
 
 // ==============================================
 
-struct FYapStyles
+struct FYapBrushes
 {
-	FName ImageBrush_Icon_AudioTime;
-	FName ImageBrush_Icon_TextTime;
-	FName ImageBrush_Icon_Timer;
-	FName ImageBrush_Icon_LocalLimit;
-	FName ImageBrush_Icon_Speaker;
-	FName ImageBrush_Icon_Tag;
-	FName ImageBrush_Icon_DialogueExpand;
-	FName ImageBrush_Icon_Edit;
+	FName Icon_AudioTime;
+	FName Icon_TextTime;
+	FName Icon_Timer;
+	FName Icon_LocalLimit;
+	FName Icon_Speaker;
+	FName Icon_Tag;
+	FName Icon_DialogueExpand;
+	FName Icon_Edit;
 	
-	FName ImageBrush_Border_SharpSquare;
-	FName ImageBrush_Border_DeburredSquare;
-	FName ImageBrush_Border_RoundedSquare;
+	FName Border_SharpSquare;
+	FName Border_DeburredSquare;
+	FName Border_RoundedSquare;
 	
-	FName ImageBrush_Box_SolidWhite;
-	FName ImageBrush_Box_SolidWhiteDeburred;
-	FName ImageBrush_Box_SolidWhiteRounded;
+	FName Box_SolidWhite;
+	FName Box_SolidWhiteDeburred;
+	FName Box_SolidWhiteRounded;
+};
 
+struct FYapStyles
+{	
 	FName SliderStyle_FragmentTimePadding;
 
 	FName ButtonStyle_SequencingSelector;
@@ -32,9 +35,12 @@ struct FYapStyles
 
 	FName ScrollBarStyle_DialogueBox;
 
+	FName TextBlockStyle_Dialogue;
+	
 	FName EditableTextBoxStyle_DialogueBox;
 };
 
+extern FYapBrushes YapBrushes;
 extern FYapStyles YapStyles;
 
 class FYapEditorStyle final : public FSlateStyleSet

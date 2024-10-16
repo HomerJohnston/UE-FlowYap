@@ -15,7 +15,7 @@ public:
 	static TSharedRef<SWidget> CreateTagPreviewWidget(T* Object, FText (T::*TextDelegate)() const, EVisibility (T::*VisibilityDelegate)() const)
 	{
 		return SNew(SBorder)
-		.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
 		.BorderBackgroundColor(YapColor::Transparent)
 		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Center)
@@ -30,7 +30,7 @@ public:
 			[
 				SNew(SImage)
 				.DesiredSizeOverride(FVector2D(16, 16))
-				.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Tag"))
+				.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Tag))
 				.ColorAndOpacity(YapColor::Gray_SemiTrans)
 			]
 			+ SHorizontalBox::Slot()

@@ -806,7 +806,7 @@ FReply SFlowGraphNode_YapDialogueWidget::BottomAddFragmentButton_OnClicked()
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateDialogueTagPreviewWidget() const
 {	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
 	.BorderBackgroundColor(YapColor::DeepGray)
 	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
 	.VAlign(VAlign_Center)
@@ -873,7 +873,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidget(cons
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
 	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
 	.BorderBackgroundColor(YapColor::DarkOrangeRed)
 	.VAlign(VAlign_Center)
 	.HAlign(HAlign_Center)

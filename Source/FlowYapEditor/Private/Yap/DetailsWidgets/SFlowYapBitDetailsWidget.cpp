@@ -352,7 +352,7 @@ TSharedRef<SBox> SFlowYapBitDetailsWidget::CreateActivationLimiterWidget()
 			.Visibility(this, &SFlowYapBitDetailsWidget::ActivationDot_Visibility)
 			[
 				SNew(SButton)
-				.ButtonStyle(FYapEditorStyle::Get(), "ButtonStyle.ActivationLimit")
+				.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 				.ContentPadding(0)
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
@@ -570,7 +570,7 @@ TSharedRef<SWidget> SFlowYapBitDetailsWidget::CreateFragmentTimePaddingWidget()
 				SNew(SProgressBar)
 				.BorderPadding(0)
 				.Percent(this, &SFlowYapBitDetailsWidget::FragmentTimePadding_Percent)
-				.Style(FYapEditorStyle::Get(), "ProgressBarStyle.FragmentTimePadding")
+				.Style(FYapEditorStyle::Get(), YapStyles.SliderStyle_FragmentTimePadding)
 				.FillColorAndOpacity(this, &SFlowYapBitDetailsWidget::FragmentTimePadding_FillColorAndOpacity)
 			]
 		]
@@ -1164,7 +1164,7 @@ TSharedRef<SBox> SFlowYapBitDetailsWidget::CreateBottomRowWidget()
 					[
 						SNew(SImage)
 						.ColorAndOpacity(FSlateColor::UseForeground())
-						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.Timer"))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Timer))
 					]
 				]
 				+ SHorizontalBox::Slot()
@@ -1188,7 +1188,7 @@ TSharedRef<SBox> SFlowYapBitDetailsWidget::CreateBottomRowWidget()
 						SNew(SBox)
 						[
 							SNew(SImage)
-							.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.TextTime"))
+							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_TextTime))
 						]
 					]
 				]
@@ -1212,7 +1212,7 @@ TSharedRef<SBox> SFlowYapBitDetailsWidget::CreateBottomRowWidget()
 					.HAlign(HAlign_Center)
 					[
 						SNew(SImage)
-						.Image(FYapEditorStyle::Get().GetBrush("ImageBrush.Icon.AudioTime"))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_AudioTime))
 					]
 				]
 				+ SHorizontalBox::Slot()

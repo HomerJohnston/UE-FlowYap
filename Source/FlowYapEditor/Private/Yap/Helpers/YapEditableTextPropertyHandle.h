@@ -46,7 +46,7 @@ public:
 
     virtual FText GetToolTipText() const override
     {
-        return INVTEXT("TODO Test");
+        return Text;
         /*return (PropertyHandle->IsValidHandle())
             ? PropertyHandle->GetToolTipText()
             : FText::GetEmpty();*/

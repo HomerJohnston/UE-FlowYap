@@ -12,7 +12,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(const UFlowYapCo
 	FLinearColor Color = IsValid(Condition) ? Condition->GetNodeColor() : YapColor::DeepOrangeRed;
 	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::Get().GetBrush("ImageBrush.Box.SolidWhite.DeburredCorners"))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
 	.BorderBackgroundColor(Color)
 	.VAlign(VAlign_Center)
 	.HAlign(HAlign_Center)

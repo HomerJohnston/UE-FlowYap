@@ -34,6 +34,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/SWidget.h"
 #include "Widgets/Views/SListView.h"
+#include "Yap/YapEditorStyle.h"
 
 class SComboButton;
 class SEditableTextBox;
@@ -51,7 +52,7 @@ struct FSlateBrush;
 class SYapTextPropertyEditableTextBox : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SYapTextPropertyEditableTextBox)
-		: _Style(&FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox"))
+		: _Style(&FYapEditorStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(YapStyles.EditableTextBoxStyle_DialogueBox))
 		, _Font()
 		, _ForegroundColor()
 		, _WrapTextAt(0.0f)
