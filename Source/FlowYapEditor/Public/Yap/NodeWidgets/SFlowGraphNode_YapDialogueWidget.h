@@ -68,6 +68,8 @@ protected:
 	int32 GetDialogueActivationLimit() const;
 	EVisibility InterruptibleToggleIconOff_Visibility() const;
 	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
+	FGameplayTag Value_DialogueTag() const;
+	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
@@ -82,6 +84,8 @@ protected:
 
 	FSlateColor ColorAndOpacity_NodeHeader() const;
 	FText Text_FragmentSequencingButton() const;
+	FReply OnClicked_TogglePlayerPrompt();
+	
 	TSharedRef<SWidget> CreateContentHeader();
 
 	EVisibility			Visibility_FragmentSequencingButton() const;
@@ -120,16 +124,16 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateContentFooter();
 
-	EVisibility			BottomAddFragmentButton_Visibility() const;
-	FReply				BottomAddFragmentButton_OnClicked();
+	EVisibility			Visibility_BottomAddFragmentButton() const;
+	FReply				OnClicked_BottomAddFragmentButton();
 
 	// UNSORTED
 
 	TSharedRef<SWidget> CreateDialogueTagPreviewWidget() const;
-	FText DialogueTagPreview_Text() const;
-	EVisibility DialogueTagPreview_Visibility() const;
+	FText Text_DialogueTagPreview() const;
+	EVisibility Visibility_DialogueTagPreview() const;
 
-	EVisibility ConditionWidgets_Visibility() const;
+	EVisibility Visibility_ConditionWidgets() const;
 	TSharedRef<SWidget> CreateConditionWidgets();
 	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition);
 	

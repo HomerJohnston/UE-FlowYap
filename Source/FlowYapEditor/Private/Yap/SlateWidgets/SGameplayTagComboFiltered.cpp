@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved
 
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
@@ -8,7 +8,9 @@
 #include "Editor.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Yap/FlowYapUtil.h"
+#include "Yap/YapEditorStyle.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredEditorUtilities.h"
+#include "Yap/NodeWidgets/GameplayTagFilteredStyle.h"
 
 #define LOCTEXT_NAMESPACE "GameplayTagCombo"
 
@@ -25,6 +27,11 @@ void SGameplayTagComboFiltered::PrivateRegisterAttributes(FSlateAttributeInitial
 SGameplayTagComboFiltered::SGameplayTagComboFiltered()
 	: TagAttribute(*this)
 {
+}
+
+FSlateColor SGameplayTagComboFiltered::ColorAndOpacity_TagIcon() const
+{
+	return IsValueValid() ? YapColor::Gray_SemiTrans : YapColor::Gray_Glass;
 }
 
 void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
@@ -49,39 +56,45 @@ void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
 	}
 	
 	ChildSlot
+	.Padding(0, 1, 0, 1)
 	[
+		/*
 		SNew(SHorizontalBox) // Extra box to make the combo hug the chip
 						
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
-		[
+		[*/
 			SAssignNew(ComboButton, SComboButton)
-			.ComboButtonStyle(FAppStyle::Get(), "SimpleComboButton") ///.ComboButtonStyle(FGameplayTagFilteredStyle::Get(), "GameplayTags.ComboButton")
+			/*.ComboButtonStyle(FAppStyle::Get(), "SimpleComboButton")*/ .ComboButtonStyle(FGameplayTagFilteredStyle::Get(), "GameplayTags.ComboButton")
 			.HasDownArrow(false)
-			.ContentPadding(FMargin(-3, 0, -3, 0))
+			.ContentPadding(FMargin(3, 0, 3, 0))
 			.IsEnabled(this, &SGameplayTagComboFiltered::IsValueEnabled)
 			.Clipping(EWidgetClipping::OnDemand)
 			.OnMenuOpenChanged(this, &SGameplayTagComboFiltered::OnMenuOpenChanged)
 			.OnGetMenuContent(this, &SGameplayTagComboFiltered::OnGetMenuContent)
 			.ButtonContent()
 			[
-				SNew(SBox)
-				.HAlign(HAlign_Fill)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2, 0, 2, 0)
 				[
-					SNew(SGameplayTagChip)
-					.OnNavigate(InArgs._OnNavigate)
-					.OnMenu(InArgs._OnMenu)
-					.ShowClearButton(this, &SGameplayTagComboFiltered::ShowClearButton)
-					.EnableNavigation(InArgs._EnableNavigation)
-					.Text(this, &SGameplayTagComboFiltered::GetText)
-					.ToolTipText(this, &SGameplayTagComboFiltered::GetToolTipText)
-					.IsSelected(this, &SGameplayTagComboFiltered::IsSelected) 
-					.OnClearPressed(this, &SGameplayTagComboFiltered::OnClearPressed)
-					.OnEditPressed(this, &SGameplayTagComboFiltered::OnEditTag)
-					.OnMenu(this, &SGameplayTagComboFiltered::OnTagMenu)
+					SNew(STextBlock)
+						.Text(this, &SGameplayTagComboFiltered::GetText)
+						.ColorAndOpacity(YapColor::DimGray)
+						.Font(FCoreStyle::GetDefaultFontStyle("Normal", 10))
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(2, -1, -2, 0)
+				[
+					SNew(SImage)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Tag))
+						.ColorAndOpacity(this, &SGameplayTagComboFiltered::ColorAndOpacity_TagIcon)
 				]
 			]
-		]
+		//]
 	];
 }
 
@@ -136,7 +149,7 @@ FText SGameplayTagComboFiltered::GetText() const
 
 	if (TagAttribute.Get() == FGameplayTag::EmptyTag)
 	{
-		return LOCTEXT("GameplayTagCombo", "Pick Tag");
+		return FText::GetEmpty();
 	}
 	
 	return FText::FromString(FlowYapUtil::GetFilteredSubTag(Filter, TagAttribute.Get()));
@@ -340,6 +353,18 @@ bool SGameplayTagComboFiltered::CanPaste() const
 	//FGameplayTag PastedTag = UE::GameplayTagsFiltered::EditorUtilities::GameplayTagTryImportText(PastedText);
 
 	//return PastedTag.IsValid();
+}
+
+bool SGameplayTagComboFiltered::IsValueValid() const
+{
+	FGameplayTag TempTag = TagAttribute.Get();
+
+	if (TempTag.IsValid())
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void SGameplayTagComboFiltered::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)

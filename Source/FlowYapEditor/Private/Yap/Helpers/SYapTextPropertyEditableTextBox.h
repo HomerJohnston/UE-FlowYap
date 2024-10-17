@@ -52,7 +52,7 @@ struct FSlateBrush;
 class SYapTextPropertyEditableTextBox : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SYapTextPropertyEditableTextBox)
-		: _Style(&FYapEditorStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(YapStyles.EditableTextBoxStyle_DialogueBox))
+		: _Style(&FYapEditorStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(YapStyles.EditableTextBoxStyle_Dialogue))
 		, _Font()
 		, _ForegroundColor()
 		, _WrapTextAt(0.0f)

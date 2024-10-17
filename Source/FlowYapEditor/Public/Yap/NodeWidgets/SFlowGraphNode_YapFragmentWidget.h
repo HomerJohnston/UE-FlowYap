@@ -87,6 +87,7 @@ protected:
 
 	FReply OnClicked_DialogueExpandButton();
 	EVisibility Visibility_DialogueEdit() const;
+	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueWidget();
 
@@ -114,15 +115,10 @@ protected:
 	EVisibility			Visibility_ConditionWidgets() const;
 
 	// ---------------------------------------------------
-
-	/*
-	TSharedRef<SWidget>	CreateFragmentTimePaddingWidget();
-	*/
-	
 	TOptional<float>	FragmentTimePadding_Percent() const;
-	float				FragmentTimePadding_Value() const;
+	float				Value_FragmentTimePadding() const;
 	EVisibility			FragmentTimePaddingSlider_Visibility() const;
-	void				FragmentTimePadding_OnValueChanged(float X);
+	void				OnValueChanged_FragmentTimePadding(float X);
 	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
 	FText				FragmentTimePadding_ToolTipText() const;
 
@@ -154,7 +150,7 @@ protected:
 	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
 
 	FText TitleText_ToolTipText() const;
-	EVisibility TitleTextEdit_Visibility() const;
+	EVisibility Visibility_TitleTextEdit() const;
 	FReply TitleTextExpandButton_OnClicked();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
@@ -166,8 +162,8 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTagWidget();
 	
-	FGameplayTag		FragmentTag_Tag() const;
-	void				FragmentTag_OnTagChanged(FGameplayTag GameplayTag);
+	FGameplayTag		Value_FragmentTag() const;
+	void				OnTagChanged_FragmentTag(FGameplayTag GameplayTag);
 
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateBottomRowWidget();

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -61,7 +61,8 @@ public:
 
 	FLOWYAPEDITOR_API SGameplayTagComboFiltered();
 
-	FLOWYAPEDITOR_API void Construct(const FArguments& InArgs);
+	FLOWYAPEDITOR_API FSlateColor ColorAndOpacity_TagIcon() const;
+	void Construct(const FArguments& InArgs);
 
 private:
 
@@ -84,6 +85,7 @@ private:
 	void OnCopyTag(const FGameplayTag TagToCopy) const;
 	void OnPasteTag();
 	bool CanPaste() const;
+	bool IsValueValid() const;
 
 	TSlateAttribute<FGameplayTag> TagAttribute;
 	TArray<FGameplayTag> TagsFromProperty;

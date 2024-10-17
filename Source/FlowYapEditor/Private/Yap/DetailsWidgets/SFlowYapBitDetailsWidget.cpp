@@ -1417,7 +1417,7 @@ FText SFlowYapBitDetailsWidget::AudioAsset_ObjectPathText() const
 
 FString SFlowYapBitDetailsWidget::AudioAsset_ObjectPath() const
 {
-	const TSoftObjectPtr<UObject> Asset = GetFragment()->Bit.GetDialogueAudioAsset<UObject>();
+	const TSoftObjectPtr<UObject> Asset = GetFragment()->Bit.GetDialogueAudioAsset_SoftPtr<UObject>();
 
 	if (!Asset) { return ""; }
 
@@ -1479,7 +1479,7 @@ EFlowYapErrorLevel SFlowYapBitDetailsWidget::AudioAssetErrorLevel() const
 		}		
 	}
 	
-	const TSoftObjectPtr<UObject> Asset = GetFragment()->Bit.GetDialogueAudioAsset<UObject>();
+	const TSoftObjectPtr<UObject> Asset = GetFragment()->Bit.GetDialogueAudioAsset_SoftPtr<UObject>();
 
 	if (Asset)
 	{

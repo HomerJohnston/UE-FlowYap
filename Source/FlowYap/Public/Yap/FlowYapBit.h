@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FlowYapLog.h"
 #include "FlowYapTimeMode.h"
 #include "GameplayTagContainer.h"
 
@@ -79,7 +80,25 @@ public:
 	FText& GetTitleTextMutable() { return TitleText; }
 
 	template<class T>
-	const TSoftObjectPtr<T> GetDialogueAudioAsset() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }
+	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }
+
+	template<class T>
+	const T* GetDialogueAudioAsset() const
+	{
+		if (DialogueAudioAsset.IsValid())
+		{
+			return DialogueAudioAsset.Get();
+		}
+
+		if (DialogueAudioAsset.IsPending())
+		{
+			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
+			UE_LOG(FlowYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
+			return DialogueAudioAsset.LoadSynchronous();
+		}
+
+		return nullptr;
+	}
 
 	const FSlateBrush* GetSpeakerPortraitBrush() const;
 

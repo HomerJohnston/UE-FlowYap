@@ -28,18 +28,28 @@ struct FYapBrushes
 
 struct FYapStyles
 {	
-	FName SliderStyle_FragmentTimePadding;
-
 	FName ButtonStyle_SequencingSelector;
 	FName ButtonStyle_ActivationLimit;
-
+	FName EditableTextBoxStyle_Dialogue;
+	FName EditableTextBoxStyle_TitleText;
+	FName ProgressBarStyle_FragmentTimePadding;
+	FName SliderStyle_FragmentTimePadding;
 	FName ScrollBarStyle_DialogueBox;
-
 	FName TextBlockStyle_Dialogue;
-	
-	FName EditableTextBoxStyle_DialogueBox;
+	FName TextBlockStyle_TitleText;
+	FName TextBlockStyle_NodeHeader;
+	FName TextBlockStyle_NodeSequencing;
 };
 
+struct FYapFonts
+{
+	FSlateFontInfo Font_DialogueText;
+	FSlateFontInfo Font_TitleText;
+	FSlateFontInfo Font_NodeHeader;	
+	FSlateFontInfo Font_NodeSequencing;	
+};
+
+extern FYapFonts YapFonts;
 extern FYapBrushes YapBrushes;
 extern FYapStyles YapStyles;
 
