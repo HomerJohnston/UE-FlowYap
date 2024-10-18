@@ -26,7 +26,7 @@ public:
 	FFlowYapFragment();
 	
 	~FFlowYapFragment();
-	bool CheckConditions() { return true; }
+	bool CheckConditions();
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -119,7 +119,7 @@ public:
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 	FDelegateHandle FragmentTagChildrenFilterDelegateHandle;
 	
-	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
+	static void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String);
 	
 	void SetPaddingToNextFragment(float NewValue) { PaddingToNextFragment = NewValue; }
 
@@ -132,7 +132,9 @@ public:
 	bool GetShowOnEndPin() const { return bShowOnEndPin; }
 
 	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; }
-	
+
+	TArray<TObjectPtr<UFlowYapCondition>>& GetConditionsMutable() { return Conditions; }
+
 	void ResetGUID() { Guid = FGuid::NewGuid(); };
 
 #endif

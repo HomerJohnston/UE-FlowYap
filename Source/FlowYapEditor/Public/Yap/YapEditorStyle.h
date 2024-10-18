@@ -16,29 +16,41 @@ struct FYapBrushes
 	FName Icon_Tag;
 	FName Icon_DialogueExpand;
 	FName Icon_Edit;
+	FName Icon_MoodKeyMissing;
 	
 	FName Border_SharpSquare;
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
 	
+	FName Box_SolidLightGray;
+	FName Box_SolidLightGray_Deburred;
+	FName Box_SolidLightGray_Rounded;
+	
 	FName Box_SolidWhite;
-	FName Box_SolidWhiteDeburred;
-	FName Box_SolidWhiteRounded;
+	FName Box_SolidWhite_Deburred;
+	FName Box_SolidWhite_Rounded;
+	
+	FName Box_SolidRed;
+	FName Box_SolidRed_Deburred;
+	FName Box_SolidRed_Rounded;
+
+	FName Outline_White_Deburred;
 };
 
 struct FYapStyles
 {	
-	FName ButtonStyle_SequencingSelector;
 	FName ButtonStyle_ActivationLimit;
+	FName ButtonStyle_ConditionWidget;
+	FName ButtonStyle_SequencingSelector;
 	FName EditableTextBoxStyle_Dialogue;
 	FName EditableTextBoxStyle_TitleText;
 	FName ProgressBarStyle_FragmentTimePadding;
 	FName SliderStyle_FragmentTimePadding;
 	FName ScrollBarStyle_DialogueBox;
 	FName TextBlockStyle_Dialogue;
-	FName TextBlockStyle_TitleText;
 	FName TextBlockStyle_NodeHeader;
 	FName TextBlockStyle_NodeSequencing;
+	FName TextBlockStyle_TitleText;
 };
 
 struct FYapFonts

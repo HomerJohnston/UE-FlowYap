@@ -3,6 +3,7 @@
 #include "Yap/FlowYapFragment.h"
 
 #include "GameplayTagsManager.h"
+#include "Yap/FlowYapCondition.h"
 #include "Yap/FlowYapProjectSettings.h"
 #include "Yap/FlowYapSubsystem.h"
 
@@ -13,13 +14,33 @@
 #undef LOCTEXT_NAMESPACE
 FFlowYapFragment::FFlowYapFragment()
 {
-	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddRaw(this, &FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle); // TODO is this safe!?
-
+#if WITH_EDITOR
+	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddStatic(&FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle);
+#endif
+	
 	Guid = FGuid::NewGuid();
 }
 
 FFlowYapFragment::~FFlowYapFragment()
 {
+}
+
+bool FFlowYapFragment::CheckConditions()
+{
+	for (TObjectPtr<UFlowYapCondition> Condition : Conditions)
+	{
+		if (!IsValid(Condition))
+		{
+			UE_LOG(FlowYap, Warning, TEXT("Ignoring null condition. Clean this up!")); // TODO more info
+			continue;
+		}
+		if (!Condition->Evaluate())
+		{
+			return false;
+		}
+	}
+	
+	return true;
 }
 
 float FFlowYapFragment::GetPaddingToNextFragment() const
@@ -71,7 +92,7 @@ FName FFlowYapFragment::GetEndPinName()
 }
 
 #if WITH_EDITOR
-void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
+void FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString)
 {
 	if (!PropertyHandle || PropertyHandle->GetProperty()->GetFName() != GET_MEMBER_NAME_CHECKED(FFlowYapFragment, FragmentTag))
 	{

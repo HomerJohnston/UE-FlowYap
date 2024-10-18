@@ -375,7 +375,6 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bRunNex
 void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bRunNext)
 {
 #if WITH_EDITOR
-	UE_LOG(FlowYap, Warning, TEXT("Resetting running fragment index"));
 	RunningFragmentIndex.Reset();
 #endif
 

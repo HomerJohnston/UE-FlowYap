@@ -34,6 +34,11 @@ FSlateColor SGameplayTagComboFiltered::ColorAndOpacity_TagIcon() const
 	return IsValueValid() ? YapColor::Gray_SemiTrans : YapColor::Gray_Glass;
 }
 
+EVisibility SGameplayTagComboFiltered::Visibility_Text() const
+{
+	return IsValueValid() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
 void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
 {
 	TagAttribute.Assign(*this, InArgs._Tag);
@@ -56,7 +61,7 @@ void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
 	}
 	
 	ChildSlot
-	.Padding(0, 1, 0, 1)
+	.Padding(0, 0, 0, 0)
 	[
 		/*
 		SNew(SHorizontalBox) // Extra box to make the combo hug the chip
@@ -80,13 +85,14 @@ void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
 				.Padding(2, 0, 2, 0)
 				[
 					SNew(STextBlock)
-						.Text(this, &SGameplayTagComboFiltered::GetText)
-						.ColorAndOpacity(YapColor::DimGray)
-						.Font(FCoreStyle::GetDefaultFontStyle("Normal", 10))
+					.Visibility(this, &SGameplayTagComboFiltered::Visibility_Text)
+					.Text(this, &SGameplayTagComboFiltered::GetText)
+					.ColorAndOpacity(YapColor::DimGray)
+					.Font(FCoreStyle::GetDefaultFontStyle("Normal", 10))
 				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
-				.Padding(2, -1, -2, 0)
+				.Padding(0, 0, 0, 0)
 				[
 					SNew(SImage)
 						.DesiredSizeOverride(FVector2D(16, 16))

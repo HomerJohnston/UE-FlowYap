@@ -62,6 +62,7 @@ public:
 	FLOWYAPEDITOR_API SGameplayTagComboFiltered();
 
 	FLOWYAPEDITOR_API FSlateColor ColorAndOpacity_TagIcon() const;
+	EVisibility Visibility_Text() const;
 	void Construct(const FArguments& InArgs);
 
 private:

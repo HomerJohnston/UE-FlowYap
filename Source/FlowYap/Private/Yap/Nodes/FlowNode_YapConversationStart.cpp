@@ -24,11 +24,6 @@ void UFlowNode_YapConversationStart::InitializeInstance()
 	// TODO find conversation ends and make sure no unconnected ends?
 
 	IterateDownstreamNodes(this, ConnectedNodes);
-
-	for (UFlowNode* DownstreamNode : ConnectedNodes)
-	{
-		UE_LOG(FlowYap, Warning, TEXT("Conversation start is linked to: %s"), *DownstreamNode->GetNodeTitle().ToString());
-	}
 }
 
 void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes)
@@ -58,7 +53,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 
 void UFlowNode_YapConversationStart::OnActivate()
 {
-	UE_LOG(FlowYap, Warning, TEXT("Conversation started: %s"), *Conversation.ToString());
+	UE_LOG(FlowYap, Verbose, TEXT("Conversation starting: %s"), *Conversation.ToString());
 
 	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->StartConversation(GetFlowAsset(), Conversation);
 }

@@ -119,6 +119,13 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 	GetFlowYapDialogueNodeMutable()->DialogueTag = GameplayTag;
 
 	FFlowYapTransactions::EndModify();
+
+	UpdateGraphNode();
+}
+
+int32 SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
+{
+	return FMath::Max(YAP_MIN_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment());
 }
 
 // ------------------------------------------
@@ -143,8 +150,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	InterruptibleCheckBoxStyle.UndeterminedImage = InterruptibleCheckBoxStyle.UncheckedImage;
 	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
 	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
-	
+
+	const int32 TITLE_LEFT_RIGHT_EXTRA_WIDTH = 44;
+
 	TSharedRef<SWidget> Widget = SNew(SBox)
+	.MaxDesiredWidth(GetMaxNodeWidth() - TITLE_LEFT_RIGHT_EXTRA_WIDTH)
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -166,6 +176,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.HAlign(HAlign_Right)
 		.Padding(2,0,2,0)
 		.AutoWidth()
+		.VAlign(VAlign_Fill)
 		[
 			FFlowYapWidgetHelper::CreateFilteredTagWidget(
 				TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag),
@@ -288,11 +299,9 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIcon_ColorAndOp
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
 	TSharedPtr<SVerticalBox> Content; 
-
-	int32 Width = FMath::Max(YAP_MIN_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UFlowYapProjectSettings::Get()->GetDialogueWidthAdjustment());
 	
 	return SNew(SBox)
-	.WidthOverride(Width)
+	.WidthOverride(GetMaxNodeWidth())
 	[
 		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
@@ -819,6 +828,13 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_FragmentSequencing
 
 EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton() const
 {
+	for (TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget : FragmentWidgets)
+	{
+		if (FragmentWidget->IsBeingEdited())
+		{
+			return EVisibility::Hidden;
+		}
+	}
 	return IsHovered() ? EVisibility::Visible : EVisibility::Hidden;
 }
 
@@ -839,7 +855,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateDialogueTagPreviewWidget() const
 {	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
 	.BorderBackgroundColor(YapColor::DeepGray)
 	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
 	.VAlign(VAlign_Center)
@@ -886,12 +902,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
 	.AnimateWheelScrolling(true)
 	.Orientation(Orient_Horizontal);
 
-	for (const UFlowYapCondition* Condition : GetFlowYapDialogueNode()->GetConditions())
+	for (UFlowYapCondition* Condition : GetFlowYapDialogueNode()->GetConditions())
 	{
 		Box->AddSlot()
 		.Padding(0, 0, 4, 0)
 		[
-			FFlowYapWidgetHelper::CreateConditionWidget(Condition)
+			FFlowYapWidgetHelper::CreateConditionWidget(GetFlowYapDialogueNodeMutable(), Condition)
 		];	
 	}
 	
@@ -906,7 +922,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidget(cons
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
 	
 	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
 	.BorderBackgroundColor(YapColor::DarkOrangeRed)
 	.VAlign(VAlign_Center)
 	.HAlign(HAlign_Center)
@@ -1057,7 +1073,13 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		return;
 	}
+
+	if (GetFlowYapDialogueNode()->SelectedCondition && !GetIsSelected())
+	{
+		///GetFlowYapDialogueNodeMutable()->SelectedCondition = nullptr;
+	}
 	
+	// TODO cleanup
 	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
 
 	bShiftPressed = GEditor->GetEditorSubsystem<UFlowYapEditorSubsystem>()->GetInputTracker()->GetShiftPressed();

@@ -7,6 +7,7 @@
 #include "Yap/FlowYapEngineUtils.h"
 #include "Yap/FlowYapInputTracker.h"
 #include "Yap/FlowYapProjectSettings.h"
+#include "Yap/YapEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -63,7 +64,7 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 {
 	TSharedPtr<FSlateBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
-	return Brush ? Brush->Get() : nullptr;
+	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKeyMissing);
 }
 
 // TODO move these to my editor style
@@ -80,8 +81,6 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ProjectSettings->OnMoodKeysChanged.AddUObject(this, &ThisClass::UpdateMoodKeyIconsMap);
 
 	UpdateMoodKeyIconsMap();
-
-	FCheckBoxStyle asdf;
 
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Green, Green);

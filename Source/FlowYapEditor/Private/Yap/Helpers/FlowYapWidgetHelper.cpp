@@ -1,27 +1,45 @@
 #include "Yap/Helpers/FlowYapWidgetHelper.h"
 
+#include "Graph/FlowGraphEditor.h"
+#include "Graph/FlowGraphUtils.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/FlowYapCondition.h"
 #include "Yap/YapEditorStyle.h"
+#include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
 
-TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(const UFlowYapCondition* Condition)
+TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UFlowYapCondition* Condition)
 {
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "-";
-	FLinearColor Color = IsValid(Condition) ? Condition->GetNodeColor() : YapColor::DeepOrangeRed;
+
+	FLinearColor ButtonColor = IsValid(Condition) ? Condition->GetNodeColor() : YapColor::DeepOrangeRed;
+	FLinearColor TextColor = ButtonColor.GetLuminance() < 0.6 ? YapColor::White : YapColor::Black;
+
+	TWeakObjectPtr<UFlowNode_YapDialogue> DialogueWeakPtr = Dialogue;
+	TWeakObjectPtr<UFlowYapCondition> ConditionWeakPtr = Condition;
 	
-	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
-	.BorderBackgroundColor(Color)
-	.VAlign(VAlign_Center)
-	.HAlign(HAlign_Center)
-	.Padding(4, 0, 4, 0)
+	return SNew(SButton)
+	.ButtonColorAndOpacity(ButtonColor)
+	.ContentPadding(FMargin(4, 0, 4, 0))
+	.ForegroundColor(TextColor)
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
+	.ToolTipText(INVTEXT("Prerequisite for this to run."))
+	.OnClicked(FOnClicked::CreateLambda([=]()
+	{
+		DialogueWeakPtr->SelectedCondition = ConditionWeakPtr.Get();
+		TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(DialogueWeakPtr->GetGraphNode()->GetGraph());
+		if (GraphEditor)
+		{
+			GraphEditor->SelectSingleNode(DialogueWeakPtr->GetGraphNode());
+		}
+		return FReply::Handled();
+	}))
 	[
 		SNew(STextBlock)
-			.Text(FText::FromString(Description))
-			.ColorAndOpacity(YapColor::White)
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+		.Text(FText::FromString(Description))
+		.ColorAndOpacity(FSlateColor::UseForeground())
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
 	];
 }
 
@@ -29,7 +47,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateTagPreviewWidget(TAttribute<FTex
 	TAttribute<EVisibility> Visibility)
 {
 	return SNew(SBorder)
-		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhiteDeburred))
+		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
 		.BorderBackgroundColor(YapColor::Transparent)
 		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Center)

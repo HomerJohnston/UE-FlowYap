@@ -60,6 +60,8 @@ protected:
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
+	void ForceUpdateGraphNode() { UpdateGraphNode(); };
+	
 	// ------------------------------------------
 	// WIDGETS
 protected:
@@ -70,6 +72,7 @@ protected:
 	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
+	int32 GetMaxNodeWidth() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	

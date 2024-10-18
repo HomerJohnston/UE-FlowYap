@@ -43,7 +43,7 @@ protected:
 	bool bRunning;
 
 	bool bShowSettings = false;
-	bool bTitleTextExpanded;
+	bool bTitleTextExpanded = false;
 
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SWidget> CentreDialogueWidget;
@@ -64,6 +64,7 @@ public:
 	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
 	SLATE_END_ARGS()
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
+	bool IsBeingEdited();
 
 	// ------------------------------------------
 	// WIDGETS
@@ -82,8 +83,6 @@ protected:
 	TSharedRef<SWidget> CreateUpperFragmentBar();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
-
-	EVisibility			Visibility_FragmentBottomSection() const;
 
 	FReply OnClicked_DialogueExpandButton();
 	EVisibility Visibility_DialogueEdit() const;
@@ -110,8 +109,6 @@ protected:
 	// ---------------------------------------------------
 	TSharedRef<SWidget> CreateConditionWidgets() const;
 
-	TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition) const;
-	
 	EVisibility			Visibility_ConditionWidgets() const;
 
 	// ---------------------------------------------------
@@ -151,7 +148,7 @@ protected:
 
 	FText TitleText_ToolTipText() const;
 	EVisibility Visibility_TitleTextEdit() const;
-	FReply TitleTextExpandButton_OnClicked();
+	FReply OnClicked_TitleTextExpandButton();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 

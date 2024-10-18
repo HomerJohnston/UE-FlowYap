@@ -3,6 +3,7 @@
 #include "Yap/FlowYapColors.h"
 #include "Yap/YapEditorStyle.h"
 
+class UFlowNode_YapDialogue;
 struct FGameplayTag;
 class UFlowYapCondition;
 
@@ -10,7 +11,7 @@ class FFlowYapWidgetHelper
 {
 public:
 	
-	static TSharedRef<SWidget> CreateConditionWidget(const UFlowYapCondition* Condition);
+	static TSharedRef<SWidget> CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UFlowYapCondition* Condition);
 
 	static TSharedRef<SWidget> CreateTagPreviewWidget(TAttribute<FText> Text, TAttribute<EVisibility> Visibility);
 

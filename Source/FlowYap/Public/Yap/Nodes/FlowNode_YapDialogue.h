@@ -90,6 +90,10 @@ private:
 
 	UPROPERTY()
 	FName BypassPin;
+
+public:
+	UPROPERTY(Transient, VisibleAnywhere, Instanced, SkipSerialization)
+	TObjectPtr<UFlowYapCondition> SelectedCondition;
 #endif
 	
 	// API
