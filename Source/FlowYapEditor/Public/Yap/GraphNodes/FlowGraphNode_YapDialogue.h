@@ -19,13 +19,15 @@ public:
 
 public:
 	FFlowGraphNodeEvent OnYapNodeChanged;
+
+protected:
+	// Fragment GUID, array of pin names for this fragment - basically only used for fragment deletion
+	TMap<FGuid, TArray<FName>> FragmentPins;
 	
 public:
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
 	bool ShowPaletteIconOnNode() const override;
-
-	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 
 	UFlowNode_YapDialogue* GetFlowYapNode() const;
 
@@ -33,14 +35,5 @@ public:
 
 	FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
 
-	void UpdatePinsAfterFragmentInsertion(uint8 InsertionIndex);
-	
-	void UpdatePinsForFragmentDeletion(uint8 FragmentIndex);
-
-	void SwapFragmentPinConnections(uint8 FragmentIndexA, uint8 FragmentIndexB);
-
-	void SwapPinConnections(uint8 OutputIndexA, uint8 OutputIndexB);
-
-protected:
-	uint8 GetBasePinsNum() const;
+	void DeleteFragment(FGuid FragmentGUID);
 };

@@ -25,7 +25,7 @@ FFlowYapFragment::~FFlowYapFragment()
 {
 }
 
-bool FFlowYapFragment::CheckConditions()
+bool FFlowYapFragment::CheckConditions() const
 {
 	for (TObjectPtr<UFlowYapCondition> Condition : Conditions)
 	{
@@ -41,6 +41,12 @@ bool FFlowYapFragment::CheckConditions()
 	}
 	
 	return true;
+}
+
+void FFlowYapFragment::ResetOptionalPins()
+{
+	bShowOnStartPin = false;
+	bShowOnEndPin = false;
 }
 
 float FFlowYapFragment::GetPaddingToNextFragment() const

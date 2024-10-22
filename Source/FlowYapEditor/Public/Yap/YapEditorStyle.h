@@ -9,18 +9,22 @@
 struct FYapBrushes
 {
 	FName Icon_AudioTime;
-	FName Icon_TextTime;
-	FName Icon_Timer;
-	FName Icon_LocalLimit;
-	FName Icon_Speaker;
-	FName Icon_Tag;
 	FName Icon_DialogueExpand;
 	FName Icon_Edit;
+	FName Icon_LocalLimit;
 	FName Icon_MoodKeyMissing;
+	FName Icon_Speaker;
+	FName Icon_Tag;
+	FName Icon_TextTime;
+	FName Icon_Timer;
+	FName Icon_Delete;
+	FName Icon_UpArrow;
+	FName Icon_DownArrow;
+	FName Icon_CrossX;
 	
-	FName Border_SharpSquare;
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
+	FName Border_SharpSquare;
 	
 	FName Box_SolidLightGray;
 	FName Box_SolidLightGray_Deburred;
@@ -41,12 +45,18 @@ struct FYapStyles
 {	
 	FName ButtonStyle_ActivationLimit;
 	FName ButtonStyle_ConditionWidget;
+	FName ButtonStyle_FragmentControls;
 	FName ButtonStyle_SequencingSelector;
+	
 	FName EditableTextBoxStyle_Dialogue;
 	FName EditableTextBoxStyle_TitleText;
+	
 	FName ProgressBarStyle_FragmentTimePadding;
+	
 	FName SliderStyle_FragmentTimePadding;
+	
 	FName ScrollBarStyle_DialogueBox;
+	
 	FName TextBlockStyle_Dialogue;
 	FName TextBlockStyle_NodeHeader;
 	FName TextBlockStyle_NodeSequencing;

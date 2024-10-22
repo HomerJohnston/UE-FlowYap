@@ -30,27 +30,28 @@ struct FLOWYAP_API FFlowYapBit
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UFlowYapCharacter> Character;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
+	UPROPERTY(BlueprintReadOnly, meta=(MultiLine=true))
 	FText DialogueText;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(MultiLine=true))
+	UPROPERTY(BlueprintReadOnly, meta=(MultiLine=true))
 	FText TitleText;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag MoodKey;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	bool bUseProjectDefaultTimeSettings = true;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
+	UPROPERTY(BlueprintReadOnly, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
 	EFlowYapTimeMode TimeMode = EFlowYapTimeMode::AudioTime;
 
+	// TODO is this variable in use? Should I display it?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EFlowYapInterruptible Interruptible = EFlowYapInterruptible::UseProjectDefaults;
 	

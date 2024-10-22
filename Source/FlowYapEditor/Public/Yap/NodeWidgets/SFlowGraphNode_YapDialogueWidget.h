@@ -204,9 +204,9 @@ protected:
 public:
 	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
 
-	const FFlowYapFragment* GetFragment(uint8 FragmentIndex) const;
+	const FFlowYapFragment& GetFragment(uint8 FragmentIndex) const;
 
-	FFlowYapFragment* GetFragmentMutable(uint8 FragmentIndex);
+	FFlowYapFragment& GetFragmentMutable(uint8 FragmentIndex);
 
 	FLinearColor TestColor() const;
 };

@@ -108,11 +108,11 @@ uint8 UFlowNode_YapDialogue::GetNumFragments() const
 	return Fragments.Num();
 }
 
-int16 UFlowNode_YapDialogue::FindFragmentIndex(FFlowYapFragment* InFragment) const
+int16 UFlowNode_YapDialogue::FindFragmentIndex(const FGuid& InFragmentGuid) const
 {
 	for (uint8 i = 0; i < Fragments.Num(); ++i)
 	{
-		if (&Fragments[i] == InFragment)
+		if (Fragments[i].GetGuid() == InFragmentGuid)
 		{
 			return i;
 		}
@@ -233,7 +233,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 			continue;
 		}
 
-		GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, Fragment.GetIndexInDialogue());
+		GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastPrompt(this, FragmentIndex);
  		
 		BroadcastedFragments.Add(FragmentIndex);
 	}
@@ -307,7 +307,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, bool bRunNext)
 	
 	FFlowYapFragment& Fragment = Fragments[FragmentIndex];
 
-	if (TryBroadcastFragment(Fragment))
+	if (TryBroadcastFragment(FragmentIndex))
 	{
 		Fragment.IncrementActivations();
 
@@ -434,8 +434,10 @@ bool UFlowNode_YapDialogue::BypassPinRequired() const
 	return true;
 }
 
-bool UFlowNode_YapDialogue::TryBroadcastFragment(FFlowYapFragment& Fragment)
+bool UFlowNode_YapDialogue::TryBroadcastFragment(uint8 FragmentIndex)
 {
+	const FFlowYapFragment& Fragment = GetFragmentByIndex(FragmentIndex);
+	
 	if (!Fragment.CheckConditions())
 	{
 		return false;
@@ -446,29 +448,23 @@ bool UFlowNode_YapDialogue::TryBroadcastFragment(FFlowYapFragment& Fragment)
 		return false;
 	}
 	
-	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueStart(this, Fragment.GetIndexInDialogue());
+	GetWorld()->GetSubsystem<UFlowYapSubsystem>()->BroadcastDialogueStart(this, FragmentIndex);
 
 	return true;
 }
 
-const FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndex(int16 Index) const
+const FFlowYapFragment& UFlowNode_YapDialogue::GetFragmentByIndex(uint8 Index) const
 {
-	if (!Fragments.IsValidIndex(Index))
-	{
-		return nullptr;
-	}
-	
-	return &Fragments[Index];
+	check(Fragments.IsValidIndex(Index));
+
+	return Fragments[Index];
 }
 
-FFlowYapFragment* UFlowNode_YapDialogue::GetFragmentByIndexMutable(int16 Index)
+FFlowYapFragment& UFlowNode_YapDialogue::GetFragmentByIndexMutable(uint8 Index)
 {
-	if (!Fragments.IsValidIndex(Index))
-	{
-		return nullptr;
-	}
-	
-	return &Fragments[Index];
+	check (Fragments.IsValidIndex(Index))
+
+	return Fragments[Index];
 }
 
 TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
@@ -476,19 +472,9 @@ TArray<FFlowYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
 	return Fragments;
 }
 
-void UFlowNode_YapDialogue::AddFragment()
+void UFlowNode_YapDialogue::RemoveFragment(int32 Index)
 {
-	InsertFragment(Fragments.Num());
-
-	/*
-	FFlowYapFragment NewFragment;
-
-	Fragments.Emplace(NewFragment);
-
-	UpdateFragmentIndices();
-
-	OnReconstructionRequested.ExecuteIfBound();
-	*/
+	Fragments.RemoveAt(Index);
 }
 
 FText UFlowNode_YapDialogue::GetNodeTitle() const
@@ -629,7 +615,7 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 	{
 		UE_LOG(FlowYap, Error, TEXT("Invalid deletion index!"));
 	}
-	
+
 	Fragments.RemoveAt(DeleteIndex);
 
 	UpdateFragmentIndices();
@@ -637,35 +623,42 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 	OnReconstructionRequested.ExecuteIfBound();
 }
 
-void UFlowNode_YapDialogue::InsertFragment(uint8 Index)
+void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 {
 	if (Fragments.Num() >= 255)
 	{
+		// TODO nicer logging
+		UE_LOG(FlowYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
 		return;
+	}
+
+	if (InsertionIndex == INDEX_NONE)
+	{
+		InsertionIndex = Fragments.Num();
 	}
 
 	FFlowYapFragment NewFragment;
 
-	if (Index > 0 || Index >= Fragments.Num())
+	if (InsertionIndex > 0 || InsertionIndex >= Fragments.Num()) // TODO this looks messed up, wtf?
 	{
-		uint8 PreviousFragmentIndex = Index - 1;
+		uint8 PreviousFragmentIndex = InsertionIndex - 1;
 
 		if (Fragments.IsValidIndex(PreviousFragmentIndex))
 		{
-			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(PreviousFragmentIndex)->GetBit().GetCharacterMutable());
+			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(PreviousFragmentIndex).GetBit().GetCharacterMutable());
 		}
 	}
 	else
 	{
-		uint8 NextFragmentIndex = Index + 1;
+		uint8 NextFragmentIndex = InsertionIndex + 1;
 
 		if (Fragments.IsValidIndex(NextFragmentIndex))
 		{
-			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(NextFragmentIndex)->GetBit().GetCharacterMutable());
+			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(NextFragmentIndex).GetBit().GetCharacterMutable());
 		}
 	}
 	
-	Fragments.Insert(NewFragment, Index);
+	Fragments.Insert(NewFragment, InsertionIndex);
 
 	UpdateFragmentIndices();
 
@@ -687,7 +680,7 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 	UpdateFragmentIndices();
 
-	//OnReconstructionRequested.ExecuteIfBound();
+	OnReconstructionRequested.ExecuteIfBound();
 }
 
 int32 UFlowNode_YapDialogue::GetFragmentIndex(const FGuid& Guid) const
@@ -750,6 +743,7 @@ void UFlowNode_YapDialogue::PostEditImport()
 	for (FFlowYapFragment& Fragment : Fragments)
 	{
 		Fragment.ResetGUID();
+		Fragment.ResetOptionalPins();
 	}
 }
 

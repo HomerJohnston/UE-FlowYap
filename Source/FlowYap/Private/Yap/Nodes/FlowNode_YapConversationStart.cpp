@@ -68,8 +68,6 @@ void UFlowNode_YapConversationStart::ExecuteInput(const FName& PinName)
 void UFlowNode_YapConversationStart::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	UE_LOG(FlowYap, Warning, TEXT("PECP on start node"));
 }
 
 #undef LOCTEXT_NAMESPACE

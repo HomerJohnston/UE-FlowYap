@@ -127,8 +127,8 @@ void UFlowYapSubsystem::EndCurrentConversation()
 void UFlowYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGuid DialogueGUID = Dialogue->GetGuid();
-	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
-	const FFlowYapBit& Bit = Fragment->GetBit();
+	FFlowYapFragment& Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
+	const FFlowYapBit& Bit = Fragment.GetBit();
 
 	FGameplayTag ConversationName;
 
@@ -149,8 +149,8 @@ void UFlowYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 F
 void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGuid DialogueGUID = Dialogue->GetGuid();
-	FFlowYapFragment* Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
-	const FFlowYapBit& Bit = Fragment->GetBit();
+	FFlowYapFragment& Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
+	const FFlowYapBit& Bit = Fragment.GetBit();
 
 	FGameplayTag ConversationName;
 
@@ -168,7 +168,7 @@ void UFlowYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, 
 
 void UFlowYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
 {
-	const FFlowYapBit& Bit = OwnerDialogue->GetFragmentByIndex(FragmentIndex)->GetBit();
+	const FFlowYapBit& Bit = OwnerDialogue->GetFragmentByIndex(FragmentIndex).GetBit();
 
 	FGameplayTag ConversationName;
 

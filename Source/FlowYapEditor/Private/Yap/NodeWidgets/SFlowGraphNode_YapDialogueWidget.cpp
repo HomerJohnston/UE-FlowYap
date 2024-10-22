@@ -564,9 +564,7 @@ FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(uint8 Index
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueAddFragment", "Add Fragment"), GetFlowYapDialogueNodeMutable());
 
-	GetFlowYapDialogueNodeMutable()->InsertFragment(Index);
-
-	FlowGraphNode_YapDialogue->UpdatePinsAfterFragmentInsertion(Index);
+	GetFlowYapDialogueNodeMutable()->AddFragment(Index);
 
 	UpdateGraphNode();
 
@@ -646,14 +644,9 @@ EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility(
 		return EVisibility::Collapsed;
 	}
 	
-	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
+	const FFlowYapFragment& Fragment = GetFragment(FragmentIndex);
 
-	if (Fragment)
-	{
-		return Fragment->GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
-	}
-
-	return EVisibility::Collapsed;
+	return Fragment.GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const
@@ -663,21 +656,16 @@ EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(ui
 		return EVisibility::Collapsed;
 	}
 		
-	const FFlowYapFragment* Fragment = GetFragment(FragmentIndex);
+	const FFlowYapFragment& Fragment = GetFragment(FragmentIndex);
 
-	if (Fragment)
-	{
-		return Fragment->GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
-	}
-
-	return EVisibility::Collapsed;
+	return Fragment.GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 FReply SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked(uint8 FragmentIndex)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnStart Pin"), GetFlowYapDialogueNodeMutable());
 
-	GetFragmentMutable(FragmentIndex)->bShowOnStartPin = true;
+	GetFragmentMutable(FragmentIndex).bShowOnStartPin = true;
 
 	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
 
@@ -690,7 +678,7 @@ FReply SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked(uint8 Fr
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNodeMutable());
 	
-	GetFragmentMutable(FragmentIndex)->bShowOnEndPin = true;
+	GetFragmentMutable(FragmentIndex).bShowOnEndPin = true;
 
 	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
 
@@ -938,8 +926,6 @@ void SFlowGraphNode_YapDialogueWidget::DeleteFragment(uint8 FragmentIndex)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("DialogueDeleteFragment", "Delete Fragment"), GetFlowYapDialogueNodeMutable());
 
-	FlowGraphNode_YapDialogue->UpdatePinsForFragmentDeletion(FragmentIndex);
-
 	GetFlowYapDialogueNodeMutable()->DeleteFragmentByIndex(FragmentIndex);
 
 	UpdateGraphNode();
@@ -967,9 +953,6 @@ void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 B
 {
 	GetFlowYapDialogueNodeMutable()->SwapFragments(FragmentIndex, FragmentIndex + By);
 	
-	FlowGraphNode_YapDialogue->SwapFragmentPinConnections(FragmentIndex, FragmentIndex + By);
-
-
 	if (FocusedFragmentIndex.IsSet())
 	{
 		FocusedFragmentIndex = FocusedFragmentIndex.GetValue() + By;
@@ -1195,6 +1178,7 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 
 			if (Index < 0)
 			{
+				// TODO this still happens upon copy pasting a node.
 				UE_LOGFMT(FlowYap, Warning, "Invalid output pin name: {0}", PinName);
 				return;
 			}
@@ -1294,12 +1278,12 @@ void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
 	this->AddPin(NewPin.ToSharedRef());
 }
 
-const FFlowYapFragment* SFlowGraphNode_YapDialogueWidget::GetFragment(uint8 FragmentIndex) const
+const FFlowYapFragment& SFlowGraphNode_YapDialogueWidget::GetFragment(uint8 FragmentIndex) const
 {
 	return GetFlowYapDialogueNode()->GetFragmentByIndex(FragmentIndex);
 }
 
-FFlowYapFragment* SFlowGraphNode_YapDialogueWidget::GetFragmentMutable(uint8 FragmentIndex)
+FFlowYapFragment& SFlowGraphNode_YapDialogueWidget::GetFragmentMutable(uint8 FragmentIndex)
 {
 	return GetFlowYapDialogueNodeMutable()->GetFragmentByIndexMutable(FragmentIndex);
 }

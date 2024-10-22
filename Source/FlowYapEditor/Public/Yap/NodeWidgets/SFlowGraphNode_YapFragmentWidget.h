@@ -17,6 +17,12 @@ struct FGameplayTag;
 
 enum class EFlowYapErrorLevel : uint8;
 
+enum class EYapFragmentControlsDirection : uint8
+{
+	Up,
+	Down,
+};
+
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
 	// ------------------------------------------
@@ -46,6 +52,8 @@ protected:
 	bool bTitleTextExpanded = false;
 
 	TSharedPtr<SBox> CentreBox;
+	TSharedPtr<SOverlay> FragmentWidgetOverlay;
+	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
 	TSharedPtr<SWidget> CentreDialogueWidget;
 	TSharedPtr<SWidget> CentreSettingsWidget;
 	TSharedPtr<SWidget> CreateCentreDialogueWidget();
@@ -72,7 +80,11 @@ protected:
 	EVisibility Visibility_UpperFragmentBar() const;
 	int32 GetFragmentActivationCount() const;
 	int32 GetFragmentActivationLimit() const;
-
+	EVisibility Visibility_FragmentControlsWidget() const;
+	EVisibility Visibility_FragmentShiftWidget(EYapFragmentControlsDirection YapFragmentControlsDirection) const;
+	FReply OnClicked_FragmentShift(EYapFragmentControlsDirection YapFragmentControlsDirection);
+	FReply OnClicked_FragmentDelete();
+	TSharedRef<SWidget> CreateFragmentControlsWidget();
 	TSharedRef<SWidget> CreateAudioPreviewWidget();
 	bool Enabled_AudioPreviewButton() const;
 	TSharedRef<SWidget> CreateAudioPreviewWidget(TAttribute<EVisibility> Attribute);
@@ -201,7 +213,7 @@ protected:
 protected:
 	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
 
-	FFlowYapFragment* GetFragment() const;
+	FFlowYapFragment& GetFragment() const;
 
 	bool FragmentFocused() const;
 

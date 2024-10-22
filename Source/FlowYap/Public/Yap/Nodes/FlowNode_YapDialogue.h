@@ -41,31 +41,31 @@ public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
-protected:	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FFlowYapFragment> Fragments;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
+protected:		
+	UPROPERTY(BlueprintReadOnly, AdvancedDisplay)
 	bool bIsPlayerPrompt;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	UPROPERTY(BlueprintReadOnly, AdvancedDisplay, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 NodeActivationLimit;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay, meta = (EditCondition = "!bIsPlayerPrompt", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, AdvancedDisplay, meta = (EditCondition = "!bIsPlayerPrompt", EditConditionHides))
 	EFlowYapMultipleFragmentSequencing FragmentSequencing;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, AdvancedDisplay)
+	UPROPERTY(BlueprintReadOnly, AdvancedDisplay)
 	EFlowYapInterruptible Interruptible;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
 
 	UPROPERTY(EditAnywhere, Instanced)
 	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FFlowYapFragment> Fragments;
+	
 	// STATE
 protected:
-	UPROPERTY(VisibleAnywhere, Transient, BlueprintReadOnly)
+	UPROPERTY(Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
 
 	UPROPERTY()
@@ -116,7 +116,7 @@ public:
 
 	uint8 GetNumFragments() const;
 
-	int16 FindFragmentIndex(FFlowYapFragment* Fragment) const;
+	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
 
 	FFlowYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
 	
@@ -136,7 +136,7 @@ public:
 
 	EFlowYapInterruptible GetInterruptibleSetting() const;
 	
-	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; };
+	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; }
 
 protected:
 	void BroadcastPrompts();
@@ -155,17 +155,17 @@ protected:
 	bool BypassPinRequired() const;
 	
 protected:
-	bool TryBroadcastFragment(FFlowYapFragment& Fragment);
+	bool TryBroadcastFragment(uint8 FragmentIndex);
 
 #if WITH_EDITOR
 public:
-	const FFlowYapFragment* GetFragmentByIndex(int16 Index) const;
+	const FFlowYapFragment& GetFragmentByIndex(uint8 Index) const;
 	
-	FFlowYapFragment* GetFragmentByIndexMutable(int16 Index);
+	FFlowYapFragment& GetFragmentByIndexMutable(uint8 Index);
 	
 	TArray<FFlowYapFragment>& GetFragmentsMutable();
 	
-	void AddFragment();
+	void RemoveFragment(int32 Index);
 
 	FText GetNodeTitle() const override;
 	
@@ -195,7 +195,7 @@ public:
 	
 	void DeleteFragmentByIndex(int16 DeleteIndex);
 	
-	void InsertFragment(uint8 Index);
+	void AddFragment(int32 InsertionIndex = INDEX_NONE);
 	
 	void UpdateFragmentIndices();
 

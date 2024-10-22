@@ -26,7 +26,8 @@ public:
 	FFlowYapFragment();
 	
 	~FFlowYapFragment();
-	bool CheckConditions();
+	bool CheckConditions() const;
+	void ResetOptionalPins();
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -42,16 +43,16 @@ protected:
 	FFlowYapBit Bit;
 
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	UPROPERTY(BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	int32 ActivationLimit = 0;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	FGameplayTag FragmentTag;
 	
-	UPROPERTY(EditAnywhere, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	UPROPERTY(meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
 	float PaddingToNextFragment = 0;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	TOptional<uint8> CommonPaddingSetting;
 
 	UPROPERTY(EditAnywhere)
@@ -66,10 +67,11 @@ protected:
 	// ==========================================
 	// STATE
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// TODO should this be serialized or transient
+	UPROPERTY(BlueprintReadOnly)
 	uint8 IndexInDialogue = 0; 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Transient)
 	int32 ActivationCount = 0;
 
 	UPROPERTY(VisibleAnywhere)
