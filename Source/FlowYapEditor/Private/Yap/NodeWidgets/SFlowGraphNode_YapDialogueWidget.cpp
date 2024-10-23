@@ -1265,7 +1265,7 @@ void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
 
 	TArray<FName> NormalPins;
 	
-	if (GetFlowYapDialogueNode()->OptionalPins.Contains(PinName))
+	if (GetFlowYapDialogueNode()->OnStartPins.Contains(PinName) || GetFlowYapDialogueNode()->OnEndPins.Contains(PinName))
 	{
 		NewPin = SNew(SFlowYapGraphPinExec, Pin);
 	}

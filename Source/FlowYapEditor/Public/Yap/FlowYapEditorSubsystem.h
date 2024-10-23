@@ -8,6 +8,7 @@
 
 class UFlowYapCharacter;
 class FFlowYapInputTracker;
+struct FFlowYapFragment;
 
 struct FCheckBoxStyles
 {
@@ -57,4 +58,6 @@ public:
 	static const FCheckBoxStyles& GetCheckBoxStyles();
 
 	FFlowYapInputTracker* GetInputTracker();
+
+	TMap<TWeakPtr<FFlowYapFragment>, TArray<FName>> FragmentPins;
 };

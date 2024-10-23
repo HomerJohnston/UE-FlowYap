@@ -16,7 +16,4 @@ class FLOWYAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrar
 {
 	GENERATED_BODY()
 
-public:
-	UFUNCTION(BlueprintCallable, Category = "Yap")
-	static void SelectPrompt(FYapPromptHandle Handle);
 };

@@ -527,22 +527,14 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 {
 	FragmentPinMap.Empty();
-	OutPin = NAME_None;
 	OnStartPins.Empty();
 	OnEndPins.Empty();
-	OptionalPins.Empty();
-	BypassPin = NAME_None;
 
 	TArray<FFlowPin> ContextOutputPins;
 
 	if (bIsPlayerPrompt)
 	{
 		OutputPins.Remove(FName("Out"));
-		OutPin = "";
-	}
-	else
-	{
-		OutPin = "Out";
 	}
 
 	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
@@ -554,8 +546,7 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 			ContextOutputPins.Add(PinName);
-
-			OptionalPins.Add(PinName);
+			
 			OnEndPins.Add(PinName);
 		}
 		
@@ -565,7 +556,6 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
 			ContextOutputPins.Add(PinName);
 			FragmentPinMap.Add(PinName, Fragment.GetGuid());
 
-			OptionalPins.Add(PinName);
 			OnStartPins.Add(PinName);
 		}
 
@@ -601,7 +591,7 @@ void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
 	uint8 AsInt = static_cast<uint8>(FragmentSequencing);
 
-	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::Prompt))
+	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
 	{
 		AsInt = 0;
 	}

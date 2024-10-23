@@ -143,7 +143,9 @@ public:
 
 	int32 GetDialogueWidthAdjustment() const;
 
+#if WITH_EDITOR
 	int32 GetPortraitSize() const { return PortraitSize; }
+#endif
 	
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
 
@@ -167,7 +169,7 @@ public:
 	
 #if WITH_EDITOR
 public:
-	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime?
+	TSubclassOf<UFlowYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime? What if I replace text on a node??? need to recalculate it. So probably yes.
 	
 	TSubclassOf<UFlowYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
 
