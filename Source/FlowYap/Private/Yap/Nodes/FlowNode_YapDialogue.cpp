@@ -527,44 +527,30 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
-	FragmentPinMap.Empty();
-	OnStartPins.Empty();
-	OnEndPins.Empty();
-
 	TArray<FFlowPin> ContextOutputPins;
 
 	if (!bIsPlayerPrompt)
 	{
-		OutputPins.Remove(FName("Out"));
+		ContextOutputPins.Add(FName("Out"));
 	}
 
 	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
 	{
-		FFlowYapFragment& Fragment = Fragments[Index];
+		const FFlowYapFragment& Fragment = Fragments[Index];
 		
 		if (Fragment.GetShowOnEndPin())
 		{
-			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
-			ContextOutputPins.Add(PinName);
-			
-			OnEndPins.Add(PinName);
+			ContextOutputPins.Add(Fragment.GetEndPin());
 		}
 		
 		if (Fragment.GetShowOnStartPin())
 		{
-			FName PinName = FName("FragmentStart_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(PinName);
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
-
-			OnStartPins.Add(PinName);
+			ContextOutputPins.Add(Fragment.GetStartPin());
 		}
 
 		if (GetIsPlayerPrompt())
 		{
-			FName PinName = FName("PromptOut_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(PinName);
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
+			ContextOutputPins.Add(Fragment.GetPromptPin());
 		}
 	}
 	

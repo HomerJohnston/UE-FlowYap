@@ -7,6 +7,7 @@
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Logging/StructuredLog.h"
+#include "Math/BigInt.h"
 #include "Widgets/Images/SLayeredImage.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapColors.h"
@@ -398,7 +399,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	.Padding(4, 0, 0, 0)
 	[
-		SAssignNew(DialogueInputBoxArea, SVerticalBox)
+		SAssignNew(DialogueInputBoxArea, SBox)
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
@@ -467,7 +468,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	.Padding(0, 0, 4, 0)
 	[
-		SAssignNew(DialogueOutputBoxArea, SVerticalBox)
+		SAssignNew(DialogueOutputBoxArea, SBox)
 	];
 
 	return Box;
@@ -1080,144 +1081,11 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 	return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
 }
 
-void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
-{
-	if (GetFlowYapDialogueNodeMutable()->GetFragments().Num() == 0)
-	{
-		return;
-	}
-
-	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
-
-	if (!GraphEditor)
-	{
-		return;
-	}
-
-	PinToAdd->SetOwner(SharedThis(this));
-	PinToAdd->SetShowLabel(false);
-	
-	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
-	const bool bAdvancedParameter = (PinObj != nullptr) && PinObj->bAdvancedView;
-	if (bAdvancedParameter)
-	{
-		PinToAdd->SetVisibility( TAttribute<EVisibility>(PinToAdd, &SGraphPin::IsPinVisibleAsAdvanced) );
-	}
-	
-	FName PinName = PinToAdd->GetPinObj()->GetFName();
-	
-	if (PinName == FName("In"))
-	{
-		AddInPin(PinToAdd);
-		InputPins.Add(PinToAdd);
-	}
-	else if (PinName == FName("Out"))
-	{
-		AddOutPin(PinToAdd);
-		OutputPins.Add(PinToAdd);
-	}
-	else if (PinName == FName("Bypass"))
-	{
-		AddBypassPin(PinToAdd);
-		OutputPins.Add(PinToAdd);
-	}
-	else
-	{
-		// TODO
-		const FGuid* FragmentGuid = nullptr;// GetFlowYapDialogueNode()->FragmentPinMap.Find(PinName);
-
-		if (!FragmentGuid)
-		{
-			UE_LOGFMT(FlowYap, Warning, "Could not find fragment for pin: {0}", PinName);
-			return;
-		}
-		
-		int32 Index = GetFlowYapDialogueNode()->GetFragmentIndex(*FragmentGuid);
-
-		if (Index < 0)
-		{
-			// TODO this still happens upon copy pasting a node.
-			UE_LOGFMT(FlowYap, Warning, "Invalid output pin name: {0}", PinName);
-			return;
-		}
-
-		AddFragmentPin(PinToAdd, Index);
-		OutputPins.Add(PinToAdd);
-	}
-}
-
-void SFlowGraphNode_YapDialogueWidget::AddInPin(const TSharedRef<SGraphPin> PinToAdd)
-{
-	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
-		
-	DialogueInputBoxArea->AddSlot()
-	[
-		PinToAdd
-	];
-
-	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "In"));
-}
-
-void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& PinToAdd)
-{
-	DialogueOutputBoxArea->AddSlot()
-	[
-		PinToAdd
-	];
-	
-	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
-	PinToAdd->SetColorAndOpacity(YapColor::White);
-}
-
 void SFlowGraphNode_YapDialogueWidget::AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd)
 {
 	BypassOutputBox->SetContent(PinToAdd);
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Bypass, triggers instead of normal outputs if this node has reached activation limits"));
 	PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? ConnectedBypassPinColor : DisconnectedBypassPinColor);
-}
-
-void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin>& PinToAdd, int32 FragmentIndex)
-{
-	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
-	
-	EVerticalAlignment Alignment = VAlign_Bottom;
-	int BottomPadding; 
-
-	FName PinName = PinObj->GetFName();
-
-	FString PinNameString = PinName.ToString();
-	
-	if (PinNameString.StartsWith("Start_"))
-	{
-		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
-		PinToAdd->SetToolTipText(INVTEXT("On Start"));
-		BottomPadding = 4;
-	}
-	else if (PinNameString.StartsWith("End_"))
-	{
-		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
-		PinToAdd->SetToolTipText(INVTEXT("On End, runs before any end-padding time begins"));
-		BottomPadding = 24;
-	}
-	else
-	{
-		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
-		PinToAdd->SetToolTipText(INVTEXT("Prompt Out"));
-		Alignment = VAlign_Top;
-		BottomPadding = 44;
-	}
-
-	TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget = FragmentWidgets[FragmentIndex];
-
-	TSharedPtr<SVerticalBox> Box = FragmentWidget->GetPinContainer();
-
-	Box->AddSlot()
-	.HAlign(HAlign_Right)
-	.VAlign(Alignment)
-	.Padding(0, 0, 4, BottomPadding)
-	[
-		PinToAdd
-	];
 }
 
 void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
@@ -1229,6 +1097,8 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 	
 	TMap<FFlowPin, int32> PinFragmentIndices;
 
+	TSet<FFlowPin> PromptOutPins;
+	
 	for (int32 i = 0; i < GetFlowYapDialogueNode()->GetFragments().Num(); ++i)
 	{
 		const FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragments()[i];
@@ -1257,10 +1127,12 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 
 			FragmentPins[i].Add(PromptPin);
 			PinFragmentIndices.Add(PromptPin, i);
+			PromptOutPins.Add(PromptPin);
 		}
 	}
 	
-	if (GetFlowYapDialogueNode()->OnStartPins.Contains(PinName) || GetFlowYapDialogueNode()->OnEndPins.Contains(PinName))
+	// Create Pin widgets for each of the pins.
+	for (int32 PinIndex = 0; PinIndex < GraphNode->Pins.Num(); ++PinIndex)
 	{
 		UEdGraphPin* Pin = GraphNode->Pins[PinIndex];
 
@@ -1275,21 +1147,23 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 		{
 			continue;
 		}
-		
-		const TSharedPtr<SGraphPin> NewPin = SNew(SFlowGraphPinExec, Pin);
+				
+		const TSharedRef<SGraphPin> NewPinRef = SNew(SFlowGraphPinExec, Pin);
 
-		const TSharedRef<SGraphPin>& NewPinRef = NewPin.ToSharedRef();
-
-		if (OptionalPins.Contains(Pin->GetFName()))
-		{
-			if (TSharedPtr<SLayeredImage> PinImage = StaticCastSharedPtr<SLayeredImage>(NewPin->GetPinImageWidget()))
-			{
-				PinImage->SetLayerBrush(0, FYapEditorStyle::GetImageBrush(YapBrushes.Pin_OptionalOutput));
-			}
-		}
-		
 		NewPinRef->SetOwner(SharedThis(this));
 		NewPinRef->SetShowLabel(false);
+		NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? ConnectedBypassPinColor : DisconnectedBypassPinColor);
+		
+		if (OptionalPins.Contains(Pin->GetFName()))
+		{
+			if (TSharedPtr<SLayeredImage> PinImage = StaticCastSharedPtr<SLayeredImage>(NewPinRef->GetPinImageWidget()))
+			{
+				PinImage->SetLayerBrush(0, FYapEditorStyle::GetImageBrush(YapBrushes.Pin_OptionalOutput));
+				NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? YapColor::White : YapColor::Red);
+			}
+		}
+
+		NewPinRef->SetPadding(FMargin(0, 0, 8, 0));
 
 		const bool bAdvancedParameter = Pin && Pin->bAdvancedView;
 		if (bAdvancedParameter)
@@ -1297,38 +1171,24 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			NewPinRef->SetVisibility(TAttribute<EVisibility>(NewPinRef, &SGraphPin::IsPinVisibleAsAdvanced));
 		}
 
-		TSharedPtr<SVerticalBox> OutputBox = DialogueOutputBoxArea;
+		TSharedPtr<SBox> OutputBox = DialogueOutputBoxArea;
 
 		int32* FragmentIndex = PinFragmentIndices.Find(Pin->GetFName());
 
 		if (FragmentIndex)
 		{
-			OutputBox = FragmentWidgets[*FragmentIndex]->PinContainer;
+			OutputBox = FragmentWidgets[*FragmentIndex]->GetPinContainer(Pin->GetFName());
 		}
 		
 		if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 		{
-			DialogueInputBoxArea->AddSlot()
-			.AutoHeight()
-			.HAlign(HAlign_Left)
-			.VAlign(VAlign_Center)
-			.Padding(Settings->GetInputPinPadding())
-			[
-				NewPinRef
-			];
+			DialogueInputBoxArea->SetContent(NewPinRef);
 			
 			InputPins.Add(NewPinRef);
 		}
 		else // Direction == EEdGraphPinDirection::EGPD_Output
 		{
-			OutputBox->AddSlot()
-			.AutoHeight()
-			.HAlign(HAlign_Right)
-			.VAlign(VAlign_Center)
-			.Padding(Settings->GetOutputPinPadding())
-			[
-				NewPinRef
-			];
+			OutputBox->SetContent(NewPinRef);
 			
 			OutputPins.Add(NewPinRef);
 		}

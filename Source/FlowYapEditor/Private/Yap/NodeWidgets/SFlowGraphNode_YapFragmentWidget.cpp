@@ -1692,20 +1692,29 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	}
 }
 
-TSharedRef<SVerticalBox> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 {
-	PinContainer = SNew(SVerticalBox);
-
-	if (UFlowYapProjectSettings::Get()->ShowPinEnableButtons())
-	{
-		PinContainer->AddSlot()
+	return SNew(SVerticalBox)
+	+ SVerticalBox::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Top)
+	.Padding(4, 0, 2, 0)
+	[
+		SAssignNew(PromptOutPinBox, SBox)
+	]
+	+ SVerticalBox::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Bottom)
+	.Padding(4, 0, 2, 0)
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
 		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Bottom)
-		.Padding(4, 0, 2, 6)
+		.VAlign(VAlign_Center)
 		[
 			SNew(SBox)
-			.WidthOverride(10)
-			.HeightOverride(10)
+			.WidthOverride(16)
+			.HeightOverride(16)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
 			[
 				SNew(SButton)
@@ -1713,16 +1722,29 @@ TSharedRef<SVerticalBox> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPa
 				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 				.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
 			]
-		];
-
-		PinContainer->AddSlot()
+		]
+		+ SOverlay::Slot()
 		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Bottom)
-		.Padding(4, 0, 2, 26)
+		.VAlign(VAlign_Center)
+		[
+			SAssignNew(StartPinBox, SBox)
+			.WidthOverride(16)
+			.HeightOverride(16)
+		]
+	]
+	+ SVerticalBox::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Bottom)
+	.Padding(4, 0, 2, 6)
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
 		[
 			SNew(SBox)
-			.WidthOverride(10)
-			.HeightOverride(10)
+			.WidthOverride(16)
+			.HeightOverride(16)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
 			[
 				SNew(SButton)
@@ -1730,10 +1752,36 @@ TSharedRef<SVerticalBox> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPa
 				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 				.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
 			]
-		];
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		[
+			SAssignNew(EndPinBox, SBox)
+			.WidthOverride(16)
+			.HeightOverride(16)
+		]
+	];
+}
+
+TSharedPtr<SBox> SFlowGraphNode_YapFragmentWidget::GetPinContainer(const FFlowPin& Pin)
+{
+	if (Pin == GetFragment().GetStartPin())
+	{
+		return StartPinBox;
 	}
-	
-	return PinContainer.ToSharedRef();
+
+	if (Pin == GetFragment().GetEndPin())
+	{
+		return EndPinBox;
+	}
+
+	if (Pin == GetFragment().GetPromptPin())
+	{
+		return PromptOutPinBox;
+	}
+
+	return nullptr;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton() const

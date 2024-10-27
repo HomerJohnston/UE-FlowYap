@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
 
+struct FFlowPin;
 class UFlowYapCondition;
 struct FFlowYapFragment;
 class SObjectPropertyEntryBox;
@@ -219,8 +220,6 @@ protected:
 
 	bool FragmentFocused() const;
 
-	TSharedRef<SWidget> CreateWrappedTextBlock(FText (SFlowGraphNode_YapFragmentWidget::*TextDelegate)() const, FString TextStyle) const;
-	
 	EVisibility			RowHighlight_Visibility() const;
 	FSlateColor			RowHighlight_BorderBackgroundColor() const;
 
@@ -232,11 +231,13 @@ public:
 
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	
-	TSharedRef<SVerticalBox>	CreateRightFragmentPane();
+	TSharedRef<SWidget>	CreateRightFragmentPane();
 
-	TSharedPtr<SVerticalBox>	PinContainer;
-
-	TSharedPtr<SVerticalBox> GetPinContainer() { return PinContainer; }
+	TSharedPtr<SBox>	EndPinBox;
+	TSharedPtr<SBox>	StartPinBox;
+	TSharedPtr<SBox>	PromptOutPinBox;
+	
+	TSharedPtr<SBox> GetPinContainer(const FFlowPin& Pin);
 	
 	EVisibility			Visibility_EnableOnStartPinButton() const;
 	EVisibility			Visibility_EnableOnEndPinButton() const;

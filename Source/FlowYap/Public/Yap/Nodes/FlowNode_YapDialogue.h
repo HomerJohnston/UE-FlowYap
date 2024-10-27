@@ -74,15 +74,6 @@ protected:
 
 #if WITH_EDITORONLY_DATA
 private:
-	UPROPERTY()
-	TMap<FName, FGuid> FragmentPinMap;
-		
-	UPROPERTY()
-	TArray<FName> OnStartPins;
-	
-	UPROPERTY()
-	TArray<FName> OnEndPins;
-
 	UPROPERTY(Transient, VisibleAnywhere, Instanced, SkipSerialization, meta = (AllowPrivateAccess))
 	TObjectPtr<UFlowYapCondition> SelectedCondition;
 #endif

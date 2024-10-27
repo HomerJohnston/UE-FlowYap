@@ -17,8 +17,8 @@ protected:
 
 	TArray<FFlowPin> Pins;
 	
-	TSharedPtr<SVerticalBox> DialogueInputBoxArea;
-	TSharedPtr<SVerticalBox> DialogueOutputBoxArea;
+	TSharedPtr<SBox> DialogueInputBoxArea;
+	TSharedPtr<SBox> DialogueOutputBoxArea;
 	
 	TSharedPtr<SBox> BypassOutputBox;
 
@@ -185,18 +185,9 @@ public:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
-
-	void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
-
 	
 protected:
-	void AddInPin(const TSharedRef<SGraphPin> PinToAdd);
-
-	void AddOutPin(const TSharedRef<SGraphPin>& PinToAdd);
-
 	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
-
-	void AddFragmentPin(const TSharedRef<SGraphPin>& PinToAdd, int32 FragmentIndex);
 
 public:
 	void CreatePinWidgets() override;
