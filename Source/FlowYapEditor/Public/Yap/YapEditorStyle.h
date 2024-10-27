@@ -37,8 +37,10 @@ struct FYapBrushes
 	FName Box_SolidRed;
 	FName Box_SolidRed_Deburred;
 	FName Box_SolidRed_Rounded;
-
+	
 	FName Outline_White_Deburred;
+
+	FName Pin_OptionalOutput;
 };
 
 struct FYapStyles

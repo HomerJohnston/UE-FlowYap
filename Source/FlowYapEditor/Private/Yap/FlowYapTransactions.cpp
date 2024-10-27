@@ -8,13 +8,14 @@
 
 void FFlowYapTransactions::BeginModify(FText TransactionText, UObject* Object)
 {
+	// TODO change all this old shit to GEditor->BeginTransaction, EndTransaction
 	if (GEditor && GEditor->Trans)
 	{
 		UTransBuffer* TransBuffer = CastChecked<UTransBuffer>(GEditor->Trans);
 		if (TransBuffer != nullptr)
 			TransBuffer->Begin(*FString("FlowYap"), TransactionText);
 	}
-
+	
 	if (IsValid(Object))
 	{
 		Object->Modify();

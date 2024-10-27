@@ -1,6 +1,7 @@
 #pragma once
 #include "SFlowGraphNode_YapFragmentWidget.h"
 #include "Graph/Widgets/SFlowGraphNode.h"
+#include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 struct FFlowYapFragment;
 class SFlowGraphNode_YapFragmentWidget;
@@ -14,8 +15,10 @@ class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 protected:
 	UFlowGraphNode_YapDialogue* FlowGraphNode_YapDialogue = nullptr;
 
-	TSharedPtr<SBox> DialogueInputBoxArea;
-	TSharedPtr<SBox> DialogueOutputBoxArea;
+	TArray<FFlowPin> Pins;
+	
+	TSharedPtr<SVerticalBox> DialogueInputBoxArea;
+	TSharedPtr<SVerticalBox> DialogueOutputBoxArea;
 	
 	TSharedPtr<SBox> BypassOutputBox;
 
@@ -60,7 +63,7 @@ protected:
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
-	void ForceUpdateGraphNode() { UpdateGraphNode(); };
+	void ForceUpdateGraphNode();;
 	
 	// ------------------------------------------
 	// WIDGETS
@@ -117,12 +120,6 @@ protected:
 
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
-
-	EVisibility			EnableOnStartPinButton_Visibility(uint8 FragmentIndex) const;
-	EVisibility			EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const;
-	
-	FReply				EnableOnStartPinButton_OnClicked(uint8 FragmentIndex);
-	FReply				EnableOnEndPinButton_OnClicked(uint8 FragmentIndex);
 
 	// ------------------------------------------
 	TSharedRef<SHorizontalBox> CreateContentFooter();
@@ -202,8 +199,10 @@ protected:
 	void AddFragmentPin(const TSharedRef<SGraphPin>& PinToAdd, int32 FragmentIndex);
 
 public:
-	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
+	void CreatePinWidgets() override;
 
+	void CreateOptionalPinWidget(UEdGraphPin* Pin);
+	
 	const FFlowYapFragment& GetFragment(uint8 FragmentIndex) const;
 
 	FFlowYapFragment& GetFragmentMutable(uint8 FragmentIndex);

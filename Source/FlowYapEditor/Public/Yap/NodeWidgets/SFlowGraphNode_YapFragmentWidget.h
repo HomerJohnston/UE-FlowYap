@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EditorUndoClient.h"
 
 class UFlowYapCondition;
 struct FFlowYapFragment;
@@ -71,6 +72,7 @@ protected:
 public:
 	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
 	SLATE_END_ARGS()
+
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
 	bool IsBeingEdited();
 
@@ -230,11 +232,11 @@ public:
 
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	
-	TSharedRef<SOverlay>	CreateRightFragmentPane();
+	TSharedRef<SVerticalBox>	CreateRightFragmentPane();
 
-	TSharedPtr<SOverlay>	PinContainer;
+	TSharedPtr<SVerticalBox>	PinContainer;
 
-	TSharedPtr<SOverlay> GetPinContainer() { return PinContainer; }
+	TSharedPtr<SVerticalBox> GetPinContainer() { return PinContainer; }
 	
 	EVisibility			Visibility_EnableOnStartPinButton() const;
 	EVisibility			Visibility_EnableOnEndPinButton() const;

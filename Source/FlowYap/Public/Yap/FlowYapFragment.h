@@ -6,6 +6,7 @@
 
 class UFlowYapCondition;
 class UFlowNode_YapDialogue;
+struct FFlowPin;
 
 UENUM()
 enum class EFlowYapFragmentPause : uint8
@@ -139,5 +140,12 @@ public:
 
 	void ResetGUID() { Guid = FGuid::NewGuid(); };
 
+	TArray<FFlowPin> GetOutputPins() const;
+
+	FFlowPin GetPromptPin() const;
+	
+	FFlowPin GetEndPin() const;
+
+	FFlowPin GetStartPin() const;
 #endif
 };

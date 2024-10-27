@@ -5,7 +5,3 @@
 
 #include "Yap/YapPromptHandle.h"
 
-void UYapBlueprintFunctionLibrary::SelectPrompt(FYapPromptHandle Handle)
-{
-	Handle.RunPrompt(GEditor->PlayWorld);
-}

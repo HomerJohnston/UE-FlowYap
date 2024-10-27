@@ -22,6 +22,17 @@ protected:
 	/** Avatar icons to use in dialogue UI, the "calm" value can be considered as default */ // TODO add EditFixedSize and build details customization with a button to reset the list to match project settings
 	UPROPERTY(EditAnywhere, /*EditFixedSize,*/ meta=(ReadOnlyKeys))
 	TMap<FGameplayTag, TObjectPtr<UTexture2D>> Portraits;
+	
+#if WITH_EDITORONLY_DATA
+    UFUNCTION(CallInEditor)
+    void MyFunction1() {};
+#endif
+
+#if WITH_EDITOR
+    UFUNCTION(CallInEditor)
+    void MyFunction2() {};
+#endif
+	
 
 public:
 	const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& GetPortraits() const;

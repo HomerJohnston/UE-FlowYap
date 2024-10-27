@@ -20,5 +20,5 @@ public:
 
 	FText GetNodeTitle() const override;
 
-	FString GetNodeDescription() const override;	
+	FString GetNodeDescription() const override;
 };

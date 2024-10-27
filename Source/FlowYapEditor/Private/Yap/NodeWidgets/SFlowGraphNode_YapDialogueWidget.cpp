@@ -7,6 +7,7 @@
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Logging/StructuredLog.h"
+#include "Widgets/Images/SLayeredImage.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapColors.h"
 #include "Yap/FlowYapCondition.h"
@@ -68,8 +69,15 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
-	
+
+	Pins = GetFlowYapDialogueNode()->GetContextOutputs();
+
 	UpdateGraphNode();
+}
+
+void SFlowGraphNode_YapDialogueWidget::ForceUpdateGraphNode()
+{
+	GetFlowYapDialogueNode()->OnReconstructionRequested.ExecuteIfBound();
 }
 
 int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
@@ -375,9 +383,10 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 	
 	GetFlowYapDialogueNodeMutable()->bIsPlayerPrompt = !GetFlowYapDialogueNode()->bIsPlayerPrompt;
 
-	FFlowYapTransactions::EndModify();
-
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
+	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
+	T->RefreshContextPins(true);
+	
+	FFlowYapTransactions::EndModify();	
 
 	return FReply::Handled();
 }
@@ -389,7 +398,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	.Padding(4, 0, 0, 0)
 	[
-		SAssignNew(DialogueInputBoxArea, SBox)
+		SAssignNew(DialogueInputBoxArea, SVerticalBox)
 	]
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
@@ -458,7 +467,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	.Padding(0, 0, 4, 0)
 	[
-		SAssignNew(DialogueOutputBoxArea, SBox)
+		SAssignNew(DialogueOutputBoxArea, SVerticalBox)
 	];
 
 	return Box;
@@ -635,57 +644,6 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 // ================================================================================================
 // RIGHT PANE OF FRAGMENT ROW
 // ------------------------------------------------------------------------------------------------
-
-
-EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_Visibility(uint8 FragmentIndex) const
-{
-	if (GEditor->IsPlayingSessionInEditor())
-	{
-		return EVisibility::Collapsed;
-	}
-	
-	const FFlowYapFragment& Fragment = GetFragment(FragmentIndex);
-
-	return Fragment.GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
-}
-
-EVisibility SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_Visibility(uint8 FragmentIndex) const
-{
-	if (GEditor->IsPlayingSessionInEditor())
-	{
-		return EVisibility::Collapsed;
-	}
-		
-	const FFlowYapFragment& Fragment = GetFragment(FragmentIndex);
-
-	return Fragment.GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
-}
-
-FReply SFlowGraphNode_YapDialogueWidget::EnableOnStartPinButton_OnClicked(uint8 FragmentIndex)
-{
-	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnStart Pin"), GetFlowYapDialogueNodeMutable());
-
-	GetFragmentMutable(FragmentIndex).bShowOnStartPin = true;
-
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
-
-	FFlowYapTransactions::EndModify();
-
-	return FReply::Handled();
-}
-
-FReply SFlowGraphNode_YapDialogueWidget::EnableOnEndPinButton_OnClicked(uint8 FragmentIndex)
-{
-	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNodeMutable());
-	
-	GetFragmentMutable(FragmentIndex).bShowOnEndPin = true;
-
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
-
-	FFlowYapTransactions::EndModify();
-	
-	return FReply::Handled();
-}
 
 // ================================================================================================
 // BOTTOM BAR
@@ -1015,12 +973,12 @@ void SFlowGraphNode_YapDialogueWidget::ClearTypingFocus()
 
 UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogueNodeMutable()
 {
-	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNode());
+	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNodeBase());
 }
 
 const UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogueNode() const
 {
-	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNode());
+	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNodeBase());
 }
 
 void SFlowGraphNode_YapDialogueWidget::SetFlashFragment(uint8 FragmentIndex)
@@ -1148,60 +1106,64 @@ void SFlowGraphNode_YapDialogueWidget::AddPin(const TSharedRef<SGraphPin>& PinTo
 	
 	FName PinName = PinToAdd->GetPinObj()->GetFName();
 	
-	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+	if (PinName == FName("In"))
 	{
 		AddInPin(PinToAdd);
-
 		InputPins.Add(PinToAdd);
+	}
+	else if (PinName == FName("Out"))
+	{
+		AddOutPin(PinToAdd);
+		OutputPins.Add(PinToAdd);
+	}
+	else if (PinName == FName("Bypass"))
+	{
+		AddBypassPin(PinToAdd);
+		OutputPins.Add(PinToAdd);
 	}
 	else
 	{
-		if (PinName == FName("Out"))
-		{
-			AddOutPin(PinToAdd);
-		}
-		else if (PinName == FName("Bypass"))
-		{
-			AddBypassPin(PinToAdd);
-		}
-		else
-		{
-			const FGuid* FragmentGuid = GetFlowYapDialogueNode()->FragmentPinMap.Find(PinName);
+		// TODO
+		const FGuid* FragmentGuid = nullptr;// GetFlowYapDialogueNode()->FragmentPinMap.Find(PinName);
 
-			if (!FragmentGuid)
-			{
-				UE_LOGFMT(FlowYap, Warning, "Could not find fragment for pin: {0}", PinName);
-				return;
-			}
-			
-			int32 Index = GetFlowYapDialogueNode()->GetFragmentIndex(*FragmentGuid);
-
-			if (Index < 0)
-			{
-				// TODO this still happens upon copy pasting a node.
-				UE_LOGFMT(FlowYap, Warning, "Invalid output pin name: {0}", PinName);
-				return;
-			}
-
-			AddFragmentPin(PinToAdd, Index);
+		if (!FragmentGuid)
+		{
+			UE_LOGFMT(FlowYap, Warning, "Could not find fragment for pin: {0}", PinName);
+			return;
 		}
+		
+		int32 Index = GetFlowYapDialogueNode()->GetFragmentIndex(*FragmentGuid);
+
+		if (Index < 0)
+		{
+			// TODO this still happens upon copy pasting a node.
+			UE_LOGFMT(FlowYap, Warning, "Invalid output pin name: {0}", PinName);
+			return;
+		}
+
+		AddFragmentPin(PinToAdd, Index);
+		OutputPins.Add(PinToAdd);
 	}
-
-	OutputPins.Add(PinToAdd);
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddInPin(const TSharedRef<SGraphPin> PinToAdd)
 {
 	const UEdGraphPin* PinObj = PinToAdd->GetPinObj();
 		
-	DialogueInputBoxArea->SetContent(PinToAdd);
+	DialogueInputBoxArea->AddSlot()
+	[
+		PinToAdd
+	];
 
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "In"));
 }
 
 void SFlowGraphNode_YapDialogueWidget::AddOutPin(const TSharedRef<SGraphPin>& PinToAdd)
 {
-	DialogueOutputBoxArea->SetContent(PinToAdd);
+	DialogueOutputBoxArea->AddSlot()
+	[
+		PinToAdd
+	];
 	
 	PinToAdd->SetToolTipText(LOCTEXT("Dialogue", "Out"));
 	PinToAdd->SetColorAndOpacity(YapColor::White);
@@ -1222,15 +1184,16 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 	int BottomPadding; 
 
 	FName PinName = PinObj->GetFName();
-	const UFlowNode_YapDialogue* Node = GetFlowYapDialogueNode();
+
+	FString PinNameString = PinName.ToString();
 	
-	if (Node->OnStartPins.Contains(PinName))
+	if (PinNameString.StartsWith("Start_"))
 	{
 		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
 		PinToAdd->SetToolTipText(INVTEXT("On Start"));
 		BottomPadding = 4;
 	}
-	else if (Node->OnEndPins.Contains(PinName))
+	else if (PinNameString.StartsWith("End_"))
 	{
 		PinToAdd->SetColorAndOpacity(PinToAdd->IsConnected() ? YapColor::White : YapColor::DarkRed);
 		PinToAdd->SetToolTipText(INVTEXT("On End, runs before any end-padding time begins"));
@@ -1246,7 +1209,7 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 
 	TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget = FragmentWidgets[FragmentIndex];
 
-	TSharedPtr<SOverlay> Box = FragmentWidget->GetPinContainer();
+	TSharedPtr<SVerticalBox> Box = FragmentWidget->GetPinContainer();
 
 	Box->AddSlot()
 	.HAlign(HAlign_Right)
@@ -1257,25 +1220,134 @@ void SFlowGraphNode_YapDialogueWidget::AddFragmentPin(const TSharedRef<SGraphPin
 	];
 }
 
-void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
+void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
+{	
+	TArray<TSet<FFlowPin>> FragmentPins;
+	FragmentPins.SetNum(GetFlowYapDialogueNode()->GetFragments().Num());
+
+	TSet<FFlowPin> OptionalPins;
+	
+	TMap<FFlowPin, int32> PinFragmentIndices;
+
+	for (int32 i = 0; i < GetFlowYapDialogueNode()->GetFragments().Num(); ++i)
+	{
+		const FFlowYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragments()[i];
+
+		if (Fragment.GetShowOnStartPin())
+		{
+			FFlowPin StartPin = Fragment.GetStartPin();
+			
+			FragmentPins[i].Add(StartPin);
+			PinFragmentIndices.Add(StartPin, i);
+			OptionalPins.Add(StartPin);
+		}
+
+		if (Fragment.GetShowOnEndPin())
+		{
+			FFlowPin EndPin = Fragment.GetEndPin();
+
+			FragmentPins[i].Add(EndPin);
+			PinFragmentIndices.Add(EndPin, i);
+			OptionalPins.Add(EndPin);
+		}
+
+		if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+		{
+			FFlowPin PromptPin = Fragment.GetPromptPin();
+
+			FragmentPins[i].Add(PromptPin);
+			PinFragmentIndices.Add(PromptPin, i);
+		}
+	}
+	
+	// Create Pin widgets for each of the pins.
+	for (int32 PinIndex = 0; PinIndex < GraphNode->Pins.Num(); ++PinIndex)
+	{
+		UEdGraphPin* Pin = GraphNode->Pins[PinIndex];
+
+		if ( !ensureMsgf(Pin->GetOuter() == GraphNode
+			, TEXT("Graph node ('%s' - %s) has an invalid %s pin: '%s'; (with a bad %s outer: '%s'); skiping creation of a widget for this pin.")
+			, *GraphNode->GetNodeTitle(ENodeTitleType::ListView).ToString()
+			, *GraphNode->GetPathName()
+			, (Pin->Direction == EEdGraphPinDirection::EGPD_Input) ? TEXT("input") : TEXT("output")
+			,  Pin->PinFriendlyName.IsEmpty() ? *Pin->PinName.ToString() : *Pin->PinFriendlyName.ToString()
+			,  Pin->GetOuter() ? *Pin->GetOuter()->GetClass()->GetName() : TEXT("UNKNOWN")
+			,  Pin->GetOuter() ? *Pin->GetOuter()->GetPathName() : TEXT("NULL")) )
+		{
+			continue;
+		}
+		
+		const TSharedPtr<SGraphPin> NewPin = SNew(SFlowGraphPinExec, Pin);
+
+		const TSharedRef<SGraphPin>& NewPinRef = NewPin.ToSharedRef();
+
+		if (OptionalPins.Contains(Pin->GetFName()))
+		{
+			if (TSharedPtr<SLayeredImage> PinImage = StaticCastSharedPtr<SLayeredImage>(NewPin->GetPinImageWidget()))
+			{
+				PinImage->SetLayerBrush(0, FYapEditorStyle::GetImageBrush(YapBrushes.Pin_OptionalOutput));
+			}
+		}
+		
+		NewPinRef->SetOwner(SharedThis(this));
+		NewPinRef->SetShowLabel(false);
+
+		const bool bAdvancedParameter = Pin && Pin->bAdvancedView;
+		if (bAdvancedParameter)
+		{
+			NewPinRef->SetVisibility(TAttribute<EVisibility>(NewPinRef, &SGraphPin::IsPinVisibleAsAdvanced));
+		}
+
+		TSharedPtr<SVerticalBox> OutputBox = DialogueOutputBoxArea;
+
+		int32* FragmentIndex = PinFragmentIndices.Find(Pin->GetFName());
+
+		if (FragmentIndex)
+		{
+			OutputBox = FragmentWidgets[*FragmentIndex]->PinContainer;
+		}
+		
+		if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+		{
+			DialogueInputBoxArea->AddSlot()
+			.AutoHeight()
+			.HAlign(HAlign_Left)
+			.VAlign(VAlign_Center)
+			.Padding(Settings->GetInputPinPadding())
+			[
+				NewPinRef
+			];
+			
+			InputPins.Add(NewPinRef);
+		}
+		else // Direction == EEdGraphPinDirection::EGPD_Output
+		{
+			OutputBox->AddSlot()
+			.AutoHeight()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Center)
+			.Padding(Settings->GetOutputPinPadding())
+			[
+				NewPinRef
+			];
+			
+			OutputPins.Add(NewPinRef);
+		}
+	}
+}
+
+void SFlowGraphNode_YapDialogueWidget::CreateOptionalPinWidget(UEdGraphPin* Pin)
 {
-	FName PinName = Pin->GetFName();
+	const bool bShowPin = ShouldPinBeHidden(Pin);
 
-	TSharedPtr<SGraphPin> NewPin;
-
-	TArray<FName> NormalPins;
-	
-	if (GetFlowYapDialogueNode()->OptionalPins.Contains(PinName))
+	if (bShowPin)
 	{
-		NewPin = SNew(SFlowYapGraphPinExec, Pin);
-	}
-	else
-	{
-		NewPin = SNew(SFlowGraphPinExec, Pin);
+		TSharedPtr<SGraphPin> NewPin = CreatePinWidget(Pin);
+		check(NewPin.IsValid());
 		NewPin->SetColorAndOpacity(TAttribute<FLinearColor>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::TestColor));
+
+		AddPin(NewPin.ToSharedRef());
 	}
-	
-	this->AddPin(NewPin.ToSharedRef());
 }
 
 const FFlowYapFragment& SFlowGraphNode_YapDialogueWidget::GetFragment(uint8 FragmentIndex) const

@@ -129,4 +129,47 @@ bool FFlowYapFragment::GetBitReplaced() const
 	return bBitReplaced;
 }
 
+TArray<FFlowPin> FFlowYapFragment::GetOutputPins() const
+{
+	TArray<FFlowPin> Pins;
+	
+	if (Owner.IsValid() && Owner->GetIsPlayerPrompt())
+	{
+		Pins.Add(GetPromptPin());
+	}
+	
+	if (GetShowOnEndPin())
+	{
+		Pins.Add(GetEndPin());
+	}
+	
+	if (GetShowOnStartPin())
+	{
+		Pins.Add(GetStartPin());
+	}
+	
+	return Pins;
+}
+
+FFlowPin FFlowYapFragment::GetPromptPin() const
+{
+	FFlowPin PromptPin = FName("Prompt_" + GetGuid().ToString());
+	PromptPin.PinToolTip = "Out";
+	return PromptPin;
+}
+
+FFlowPin FFlowYapFragment::GetEndPin() const
+{
+	FFlowPin EndPin = FName("End_" + GetGuid().ToString());
+	EndPin.PinToolTip = "Runs before any end-padding time begins";
+	return EndPin;
+}
+
+FFlowPin FFlowYapFragment::GetStartPin() const
+{
+	FFlowPin StartPin = FName("Start_" + GetGuid().ToString());
+	StartPin.PinToolTip = "Runs when the fragment starts playback";
+	return StartPin;
+}
+
 #endif

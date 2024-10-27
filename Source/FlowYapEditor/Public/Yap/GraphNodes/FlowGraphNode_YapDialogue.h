@@ -25,6 +25,10 @@ protected:
 	TMap<FGuid, TArray<FName>> FragmentPins;
 	
 public:
+	void OnUndoRedo();
+
+	void PostEditUndo() override;
+	
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
 	bool ShowPaletteIconOnNode() const override;

@@ -3,7 +3,6 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #include "GameplayTagsManager.h"
-#include "Logging/StructuredLog.h"
 #include "Yap/FlowYapBit.h"
 #include "Yap/FlowYapFragment.h"
 #include "Yap/FlowYapProjectSettings.h"
@@ -28,6 +27,8 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	// Always have at least one fragment.
 	Fragments.Add(FFlowYapFragment());
 
+	OutputPins = {};
+	
 #if WITH_EDITOR
 	UFlowYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EFlowYap_TagFilter::Prompts);
 	
@@ -524,62 +525,29 @@ EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSeq
 	return FragmentSequencing;
 }
 
-TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs()
+TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
-	FragmentPinMap.Empty();
-	OutPin = NAME_None;
-	OnStartPins.Empty();
-	OnEndPins.Empty();
-	OptionalPins.Empty();
-	BypassPin = NAME_None;
-
 	TArray<FFlowPin> ContextOutputPins;
 
-	if (bIsPlayerPrompt)
+	if (!bIsPlayerPrompt)
 	{
-		OutputPins.Remove(FName("Out"));
-		OutPin = "";
+		FFlowPin OutPin(FName("Out"));
+		OutPin.PinToolTip = "Out";
+		ContextOutputPins.Add(OutPin);
 	}
-	else
-	{
-		OutPin = "Out";
-	}
-
-	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
-	{
-		FFlowYapFragment& Fragment = Fragments[Index];
-		
-		if (Fragment.GetShowOnEndPin())
-		{
-			FName PinName = FName("FragmentEnd_" + Fragment.GetGuid().ToString());
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
-			ContextOutputPins.Add(PinName);
-
-			OptionalPins.Add(PinName);
-			OnEndPins.Add(PinName);
-		}
-		
-		if (Fragment.GetShowOnStartPin())
-		{
-			FName PinName = FName("FragmentStart_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(PinName);
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
-
-			OptionalPins.Add(PinName);
-			OnStartPins.Add(PinName);
-		}
-
-		if (GetIsPlayerPrompt())
-		{
-			FName PinName = FName("PromptOut_" + Fragment.GetGuid().ToString());
-			ContextOutputPins.Add(PinName);
-			FragmentPinMap.Add(PinName, Fragment.GetGuid());
-		}
-	}
-
+	
 	if (BypassPinRequired())
 	{
-		ContextOutputPins.Add(FName("Bypass"));
+		FFlowPin BypassPin(FName("Bypass"));
+		BypassPin.PinToolTip = "Bypass";
+		ContextOutputPins.Add(BypassPin);
+	}
+	
+	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
+	{
+		const FFlowYapFragment& Fragment = Fragments[Index];
+
+		ContextOutputPins.Append(Fragment.GetOutputPins());
 	}
 	
 	return ContextOutputPins;
@@ -601,7 +569,7 @@ void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
 	uint8 AsInt = static_cast<uint8>(FragmentSequencing);
 
-	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::Prompt))
+	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
 	{
 		AsInt = 0;
 	}
@@ -734,6 +702,11 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	}
 
 	return true;
+}
+
+void UFlowNode_YapDialogue::ForceReconstruction()
+{
+	OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::PostEditImport()

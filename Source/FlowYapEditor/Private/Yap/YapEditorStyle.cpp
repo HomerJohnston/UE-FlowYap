@@ -24,7 +24,7 @@ YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
 Set(YAP_QUOTE(BRUSHNAME), new TYPE(RootToContentDir(FILENAME, TEXT(EXTENSION)), __VA_ARGS__));\
 const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
 
-#define YAP_COPY_BRUSH(TYPE, BRUSHNAME, TEMPLATE)\
+#define YAP_COPY_BRUSH(TYPE, BRUSHNAME, TEMPLATE, ...)\
 YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
 Set(YAP_QUOTE(BRUSHNAME), const_cast<FSlateBrush*>(TEMPLATE));\
 const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
@@ -96,7 +96,11 @@ void FYapEditorStyle::Initialize()
 	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_UpArrow,					FAppStyle::GetBrush("Symbols.UpArrow"));
 	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_DownArrow,					FAppStyle::GetBrush("Symbols.DownArrow"));
 	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_CrossX,					FAppStyle::GetBrush("Cross"));
-	
+
+	//YAP_COPY_BRUSH(FSlateImageBrush,	Pin_OptionalOutput,				FAppStyle::GetBrush("Icons.FilledCircle"));
+
+	YAP_COPY_BRUSH(FSlateImageBrush,	Pin_OptionalOutput,				FAppStyle::GetBrush("Icons.FilledCircle"));
+
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
@@ -114,7 +118,6 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Red);
 
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
-
 	
 	YAP_DEFINE_STYLE(FSliderStyle, SliderStyle_FragmentTimePadding, FSliderStyle::GetDefault(),
 		.SetBarThickness(0.f)

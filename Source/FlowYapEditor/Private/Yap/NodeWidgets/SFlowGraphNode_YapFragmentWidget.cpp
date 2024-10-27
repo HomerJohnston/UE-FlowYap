@@ -1692,9 +1692,9 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	}
 }
 
-TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
+TSharedRef<SVerticalBox> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 {
-	PinContainer = SNew(SOverlay);
+	PinContainer = SNew(SVerticalBox);
 
 	if (UFlowYapProjectSettings::Get()->ShowPinEnableButtons())
 	{
@@ -1762,9 +1762,11 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
 
 	GetFragment().bShowOnStartPin = true;
 
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
-
+	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
+	T->RefreshContextPins(true);
+	
 	FFlowYapTransactions::EndModify();
+
 
 	return FReply::Handled();
 }
@@ -1772,11 +1774,12 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNode());
-	
+
 	GetFragment().bShowOnEndPin = true;
-
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
-
+	
+	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
+	T->RefreshContextPins(true);
+	
 	FFlowYapTransactions::EndModify();
 	
 	return FReply::Handled();

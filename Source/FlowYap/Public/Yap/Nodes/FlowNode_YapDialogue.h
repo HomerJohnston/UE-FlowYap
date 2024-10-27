@@ -8,21 +8,21 @@ class UFlowYapCharacter;
 
 enum class EFlowYapInterruptible : uint8;
 
+// Used for "Talk" nodes only. Prompt nodes don't use this.
 UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
-	Sequential	,
-	SelectOne	,
-	Prompt		, // TODO should this one get deleted???
+	Sequential,
+	SelectOne,
 	COUNT		UMETA(Hidden)
 };
 
 // TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
-// TODO: make this NotBlueprintable, I have it blueprintable to make it easier to check details customizaitons for dev
+// TODO: make sure this is NotBlueprintable for 1.0, I have it blueprintable to make it easier to check details customizaitons for dev
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(Blueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Emits Yap dialogue events"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Emits Yap dialogue events"))
 class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -33,6 +33,7 @@ class FLOWYAP_API UFlowNode_YapDialogue : public UFlowNode
 	friend class FDetailCustomization_FlowYapDialogueNode;
 	friend class SFlowYapBitDetailsWidget;
 	friend class FPropertyCustomization_FlowYapFragment;
+	friend class FFlowYapWidgetHelper;
 #endif
 
 	friend class UFlowYapSubsystem;
@@ -41,23 +42,23 @@ public:
 	UFlowNode_YapDialogue();
 
 	// SETTINGS
-protected:		
-	UPROPERTY(BlueprintReadOnly, AdvancedDisplay)
+protected:
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsPlayerPrompt;
 
-	UPROPERTY(BlueprintReadOnly, AdvancedDisplay, meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
+	UPROPERTY(BlueprintReadOnly)
 	int32 NodeActivationLimit;
 
-	UPROPERTY(BlueprintReadOnly, AdvancedDisplay, meta = (EditCondition = "!bIsPlayerPrompt", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly)
 	EFlowYapMultipleFragmentSequencing FragmentSequencing;
 
-	UPROPERTY(BlueprintReadOnly, AdvancedDisplay)
+	UPROPERTY(BlueprintReadOnly)
 	EFlowYapInterruptible Interruptible;
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
 
-	UPROPERTY(EditAnywhere, Instanced)
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly)
 	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -68,31 +69,12 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FTimerHandle TimerHandle;
 
 #if WITH_EDITORONLY_DATA
 private:
-	UPROPERTY()
-	TMap<FName, FGuid> FragmentPinMap;
-	
-	UPROPERTY()
-	FName OutPin;
-	
-	UPROPERTY()
-	TArray<FName> OnStartPins;
-	
-	UPROPERTY()
-	TArray<FName> OnEndPins;
-
-	UPROPERTY()
-	TArray<FName> OptionalPins;
-
-	UPROPERTY()
-	FName BypassPin;
-
-public:
-	UPROPERTY(Transient, VisibleAnywhere, Instanced, SkipSerialization)
+	UPROPERTY(Transient, VisibleAnywhere, Instanced, SkipSerialization, meta = (AllowPrivateAccess))
 	TObjectPtr<UFlowYapCondition> SelectedCondition;
 #endif
 	
@@ -183,10 +165,8 @@ public:
 
 	EFlowYapMultipleFragmentSequencing GetMultipleFragmentSequencing() const;
 	
-	//virtual TArray<FFlowPin> GetContextInputs() override;
+	TArray<FFlowPin> GetContextOutputs() const override;
 
-	virtual TArray<FFlowPin> GetContextOutputs() override;
-	
 	void SetIsPlayerPrompt(bool NewValue);
 
 	void SetNodeActivationLimit(int32 NewValue);
@@ -219,6 +199,8 @@ public:
 	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
 
 	bool ActivationLimitsMet() const;
+
+	void ForceReconstruction();
 	
 #endif // WITH_EDITOR
 
