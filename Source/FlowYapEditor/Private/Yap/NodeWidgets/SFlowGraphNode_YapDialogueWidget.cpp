@@ -1260,8 +1260,7 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 		}
 	}
 	
-	// Create Pin widgets for each of the pins.
-	for (int32 PinIndex = 0; PinIndex < GraphNode->Pins.Num(); ++PinIndex)
+	if (GetFlowYapDialogueNode()->OnStartPins.Contains(PinName) || GetFlowYapDialogueNode()->OnEndPins.Contains(PinName))
 	{
 		UEdGraphPin* Pin = GraphNode->Pins[PinIndex];
 
