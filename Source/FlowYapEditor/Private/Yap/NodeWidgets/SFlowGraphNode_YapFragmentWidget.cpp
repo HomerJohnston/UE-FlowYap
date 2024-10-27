@@ -1699,13 +1699,19 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Top)
 	.Padding(4, 0, 2, 0)
+	.AutoHeight()
 	[
 		SAssignNew(PromptOutPinBox, SBox)
+	]
+	+ SVerticalBox::Slot()
+	[
+		SNew(SSpacer)
 	]
 	+ SVerticalBox::Slot()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Bottom)
 	.Padding(4, 0, 2, 0)
+	.AutoHeight()
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -1714,7 +1720,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 		[
 			SNew(SBox)
 			.WidthOverride(16)
-			.HeightOverride(16)
+			.HeightOverride(8)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
 			[
 				SNew(SButton)
@@ -1736,6 +1742,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Bottom)
 	.Padding(4, 0, 2, 6)
+	.AutoHeight()
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -1744,7 +1751,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 		[
 			SNew(SBox)
 			.WidthOverride(16)
-			.HeightOverride(16)
+			.HeightOverride(8)
 			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
 			[
 				SNew(SButton)

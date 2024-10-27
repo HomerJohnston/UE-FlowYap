@@ -1148,22 +1148,25 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			continue;
 		}
 				
-		const TSharedRef<SGraphPin> NewPinRef = SNew(SFlowGraphPinExec, Pin);
+		const TSharedRef<SGraphPin> NewPinRef = (OptionalPins.Contains(Pin->GetFName()) ? SNew(SFlowYapGraphPinExec, Pin) : SNew(SFlowGraphPinExec, Pin));
 
 		NewPinRef->SetOwner(SharedThis(this));
 		NewPinRef->SetShowLabel(false);
 		NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? ConnectedBypassPinColor : DisconnectedBypassPinColor);
+		NewPinRef->SetPadding(FMargin(-4, -2, 2, -2));
 		
 		if (OptionalPins.Contains(Pin->GetFName()))
 		{
 			if (TSharedPtr<SLayeredImage> PinImage = StaticCastSharedPtr<SLayeredImage>(NewPinRef->GetPinImageWidget()))
 			{
-				PinImage->SetLayerBrush(0, FYapEditorStyle::GetImageBrush(YapBrushes.Pin_OptionalOutput));
+				//PinImage->SetLayerBrush(0, FYapEditorStyle::GetImageBrush(YapBrushes.Pin_OptionalOutput));
 				NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? YapColor::White : YapColor::Red);
 			}
+
+			NewPinRef->SetPadding(FMargin(-4, -2, 16, -2));
 		}
 
-		NewPinRef->SetPadding(FMargin(0, 0, 8, 0));
+		NewPinRef->SetHAlign(HAlign_Right);
 
 		const bool bAdvancedParameter = Pin && Pin->bAdvancedView;
 		if (bAdvancedParameter)
