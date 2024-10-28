@@ -31,8 +31,8 @@ protected:
 	FLinearColor ConnectedBypassPinColor;
 	FLinearColor DisconnectedBypassPinColor;
 
-	FLinearColor ConnectedConditionPinColor;
-	FLinearColor DisconnectedConditionPinColor;
+	FLinearColor ConnectedFragmentPinColor;
+	FLinearColor DisconnectedFragmentPinColor;
 	
 	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
@@ -72,7 +72,7 @@ protected:
 
 	int32 GetDialogueActivationLimit() const;
 	EVisibility InterruptibleToggleIconOff_Visibility() const;
-	void OnActivationLimitChanged(const FText& Text, ETextCommit::Type Arg);
+	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
 	int32 GetMaxNodeWidth() const;
@@ -88,10 +88,11 @@ protected:
 	
 	// ------------------------------------------
 
+	FSlateColor ColorAndOpacity_NodeHeaderButton() const;
 	FSlateColor ColorAndOpacity_NodeHeader() const;
 	FText Text_FragmentSequencingButton() const;
 	FReply OnClicked_TogglePlayerPrompt();
-	
+
 	TSharedRef<SWidget> CreateContentHeader();
 
 	EVisibility			Visibility_FragmentSequencingButton() const;
@@ -185,15 +186,10 @@ public:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
-	
-protected:
-	void AddBypassPin(const TSharedRef<SGraphPin>& PinToAdd);
 
 public:
 	void CreatePinWidgets() override;
 
-	void CreateOptionalPinWidget(UEdGraphPin* Pin);
-	
 	const FFlowYapFragment& GetFragment(uint8 FragmentIndex) const;
 
 	FFlowYapFragment& GetFragmentMutable(uint8 FragmentIndex);

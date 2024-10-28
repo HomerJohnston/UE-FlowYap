@@ -553,6 +553,11 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 			ContextOutputPins.Add(Fragment.GetPromptPin());
 		}
 	}
+
+	if (BypassPinRequired())
+	{
+		ContextOutputPins.Add(FName("Bypass"));
+	}
 	
 	return ContextOutputPins;
 }
@@ -712,6 +717,16 @@ void UFlowNode_YapDialogue::ForceReconstruction()
 {
 	OnReconstructionRequested.ExecuteIfBound();
 }
+
+void UFlowNode_YapDialogue::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	//Cast<UFlowGraphNode>(GetGraphNode())->RefreshContextPins(true);
+	
+	//OnReconstructionRequested.ExecuteIfBound();
+}
+
 
 void UFlowNode_YapDialogue::PostEditImport()
 {

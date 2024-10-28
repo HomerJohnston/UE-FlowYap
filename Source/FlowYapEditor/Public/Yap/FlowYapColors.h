@@ -62,6 +62,7 @@ namespace YapColor
 	DECLARE_COLOR(DeepBlue,			0.010, 0.010, 0.500);
 
 	DECLARE_COLOR(White,			1.000, 1.000, 1.000);
+	DECLARE_COLOR(DimWhite,			0.900, 0.900, 0.900);
 	DECLARE_COLOR(LightGray,		0.500, 0.500, 0.500);
 	DECLARE_COLOR(Gray,				0.200, 0.200, 0.200);
 	DECLARE_COLOR(DimGray,			0.100, 0.100, 0.100);

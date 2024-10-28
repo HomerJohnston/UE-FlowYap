@@ -93,14 +93,9 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_MoodKeyMissing,			"Icon_MoodKey_Missing", ".png",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
-	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_UpArrow,					FAppStyle::GetBrush("Symbols.UpArrow"));
-	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_DownArrow,					FAppStyle::GetBrush("Symbols.DownArrow"));
-	YAP_COPY_BRUSH(FSlateImageBrush,	Icon_CrossX,					FAppStyle::GetBrush("Cross"));
-
-	//YAP_COPY_BRUSH(FSlateImageBrush,	Pin_OptionalOutput,				FAppStyle::GetBrush("Icons.FilledCircle"));
-
-	YAP_COPY_BRUSH(FSlateImageBrush,	Pin_OptionalOutput,				FAppStyle::GetBrush("Icons.FilledCircle"));
-
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
+	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
@@ -129,6 +124,16 @@ void FYapEditorStyle::Initialize()
 #define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
 #define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
 
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HeaderButton, FButtonStyle::GetDefault(),
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DimWhite))
+		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::White))
+		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::LightGray))
+		.SetNormalForeground(YapColor::White_Glass)
+		.SetHoveredForeground(YapColor::White)
+		.SetPressedForeground(YapColor::LightGray)
+		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
+	);	
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SequencingSelector, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))

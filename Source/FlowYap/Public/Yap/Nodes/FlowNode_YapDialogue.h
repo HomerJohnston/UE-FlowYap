@@ -46,7 +46,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsPlayerPrompt;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	int32 NodeActivationLimit;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -201,6 +201,8 @@ public:
 	bool ActivationLimitsMet() const;
 
 	void ForceReconstruction();
+
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 #endif // WITH_EDITOR
 

@@ -24,11 +24,7 @@ protected:
 	// Fragment GUID, array of pin names for this fragment - basically only used for fragment deletion
 	TMap<FGuid, TArray<FName>> FragmentPins;
 	
-public:
-	void OnUndoRedo();
-
-	void PostEditUndo() override;
-	
+public:	
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
 	bool ShowPaletteIconOnNode() const override;

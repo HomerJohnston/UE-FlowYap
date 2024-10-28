@@ -48,6 +48,7 @@ struct FYapStyles
 	FName ButtonStyle_ActivationLimit;
 	FName ButtonStyle_ConditionWidget;
 	FName ButtonStyle_FragmentControls;
+	FName ButtonStyle_HeaderButton;
 	FName ButtonStyle_SequencingSelector;
 	
 	FName EditableTextBoxStyle_Dialogue;

@@ -14,22 +14,8 @@ UFlowGraphNode_YapDialogue::UFlowGraphNode_YapDialogue()
 	AssignedNodeClasses = {UFlowNode_YapDialogue::StaticClass()};
 }
 
-void UFlowGraphNode_YapDialogue::OnUndoRedo()
-{
-	//GetFlowYapNode()->ForceReconstruction();
-}
-
-void UFlowGraphNode_YapDialogue::PostEditUndo()
-{
-	//GetFlowGraph()->RefreshGraph();
-	// ok, this crashes shit, fuck me
-	//GetFlowYapNode()->ForceReconstruction();
-}
-
 TSharedPtr<SGraphNode> UFlowGraphNode_YapDialogue::CreateVisualWidget()
 {
-	FEditorDelegates::PostUndoRedo.AddUObject(this, &ThisClass::OnUndoRedo);
-
 	return SNew(SFlowGraphNode_YapDialogueWidget, this);
 }
 
