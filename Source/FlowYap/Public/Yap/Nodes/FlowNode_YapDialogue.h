@@ -207,4 +207,6 @@ public:
 #endif // WITH_EDITOR
 
 	virtual void PostEditImport() override;
+	
+	virtual bool CanRefreshContextPinsOnLoad() const { return true; }
 };

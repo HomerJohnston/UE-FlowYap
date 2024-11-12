@@ -140,7 +140,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 	FontHeight = InArgs._FontHeight;
 
 	TArray<TCHAR> Numbers { '0', '1', '2', '3',	'4', '5', '6', '7', '8', '9' };
-	
+
 	ChildSlot
 	[
 		SNew(SBox)
@@ -149,6 +149,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
 			.VAlign(VAlign_Bottom)
+			.HAlign(HAlign_Fill)
 			.Padding(0, 0, 0, (FontHeight - 8))
 			[
 				SNew(STextBlock)
@@ -160,6 +161,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.HAlign(HAlign_Fill)
 			.Padding(4, 0, 4, 0)
 			[
 				SNew(SSeparator)
@@ -170,8 +172,10 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			]
 			+ SVerticalBox::Slot()
 			.VAlign(VAlign_Top)
+			.HAlign(HAlign_Fill)
 			.Padding(0, (FontHeight - 8), 0, 0)
 			[
+				// TODO: SEditableText messes up justification on refresh, why??? STextBlock is ok
 				SAssignNew(Denominator, SEditableText)
 				.Text(this, &SActivationCounterWidget::DenominatorText)
 				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
@@ -181,6 +185,8 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 				.OnIsTypedCharValid(FOnIsTypedCharValid::CreateLambda([Numbers](const TCHAR InCh) { return Numbers.Contains(InCh); }))
 				.ToolTipText(INVTEXT("Activation limit, use 0 for infinite"))
 				.SelectAllTextWhenFocused(true)
+				.TextShapingMethod(ETextShapingMethod::KerningOnly)
+				.TextFlowDirection(ETextFlowDirection::LeftToRight)
 			]
 		]
 	];

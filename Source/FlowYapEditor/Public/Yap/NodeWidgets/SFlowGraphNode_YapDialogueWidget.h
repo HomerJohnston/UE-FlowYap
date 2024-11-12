@@ -15,8 +15,6 @@ class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 protected:
 	UFlowGraphNode_YapDialogue* FlowGraphNode_YapDialogue = nullptr;
 
-	TArray<FFlowPin> Pins;
-	
 	TSharedPtr<SBox> DialogueInputBoxArea;
 	TSharedPtr<SBox> DialogueOutputBoxArea;
 	
@@ -195,4 +193,6 @@ public:
 	FFlowYapFragment& GetFragmentMutable(uint8 FragmentIndex);
 
 	FLinearColor TestColor() const;
+
+	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
 };

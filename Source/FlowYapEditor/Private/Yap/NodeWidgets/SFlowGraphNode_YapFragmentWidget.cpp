@@ -605,13 +605,17 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue() const
 	FNumberFormattingOptions Formatting;
 	Formatting.MaximumFractionalDigits = 2;
 
+	const FText& DialogueText = GetFragment().GetBit().GetDialogueText();
+
+	FText DialogueStr = Dialogue_Text().IsEmpty() ? INVTEXT("No dialogue") : Dialogue_Text(); 
+	
 	if (PaddingTime > 0)
 	{
-		return FText::Format(INVTEXT("{0}\n\nPadding: {1}"), GetFragment().GetBit().GetDialogueText(), FText::AsNumber(PaddingTime, &Formatting));
+		return FText::Format(INVTEXT("{0}\nPadding: {1}"), DialogueStr, FText::AsNumber(PaddingTime, &Formatting));
 	}
 	else
 	{
-		return GetFragment().GetBit().GetDialogueText();
+		return FText::Format(INVTEXT("{0}"), DialogueStr);
 	}
 }
 
@@ -1818,7 +1822,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
 	GetFragment().bShowOnStartPin = true;
 
 	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
-	T->RefreshContextPins(true);
+	T->RefreshContextPins();
 	
 	FFlowYapTransactions::EndModify();
 
@@ -1833,7 +1837,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 	GetFragment().bShowOnEndPin = true;
 	
 	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
-	T->RefreshContextPins(true);
+	T->RefreshContextPins();
 	
 	FFlowYapTransactions::EndModify();
 	

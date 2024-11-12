@@ -571,7 +571,14 @@ void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
 
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 {
+	bool bBypassRequired = BypassPinRequired();
+	
 	NodeActivationLimit = NewValue;
+
+	if (bBypassRequired != BypassPinRequired())
+	{
+		
+	}
 }
 
 void UFlowNode_YapDialogue::CycleFragmentSequencingMode()

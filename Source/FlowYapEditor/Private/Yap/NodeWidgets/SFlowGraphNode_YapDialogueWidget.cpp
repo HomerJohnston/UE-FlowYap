@@ -3,6 +3,7 @@
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #include "FlowEditorStyle.h"
+#include "NodeFactory.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
@@ -71,8 +72,6 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 
-	Pins = GetFlowYapDialogueNode()->GetContextOutputs();
-
 	UpdateGraphNode();
 }
 
@@ -114,10 +113,25 @@ EVisibility SFlowGraphNode_YapDialogueWidget::InterruptibleToggleIconOff_Visibil
 void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg)
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change Dialogue Activation Limit"), GetFlowYapDialogueNodeMutable());
-		
-	GetFlowYapDialogueNodeMutable()->NodeActivationLimit = FCString::Atoi(*Text.ToString());
-	FlowGraphNode->RefreshContextPins(true);
 
+	GetFlowYapDialogueNodeMutable()->NodeActivationLimit = FCString::Atoi(*Text.ToString());
+
+	FlowGraphNode->RefreshContextPins();
+	FlowGraphNode->ReconstructNode();
+	
+	/*
+	bool bNeedsBypassPin = GetFlowYapDialogueNode()->BypassPinRequired();
+
+	GetFlowYapDialogueNodeMutable()->NodeActivationLimit = FCString::Atoi(*Text.ToString());
+
+	bool bNeedsBypassPinNew = GetFlowYapDialogueNode()->BypassPinRequired();
+	
+	if (bNeedsBypassPin != bNeedsBypassPinNew)
+	{
+		FlowGraphNode->ReconstructNode();
+	}
+	*/
+	
 	FFlowYapTransactions::EndModify();
 }
 
@@ -396,8 +410,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 	
 	GetFlowYapDialogueNodeMutable()->bIsPlayerPrompt = !GetFlowYapDialogueNode()->bIsPlayerPrompt;
 
-	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
-	T->RefreshContextPins(true);
+	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
 	
 	FFlowYapTransactions::EndModify();	
 
@@ -1155,7 +1168,8 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			continue;
 		}
 
-		const TSharedRef<SGraphPin> NewPinRef = (OptionalPins.Contains(Pin->GetFName()) ? SNew(SFlowYapGraphPinExec, Pin) : SNew(SFlowGraphPinExec, Pin));
+		//const TSharedRef<SGraphPin> NewPinRef = (OptionalPins.Contains(Pin->GetFName()) ? SNew(SFlowYapGraphPinExec, Pin) : SNew(SFlowGraphPinExec, Pin));
+		const TSharedRef<SGraphPin> NewPinRef = OptionalPins.Contains(Pin->GetFName()) ? SNew(SFlowYapGraphPinExec, Pin) : FNodeFactory::CreatePinWidget(Pin).ToSharedRef();
 
 		NewPinRef->SetOwner(SharedThis(this));
 		NewPinRef->SetShowLabel(false);
@@ -1200,16 +1214,23 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			NewPinRef->SetPadding(FMargin(4, -2, 0, -2));
 		}
 
-		check(PinBox);
-		PinBox->SetContent(NewPinRef);
-
-		if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+		if (PinBox.IsValid())
 		{
-			InputPins.Add(NewPinRef);
+			PinBox->SetContent(NewPinRef);
+
+			if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+			{
+				InputPins.Add(NewPinRef);
+			}
+			else
+			{
+				OutputPins.Add(NewPinRef);
+			}
 		}
 		else
 		{
-			OutputPins.Add(NewPinRef);
+			// TODO error handling
+			UE_LOG(FlowYap, Warning, TEXT("Could not find pin box for pin %s"), *Pin->GetFName().ToString());
 		}
 	}
 }
@@ -1232,6 +1253,19 @@ FLinearColor SFlowGraphNode_YapDialogueWidget::TestColor() const
 	}
 	
 	return YapColor::White;
+}
+
+void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
+{
+	const bool bShowPin = ShouldPinBeHidden(Pin);
+
+	if (bShowPin)
+	{
+		TSharedPtr<SGraphPin> NewPin = FNodeFactory::CreatePinWidget(Pin);
+		check(NewPin.IsValid());
+
+		this->AddPin(NewPin.ToSharedRef());
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
