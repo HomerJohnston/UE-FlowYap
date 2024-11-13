@@ -61,7 +61,7 @@ protected:
 public:
 	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
 
-	void ForceUpdateGraphNode();;
+	void RequestUpdateGraphNode() { UpdateGraphNode(); };
 	
 	// ------------------------------------------
 	// WIDGETS

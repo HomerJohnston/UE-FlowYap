@@ -42,7 +42,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	FlowGraphNode = InNode;
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
 
-	DialogueButtonsColor = YapColor::DimGray;
+	DialogueButtonsColor = YapColor::DarkGray;
 
 	ConnectedBypassPinColor = YapColor::LightBlue;
 	DisconnectedBypassPinColor = YapColor::DarkGray;
@@ -73,11 +73,6 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 
 	UpdateGraphNode();
-}
-
-void SFlowGraphNode_YapDialogueWidget::ForceUpdateGraphNode()
-{
-	GetFlowYapDialogueNode()->OnReconstructionRequested.ExecuteIfBound();
 }
 
 int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
@@ -410,7 +405,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 	
 	GetFlowYapDialogueNodeMutable()->bIsPlayerPrompt = !GetFlowYapDialogueNode()->bIsPlayerPrompt;
 
-	GetFlowYapDialogueNode()->OnReconstructionRequested.Execute();
+	GetFlowYapDialogueNodeMutable()->ForceReconstruction();
 	
 	FFlowYapTransactions::EndModify();	
 
@@ -436,6 +431,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 		.ButtonColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeaderButton)
 		.ForegroundColor(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader)
 		.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt)
+		.ToolTipText(INVTEXT("Toggle between player prompt or normal speech"))
 		[
 			SNew(STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_NodeHeader)
@@ -683,27 +679,44 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
-	.Padding(32, 2, 2, 2)
+	.Padding(31, 2, 0, 2)
+	[	
+		SNew(SSpacer)
+	]
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.VAlign(VAlign_Fill)
+	.Padding(0, 2, 0, 2)
 	[
-		SNew(SButton)
-		.HAlign(HAlign_Center)
-		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))
-		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
-		.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton)
+		SNew(SBox)
+		.WidthOverride(32)
 		[
-			SNew(SBox)
-			.VAlign(VAlign_Center)
+			SNew(SButton)
+			.HAlign(HAlign_Center)
+			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+			.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))
+			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton)
 			[
-				SNew(SImage)
-				.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
-				.ColorAndOpacity(DialogueButtonsColor)
+				SNew(SBox)
+				.VAlign(VAlign_Center)
+				[
+					SNew(SImage)
+					.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
+					.ColorAndOpacity(DialogueButtonsColor)
+				]
 			]
 		]
 	]
 	+ SHorizontalBox::Slot()
+	.HAlign(HAlign_Fill)
+	.VAlign(VAlign_Fill)
+	.Padding(0, 2, 7, 2)
+	[	
+		SNew(SSpacer)
+	]
+	+ SHorizontalBox::Slot()
 	.AutoWidth()
-	.HAlign(HAlign_Center)
+	.HAlign(HAlign_Right)
 	.Padding(0, 2, 1, 2)
 	[
 		SAssignNew(BypassOutputBox, SBox)
@@ -739,6 +752,8 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 
 	FragmentSequencingButton_Text->SetText(Text_FragmentSequencingButton());
 	FragmentSequencingButton_Text->SetColorAndOpacity(ColorAndOpacity_FragmentSequencingButton());
+
+	UpdateGraphNode();
 	
 	FFlowYapTransactions::EndModify();
 	

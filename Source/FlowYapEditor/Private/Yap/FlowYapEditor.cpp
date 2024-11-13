@@ -9,8 +9,6 @@
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
-EAssetTypeCategories::Type FFlowYapEditorModule::FlowYapAssetCategory;
-
 #pragma region REGISTRATION_MACROS
 #define REGISTER_PROP_CUSTOMIZATION(_MODULE_, _NAME_) _MODULE_##.RegisterCustomPropertyTypeLayout("FlowYap" ###_NAME_##, FOnGetPropertyTypeCustomizationInstance::CreateStatic(FPropertyCustomization_FlowYap ## _NAME_ ## ::MakeInstance))
 #define REGISTER_CLASS_CUSTOMIZATION(_MODULE_, _NAME_) _MODULE_##.RegisterCustomClassLayout("FlowYap" ###_NAME_##, FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYap ##_NAME_## ::MakeInstance))
@@ -21,7 +19,7 @@ EAssetTypeCategories::Type FFlowYapEditorModule::FlowYapAssetCategory;
 
 void FFlowYapEditorModule::StartupModule()
 {
-	AssetCategory = { "FlowYap", LOCTEXT("FlowYap", "FlowYap") };
+	AssetCategory = { "Yap", LOCTEXT("Yap", "Yap") };
 	
 	AssetTypeActions =
 	{
@@ -40,7 +38,7 @@ void FFlowYapEditorModule::StartupModule()
 	};
 	
 	StartupModuleBase();
-	
+
 	// TODO fix this retardation into my style proper
 	FGameplayTagFilteredStyle::Initialize();
 }
@@ -48,11 +46,6 @@ void FFlowYapEditorModule::StartupModule()
 void FFlowYapEditorModule::ShutdownModule()
 {
 	ShutdownModuleBase();
-}
-
-EAssetTypeCategories::Type FFlowYapEditorModule::GetAssetCategory()
-{
-	return FlowYapAssetCategory;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -8,6 +8,8 @@ public class FlowYap : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
+		bUseUnity = false;
+		
 		PublicDefinitions.AddRange(
 			new string[] {
 				"FLOWFAP_USE_WWISE=1"

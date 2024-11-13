@@ -11,12 +11,7 @@ class IAssetTools;
 
 class FFlowYapEditorModule : public IModuleInterface, public FGPGEditorModuleBase
 {
-private:
-    static EAssetTypeCategories::Type FlowYapAssetCategory;
-
 public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
-    
-    static EAssetTypeCategories::Type GetAssetCategory();
 };

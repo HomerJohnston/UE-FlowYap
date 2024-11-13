@@ -166,7 +166,6 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentDelete()
 {
 	GetFlowYapDialogueNode()->DeleteFragmentByIndex(FragmentIndex);
 
-	
 	return FReply::Handled();
 }
 
@@ -1158,7 +1157,7 @@ void SFlowGraphNode_YapFragmentWidget::OnTagChanged_FragmentTag(FGameplayTag Gam
 
 	FFlowYapTransactions::EndModify();
 
-	Owner->ForceUpdateGraphNode();
+	Owner->RequestUpdateGraphNode();
 }
 
 // ================================================================================================
@@ -1820,12 +1819,10 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnStart Pin"), GetFlowYapDialogueNode());
 
 	GetFragment().bShowOnStartPin = true;
-
-	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
-	T->RefreshContextPins();
+	
+	GetFlowYapDialogueNode()->ForceReconstruction();
 	
 	FFlowYapTransactions::EndModify();
-
 
 	return FReply::Handled();
 }
@@ -1835,9 +1832,8 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 	FFlowYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Enable OnEnd Pin"), GetFlowYapDialogueNode());
 
 	GetFragment().bShowOnEndPin = true;
-	
-	UFlowGraphNode* T = Cast<UFlowGraphNode>(GetFlowYapDialogueNode()->GetGraphNode());
-	T->RefreshContextPins();
+
+	GetFlowYapDialogueNode()->ForceReconstruction();
 	
 	FFlowYapTransactions::EndModify();
 	
@@ -1876,7 +1872,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 	{
 		if (!MoodKey.IsValid())
 		{
-			UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
+			UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains an invalid entry. Clean this up!"));
 			continue;
 		}
 		
