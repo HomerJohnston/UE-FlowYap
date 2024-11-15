@@ -30,8 +30,11 @@ public:
 	// SETTINGS
 protected:
 	// TODO: editing this needs to tell you that you need to restart the editor somehow. Details customization with a big warning bar in slate surrounding these settings after they're modified??
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Yap))
 	TArray<FGameplayTag> MoodKeys;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Yap))
+	FGameplayTagContainer MoodKeys2;
 
 	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")

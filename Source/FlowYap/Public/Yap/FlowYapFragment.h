@@ -40,6 +40,9 @@ public:
 	// ==========================================
 	// SETTINGS
 protected:
+	UPROPERTY(EditAnywhere, Instanced)
+	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
+	
 	UPROPERTY(EditAnywhere)
 	FFlowYapBit Bit;
 
@@ -62,8 +65,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bShowOnStartPin = false;
 
-	UPROPERTY(EditAnywhere, Instanced)
-	TArray<TObjectPtr<UFlowYapCondition>> Conditions;
 	
 	// ==========================================
 	// STATE
@@ -119,7 +120,6 @@ public:
 	
 	void SetIndexInDialogue(uint8 NewValue) { IndexInDialogue = NewValue; }
 
-	FDelegateHandle FragmentTagFilterDelegateHandle;
 	FDelegateHandle FragmentTagChildrenFilterDelegateHandle;
 	
 	static void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String);
@@ -147,5 +147,7 @@ public:
 	FFlowPin GetEndPin() const;
 
 	FFlowPin GetStartPin() const;
+
+	void InvalidateFragmentTag();
 #endif
 };

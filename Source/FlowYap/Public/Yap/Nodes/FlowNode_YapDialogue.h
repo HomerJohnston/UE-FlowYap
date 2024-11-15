@@ -119,6 +119,8 @@ public:
 	EFlowYapInterruptible GetInterruptibleSetting() const;
 	
 	const TArray<TObjectPtr<UFlowYapCondition>>& GetConditions() const { return Conditions; }
+	
+	void InvalidateFragmentTags();
 
 protected:
 	void BroadcastPrompts();

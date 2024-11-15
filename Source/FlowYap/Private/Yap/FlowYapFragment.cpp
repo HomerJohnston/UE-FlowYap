@@ -15,7 +15,7 @@
 FFlowYapFragment::FFlowYapFragment()
 {
 #if WITH_EDITOR
-	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddStatic(&FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle);
+	//FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddStatic(&FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle);
 #endif
 	
 	Guid = FGuid::NewGuid();
@@ -170,6 +170,11 @@ FFlowPin FFlowYapFragment::GetStartPin() const
 	FFlowPin StartPin = FName("Start_" + GetGuid().ToString());
 	StartPin.PinToolTip = "Runs when the fragment starts playback";
 	return StartPin;
+}
+
+void FFlowYapFragment::InvalidateFragmentTag()
+{
+	FragmentTag = FGameplayTag::EmptyTag;
 }
 
 #endif

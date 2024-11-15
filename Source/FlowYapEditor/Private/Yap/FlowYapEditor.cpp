@@ -3,6 +3,7 @@
 #include "Yap/FlowYapEditor.h"
 
 #include "AssetToolsModule.h"
+#include "GameplayTagsManager.h"
 #include "Yap/AssetFactory_FlowYapCharacter.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredStyle.h"
@@ -21,21 +22,11 @@ void FFlowYapEditorModule::StartupModule()
 {
 	AssetCategory = { "Yap", LOCTEXT("Yap", "Yap") };
 	
-	AssetTypeActions =
-	{
-		MakeShareable(new FAssetTypeActions_FlowYapCharacter())
-	};
-
-	DetailCustomizations =
-	{
-		//{ UFlowNode_YapDialogue::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYapDialogueNode::MakeInstance) }
-	};
-
-	// const UScriptStruct& Struct, const FOnGetPropertyTypeCustomizationInstance DetailLayout
-	PropertyCustomizations =
-	{
-		//{ *FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance) }
-	};
+	AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FlowYapCharacter()));
+	
+	//DetailCustomizations.Add(UFlowNode_YapDialogue::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_FlowYapDialogueNode::MakeInstance));
+	
+	//PropertyCustomizations.Add(*FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance));
 	
 	StartupModuleBase();
 

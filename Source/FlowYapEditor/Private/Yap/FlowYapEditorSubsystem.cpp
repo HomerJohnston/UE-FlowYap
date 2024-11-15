@@ -2,12 +2,15 @@
 
 #include "Yap/FlowYapEditorSubsystem.h"
 
+#include "GameplayTagsManager.h"
 #include "Yap/FlowYapColors.h"
 #include "ImageUtils.h"
+#include "Yap/FlowYapEditorSettings.h"
 #include "Yap/FlowYapEngineUtils.h"
 #include "Yap/FlowYapInputTracker.h"
 #include "Yap/FlowYapProjectSettings.h"
 #include "Yap/YapEditorStyle.h"
+#include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -111,6 +114,8 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	InputTracker = MakeShared<FFlowYapInputTracker>(this);
 
 	FSlateApplication::Get().RegisterInputPreProcessor(InputTracker);
+
+	SetupGameplayTagFiltering();
 }
 
 void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
@@ -140,6 +145,42 @@ const FCheckBoxStyles& UFlowYapEditorSubsystem::GetCheckBoxStyles()
 FFlowYapInputTracker* UFlowYapEditorSubsystem::GetInputTracker()
 {
 	return InputTracker.Get();
+}
+
+void UFlowYapEditorSubsystem::SetupGameplayTagFiltering()
+{
+	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
+}
+
+void UFlowYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
+{
+	if (!PropertyHandle->HasMetaData("Yap"))
+	{
+		return;
+	}
+
+	if (IsMoodKeyProperty(PropertyHandle))
+	{
+		MetaString = GetDefault<UFlowYapProjectSettings>()->MoodTagsParent.ToString();
+		return;
+	}
+}
+
+bool UFlowYapEditorSubsystem::IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const
+{
+	TArray<FName> PropertyNames
+	{
+		"MoodKey",
+		"MoodKeys",
+		"MoodKeys2"
+	};
+	
+	if (PropertyNames.Contains(PropertyHandle->GetProperty()->GetFName()))
+	{
+		return true;
+	}
+		
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

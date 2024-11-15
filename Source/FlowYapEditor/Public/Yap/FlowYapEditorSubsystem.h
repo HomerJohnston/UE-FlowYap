@@ -40,7 +40,9 @@ protected:
 
 	// STATE
 	TSharedPtr<FFlowYapInputTracker> InputTracker;
-	
+
+	FDelegateHandle FragmentTagFilterDelegateHandle;
+
 public:
 	void UpdateMoodKeyIconsMap();
 	
@@ -60,4 +62,10 @@ public:
 	FFlowYapInputTracker* GetInputTracker();
 
 	TMap<TWeakPtr<FFlowYapFragment>, TArray<FName>> FragmentPins;
+	
+	void SetupGameplayTagFiltering();
+
+	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
+
+	bool IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const;
 };

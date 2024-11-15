@@ -221,6 +221,16 @@ EFlowYapInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
 
 // ================================================================================================
 
+void UFlowNode_YapDialogue::InvalidateFragmentTags()
+{
+	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
+	{
+		FFlowYapFragment& Fragment = Fragments[FragmentIndex];
+
+		Fragment.InvalidateFragmentTag();
+	}
+}
+
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
 	TArray<uint8> BroadcastedFragments;
@@ -577,7 +587,7 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 
 	if (bBypassRequired != BypassPinRequired())
 	{
-		
+		OnReconstructionRequested.Execute();
 	}
 }
 

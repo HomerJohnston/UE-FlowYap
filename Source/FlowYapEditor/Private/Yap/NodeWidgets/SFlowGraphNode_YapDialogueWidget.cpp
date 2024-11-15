@@ -109,10 +109,12 @@ void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(c
 {
 	FFlowYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change Dialogue Activation Limit"), GetFlowYapDialogueNodeMutable());
 
-	GetFlowYapDialogueNodeMutable()->NodeActivationLimit = FCString::Atoi(*Text.ToString());
+	GetFlowYapDialogueNodeMutable()->SetNodeActivationLimit(FCString::Atoi(*Text.ToString()));
 
-	FlowGraphNode->RefreshContextPins();
-	FlowGraphNode->ReconstructNode();
+	//RequestUpdateGraphNode();
+
+	//FlowGraphNode->RefreshContextPins();
+	//FlowGraphNode->ReconstructNode();
 	
 	/*
 	bool bNeedsBypassPin = GetFlowYapDialogueNode()->BypassPinRequired();
@@ -137,9 +139,16 @@ FGameplayTag SFlowGraphNode_YapDialogueWidget::Value_DialogueTag() const
 
 void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag GameplayTag)
 {
+	if (GetFlowYapDialogueNodeMutable()->DialogueTag == GameplayTag)
+	{
+		return;
+	}
+	
 	FFlowYapTransactions::BeginModify(LOCTEXT("Fragment", "Change Fragment Tag"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->DialogueTag = GameplayTag;
+
+	GetFlowYapDialogueNodeMutable()->InvalidateFragmentTags();
 
 	FFlowYapTransactions::EndModify();
 
@@ -181,6 +190,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Left)
 		.AutoWidth()
 		.Padding(-8, -5, 16, -6)
 		[

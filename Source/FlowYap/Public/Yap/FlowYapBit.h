@@ -42,7 +42,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, meta = (Yap))
 	FGameplayTag MoodKey;
 	
 	UPROPERTY(BlueprintReadOnly)
