@@ -15,11 +15,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, Conve
 // ================================================================================================
 
 USTRUCT(BlueprintType)
-struct FFlowYapActiveConversation
+struct FYapActiveConversation
 {
 	GENERATED_BODY()
 
-	FFlowYapActiveConversation();
+	FYapActiveConversation();
 
 public:
 	UPROPERTY(Transient)
@@ -78,7 +78,7 @@ protected:
 
 	/**  */
 	UPROPERTY(Transient)
-	FFlowYapActiveConversation ActiveConversation;
+	FYapActiveConversation ActiveConversation;
 
 	/**  */
 	UPROPERTY(Transient)

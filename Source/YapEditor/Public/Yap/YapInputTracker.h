@@ -2,12 +2,12 @@
 
 #include "Framework/Application/IInputProcessor.h"
 
-class UFlowYapEditorSubsystem;
+class UYapEditorSubsystem;
 
-class FFlowYapInputTracker : public IInputProcessor
+class FYapInputTracker : public IInputProcessor
 {
 protected:
-	UFlowYapEditorSubsystem* Owner;
+	UYapEditorSubsystem* Owner;
 
 	// STATE
 protected:
@@ -18,7 +18,7 @@ protected:
 	bool bRightControl = false;
 	
 public:
-	FFlowYapInputTracker(UFlowYapEditorSubsystem* InOwner);
+	FYapInputTracker(UYapEditorSubsystem* InOwner);
 
 	void Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor) override;
 	

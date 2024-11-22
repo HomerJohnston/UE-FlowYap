@@ -4,14 +4,14 @@
 #include "Factories/Factory.h"
 #include "AssetTypeActions_Base.h"
 
-#include "AssetFactory_FlowYapCharacter.generated.h"
+#include "AssetFactory_YapCharacter.generated.h"
 
 UCLASS()
-class UAssetFactory_FlowYapCharacter : public UFactory
+class UAssetFactory_YapCharacter : public UFactory
 {
 	GENERATED_BODY()
 public:
-	UAssetFactory_FlowYapCharacter();
+	UAssetFactory_YapCharacter();
 
 	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
 	virtual uint32 GetMenuCategories() const override;

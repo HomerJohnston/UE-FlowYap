@@ -10,7 +10,7 @@
 class UYapTextCalculator;
 enum class EYapErrorLevel : uint8;
 
-enum class EFlowYap_TagFilter : uint8
+enum class EYap_TagFilter : uint8
 {
 	Conditions,
 	Prompts,
@@ -83,7 +83,7 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Tags")
 	FGameplayTag MoodTagsParent;
 		
-	TMap<EFlowYap_TagFilter, FGameplayTag*> TagContainers;
+	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
 	TMulticastDelegate<void()> OnMoodTagsChanged;
 	
@@ -112,7 +112,7 @@ protected:
 	bool bShowPinEnableButtons = true;
 	
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
-	TMultiMap<FName, TMap<UClass*, EFlowYap_TagFilter>> TagFilterSubscriptions;
+	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
 #endif
 	
 #if WITH_EDITOR
@@ -169,9 +169,9 @@ public:
 	
 	TSubclassOf<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
 
-	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EFlowYap_TagFilter Filter);
+	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 
-	static FString GetTrimmedGameplayTagString(EFlowYap_TagFilter Filter, const FGameplayTag& PropertyTag);
+	static FString GetTrimmedGameplayTagString(EYap_TagFilter Filter, const FGameplayTag& PropertyTag);
 
 protected:
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const;

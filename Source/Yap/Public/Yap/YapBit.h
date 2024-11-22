@@ -94,7 +94,7 @@ public:
 		if (DialogueAudioAsset.IsPending())
 		{
 			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
-			UE_LOG(FlowYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
 			return DialogueAudioAsset.LoadSynchronous();
 		}
 

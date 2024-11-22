@@ -20,7 +20,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	
 	NodeActivationLimit = 0;
 	
-	FragmentSequencing = EFlowYapMultipleFragmentSequencing::Sequential;
+	FragmentSequencing = EFlowYapMultipleFragmentSequencing::RunAll;
 
 	Interruptible = EFlowYapInterruptible::UseProjectDefaults;
 
@@ -30,7 +30,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	OutputPins = {};
 	
 #if WITH_EDITOR
-	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EFlowYap_TagFilter::Prompts);
+	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EYap_TagFilter::Prompts);
 	
 	if (IsTemplate())
 	{
@@ -182,7 +182,7 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 	else
 	{
-		RunFragments();
+		FindStartingFragment();
 	}
 }
 
@@ -273,46 +273,32 @@ void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 
 // ================================================================================================
 
-void UFlowNode_YapDialogue::RunFragments()
+void UFlowNode_YapDialogue::FindStartingFragment()
 {
 	bool bStartedSuccessfully = false;
 	
 	for (uint8 i = 0; i < Fragments.Num(); ++i)
 	{
-		switch (FragmentSequencing)
-		{
-			case EFlowYapMultipleFragmentSequencing::SelectOne:
-			{
-				bStartedSuccessfully = RunFragment(i, false);
-				break;
-			}
-			case EFlowYapMultipleFragmentSequencing::Sequential:
-			{
-				bStartedSuccessfully = RunFragment(i, true);
-				break;
-			}
-		}
+		bStartedSuccessfully = RunFragment(i);
 
 		if (bStartedSuccessfully)
 		{
+			++NodeActivationCount;
 			break;
 		}
 	}
 	
-	if (bStartedSuccessfully)
-	{
-		++NodeActivationCount;
-	}
-	else
+	if (!bStartedSuccessfully)
 	{
 		TriggerOutput(FName("Bypass"), true);
 	}
 }
 
-bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, bool bRunNext)
+bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 {
 	if (!Fragments.IsValidIndex(FragmentIndex))
 	{
+		UE_LOG(LogYap, Error, TEXT("Attempted run invalid fragment index!"));
 		return false;
 	}
 	
@@ -336,13 +322,13 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, bool bRunNext)
 
 		double Time = Fragment.GetBit().GetTime();
 
-		if (Time == 0)
+		if (Time <= 0.f)
 		{
-			OnFragmentComplete(FragmentIndex, bRunNext);
+			OnFragmentComplete(FragmentIndex);
 		}
 		else
 		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex, bRunNext), Time, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex), Time, false);
 		}
 
 		return true;
@@ -353,7 +339,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex, bool bRunNext)
 	}
 }
 
-void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bRunNext)
+void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
 {
 	FYapFragment& Fragment = Fragments[FragmentIndex];
 
@@ -370,11 +356,11 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bRunNex
 	
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex, bRunNext), PaddingTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex), PaddingTime, false);
 	}
 	else
 	{
-		OnPaddingTimeComplete(FragmentIndex, bRunNext);
+		OnPaddingTimeComplete(FragmentIndex);
 	}
 
 #if WITH_EDITOR
@@ -383,7 +369,7 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex, bool bRunNex
 }
 
 
-void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bRunNext)
+void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 {
 #if WITH_EDITOR
 	RunningFragmentIndex.Reset();
@@ -399,18 +385,32 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex, bool bRun
 	}
 	else
 	{
-		if (bRunNext)
+		if (FragmentSequencing == EFlowYapMultipleFragmentSequencing::SelectOne)
+		{
+			TriggerOutput(FName("Out"), true);
+		}
+		else
 		{
 			for (uint8 NextIndex = FragmentIndex + 1; NextIndex < Fragments.Num(); ++NextIndex)
 			{
-				if (RunFragment(NextIndex))
+				bool bRanNextFragment =  RunFragment(NextIndex);
+
+				if (!bRanNextFragment && FragmentSequencing == EFlowYapMultipleFragmentSequencing::RunUntilFailure)
 				{
+					// Whoops, this is the end of the line
+					TriggerOutput(FName("Out"), true);
+					return;
+				}
+				else if (bRanNextFragment)
+				{
+					// We'll delegate further behavior to the next running fragment
 					return;
 				}
 			}
-		}
 
-		TriggerOutput(FName("Out"), true);
+			// No more fragments to try and run!
+			TriggerOutput(FName("Out"), true);
+		}
 	}
 }
 
@@ -596,7 +596,7 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 {
 	if (!Fragments.IsValidIndex(DeleteIndex))
 	{
-		UE_LOG(FlowYap, Error, TEXT("Invalid deletion index!"));
+		UE_LOG(LogYap, Error, TEXT("Invalid deletion index!"));
 	}
 
 	Fragments.RemoveAt(DeleteIndex);
@@ -611,7 +611,7 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 	if (Fragments.Num() >= 255)
 	{
 		// TODO nicer logging
-		UE_LOG(FlowYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
+		UE_LOG(LogYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
 		return;
 	}
 

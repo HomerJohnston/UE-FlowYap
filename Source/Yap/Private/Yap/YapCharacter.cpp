@@ -22,7 +22,7 @@ UYapCharacter::UYapCharacter()
 		{
 			if (!MoodKey.IsValid())
 			{
-				UE_LOG(FlowYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
+				UE_LOG(LogYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
 				continue;
 			}
 			

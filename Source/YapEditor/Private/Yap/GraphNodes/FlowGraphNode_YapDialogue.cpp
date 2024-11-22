@@ -4,7 +4,7 @@
 
 #include "Graph/FlowGraph.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "Yap/FlowYapColors.h"
+#include "Yap/YapColors.h"
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
@@ -45,7 +45,7 @@ void UFlowGraphNode_YapDialogue::DeleteFragment(FGuid FragmentGuid)
 
 	if (FragmentIndex == INDEX_NONE)
 	{
-		UE_LOG(FlowYap, Warning, TEXT("Fragment with Guid not found: %s"), *FragmentGuid.ToString());
+		UE_LOG(LogYap, Warning, TEXT("Fragment with Guid not found: %s"), *FragmentGuid.ToString());
 		return;
 	}
 	

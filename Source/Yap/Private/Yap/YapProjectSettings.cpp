@@ -39,8 +39,8 @@ UYapProjectSettings::UYapProjectSettings()
 
 	TagContainers =
 	{
-		{ EFlowYap_TagFilter::Conditions, &ConditionTagsParent },
-		{ EFlowYap_TagFilter::Prompts, &DialogueTagsParent }
+		{ EYap_TagFilter::Conditions, &ConditionTagsParent },
+		{ EYap_TagFilter::Prompts, &DialogueTagsParent }
 	};
 
 	CommonFragmentPaddings = { 0.0, 0.1, 0.3, 0.6, 1.0 }; // TODO sort on post edit change properties
@@ -152,9 +152,9 @@ double UYapProjectSettings::GetMinimumFragmentTime()
 	return MinimumFragmentTime;
 }
 
-void UYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EFlowYap_TagFilter Filter)
+void UYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter)
 {
-	TMap<UClass*, EFlowYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);
+	TMap<UClass*, EYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);
 
 	ClassFiltersForProperty.Add(ClassSource->GetClass(), Filter);
 }
@@ -166,7 +166,7 @@ void UYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 		return;
 	}
 	
-	const TMap<UClass*, EFlowYap_TagFilter>* ClassFilters = TagFilterSubscriptions.Find(PropertyHandle->GetProperty()->GetFName());
+	const TMap<UClass*, EYap_TagFilter>* ClassFilters = TagFilterSubscriptions.Find(PropertyHandle->GetProperty()->GetFName());
 
 	if (!ClassFilters)
 	{
@@ -178,7 +178,7 @@ void UYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 
 	for (const UObject* PropertyOuter : OuterObjects)
 	{
-		const EFlowYap_TagFilter* Filter = ClassFilters->Find(PropertyOuter->GetClass());
+		const EYap_TagFilter* Filter = ClassFilters->Find(PropertyOuter->GetClass());
 
 		if (!Filter)
 		{
@@ -189,7 +189,7 @@ void UYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 	}
 }
 
-FString UYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter Filter, const FGameplayTag& PropertyTag)
+FString UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter Filter, const FGameplayTag& PropertyTag)
 {
 	const FGameplayTag& ParentContainer = *Get()->TagContainers[Filter];
 	

@@ -1,13 +1,13 @@
 #pragma once
 #include "Widgets/SUserWidget.h"
-#include "Yap/FlowYapColors.h"
+#include "Yap/YapColors.h"
 #include "Yap/YapEditorStyle.h"
 
 class UFlowNode_YapDialogue;
 struct FGameplayTag;
 class UYapCondition;
 
-class FFlowYapWidgetHelper
+class FYapWidgetHelper
 {
 public:
 	

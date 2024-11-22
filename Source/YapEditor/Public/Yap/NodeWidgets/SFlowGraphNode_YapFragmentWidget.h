@@ -132,10 +132,10 @@ protected:
 	EVisibility			FragmentTimePaddingSlider_Visibility() const;
 	void				OnValueChanged_FragmentTimePadding(float X);
 	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
-	FText				FragmentTimePadding_ToolTipText() const;
+	FText				ToolTipText_FragmentTimePadding() const;
 
-	FSlateColor PortraitImage_BorderBackgroundColor() const;
-	FText PortraitWidget_ToolTipText() const;
+	FSlateColor BorderBackgroundColor_PortraitImage() const;
+	FText ToolTipText_PortraitWidget() const;
 	FReply OnClicked_PortraitWidget();
 	
 	// ------------------------------------------
@@ -161,14 +161,14 @@ protected:
 
 	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
 
-	FText TitleText_ToolTipText() const;
+	FText ToolTipText_TitleText() const;
 	EVisibility Visibility_TitleTextEdit() const;
 	FReply OnClicked_TitleTextExpandButton();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 
-	EVisibility			TitleText_Visibility() const;
-	FText				TitleText_Text() const;
+	EVisibility			Visibility_TitleText() const;
+	FText				Text_TitleText() const;
 	void				TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
@@ -180,36 +180,36 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateBottomRowWidget();
 
-	ECheckBoxState		UseProjectDefaultTimeSettingsButton_IsChecked() const;
-	void				UseProjectDefaultTimeSettingsButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	ECheckBoxState		IsChecked_UseProjectDefaultTimeSettingsButton() const;
+	void				OnCheckStateChanged_UseProjectDefaultTimeSettingsButton(ECheckBoxState CheckBoxState);
 	
-	bool				UseManuallyEnteredTimeButton_IsEnabled() const;
-	ECheckBoxState		UseManuallyEnteredTimeButton_IsChecked() const;
-	void				UseManuallyEnteredTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	bool				IsEnabled_UseManuallyEnteredTimeButton() const;
+	ECheckBoxState		IsChecked_UseManuallyEnteredTimeButton() const;
+	void				OnCheckStateChanged_UseManuallyEnteredTimeButton(ECheckBoxState CheckBoxState);
 
-	bool				UseTextTimeButton_IsEnabled() const;
-	ECheckBoxState		UseTextTimeButton_IsChecked() const;
-	void				UseTextTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	bool				IsEnabled_UseTextTimeButton() const;
+	ECheckBoxState		IsChecked_UseTextTimeButton() const;
+	void				OnCheckStateChanged_UseTextTimeButton(ECheckBoxState CheckBoxState);
 	
-	bool				UseAudioTimeButton_IsEnabled() const;
-	ECheckBoxState		UseAudioTimeButton_IsChecked() const;
-	void				UseAudioTimeButton_OnCheckStateChanged(ECheckBoxState CheckBoxState);
+	bool				IsEnabled_UseAudioTimeButton() const;
+	ECheckBoxState		IsChecked_UseAudioTimeButton() const;
+	void				OnCheckStateChanged_UseAudioTimeButton(ECheckBoxState CheckBoxState);
 
-	bool				TimeEntryBox_IsEnabled() const;
-	TOptional<double>	TimeEntryBox_Value() const;
-	void				TimeEntryBox_OnValueCommitted(double NewValue, ETextCommit::Type CommitType);
+	bool				IsEnabled_TimeEntryBox() const;
+	TOptional<double>	Value_TimeEntryBox() const;
+	void				OnValueCommitted_TimeEntryBox(double NewValue, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateAudioAssetWidget();
 
-	FText				AudioAsset_ObjectPathText() const;
-	FString				AudioAsset_ObjectPath() const;
-	void				AudioAsset_OnObjectChanged(const FAssetData& InAssetData);
-	EVisibility			AudioAssetErrorState_Visibility() const;
-	FSlateColor			AudioAssetErrorState_ColorAndOpacity() const;
+	FText				ObjectPathText_AudioAsset() const;
+	FString				ObjectPath_AudioAsset() const;
+	void				OnObjectChanged_AudioAsset(const FAssetData& InAssetData);
+	EVisibility			Visibility_AudioAssetErrorState() const;
+	FSlateColor			ColorAndOpacity_AudioAssetErrorState() const;
 	EYapErrorLevel	AudioAssetErrorLevel() const;
 
-	EVisibility			AudioButton_Visibility() const;
+	EVisibility			Visibility_AudioButton() const;
 
 	// ------------------------------------------
 	// HELPERS
@@ -220,8 +220,8 @@ protected:
 
 	bool FragmentFocused() const;
 
-	EVisibility			RowHighlight_Visibility() const;
-	FSlateColor			RowHighlight_BorderBackgroundColor() const;
+	EVisibility			Visibility_RowHighlight() const;
+	FSlateColor			BorderBackgroundColor_RowHighlight() const;
 
 	void SetNodeSelected();
 	// ------------------------------------------

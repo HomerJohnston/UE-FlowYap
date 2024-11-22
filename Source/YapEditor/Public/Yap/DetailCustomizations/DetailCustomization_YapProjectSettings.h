@@ -19,8 +19,6 @@ public:
 	FText GetMoodTags() const;
 
 	const FSlateBrush* TODOBorderImage() const;
-
-
 	
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 

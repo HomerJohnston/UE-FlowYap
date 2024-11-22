@@ -69,7 +69,7 @@ protected:
 	int32 GetDialogueActivationCount() const;
 
 	int32 GetDialogueActivationLimit() const;
-	EVisibility InterruptibleToggleIconOff_Visibility() const;
+	EVisibility Visibility_InterruptibleToggleIconOff() const;
 	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
@@ -77,9 +77,9 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	ECheckBoxState		InterruptibleToggle_IsChecked() const;
-	void				InterruptibleToggle_OnCheckStateChanged(ECheckBoxState CheckBoxState);
-	FSlateColor			InterruptibleToggleIcon_ColorAndOpacity() const;
+	ECheckBoxState		IsChecked_InterruptibleToggle() const;
+	void				OnCheckStateChanged_InterruptibleToggle(ECheckBoxState CheckBoxState);
+	FSlateColor			ColorAndOpacity_InterruptibleToggleIcon() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
@@ -109,7 +109,7 @@ protected:
 	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex) const;
 
 	EVisibility			FragmentSeparator_Visibility() const;
-	FSlateColor			FragmentSeparator_ColorAndOpacity() const;
+	FSlateColor			ColorAndOpacity_FragmentSeparator() const;
 	FReply				FragmentSeparator_OnClicked(uint8 Index);
 
 	// ------------------------------------------

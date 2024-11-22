@@ -1,23 +1,23 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 
-#include "Yap/FlowYapEditorSubsystem.h"
+#include "Yap/YapEditorSubsystem.h"
 
 #include "GameplayTagsEditorModule.h"
 #include "GameplayTagsManager.h"
-#include "Yap/FlowYapColors.h"
+#include "Yap/YapColors.h"
 #include "ImageUtils.h"
-#include "Yap/FlowYapEditorSettings.h"
+#include "Yap/YapEditorSettings.h"
 #include "Yap/YapEngineUtils.h"
-#include "Yap/FlowYapInputTracker.h"
+#include "Yap/YapInputTracker.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
-FCheckBoxStyles UFlowYapEditorSubsystem::CheckBoxStyles;
+FCheckBoxStyles UYapEditorSubsystem::CheckBoxStyles;
 
-void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
+void UYapEditorSubsystem::UpdateMoodKeyIconsMap()
 {
 	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
 
@@ -53,7 +53,7 @@ void UFlowYapEditorSubsystem::UpdateMoodKeyIconsMap()
 	}
 }
 
-UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
+UTexture2D* UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
 {
 	UTexture2D** Texture = MoodKeyIconTextures.Find(MoodKey);
 
@@ -65,7 +65,7 @@ UTexture2D* UFlowYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
 	return nullptr;
 }
 
-const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
+const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 {
 	TSharedPtr<FSlateBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
@@ -78,7 +78,7 @@ const FSlateBrush* UFlowYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 	CheckBoxStyles.Name.CheckedHoveredImage.TintColor = YapColor::Col##Hovered;\
 	CheckBoxStyles.Name.CheckedPressedImage.TintColor = YapColor::Col##Pressed\
 
-void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
@@ -118,14 +118,14 @@ void UFlowYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Tmp.UndeterminedHoveredImage.TintColor = YapColor::Gray;
 	Tmp.UndeterminedPressedImage.TintColor = YapColor::Gray;
 
-	InputTracker = MakeShared<FFlowYapInputTracker>(this);
+	InputTracker = MakeShared<FYapInputTracker>(this);
 
 	FSlateApplication::Get().RegisterInputPreProcessor(InputTracker);
 
 	SetupGameplayTagFiltering();
 }
 
-void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
+void UYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
 {
 	FString ResourcePath = FYapEngineUtils::GetFlowYapPluginDir() / LocalResourcePath;
 	Texture = FImageUtils::ImportFileAsTexture2D(ResourcePath);
@@ -134,7 +134,7 @@ void UFlowYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& T
 	Brush.SetResourceObject(Texture);
 }
 
-void UFlowYapEditorSubsystem::Deinitialize()
+void UYapEditorSubsystem::Deinitialize()
 {
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
 	ProjectSettings->OnMoodTagsChanged.RemoveAll(this);
@@ -144,22 +144,22 @@ void UFlowYapEditorSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-const FCheckBoxStyles& UFlowYapEditorSubsystem::GetCheckBoxStyles()
+const FCheckBoxStyles& UYapEditorSubsystem::GetCheckBoxStyles()
 {
 	return CheckBoxStyles;
 }
 
-FFlowYapInputTracker* UFlowYapEditorSubsystem::GetInputTracker()
+FYapInputTracker* UYapEditorSubsystem::GetInputTracker()
 {
 	return InputTracker.Get();
 }
 
-void UFlowYapEditorSubsystem::SetupGameplayTagFiltering()
+void UYapEditorSubsystem::SetupGameplayTagFiltering()
 {
 	FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
 }
 
-void UFlowYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
+void UYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {
 	if (!PropertyHandle->HasMetaData("Yap"))
 	{
@@ -173,7 +173,7 @@ void UFlowYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<I
 	}
 }
 
-bool UFlowYapEditorSubsystem::IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const
+bool UYapEditorSubsystem::IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const
 {
 	TArray<FName> PropertyNames
 	{

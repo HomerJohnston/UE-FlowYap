@@ -7,7 +7,7 @@
 #include "SGameplayTagCombo.h"
 #include "SGameplayTagContainerCombo.h"
 #include "SGameplayTagPicker.h"
-#include "Yap/FlowYapTransactions.h"
+#include "Yap/YapTransactions.h"
 #include "Yap/YapProjectSettings.h"
 
 FText FDetailCustomization_YapProjectSettings::GetMoodTags() const
@@ -189,7 +189,7 @@ EVisibility FDetailCustomization_YapProjectSettings::Visibility_AddDefaultMoodTa
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_AddDefaultMoodTags() const
 {
-	FFlowYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), GetMutableDefault<UYapProjectSettings>());
+	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), GetMutableDefault<UYapProjectSettings>());
 	
 	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Angry", "", "YapGameplayTags.ini");
 	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Angry", "", "YapGameplayTags.ini");
@@ -206,7 +206,7 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_AddDefaultMoodTags() c
 	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Stressed", "", "YapGameplayTags.ini");
 	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Surprised", "", "YapGameplayTags.ini");
 
-	FFlowYapTransactions::EndModify();
+	FYapTransactions::EndModify();
 	
 	return FReply::Handled();
 }

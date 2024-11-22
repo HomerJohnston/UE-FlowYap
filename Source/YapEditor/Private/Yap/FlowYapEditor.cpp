@@ -2,7 +2,7 @@
 
 #include "Yap/FlowYapEditor.h"
 
-#include "Yap/AssetFactory_FlowYapCharacter.h"
+#include "Yap/AssetFactory_YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/DetailCustomizations/DetailCustomization_YapProjectSettings.h"

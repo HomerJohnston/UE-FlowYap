@@ -1,15 +1,15 @@
-#include "Yap/FlowYapInputTracker.h"
+#include "Yap/YapInputTracker.h"
 
-FFlowYapInputTracker::FFlowYapInputTracker(UFlowYapEditorSubsystem* InOwner)
+FYapInputTracker::FYapInputTracker(UYapEditorSubsystem* InOwner)
 {
 	Owner = InOwner;
 }
 
-void FFlowYapInputTracker::Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)
+void FYapInputTracker::Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)
 {
 }
 
-bool FFlowYapInputTracker::HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
+bool FYapInputTracker::HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.GetKey() == EKeys::LeftShift)
 	{
@@ -31,7 +31,7 @@ bool FFlowYapInputTracker::HandleKeyDownEvent(FSlateApplication& SlateApp, const
 	return false;
 }
 
-bool FFlowYapInputTracker::HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
+bool FYapInputTracker::HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.GetKey() == EKeys::LeftShift)
 	{
@@ -53,12 +53,12 @@ bool FFlowYapInputTracker::HandleKeyUpEvent(FSlateApplication& SlateApp, const F
 	return false;
 }
 
-bool FFlowYapInputTracker::GetShiftPressed() const
+bool FYapInputTracker::GetShiftPressed() const
 {
 	return bLeftShift || bRightShift;
 }
 
-bool FFlowYapInputTracker::GetControlPressed() const
+bool FYapInputTracker::GetControlPressed() const
 {
 	return bLeftControl || bRightControl;
 }

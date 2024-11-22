@@ -30,7 +30,7 @@ bool FYapFragment::CheckConditions() const
 	{
 		if (!IsValid(Condition))
 		{
-			UE_LOG(FlowYap, Warning, TEXT("Ignoring null condition. Clean this up!")); // TODO more info
+			UE_LOG(LogYap, Warning, TEXT("Ignoring null condition. Clean this up!")); // TODO more info
 			continue;
 		}
 		if (!Condition->Evaluate())

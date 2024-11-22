@@ -2,19 +2,19 @@
 
 
 #define LOCTEXT_NAMESPACE "FlowYap"
-#include "Yap/AssetFactory_FlowYapCharacter.h"
+#include "Yap/AssetFactory_YapCharacter.h"
 
 #include "Yap/YapCharacter.h"
 #include "Yap/FlowYapEditor.h"
 
-UAssetFactory_FlowYapCharacter::UAssetFactory_FlowYapCharacter()
+UAssetFactory_YapCharacter::UAssetFactory_YapCharacter()
 {
 	bCreateNew = true;
 	bEditAfterNew = true;
 	SupportedClass = UYapCharacter::StaticClass();
 }
 
-UObject* UAssetFactory_FlowYapCharacter::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+UObject* UAssetFactory_YapCharacter::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
 	// Uncomment one of these
 
@@ -25,12 +25,12 @@ UObject* UAssetFactory_FlowYapCharacter::FactoryCreateNew(UClass* Class, UObject
 	//return FKismetEditorUtilities::CreateBlueprint(Class, InParent, Name, BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
 }
 
-uint32 UAssetFactory_FlowYapCharacter::GetMenuCategories() const
+uint32 UAssetFactory_YapCharacter::GetMenuCategories() const
 {
 	return FYapEditorModule::GetAssetCategory();
 }
 
-FText UAssetFactory_FlowYapCharacter::GetDisplayName() const
+FText UAssetFactory_YapCharacter::GetDisplayName() const
 {
 	return LOCTEXT("FlowYapCharacter", "FlowYap Character");
 }

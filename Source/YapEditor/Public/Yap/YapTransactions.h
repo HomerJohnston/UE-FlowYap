@@ -1,6 +1,6 @@
 #pragma once
 
-class FFlowYapTransactions
+class FYapTransactions
 {
 public:
 	static void BeginModify(FText TransactionText, UObject* Object);

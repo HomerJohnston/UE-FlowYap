@@ -8,7 +8,7 @@ UFlowNode_YapSetCondition::UFlowNode_YapSetCondition()
 	NodeStyle = EFlowNodeStyle::Default;
 
 #if WITH_EDITOR
-	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition), EFlowYap_TagFilter::Conditions);
+	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition), EYap_TagFilter::Conditions);
 #endif
 }
 
@@ -24,5 +24,5 @@ FText UFlowNode_YapSetCondition::GetNodeTitle() const
 
 FString UFlowNode_YapSetCondition::GetNodeDescription() const
 {
-	return UYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Conditions, Condition);
+	return UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Conditions, Condition);
 }

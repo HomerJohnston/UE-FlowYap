@@ -12,7 +12,8 @@ enum class EFlowYapInterruptible : uint8;
 UENUM(BlueprintType)
 enum class EFlowYapMultipleFragmentSequencing : uint8
 {
-	Sequential,
+	RunAll,
+	RunUntilFailure,
 	SelectOne,
 	COUNT		UMETA(Hidden)
 };
@@ -33,7 +34,7 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 	friend class FDetailCustomization_FlowYapDialogueNode;
 	friend class SFlowYapBitDetailsWidget;
 	friend class FPropertyCustomization_FlowYapFragment;
-	friend class FFlowYapWidgetHelper;
+	friend class FYapWidgetHelper;
 #endif
 
 	friend class UYapSubsystem;
@@ -128,13 +129,13 @@ protected:
 protected:
 	void RunPrompt(uint8 Uint8);
 	
-	void RunFragments();
+	void FindStartingFragment();
 
-	bool RunFragment(uint8 FragmentIndex, bool bRunNext = false);
+	bool RunFragment(uint8 FragmentIndex);
 
-	void OnFragmentComplete(uint8 FragmentIndex, bool bRunNext);
+	void OnFragmentComplete(uint8 FragmentIndex);
 
-	void OnPaddingTimeComplete(uint8 FragmentIndex, bool bRunNext);
+	void OnPaddingTimeComplete(uint8 FragmentIndex);
 
 	bool IsBypassPinRequired() const;
 	

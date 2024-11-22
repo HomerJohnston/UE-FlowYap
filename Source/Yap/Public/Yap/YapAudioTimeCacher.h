@@ -11,7 +11,7 @@ class YAP_API UYapAudioTimeCacher : public UObject
 public:
 	virtual double GetAudioLengthInSeconds(const TSoftObjectPtr<UObject>& Object)
 	{
-		UE_LOG(FlowYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time! You must inherit from "));
+		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time! You must inherit from "));
 		return -1.0;
 	};
 };

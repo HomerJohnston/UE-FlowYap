@@ -2,11 +2,11 @@
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
-#include "Yap/FlowYapTransactions.h"
+#include "Yap/YapTransactions.h"
 
 #include "Editor/TransBuffer.h"
 
-void FFlowYapTransactions::BeginModify(FText TransactionText, UObject* Object)
+void FYapTransactions::BeginModify(FText TransactionText, UObject* Object)
 {
 	// TODO change all this old shit to GEditor->BeginTransaction, EndTransaction
 	if (GEditor && GEditor->Trans)
@@ -22,7 +22,7 @@ void FFlowYapTransactions::BeginModify(FText TransactionText, UObject* Object)
 	}
 }
 
-void FFlowYapTransactions::EndModify()
+void FYapTransactions::EndModify()
 {
 	if (GEditor && GEditor->Trans)
 	{

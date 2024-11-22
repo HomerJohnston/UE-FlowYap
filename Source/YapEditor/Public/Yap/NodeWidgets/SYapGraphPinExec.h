@@ -3,7 +3,7 @@
 #include "SGraphPin.h"
 #include "Graph/Widgets/SFlowGraphNode.h"
 
-class SFlowYapGraphPinExec : public SFlowGraphPinExec
+class SYapGraphPinExec : public SFlowGraphPinExec
 {
 public:
 	

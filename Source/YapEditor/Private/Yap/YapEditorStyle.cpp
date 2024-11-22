@@ -5,7 +5,7 @@
 #include "ImageUtils.h"
 #include "Styling/SlateStyleMacros.h"
 #include "Styling/SlateStyleRegistry.h"
-#include "Yap/FlowYapColors.h"
+#include "Yap/YapColors.h"
 
 TArray<TStrongObjectPtr<UTexture2D>> FYapEditorStyle::Textures;
 
@@ -38,7 +38,7 @@ FYapEditorStyle::FYapEditorStyle()
 	: FSlateStyleSet("YapEditor")
 {
 	SetParentStyleName(FAppStyle::GetAppStyleSetName());
-	SetContentRoot(FPaths::ProjectPluginsDir() / TEXT("FlowYap/Resources"));
+	SetContentRoot(FPaths::ProjectPluginsDir() / TEXT("Yap/Resources"));
 	SetCoreContentRoot(FPaths::EngineContentDir() / TEXT("Editor/Slate"));
 
 	Initialize();

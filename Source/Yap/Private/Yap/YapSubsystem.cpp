@@ -12,23 +12,23 @@
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
-FFlowYapActiveConversation::FFlowYapActiveConversation()
+FYapActiveConversation::FYapActiveConversation()
 {
 	FlowAsset = nullptr;
 	Conversation = FGameplayTag::EmptyTag;
 }
 
-bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
+bool FYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
 {
 	if (Conversation != FGameplayTag::EmptyTag)
 	{
-		UE_LOGFMT(FlowYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.ToString());
+		UE_LOGFMT(LogYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.ToString());
 		return false;
 	}
 	
 	if (InConversation == FGameplayTag::EmptyTag)
 	{
-		UE_LOG(FlowYap, Error, TEXT("Tried to start conversation named NONE! Did you forgot to name the Start Conversation node? Ignoring start request."));
+		UE_LOG(LogYap, Error, TEXT("Tried to start conversation named NONE! Did you forgot to name the Start Conversation node? Ignoring start request."));
 		return false;
 	}
 
@@ -40,7 +40,7 @@ bool FFlowYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, co
 	return true;
 }
 
-bool FFlowYapActiveConversation::EndConversation()
+bool FYapActiveConversation::EndConversation()
 {
 	if (Conversation != FGameplayTag::EmptyTag)
 	{
@@ -69,7 +69,7 @@ void UYapSubsystem::AddConversationHandler(UObject* NewListener)
 	}
 	else
 	{
-		UE_LOGFMT(FlowYap, Warning, "Tried to register a conversation handler, {0} but it does not implement the FlowYapConversationHandler interface!");
+		UE_LOGFMT(LogYap, Warning, "Tried to register a conversation handler, {0} but it does not implement the FlowYapConversationHandler interface!");
 	}
 }
 
@@ -82,7 +82,7 @@ void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlo
 {
 	if (TaggedFragments.Contains(FragmentTag))
 	{
-		UE_LOGFMT(FlowYap, Warning, "Tried to register tagged fragment with tag [{0}] but this tag was already registered! Find and fix the duplicate tag usage.", FragmentTag.ToString()); // TODO if I pass in the full fragment I could log the dialogue text to make this easier for designers?
+		UE_LOGFMT(LogYap, Warning, "Tried to register tagged fragment with tag [{0}] but this tag was already registered! Find and fix the duplicate tag usage.", FragmentTag.ToString()); // TODO if I pass in the full fragment I could log the dialogue text to make this easier for designers?
 		return;
 	}
 	

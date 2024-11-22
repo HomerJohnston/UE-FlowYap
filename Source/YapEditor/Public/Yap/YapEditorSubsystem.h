@@ -4,10 +4,10 @@
 
 #include "GameplayTagContainer.h"
 
-#include "FlowYapEditorSubsystem.generated.h"
+#include "YapEditorSubsystem.generated.h"
 
 class UYapCharacter;
-class FFlowYapInputTracker;
+class FYapInputTracker;
 struct FYapFragment;
 
 struct FCheckBoxStyles
@@ -26,7 +26,7 @@ struct FCheckBoxStyles
 };
 
 UCLASS()
-class UFlowYapEditorSubsystem : public UEditorSubsystem
+class UYapEditorSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ protected:
 	static FCheckBoxStyles CheckBoxStyles;
 
 	// STATE
-	TSharedPtr<FFlowYapInputTracker> InputTracker;
+	TSharedPtr<FYapInputTracker> InputTracker;
 
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
@@ -59,7 +59,7 @@ public:
 	
 	static const FCheckBoxStyles& GetCheckBoxStyles();
 
-	FFlowYapInputTracker* GetInputTracker();
+	FYapInputTracker* GetInputTracker();
 
 	TMap<TWeakPtr<FYapFragment>, TArray<FName>> FragmentPins;
 	

@@ -25,7 +25,7 @@ const FSlateBrush* FYapBit::GetSpeakerPortraitBrush() const
 {
 	if (Character.IsPending())
 	{
-		UE_LOG(FlowYap, Warning, TEXT("Synchronously loading portrait brushes. This should ONLY happen during editor time!"))
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loading portrait brushes. This should ONLY happen during editor time!"))
 		Character.LoadSynchronous();
 	}
 	
@@ -166,7 +166,7 @@ void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 
 	if (AudioTimeCacheClass == nullptr)
 	{
-		UE_LOG(FlowYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
+		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
 		CachedAudioTime = -1.0;
 		return;
 	}
@@ -175,7 +175,7 @@ void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 
 	if (AudioTimeCacheClass == nullptr)
 	{
-		UE_LOG(FlowYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
+		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
 		CachedAudioTime = -1.0;
 		return;
 	}

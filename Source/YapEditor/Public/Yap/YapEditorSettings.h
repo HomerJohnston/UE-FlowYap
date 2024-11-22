@@ -1,16 +1,16 @@
 #pragma once
 
-#include "FlowYapEditorSettings.generated.h"
+#include "YapEditorSettings.generated.h"
 
 UCLASS(Config = Editor, DefaultConfig, DisplayName = "Flow Yap")
-class UFlowYapEditorSettings : public UDeveloperSettings
+class UYapEditorSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
-	UFlowYapEditorSettings();
+	UYapEditorSettings();
 	
-	static UFlowYapEditorSettings* Get() { return StaticClass()->GetDefaultObject<UFlowYapEditorSettings>(); }
+	static UYapEditorSettings* Get() { return StaticClass()->GetDefaultObject<UYapEditorSettings>(); }
 
 protected:
 	UPROPERTY(EditAnywhere, Config, Category = "Graph Settings", meta = (ClampMin = 0, UIMin = 0, UIMax = 4))

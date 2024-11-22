@@ -1,15 +1,15 @@
-#include "Yap/Helpers/FlowYapWidgetHelper.h"
+#include "Yap/Helpers/YapWidgetHelper.h"
 
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
-#include "Yap/FlowYapColors.h"
+#include "Yap/YapColors.h"
 #include "Yap/YapCondition.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
 
-TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition)
+TSharedRef<SWidget> FYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition)
 {
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "-";
 
@@ -43,7 +43,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDia
 	];
 }
 
-TSharedRef<SWidget> FFlowYapWidgetHelper::CreateTagPreviewWidget(TAttribute<FText> Text,
+TSharedRef<SWidget> FYapWidgetHelper::CreateTagPreviewWidget(TAttribute<FText> Text,
 	TAttribute<EVisibility> Visibility)
 {
 	return SNew(SBorder)
@@ -77,7 +77,7 @@ TSharedRef<SWidget> FFlowYapWidgetHelper::CreateTagPreviewWidget(TAttribute<FTex
 	];
 }
 
-TSharedRef<SWidget> FFlowYapWidgetHelper::CreateFilteredTagWidget(TAttribute<FGameplayTag> Tag, FString FilterString, TDelegate<void(const FGameplayTag)> OnTagChanged, FText ToolTipText)
+TSharedRef<SWidget> FYapWidgetHelper::CreateFilteredTagWidget(TAttribute<FGameplayTag> Tag, FString FilterString, TDelegate<void(const FGameplayTag)> OnTagChanged, FText ToolTipText)
 {
 	return SNew(SGameplayTagComboFiltered)
 	.Tag(Tag)

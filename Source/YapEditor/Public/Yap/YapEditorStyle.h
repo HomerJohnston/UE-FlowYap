@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FlowYapColors.h"
+#include "YapColors.h"
 #include "Styling/SlateStyle.h"
 #include "Delegates/IDelegateInstance.h"
 

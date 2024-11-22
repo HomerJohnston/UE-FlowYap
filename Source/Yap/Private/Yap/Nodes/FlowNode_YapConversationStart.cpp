@@ -53,7 +53,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 
 void UFlowNode_YapConversationStart::OnActivate()
 {
-	UE_LOG(FlowYap, Verbose, TEXT("Conversation starting: %s"), *Conversation.ToString());
+	UE_LOG(LogYap, Verbose, TEXT("Conversation starting: %s"), *Conversation.ToString());
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->StartConversation(GetFlowAsset(), Conversation);
 }

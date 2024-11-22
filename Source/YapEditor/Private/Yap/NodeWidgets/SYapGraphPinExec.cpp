@@ -1,8 +1,8 @@
 
 
-#include "Yap/NodeWidgets/SFlowYapGraphPinExec.h"
+#include "Yap/NodeWidgets/SYapGraphPinExec.h"
 
-void SFlowYapGraphPinExec::Construct(const FArguments& InArgs, UEdGraphPin* InPin)
+void SYapGraphPinExec::Construct(const FArguments& InArgs, UEdGraphPin* InPin)
 {
 	SGraphPinExec::Construct(SGraphPinExec::FArguments(), InPin);
 	bUsePinColorForText = true;
@@ -31,7 +31,7 @@ void SFlowYapGraphPinExec::Construct(const FArguments& InArgs, UEdGraphPin* InPi
 	CachedImg_Pin_Disconnected = &Test;
 }
 
-const FSlateBrush* SFlowYapGraphPinExec::GetPinIcon() const
+const FSlateBrush* SYapGraphPinExec::GetPinIcon() const
 {
 	// TODO Test
 	return SFlowGraphPinExec::GetPinIcon();
