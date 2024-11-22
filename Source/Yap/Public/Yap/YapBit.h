@@ -128,6 +128,7 @@ protected:
 
 	double GetAudioTime() const { return CachedAudioTime; }
 
+public:
 	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
 
 public:

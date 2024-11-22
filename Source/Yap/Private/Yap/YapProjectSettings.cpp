@@ -9,11 +9,14 @@
 
 UYapProjectSettings::UYapProjectSettings()
 {
+
 #if WITH_EDITORONLY_DATA
 	MoodKeyIconPath.Path = "";
 
 	DialogueWidthAdjustment = 0;
-	
+
+	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
+
 	ConditionTagsParent = TagsManager.AddNativeGameplayTag("Yap.Condition");
 
 	DialogueTagsParent = TagsManager.AddNativeGameplayTag("Yap.Dialogue");
@@ -30,7 +33,6 @@ UYapProjectSettings::UYapProjectSettings()
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
 	bDefaultInterruptibleSetting = true;
-	
 
 	TextWordsPerMinute = 120;
 	
@@ -44,7 +46,6 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 
-	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
 	
 
 	CommonFragmentPaddings = { 0.0, 0.1, 0.3, 0.6, 1.0 }; // TODO sort on post edit change properties

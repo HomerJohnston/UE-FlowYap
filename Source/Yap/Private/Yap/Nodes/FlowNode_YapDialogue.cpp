@@ -540,12 +540,12 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 	{
 		const FYapFragment& Fragment = Fragments[Index];
 		
-		if (Fragment.GetShowOnEndPin())
+		if (Fragment.UsesEndPin())
 		{
 			ContextOutputPins.Add(Fragment.GetEndPin());
 		}
 		
-		if (Fragment.GetShowOnStartPin())
+		if (Fragment.UsesStartPin())
 		{
 			ContextOutputPins.Add(Fragment.GetStartPin());
 		}

@@ -121,11 +121,6 @@ void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHan
 	}
 }
 
-bool FYapFragment::GetBitReplaced() const
-{
-	return bBitReplaced;
-}
-
 TArray<FFlowPin> FYapFragment::GetOutputPins() const
 {
 	TArray<FFlowPin> Pins;
@@ -135,12 +130,12 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 		Pins.Add(GetPromptPin());
 	}
 	
-	if (GetShowOnEndPin())
+	if (UsesEndPin())
 	{
 		Pins.Add(GetEndPin());
 	}
 	
-	if (GetShowOnStartPin())
+	if (UsesStartPin())
 	{
 		Pins.Add(GetStartPin());
 	}

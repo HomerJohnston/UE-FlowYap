@@ -142,5 +142,8 @@ public:
 	FFlowPin GetStartPin() const;
 
 	void InvalidateFragmentTag();
+
+	// TODO implement this
+	bool GetBitReplaced() { return false; };
 #endif
 };

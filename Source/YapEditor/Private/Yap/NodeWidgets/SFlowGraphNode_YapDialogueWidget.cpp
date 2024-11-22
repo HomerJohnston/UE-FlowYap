@@ -1135,7 +1135,7 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 	{
 		const FYapFragment& Fragment = GetFlowYapDialogueNode()->GetFragments()[i];
 
-		if (Fragment.GetShowOnStartPin())
+		if (Fragment.UsesStartPin())
 		{
 			FFlowPin StartPin = Fragment.GetStartPin();
 			
@@ -1144,7 +1144,7 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			OptionalPins.Add(StartPin);
 		}
 
-		if (Fragment.GetShowOnEndPin())
+		if (Fragment.UsesEndPin())
 		{
 			FFlowPin EndPin = Fragment.GetEndPin();
 

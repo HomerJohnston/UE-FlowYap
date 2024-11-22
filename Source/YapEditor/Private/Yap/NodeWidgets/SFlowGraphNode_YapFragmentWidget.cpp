@@ -1814,7 +1814,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton(
 		return EVisibility::Collapsed;
 	}
 	
-	return GetFragment().GetShowOnStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
+	return GetFragment().UsesStartPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton() const
@@ -1824,7 +1824,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton() 
 		return EVisibility::Collapsed;
 	}
 	
-	return GetFragment().GetShowOnEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
+	return GetFragment().UsesEndPin() ? EVisibility::Collapsed : EVisibility::Visible;
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton()
