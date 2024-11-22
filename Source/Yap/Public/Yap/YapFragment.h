@@ -78,11 +78,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	FGuid Guid = FGuid(0, 0, 0, 0);
 	
-#if WITH_EDITORONLY_DATA
-protected:
-	bool bBitReplaced = false;
-#endif
-
 	// ==========================================
 	// API
 public:
@@ -110,7 +105,13 @@ public:
 	FName GetStartPinName();
 
 	FName GetEndPinName();
-	
+
+	bool UsesStartPin() const { return bShowOnStartPin; }
+
+	bool UsesEndPin() const { return bShowOnEndPin; }
+
+	const TArray<TObjectPtr<UYapCondition>>& GetConditions() const { return Conditions; }
+
 #if WITH_EDITOR
 public:
 	FYapBit& GetBitMutable() { return Bit; }
@@ -126,14 +127,7 @@ public:
 	void SetPaddingToNextFragment(float NewValue) { PaddingToNextFragment = NewValue; }
 
 	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
-
-	bool GetBitReplaced() const;
-
-	bool GetShowOnStartPin() const { return bShowOnStartPin; }
 	
-	bool GetShowOnEndPin() const { return bShowOnEndPin; }
-
-	const TArray<TObjectPtr<UYapCondition>>& GetConditions() const { return Conditions; }
 
 	TArray<TObjectPtr<UYapCondition>>& GetConditionsMutable() { return Conditions; }
 

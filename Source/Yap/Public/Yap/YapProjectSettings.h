@@ -71,6 +71,12 @@ protected:
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings")
 	float FragmentPaddingSliderMax;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSubclassOf<UYapTextCalculator> TextCalculator;
+	
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSubclassOf<UYapAudioTimeCacher> AudioTimeCacher;
+	
 #if WITH_EDITORONLY_DATA
 public:
 	/** If set, enables nicer filtering of condition tags display */
@@ -101,11 +107,6 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHideTitleTextOnNPCDialogueNodes = true;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSubclassOf<UYapTextCalculator> TextCalculator;
-	
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSubclassOf<UYapAudioTimeCacher> AudioTimeCacher;
 
 	/** Turn off to hide the quick pin-enabling buttons, useful if you want smaller graph nodes, requires graph refresh */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -140,8 +141,11 @@ public:
 	int32 GetDialogueWidthAdjustment() const;
 
 #if WITH_EDITOR
+public:
+
 	int32 GetPortraitSize() const { return PortraitSize; }
 #endif
+public:
 	
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
 
@@ -161,13 +165,15 @@ public:
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
-	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
-	
+	TSubclassOf<UYapTextCalculator> GetTextCalculator() const { return TextCalculator; }
+
+	TSubclassOf<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
+
 #if WITH_EDITOR
 public:
-	TSubclassOf<UYapTextCalculator> GetTextCalculator() const { return TextCalculator; } // TODO should this be available in game runtime? What if I replace text on a node??? need to recalculate it. So probably yes.
+	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
 	
-	TSubclassOf<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
+	
 
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 

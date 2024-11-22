@@ -5,8 +5,9 @@
 
 UFlowNode_YapConditionGate::UFlowNode_YapConditionGate()
 {
+#if WITH_EDITORONLY_DATA
 	NodeStyle = EFlowNodeStyle::Condition;
-
+#endif
 	OutputPins = { FName("No"), FName("Yes") };
 
 #if WITH_EDITOR
@@ -14,6 +15,7 @@ UFlowNode_YapConditionGate::UFlowNode_YapConditionGate()
 #endif
 }
 
+#if WITH_EDITOR
 FString UFlowNode_YapConditionGate::GetNodeCategory() const
 {
 	return YapUtil::NodeCategory;
@@ -28,6 +30,7 @@ FText UFlowNode_YapConditionGate::GetNodeToolTip() const
 {
 	return Super::GetNodeToolTip();
 }
+#endif
 
 void UFlowNode_YapConditionGate::InitializeInstance()
 {
@@ -46,7 +49,9 @@ void UFlowNode_YapConditionGate::ExecuteInput(const FName& PinName)
 	
 }
 
+#if WITH_EDITOR
 FString UFlowNode_YapConditionGate::GetNodeDescription() const
 {
 	return UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Conditions, Condition);
 }
+#endif

@@ -14,11 +14,13 @@ public:
 public:
 	UPROPERTY(EditAnywhere)
 	FGameplayTag Condition;
-	
+
+#if WITH_EDITOR
 public:
 	FString GetNodeCategory() const override;
 
 	FText GetNodeTitle() const override;
 
 	FString GetNodeDescription() const override;
+#endif
 };

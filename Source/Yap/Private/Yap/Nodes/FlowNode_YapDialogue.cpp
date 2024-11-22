@@ -12,9 +12,11 @@
 
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
+#if WITH_EDITOR
 	Category = TEXT("Yap");
 
 	NodeStyle = EFlowNodeStyle::Custom;
+#endif
 
 	bIsPlayerPrompt = false;
 	
@@ -221,6 +223,7 @@ EFlowYapInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
 
 // ================================================================================================
 
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::InvalidateFragmentTags()
 {
 	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
@@ -230,6 +233,7 @@ void UFlowNode_YapDialogue::InvalidateFragmentTags()
 		Fragment.InvalidateFragmentTag();
 	}
 }
+#endif
 
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
@@ -349,7 +353,7 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
 
 	const FName EndPinName = Fragment.GetEndPinName();
 
-	if (!GetIsPlayerPrompt() && Fragment.GetShowOnEndPin())
+	if (!GetIsPlayerPrompt() && Fragment.UsesEndPin())
 	{
 		TriggerOutput(EndPinName, true);
 	}
@@ -460,6 +464,7 @@ const FYapFragment& UFlowNode_YapDialogue::GetFragmentByIndex(uint8 Index) const
 	return Fragments[Index];
 }
 
+#if WITH_EDITOR
 FYapFragment& UFlowNode_YapDialogue::GetFragmentByIndexMutable(uint8 Index)
 {
 	check (Fragments.IsValidIndex(Index))
@@ -486,8 +491,6 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 
 	return FText::FromString(" ");
 }
-
-#if WITH_EDITOR
 
 bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
 {
@@ -697,6 +700,7 @@ void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, T
 
 	bArg = false;
 }
+#endif
 
 bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 {
@@ -719,6 +723,7 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::ForceReconstruction()
 {
 	OnReconstructionRequested.ExecuteIfBound();

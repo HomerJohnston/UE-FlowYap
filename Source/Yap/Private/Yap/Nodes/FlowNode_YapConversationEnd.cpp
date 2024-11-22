@@ -8,7 +8,9 @@
 
 UFlowNode_YapConversationEnd::UFlowNode_YapConversationEnd()
 {
+#if WITH_EDITOR
 	Category = TEXT("Yap");
+#endif
 }
 
 void UFlowNode_YapConversationEnd::ExecuteInput(const FName& PinName)

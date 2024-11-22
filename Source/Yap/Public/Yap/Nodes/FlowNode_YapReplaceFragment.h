@@ -23,12 +23,12 @@ public:
 	UFlowNode_YapReplaceFragment();
 
 public:
-
-	FString GetNodeCategory() const override;
-
 	virtual void ExecuteInput(const FName& PinName) override;
 	
 #if WITH_EDITOR
+public:
+	FString GetNodeCategory() const override;
+
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 #endif
 };

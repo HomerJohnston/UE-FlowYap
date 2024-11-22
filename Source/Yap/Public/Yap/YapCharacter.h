@@ -23,17 +23,6 @@ protected:
 	UPROPERTY(EditAnywhere, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow))
 	TMap<FGameplayTag, TObjectPtr<UTexture2D>> Portraits;
 	
-#if WITH_EDITORONLY_DATA
-    UFUNCTION(CallInEditor)
-    void MyFunction1() {};
-#endif
-
-#if WITH_EDITOR
-    UFUNCTION(CallInEditor)
-    void MyFunction2() {};
-#endif
-	
-
 public:
 	const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& GetPortraits() const;
 	

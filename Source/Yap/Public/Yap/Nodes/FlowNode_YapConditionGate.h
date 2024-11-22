@@ -17,12 +17,14 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag Condition;
-	
+
+#if WITH_EDITOR
 public:
 	virtual FString GetNodeCategory() const;
 	virtual FText GetNodeTitle() const;
 	virtual FText GetNodeToolTip() const;
-
+#endif
+	
 public:
 	void InitializeInstance() override;
 
@@ -30,6 +32,8 @@ public:
 
 	void ExecuteInput(const FName& PinName) override;
 
+#if WITH_EDITOR
 	FString GetNodeDescription() const override;
+#endif
 };
 

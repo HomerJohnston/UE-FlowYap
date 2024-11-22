@@ -127,7 +127,7 @@ void UYapSubsystem::EndCurrentConversation()
 void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGuid DialogueGUID = Dialogue->GetGuid();
-	FYapFragment& Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
+	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 	const FYapBit& Bit = Fragment.GetBit();
 
 	FGameplayTag ConversationName;
@@ -149,7 +149,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGuid DialogueGUID = Dialogue->GetGuid();
-	FYapFragment& Fragment = Dialogue->GetFragmentByIndexMutable(FragmentIndex);
+	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 	const FYapBit& Bit = Fragment.GetBit();
 
 	FGameplayTag ConversationName;

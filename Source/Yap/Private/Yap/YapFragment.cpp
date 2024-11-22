@@ -66,13 +66,11 @@ void FYapFragment::IncrementActivations()
 void FYapFragment::ReplaceBit(const FYapBitReplacement& ReplacementBit)
 {
 	Bit = ReplacementBit;
-
-	bBitReplaced = true;
 }
 
 FName FYapFragment::GetStartPinName()
 {
-	if (GetShowOnStartPin())
+	if (UsesStartPin())
 	{
 		// TODO cache this at editor time
 		return FName("FragmentStart_" + GetGuid().ToString());
@@ -85,7 +83,7 @@ FName FYapFragment::GetStartPinName()
 
 FName FYapFragment::GetEndPinName()
 {
-	if (GetShowOnEndPin())
+	if (UsesEndPin())
  	{
  		// TODO cache this at editor time
  		return FName("FragmentEnd_" + GetGuid().ToString());

@@ -21,17 +21,21 @@ class YAP_API UYapCondition : public UObject
 	TOptional<FLinearColor> NodeColorOverride;
 #endif
 
+#if WITH_EDITOR
 public:
 	UFUNCTION(BlueprintNativeEvent)
 	FString GetDescription() const;
 
 	UFUNCTION(BlueprintNativeEvent)
 	FLinearColor GetNodeColor() const;
+#endif
 	
+public:
 	UFUNCTION(BlueprintNativeEvent)
 	bool Evaluate() const;
 };
 
+#if WITH_EDITOR
 inline FString UYapCondition::GetDescription_Implementation() const
 {
 	return DescriptionOverride.Get(DefaultDescription);
@@ -41,6 +45,7 @@ inline FLinearColor UYapCondition::GetNodeColor_Implementation() const
 {
 	return NodeColorOverride.Get(DefaultNodeColor);
 }
+#endif
 
 inline bool UYapCondition::Evaluate_Implementation() const
 {

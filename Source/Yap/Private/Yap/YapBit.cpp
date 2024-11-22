@@ -149,6 +149,7 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 // --------------------------------------------------------------------------------------------
 // EDITOR API
 
+#if WITH_EDITOR
 void FYapBit::SetDialogueText(const FText& NewText)
 {
 	DialogueText = NewText;
@@ -182,3 +183,4 @@ void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 	
 	CachedAudioTime = CacherCDO->GetAudioLengthInSeconds(DialogueAudioAsset);
 }
+#endif

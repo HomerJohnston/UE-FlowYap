@@ -18,10 +18,12 @@ UFlowNode_YapReplaceFragment::UFlowNode_YapReplaceFragment()
 #endif
 }
 
+#if WITH_EDITOR
 FString UFlowNode_YapReplaceFragment::GetNodeCategory() const
 {
 	return YapUtil::NodeCategory;
 }
+#endif
 
 void UFlowNode_YapReplaceFragment::ExecuteInput(const FName& PinName)
 {
@@ -41,6 +43,7 @@ void UFlowNode_YapReplaceFragment::ExecuteInput(const FName& PinName)
 	TriggerFirstOutput(true);
 }
 
+#if WITH_EDITOR
 void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {
 	if (!PropertyHandle || PropertyHandle->GetProperty()->GetFName() != GET_MEMBER_NAME_CHECKED(ThisClass, TargetFragmentTag))
@@ -62,3 +65,4 @@ void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TShared
 		}
 	}
 }
+#endif

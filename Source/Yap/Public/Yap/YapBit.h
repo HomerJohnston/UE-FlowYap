@@ -105,9 +105,9 @@ public:
 
 #if WITH_EDITOR
 	FGameplayTag GetMoodKeyLazyInit();
+#endif
 
 	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
-#endif
 
 	FGameplayTag GetMoodKey() const;
 
@@ -128,9 +128,12 @@ protected:
 
 	double GetAudioTime() const { return CachedAudioTime; }
 
+	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
+
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
-	
+
+
 	// --------------------------------------------------------------------------------------------
 	// EDITOR API
 #if WITH_EDITOR
@@ -144,8 +147,6 @@ public:
 	void SetDialogueText(const FText& InText);
 	
 	void SetDialogueAudioAsset(UObject* InAsset);
-	
-	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
 	
 	void SetMoodKey(const FGameplayTag& NewValue) { MoodKey = NewValue; };
 
@@ -163,4 +164,5 @@ public:
 	
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 #endif
+
 };

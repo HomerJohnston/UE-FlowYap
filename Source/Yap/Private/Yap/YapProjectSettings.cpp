@@ -9,13 +9,28 @@
 
 UYapProjectSettings::UYapProjectSettings()
 {
+#if WITH_EDITORONLY_DATA
 	MoodKeyIconPath.Path = "";
 
+	DialogueWidthAdjustment = 0;
+	
+	ConditionTagsParent = TagsManager.AddNativeGameplayTag("Yap.Condition");
+
+	DialogueTagsParent = TagsManager.AddNativeGameplayTag("Yap.Dialogue");
+
+	MoodTagsParent = TagsManager.AddNativeGameplayTag("Yap.Mood");
+
+	TagContainers =
+	{
+		{ EYap_TagFilter::Conditions, &ConditionTagsParent },
+		{ EYap_TagFilter::Prompts, &DialogueTagsParent }
+	};
+#endif
+	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
 	bDefaultInterruptibleSetting = true;
 	
-	DialogueWidthAdjustment = 0;
 
 	TextWordsPerMinute = 120;
 	
@@ -31,17 +46,6 @@ UYapProjectSettings::UYapProjectSettings()
 
 	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
 	
-	ConditionTagsParent = TagsManager.AddNativeGameplayTag("Yap.Condition");
-
-	DialogueTagsParent = TagsManager.AddNativeGameplayTag("Yap.Dialogue");
-
-	MoodTagsParent = TagsManager.AddNativeGameplayTag("Yap.Mood");
-
-	TagContainers =
-	{
-		{ EYap_TagFilter::Conditions, &ConditionTagsParent },
-		{ EYap_TagFilter::Prompts, &DialogueTagsParent }
-	};
 
 	CommonFragmentPaddings = { 0.0, 0.1, 0.3, 0.6, 1.0 }; // TODO sort on post edit change properties
 
@@ -131,6 +135,7 @@ bool UYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const
 {
 	return bHideTitleTextOnNPCDialogueNodes;
 }
+#endif
 
 int32 UYapProjectSettings::GetTextWordsPerMinute() const
 {
@@ -152,6 +157,7 @@ double UYapProjectSettings::GetMinimumFragmentTime()
 	return MinimumFragmentTime;
 }
 
+#if WITH_EDITOR
 void UYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter)
 {
 	TMap<UClass*, EYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);

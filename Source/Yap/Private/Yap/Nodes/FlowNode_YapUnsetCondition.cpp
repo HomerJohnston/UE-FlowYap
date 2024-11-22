@@ -6,13 +6,14 @@
 
 UFlowNode_YapUnsetCondition::UFlowNode_YapUnsetCondition()
 {
+#if WITH_EDITOR
 	NodeStyle = EFlowNodeStyle::Default;
 	
-#if WITH_EDITOR
 	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, Condition), EYap_TagFilter::Conditions);
 #endif
 }
 
+#if WITH_EDITOR
 FString UFlowNode_YapUnsetCondition::GetNodeCategory() const
 {
 	return YapUtil::NodeCategory;
@@ -27,3 +28,4 @@ FString UFlowNode_YapUnsetCondition::GetNodeDescription() const
 {
 	return UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Conditions, Condition);
 }
+#endif

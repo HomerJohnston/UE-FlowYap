@@ -120,8 +120,12 @@ public:
 	EFlowYapInterruptible GetInterruptibleSetting() const;
 	
 	const TArray<TObjectPtr<UYapCondition>>& GetConditions() const { return Conditions; }
-	
+
+#if WITH_EDITOR
 	void InvalidateFragmentTags();
+#endif
+	
+	bool ActivationLimitsMet() const;
 
 protected:
 	void BroadcastPrompts();
@@ -138,13 +142,15 @@ protected:
 	void OnPaddingTimeComplete(uint8 FragmentIndex);
 
 	bool IsBypassPinRequired() const;
-	
+
+
 protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
+	
+	const FYapFragment& GetFragmentByIndex(uint8 Index) const;
 
 #if WITH_EDITOR
 public:
-	const FYapFragment& GetFragmentByIndex(uint8 Index) const;
 	
 	FYapFragment& GetFragmentByIndexMutable(uint8 Index);
 	
@@ -200,16 +206,13 @@ public:
 	const FGameplayTag& GetDialogueTag() const { return DialogueTag; }
 	
 	void OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const;
-
-	bool ActivationLimitsMet() const;
-
+	
 	void ForceReconstruction();
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
-#endif // WITH_EDITOR
-
 	virtual void PostEditImport() override;
 	
 	virtual bool CanRefreshContextPinsOnLoad() const { return true; }
+#endif // WITH_EDITOR
 };

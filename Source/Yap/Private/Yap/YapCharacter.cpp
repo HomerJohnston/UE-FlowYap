@@ -12,6 +12,7 @@ UYapCharacter::UYapCharacter()
 {
 	const UYapProjectSettings* Settings = UYapProjectSettings::Get();
 
+#if WITH_EDITOR
 	// TODO I need a details customization to add a button to "rebuild" the portraits array
 	// TODO I need validation code to check if the character's portrait keys array matches the project or not
 	if (Portraits.Num() == 0)
@@ -29,6 +30,7 @@ UYapCharacter::UYapCharacter()
 			Portraits.Add(MoodKey, nullptr);
 		}
 	}
+#endif
 }
 
 const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& UYapCharacter::GetPortraits() const

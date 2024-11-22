@@ -12,7 +12,9 @@
 
 UFlowNode_YapConversationStart::UFlowNode_YapConversationStart()
 {
+#if WITH_EDITOR
 	Category = TEXT("Yap");
+#endif
 }
 
 void UFlowNode_YapConversationStart::InitializeInstance()
@@ -65,9 +67,11 @@ void UFlowNode_YapConversationStart::ExecuteInput(const FName& PinName)
 	TriggerFirstOutput(true);
 }
 
+#if WITH_EDITOR
 void UFlowNode_YapConversationStart::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE
