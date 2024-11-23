@@ -43,6 +43,16 @@ void UFlowNode_YapReplaceFragment::ExecuteInput(const FName& PinName)
 	TriggerFirstOutput(true);
 }
 
+FText UFlowNode_YapReplaceFragment::GetNodeTitle() const
+{
+	if (IsTemplate())
+	{
+		return INVTEXT("Replace Fragment");
+	}
+
+	return INVTEXT("Yap Replace Fragment");
+}
+
 #if WITH_EDITOR
 void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
 {

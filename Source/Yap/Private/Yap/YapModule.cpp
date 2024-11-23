@@ -1,6 +1,6 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 
-#include "Yap/Yap.h"
+#include "Yap/YapModule.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 

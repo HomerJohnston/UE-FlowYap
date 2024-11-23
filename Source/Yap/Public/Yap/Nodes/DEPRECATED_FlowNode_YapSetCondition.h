@@ -1,15 +1,16 @@
 #pragma once
 #include "Nodes/FlowNode.h"
 
-#include "FlowNode_YapSetCondition.generated.h"
+#include "DEPRECATED_FlowNode_YapSetCondition.generated.h"
 
-UCLASS()
-class YAP_API UFlowNode_YapSetCondition : public UFlowNode
+// This should get replaced by a separate "facts" plugin
+UCLASS(Deprecated)
+class YAP_API UDEPRECATED_FlowNode_YapSetCondition : public UFlowNode
 {
 	GENERATED_BODY()
 
 public:
-	UFlowNode_YapSetCondition();
+	UDEPRECATED_FlowNode_YapSetCondition();
 
 public:
 	UPROPERTY(EditAnywhere)

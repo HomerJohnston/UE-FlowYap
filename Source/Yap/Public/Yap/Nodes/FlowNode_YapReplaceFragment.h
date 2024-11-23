@@ -7,7 +7,7 @@
 
 class UFlowNode_YapDialogue;
 
-UCLASS()
+UCLASS( meta = (DisplayName = "Replace Fragment"))
 class YAP_API UFlowNode_YapReplaceFragment : public UFlowNode
 {
 	GENERATED_BODY()
@@ -27,6 +27,8 @@ public:
 	
 #if WITH_EDITOR
 public:
+	FText GetNodeTitle() const override;
+	
 	FString GetNodeCategory() const override;
 
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;

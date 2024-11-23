@@ -10,7 +10,7 @@ enum class EFlowYapCharacterMood : uint8;
 
 // TODO data validation - on packaging make sure the portraits key tags list matches project settings
 // TODO add a bool to portrait keys to make it allowable for them to be unset (on packaging, any unset textures should, by default, log a warning message)
-UCLASS()
+UCLASS(meta = (DataAssetCategory = "LOLBALLS"))
 class YAP_API UYapCharacter : public UYapEntity
 {
 	GENERATED_BODY()

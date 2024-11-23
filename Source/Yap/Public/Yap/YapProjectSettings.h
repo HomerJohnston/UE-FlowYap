@@ -114,7 +114,7 @@ protected:
 	
 #if WITH_EDITOR
 public:
-	virtual FName GetCategoryName() const override { return FName("Flow Yap"); }
+	virtual FName GetCategoryName() const override { return FName("Yap"); }
 
 	virtual FText GetSectionText() const override { return INVTEXT("Settings"); }
 

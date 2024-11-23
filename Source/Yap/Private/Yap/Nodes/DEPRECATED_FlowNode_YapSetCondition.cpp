@@ -1,9 +1,9 @@
-#include "Yap/Nodes/FlowNode_YapSetCondition.h"
+#include "Yap/Nodes/DEPRECATED_FlowNode_YapSetCondition.h"
 
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapUtil.h"
 
-UFlowNode_YapSetCondition::UFlowNode_YapSetCondition()
+UDEPRECATED_FlowNode_YapSetCondition::UDEPRECATED_FlowNode_YapSetCondition()
 {
 #if WITH_EDITOR
 	NodeStyle = EFlowNodeStyle::Default;
@@ -13,17 +13,17 @@ UFlowNode_YapSetCondition::UFlowNode_YapSetCondition()
 }
 
 #if WITH_EDITOR
-FString UFlowNode_YapSetCondition::GetNodeCategory() const
+FString UDEPRECATED_FlowNode_YapSetCondition::GetNodeCategory() const
 {
 	return YapUtil::NodeCategory;
 }
 
-FText UFlowNode_YapSetCondition::GetNodeTitle() const
+FText UDEPRECATED_FlowNode_YapSetCondition::GetNodeTitle() const
 {
 	return INVTEXT("Yap Set Condition");
 }
 
-FString UFlowNode_YapSetCondition::GetNodeDescription() const
+FString UDEPRECATED_FlowNode_YapSetCondition::GetNodeDescription() const
 {
 	return UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Conditions, Condition);
 }

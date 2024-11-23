@@ -4,7 +4,7 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapUtil.h"
 
-UFlowNode_YapUnsetCondition::UFlowNode_YapUnsetCondition()
+UDEPRECATED_FlowNode_YapUnsetCondition::UDEPRECATED_FlowNode_YapUnsetCondition()
 {
 #if WITH_EDITOR
 	NodeStyle = EFlowNodeStyle::Default;
@@ -14,17 +14,17 @@ UFlowNode_YapUnsetCondition::UFlowNode_YapUnsetCondition()
 }
 
 #if WITH_EDITOR
-FString UFlowNode_YapUnsetCondition::GetNodeCategory() const
+FString UDEPRECATED_FlowNode_YapUnsetCondition::GetNodeCategory() const
 {
 	return YapUtil::NodeCategory;
 }
 
-FText UFlowNode_YapUnsetCondition::GetNodeTitle() const
+FText UDEPRECATED_FlowNode_YapUnsetCondition::GetNodeTitle() const
 {
 	return INVTEXT("Yap Unset Condition");
 }
 
-FString UFlowNode_YapUnsetCondition::GetNodeDescription() const
+FString UDEPRECATED_FlowNode_YapUnsetCondition::GetNodeDescription() const
 {
 	return UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Conditions, Condition);
 }

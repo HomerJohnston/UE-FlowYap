@@ -3,13 +3,14 @@
 
 #include "FlowNode_YapUnsetCondition.generated.h"
 
-UCLASS()
-class YAP_API UFlowNode_YapUnsetCondition : public UFlowNode
+// This should get replaced by a separate "facts" plugin
+UCLASS(Deprecated)
+class YAP_API UDEPRECATED_FlowNode_YapUnsetCondition : public UFlowNode
 {
 	GENERATED_BODY()
 
 public:
-	UFlowNode_YapUnsetCondition();
+	UDEPRECATED_FlowNode_YapUnsetCondition();
 
 public:
 	UPROPERTY(EditAnywhere)

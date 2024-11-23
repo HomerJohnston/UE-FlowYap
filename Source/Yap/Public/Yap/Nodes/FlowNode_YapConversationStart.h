@@ -4,7 +4,7 @@
 
 #include "FlowNode_YapConversationStart.generated.h"
 
-UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Convo Start", Keywords = "yap"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Conversation Start", Keywords = "yap"))
 class YAP_API UFlowNode_YapConversationStart : public UFlowNode
 {
 	GENERATED_BODY()
