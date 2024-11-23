@@ -4,6 +4,7 @@
 #define LOCTEXT_NAMESPACE "FlowYap"
 #include "Yap/NodeWidgets/SFlowGraphNode_YapFragmentWidget.h"
 
+#include "Engine/World.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
@@ -25,6 +26,8 @@
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 #include "Yap/YapBitReplacement.h"
 #include "Yap/YapCondition.h"
+#include "Yap/YapEditorSettings.h"
+#include "Yap/YapInputTracker.h"
 #include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Helpers/SYapTextPropertyEditableTextBox.h"
 #include "Yap/Helpers/YapEditableTextPropertyHandle.h"
@@ -135,6 +138,11 @@ int32 SFlowGraphNode_YapFragmentWidget::GetFragmentActivationLimit() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentControlsWidget() const
 {
+	if (GEditor->PlayWorld)
+	{
+		return EVisibility::Collapsed;
+	}
+	
 	return GetFlowYapDialogueNode()->GetNumFragments() > 1 ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
@@ -142,12 +150,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentShiftWidget(EYa
 {
 	if (FragmentIndex == 0 && YapFragmentControlsDirection == EYapFragmentControlsDirection::Up)
 	{
-		return EVisibility::Hidden;
+		return EVisibility::Collapsed;
 	}
 
 	if (FragmentIndex == GetFlowYapDialogueNode()->GetNumFragments() - 1 && YapFragmentControlsDirection == EYapFragmentControlsDirection::Down)
 	{
-		return EVisibility::Hidden;
+		return EVisibility::Collapsed;
 	}
 
 	return EVisibility::Visible;
@@ -323,7 +331,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			SNew(SBox)
 			.HAlign(HAlign_Fill)
 			.VAlign(VAlign_Fill)
-			.Visibility(EVisibility::Visible)
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget)
 			[
 				CreateFragmentTagWidget()
 			]
@@ -456,16 +464,54 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 		[
 			SNew(SYapTextPropertyEditableTextBox, EditableTextProperty)
 		]
+			/*
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Bottom)
+		.Padding(8, 0, 35, -8)
+		[
+			SNew(SProgressBar)
+			.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+		]*/
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Fill)
 		.VAlign(VAlign_Bottom)
 		.Padding(0, 0, 28, -8)
 		[
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.Padding(8, 0)
+			[
+				SNew(SBox)
+				.HeightOverride(2)
+				[
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+					.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+				]
+			]
+			+ SOverlay::Slot()
+			.Padding(0, -2)
+			[
+				SNew(SSlider)
+				//.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePaddingSlider_Visibility)
+				.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding)
+				.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding)
+				.Style(FYapEditorStyle::Get(), YapStyles.SliderStyle_FragmentTimePadding)
+				.SliderHandleColor(YapColor::Gray)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+			]
+			/*
 			SNew(SSlider)
 			.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding)
 			.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding)
-			.SliderBarColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+			//.SliderBarColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+			.SliderBarColor(YapColor::Transparent)
+			
 			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+			*/
 		];
 	}
 
@@ -554,7 +600,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 				.BorderPadding(0)
 				.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
 				.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
-				.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
+				.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
 				.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
 			]
 		]
@@ -774,60 +820,30 @@ void SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding(float 
 {
 	const float MaxPaddedSetting =  UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
 	float NewValue = X * MaxPaddedSetting;
-	
-	bool bSetCommon = false;
-	
-	if (!bCtrlPressed)
-	{
-		const TArray<float>& CommonPaddings = UYapProjectSettings::Get()->GetCommonFragmentPaddings();
-		
-		if (CommonPaddings.Num() > 0)
-		{
-			if (NewValue <= (CommonPaddings[CommonPaddings.Num() - 1]))
-			{
-				int Index = 0;
-				
-				for (int i = 0; i < CommonPaddings.Num() - 1; ++i)
-				{
-					float Threshold = 0.5f * (CommonPaddings[i] + CommonPaddings[i + 1]);
 
-					if (NewValue > Threshold)
-					{
-						Index = i + 1;
-					}
-				}
-				
-				GetFragment().GetCommonPaddingSettingMutable() = Index;
-				GetFragment().SetPaddingToNextFragment(0);
-				
-				bSetCommon = true;
-			}
+	// We will attempt to snap to the default time unless you hold ctrl
+	if (!UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeDisabled() && !bCtrlPressed)
+	{
+		float DefaultFragmentPaddingTime = UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
+		
+		// If we're within 5% of the default, set it to default
+		if (FMath::Abs(NewValue - DefaultFragmentPaddingTime) / MaxPaddedSetting <= 0.05)
+		{
+			GetFragment().SetPaddingToNextFragment(-1);
+			return;
 		}
 	}
 	
-	if (!bSetCommon)
-	{
-		GetFragment().SetPaddingToNextFragment(NewValue);
-		GetFragment().GetCommonPaddingSettingMutable().Reset();
-	}
+	GetFragment().SetPaddingToNextFragment(NewValue);
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding() const
 {
 	const float MaxPaddedSetting =  UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
-
-	if (GetFragment().GetPaddingToNextFragment() > MaxPaddedSetting)
-	{
-		return YapColor::Blue_Trans;
-	}
 	
 	if (GEditor->PlayWorld)
 	{
 		const TOptional<uint8>& RunningIndex = GetFlowYapDialogueNode()->RunningFragmentIndex;
-
-		if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment().IndexInDialogue)
-		{
-		}
 
 		if (RunningIndex == GetFragment().IndexInDialogue)
 		{
@@ -836,8 +852,13 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOp
 
 		return YapColor::DarkGray_Trans;
 	}
-
-	return GetFragment().GetCommonPaddingSetting().IsSet() ? YapColor::DimGray_Trans : YapColor::LightBlue_Trans;
+	
+	if (GetFragment().GetPaddingToNextFragment() > MaxPaddedSetting)
+	{
+		return YapColor::Blue_Trans;
+	}
+	
+	return GetFragment().PaddingToNextFragment < 0 ? YapColor::DimGray_Trans : YapColor::LightBlue_Trans;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding() const
@@ -903,7 +924,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget()
 
 TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 {
-	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize();
+	int32 PortraitSize = UYapEditorSettings::Get()->GetPortraitSize();
 	
 	return SNew(SOverlay)
 	+ SOverlay::Slot()
@@ -917,7 +938,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_DeburredSquare))
-			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_PortraitImage)
+			.BorderBackgroundColor(YapColor::Gray_Glass)
 		]
 	]
 	+ SOverlay::Slot()
@@ -1666,6 +1687,8 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::GetNodeTitleColor() const
 
 void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
+	bCtrlPressed = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed();
+
 	if (bShowSettings && !Owner->GetIsSelected())
 	{
 		bShowSettings = false;
@@ -1877,9 +1900,10 @@ bool SFlowGraphNode_YapFragmentWidget::GetNodeSelected() const
 
 TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 {
-	TSharedPtr<SBox> Box;
-	FMenuBuilder MenuBuilder(true, nullptr);
 	FGameplayTag SelectedMoodKey = GetCurrentMoodKey();
+
+	TSharedRef<SUniformWrapPanel> MoodTagSelectorPanel = SNew(SUniformWrapPanel)
+		.NumColumnsOverride(4); // TODO use maff
 
 	for (const FGameplayTag& MoodKey : UYapProjectSettings::Get()->GetMoodTags())
 	{
@@ -1890,15 +1914,15 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 		}
 		
 		bool bSelected = MoodKey == SelectedMoodKey;
-		MenuBuilder.AddWidget(CreateMoodKeyMenuEntryWidget(MoodKey, bSelected), FText::GetEmpty());
+		
+		MoodTagSelectorPanel->AddSlot()
+		[
+			CreateMoodKeyMenuEntryWidget(MoodKey, bSelected)
+		];
 	}
 
-	TSharedPtr<SImage> PortraitIconImage;
-	
-	FString IconPath = UYapProjectSettings::Get()->GetPortraitIconPath(GetCurrentMoodKey());
-
 	// TODO ensure that system works and displays labels if user does not supply icons but only FNames. Use Generic mood icon?
-	SAssignNew(Box, SBox)
+	return SNew(SBox)
 	.WidthOverride(24)
 	[
 		SNew(SComboButton)
@@ -1915,18 +1939,16 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 			SNew(SBox)
 			.Padding(2, 2)
 			[
-				SAssignNew(PortraitIconImage, SImage)
+				SNew(SImage)
 				.ColorAndOpacity(FSlateColor::UseForeground())
 				.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector)
 			]
 		]
 		.MenuContent()
 		[
-			MenuBuilder.MakeWidget()
+			MoodTagSelectorPanel
 		]
 	];
-	
-	return Box.ToSharedRef();
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MoodKeySelector() const
@@ -1985,45 +2007,41 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))
 		];
 	}
-
-	// TODO ensure that system works and displays labels if user does not supply icons but only FNames
-	if (!InLabel.IsEmpty())
-	{
-		HBox->AddSlot()	
-		 .VAlign(VAlign_Center)
-		.Padding(0.f, 0.f, 0.f, 0.f)
-		.AutoWidth()
-		[
-			SNew(STextBlock)
-			.TextStyle( &FAppStyle::Get().GetWidgetStyle< FTextBlockStyle >( InTextStyle ))
-			.Justification(ETextJustify::Center)
-			.Text(InLabel)
-		];
-	}
 	
 	return SNew(SButton)
 	.ContentPadding(FMargin(4, 4))
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-	.ButtonColorAndOpacity(FLinearColor(1,1,1,0.25))
 	.ClickMethod(EButtonClickMethod::MouseDown)
 	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry, MoodKey)
 	[
-		SAssignNew(PortraitIconImage, SImage)
-		.ColorAndOpacity(FSlateColor::UseForeground())
-		.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		.Padding(-3)
+		[
+			SNew(SBorder)
+			.Visibility_Lambda([this, MoodKey]()
+			{
+				if (GetFragment().GetBit().GetMoodKey() == MoodKey)
+				{
+					return EVisibility::Visible;
+				}
+				
+				return EVisibility::Collapsed;
+			})
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_RoundedSquare))
+			.BorderBackgroundColor(YapColor::White_Trans)
+		]
+		+ SOverlay::Slot()
+		[
+			SAssignNew(PortraitIconImage, SImage)
+			.ColorAndOpacity(FSlateColor::UseForeground())
+			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))	
+		]
 	];
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue)
-{
-	/*
-	 *
-	 *TODO
-	if (InErrorState())
-	{
-		return FReply::Unhandled();
-	}*/
-	
+{	
 	FYapTransactions::BeginModify(LOCTEXT("NodeMoodKeyChanged", "Portrait Key Changed"), GetFlowYapDialogueNode());
 
 	GetFragment().Bit.SetMoodKey(NewValue);

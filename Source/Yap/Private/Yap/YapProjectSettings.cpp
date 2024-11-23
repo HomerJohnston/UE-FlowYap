@@ -13,8 +13,6 @@ UYapProjectSettings::UYapProjectSettings()
 #if WITH_EDITORONLY_DATA
 	MoodKeyIconPath.Path = "";
 
-	DialogueWidthAdjustment = 0;
-
 	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
 
 	ConditionTagsParent = TagsManager.AddNativeGameplayTag("Yap.Condition");
@@ -46,10 +44,6 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DialogueAssetClass = USoundBase::StaticClass();
 
-	
-
-	CommonFragmentPaddings = { 0.0, 0.1, 0.3, 0.6, 1.0 }; // TODO sort on post edit change properties
-
 	FragmentPaddingSliderMax = 5.0;
 
 #if WITH_EDITOR
@@ -71,8 +65,6 @@ FString UYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 	
 	if (MoodKeyIconPath.Path == "")
 	{
-		FString Test = FPaths::ProjectDir() / FString::Format(TEXT("Resources/Yap/{1}.png"), { MoodKeyIconPath.Path, KeyString });
-
 		TSharedPtr<IPlugin> YapPlugin = IPluginManager::Get().FindPlugin(TEXT("Yap"));
 		TSharedPtr<IPlugin> FlowYapPlugin = IPluginManager::Get().FindPlugin(TEXT("FlowYap"));
 		
@@ -125,11 +117,6 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 UClass* UYapProjectSettings::GetDialogueAssetClass() const
 {	
 	return DialogueAssetClass;
-}
-
-int32 UYapProjectSettings::GetDialogueWidthAdjustment() const
-{
-	return DialogueWidthAdjustment;
 }
 
 bool UYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const

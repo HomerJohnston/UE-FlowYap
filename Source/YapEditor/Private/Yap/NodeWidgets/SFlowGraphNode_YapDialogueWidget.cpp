@@ -13,6 +13,7 @@
 #include "Yap/YapBit.h"
 #include "Yap/YapColors.h"
 #include "Yap/YapCondition.h"
+#include "Yap/YapEditorSettings.h"
 #include "Yap/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapInputTracker.h"
@@ -139,7 +140,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 
 int32 SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 {
-	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UYapProjectSettings::Get()->GetDialogueWidthAdjustment());
+	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
 }
 
 // ------------------------------------------
@@ -169,6 +170,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.MaxDesiredWidth(GetMaxNodeWidth() - TITLE_LEFT_RIGHT_EXTRA_WIDTH)
+	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -193,11 +195,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
 		[
-			FYapWidgetHelper::CreateFilteredTagWidget(
-				TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag),
-				GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString(),
-				TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag),
-				INVTEXT("Dialogue tag"))
+			SNew(SBox)
+			[
+				FYapWidgetHelper::CreateFilteredTagWidget(
+					TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag),
+					GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString(),
+					TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag),
+					INVTEXT("Dialogue tag"))
+			]
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -317,6 +322,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	
 	return SNew(SBox)
 	.WidthOverride(GetMaxNodeWidth())
+	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
 	[
 		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
@@ -368,7 +374,7 @@ FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 		}
 		case EFlowYapMultipleFragmentSequencing::RunUntilFailure:
 		{
-			return INVTEXT("Run until failure");
+			return INVTEXT("Run til failure");
 		}
 		case EFlowYapMultipleFragmentSequencing::SelectOne:
 		{
@@ -429,7 +435,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 		SAssignNew(FragmentSequencingButton_Box, SBox)
 		.Visibility(Visibility_FragmentSequencingButton())
 		.VAlign(VAlign_Fill)
-		.WidthOverride(125)
+		.WidthOverride(110)
 		.Padding(0)
 		[
 			SAssignNew(FragmentSequencingButton_Button, SButton)
@@ -642,6 +648,7 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 
 	return SNew(SBox)
 	.MinDesiredHeight(16)
+	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
 	[
 		LeftSideNodeBox
 	];
@@ -658,20 +665,14 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 {
 	return SNew(SHorizontalBox)
-		/*
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Fill)
-	.VAlign(VAlign_Fill)
-	.Padding(31, 2, 0, 2)
-	[	
-		SNew(SSpacer)
-	]*/
+	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
 	+ SHorizontalBox::Slot()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
 	.Padding(31, 4, 7, 4)
 	[
 		SNew(SBox)
+		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
 		[
 			SNew(SButton)
 			.HAlign(HAlign_Center)
@@ -690,15 +691,6 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 			]
 		]
 	]
-	/*
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Fill)
-	.VAlign(VAlign_Fill)
-	.Padding(0, 2, 7, 2)
-	[	
-		SNew(SSpacer)
-	]
-	*/
 	+ SHorizontalBox::Slot()
 	.AutoWidth()
 	.HAlign(HAlign_Right)
@@ -814,14 +806,12 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_FragmentSequencing
 
 EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton() const
 {
-	for (TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget : FragmentWidgets)
+	if (GEditor->PlayWorld)
 	{
-		if (FragmentWidget->IsBeingEdited())
-		{
-			return EVisibility::Hidden;
-		}
+		return EVisibility::Hidden;
 	}
-	return IsHovered() ? EVisibility::Visible : EVisibility::Hidden;
+
+	return EVisibility::Visible;
 }
 
 
@@ -918,43 +908,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidget(cons
 		.ColorAndOpacity(YapColor::White)
 		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
 	];
-}
-
-void SFlowGraphNode_YapDialogueWidget::DeleteFragment(uint8 FragmentIndex)
-{
-	FYapTransactions::BeginModify(LOCTEXT("DialogueDeleteFragment", "Delete Fragment"), GetFlowYapDialogueNodeMutable());
-
-	GetFlowYapDialogueNodeMutable()->DeleteFragmentByIndex(FragmentIndex);
-
-	UpdateGraphNode();
-
-	FYapTransactions::EndModify();
-}
-
-void SFlowGraphNode_YapDialogueWidget::MoveFragmentUp(uint8 FragmentIndex)
-{
-	check(FragmentIndex > 0);
-	MoveFragment(FragmentIndex, -1);
-
-	SetFlashFragment(FragmentIndex - 1);
-}
-
-void SFlowGraphNode_YapDialogueWidget::MoveFragmentDown(uint8 FragmentIndex)
-{
-	check(FragmentIndex < GetFlowYapDialogueNodeMutable()->GetNumFragments() - 1);
-	MoveFragment(FragmentIndex, +1);
-
-	SetFlashFragment(FragmentIndex + 1);
-}
-
-void SFlowGraphNode_YapDialogueWidget::MoveFragment(uint8 FragmentIndex, int16 By)
-{
-	GetFlowYapDialogueNodeMutable()->SwapFragments(FragmentIndex, FragmentIndex + By);
-	
-	if (FocusedFragmentIndex.IsSet())
-	{
-		FocusedFragmentIndex = FocusedFragmentIndex.GetValue() + By;
-	}
 }
 
 void SFlowGraphNode_YapDialogueWidget::SetSelected()

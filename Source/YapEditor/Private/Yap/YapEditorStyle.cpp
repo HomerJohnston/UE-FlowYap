@@ -134,7 +134,7 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
-	);	
+	);
 	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SequencingSelector, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray))

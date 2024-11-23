@@ -37,43 +37,46 @@ protected:
 	 * - OK: Missing audio falls back to using text time.
 	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow.
 	 * - Error: Missing audio will not package. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EFlowYapTimeMode::AudioTime", EditConditionHides))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
 	EYapErrorLevel MissingAudioErrorLevel;
 	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bDefaultInterruptibleSetting;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bDisableDefaultFragmentPaddingTime = false;
 	
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0, UIMax = 4))
-	float FragmentPaddingTime = 0.5f;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "!bDisableDefaultFragmentPaddingTime", EditConditionHides))
+	float DefaultFragmentPaddingTime = 0.25f;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
 	int32 TextWordsPerMinute;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
 	double MinimumAutoTextTimeLength;
 
 	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
 	double MinimumAutoAudioTimeLength;
 
 	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 20.0))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	double MinimumFragmentTime;
-	
+
+	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	UClass* DialogueAssetClass;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TArray<float> CommonFragmentPaddings;
-
-	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings")
+	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
 
+	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSubclassOf<UYapTextCalculator> TextCalculator;
-	
+
+	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSubclassOf<UYapAudioTimeCacher> AudioTimeCacher;
 	
@@ -97,16 +100,9 @@ protected:
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath MoodKeyIconPath;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -200, UIMin = -200, UIMax = 1000))
-	int32 DialogueWidthAdjustment;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 64, ClampMax = 128, UIMin = 64, UIMax = 128, Multiple = 32))
-	int32 PortraitSize = 64;
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHideTitleTextOnNPCDialogueNodes = true;
-
 
 	/** Turn off to hide the quick pin-enabling buttons, useful if you want smaller graph nodes, requires graph refresh */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -138,15 +134,7 @@ public:
 	
 	UClass* GetDialogueAssetClass() const;
 
-	int32 GetDialogueWidthAdjustment() const;
-
-#if WITH_EDITOR
 public:
-
-	int32 GetPortraitSize() const { return PortraitSize; }
-#endif
-public:
-	
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
 
 	int32 GetTextWordsPerMinute() const;
@@ -157,11 +145,11 @@ public:
 
 	double GetMinimumFragmentTime();
 
-	double GetFragmentPaddingTime() const { return FragmentPaddingTime; }
+	bool IsDefaultFragmentPaddingTimeDisabled() const { return bDisableDefaultFragmentPaddingTime; }
+	
+	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
 	EYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
-
-	const TArray<float>& GetCommonFragmentPaddings() const { return CommonFragmentPaddings; }
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 

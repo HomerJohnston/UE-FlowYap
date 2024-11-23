@@ -139,16 +139,6 @@ protected:
 	// ------------------------------------------
 	// PUBLIC API & THEIR HELPERS
 public:
-	void DeleteFragment(uint8 FragmentIndex);
-	
-	void MoveFragmentUp(uint8 FragmentIndex);
-
-	void MoveFragmentDown(uint8 FragmentIndex);
-
-protected:
-	void MoveFragment(uint8 FragmentIndex, int16 By);
-
-public:
 	bool GetIsSelected() const { return bIsSelected; };
 
 	void SetSelected();

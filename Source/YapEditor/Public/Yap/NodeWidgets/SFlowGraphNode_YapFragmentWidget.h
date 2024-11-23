@@ -131,7 +131,7 @@ protected:
 	float				Value_FragmentTimePadding() const;
 	EVisibility			FragmentTimePaddingSlider_Visibility() const;
 	void				OnValueChanged_FragmentTimePadding(float X);
-	FSlateColor			FragmentTimePadding_FillColorAndOpacity() const;
+	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
 	FText				ToolTipText_FragmentTimePadding() const;
 
 	FSlateColor BorderBackgroundColor_PortraitImage() const;

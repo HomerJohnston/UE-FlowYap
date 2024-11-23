@@ -13,8 +13,11 @@ public:
 	static UYapEditorSettings* Get() { return StaticClass()->GetDefaultObject<UYapEditorSettings>(); }
 
 protected:
-	UPROPERTY(EditAnywhere, Config, Category = "Graph Settings", meta = (ClampMin = 0, UIMin = 0, UIMax = 4))
-	uint8 DialogueRowSpacing;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = -200, ClampMax = 2000, UIMin = -200, UIMax = 1000, Delta = 10))
+	int32 DialogueWidthAdjustment;
+		
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 64, ClampMax = 128, UIMin = 64, UIMax = 128, Multiple = 32))
+	int32 PortraitSize = 64;
 	
 	/*
 	UPROPERTY(EditAnywhere, meta = (RelativePath))
@@ -34,8 +37,10 @@ protected:
 	*/
 	
 public:
-	uint8 GetDialogueRowSpacing() const { return DialogueRowSpacing; }   
-	
+	int32 GetDialogueWidthAdjustment() const { return DialogueWidthAdjustment; };
+
+	int32 GetPortraitSize() const { return PortraitSize; }
+
 public:
 	virtual FName GetCategoryName() const override { return FName("Flow Yap"); }
 	virtual FText GetSectionText() const override { return INVTEXT("Editor Settings"); }

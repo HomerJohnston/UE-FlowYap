@@ -317,11 +317,10 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 		FragmentStartedTime = GetWorld()->GetTimeSeconds();
 #endif
 
-		FName StartPinName = Fragment.GetStartPinName();
-		
-		if (StartPinName != NAME_None)
+		if (Fragment.UsesStartPin())
 		{
-			TriggerOutput(StartPinName, true);
+			const FFlowPin StartPin = Fragment.GetStartPin();
+			TriggerOutput(StartPin.PinName, false);
 		}
 
 		double Time = Fragment.GetBit().GetTime();
@@ -351,11 +350,10 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
 
 	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();
 
-	const FName EndPinName = Fragment.GetEndPinName();
-
-	if (!GetIsPlayerPrompt() && Fragment.UsesEndPin())
+	if (Fragment.UsesEndPin())
 	{
-		TriggerOutput(EndPinName, true);
+		const FFlowPin EndPin = Fragment.GetEndPin();
+		TriggerOutput(EndPin.PinName, false);
 	}
 	
 	if (PaddingTime > 0)
@@ -383,9 +381,9 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
 
-		FName EndPinName("PromptOut_" + Fragment.GetGuid().ToString());
+		FName PromptOutPinName("PromptOut_" + Fragment.GetGuid().ToString());
 
-		TriggerOutput(EndPinName, true);
+		TriggerOutput(PromptOutPinName, true);
 	}
 	else
 	{

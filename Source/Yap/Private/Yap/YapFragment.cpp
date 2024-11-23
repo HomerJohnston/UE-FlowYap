@@ -50,12 +50,12 @@ void FYapFragment::ResetOptionalPins()
 
 float FYapFragment::GetPaddingToNextFragment() const
 {
-	if (CommonPaddingSetting.IsSet())
+	if (PaddingToNextFragment < 0 && !UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeDisabled())
 	{
-		return UYapProjectSettings::Get()->GetCommonFragmentPaddings()[CommonPaddingSetting.GetValue()];
+		return UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
 	}
 	
-	return PaddingToNextFragment;
+	return FMath::Max(PaddingToNextFragment, 0);
 }
 
 void FYapFragment::IncrementActivations()
@@ -66,32 +66,6 @@ void FYapFragment::IncrementActivations()
 void FYapFragment::ReplaceBit(const FYapBitReplacement& ReplacementBit)
 {
 	Bit = ReplacementBit;
-}
-
-FName FYapFragment::GetStartPinName()
-{
-	if (UsesStartPin())
-	{
-		// TODO cache this at editor time
-		return FName("FragmentStart_" + GetGuid().ToString());
-	}
-	else
-	{
-		return NAME_None;
-	}
-}
-
-FName FYapFragment::GetEndPinName()
-{
-	if (UsesEndPin())
- 	{
- 		// TODO cache this at editor time
- 		return FName("FragmentEnd_" + GetGuid().ToString());
- 	}
- 	else
- 	{
- 		return NAME_None;
- 	}
 }
 
 #if WITH_EDITOR

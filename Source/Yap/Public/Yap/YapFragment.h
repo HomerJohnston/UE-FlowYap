@@ -52,12 +52,10 @@ protected:
 	
 	UPROPERTY()
 	FGameplayTag FragmentTag;
-	
-	UPROPERTY(meta = (ClampMin = 0, UIMin = 0, UIMax = 5))
-	float PaddingToNextFragment = 0;
 
+	/** Padding is idle time to wait after the fragment finishes running. A value of -1 will use project defaults. */
 	UPROPERTY()
-	TOptional<uint8> CommonPaddingSetting;
+	float PaddingToNextFragment = -1;
 	
 	UPROPERTY(EditAnywhere, meta = (Yap_ReconstructNodeOnChange))
 	bool bShowOnStartPin = false;
@@ -92,8 +90,6 @@ public:
 
 	float GetPaddingToNextFragment() const;
 
-	const TOptional<uint8>& GetCommonPaddingSetting() const { return CommonPaddingSetting; }
-	
 	void IncrementActivations();
 
 	const FGameplayTag& GetFragmentTag() const { return FragmentTag; } 
@@ -101,10 +97,6 @@ public:
 	void ReplaceBit(const FYapBitReplacement& ReplacementBit);
 
 	const FGuid& GetGuid() const { return Guid; }
-
-	FName GetStartPinName();
-
-	FName GetEndPinName();
 
 	bool UsesStartPin() const { return bShowOnStartPin; }
 
@@ -125,9 +117,6 @@ public:
 	static void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String);
 	
 	void SetPaddingToNextFragment(float NewValue) { PaddingToNextFragment = NewValue; }
-
-	TOptional<uint8>& GetCommonPaddingSettingMutable() { return CommonPaddingSetting; }
-	
 
 	TArray<TObjectPtr<UYapCondition>>& GetConditionsMutable() { return Conditions; }
 
