@@ -154,9 +154,15 @@ void FYapBit::SetDialogueText(const FText& NewText)
 {
 	DialogueText = NewText;
 
-	TSubclassOf<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
-
-	CachedWordCount = TextCalculatorClass->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(DialogueText);
+	if (UYapProjectSettings::Get()->CacheFragmentWordCount())
+	{
+		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
+		CachedWordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(DialogueText);
+	}
+	else
+	{
+		CachedWordCount = -1;
+	}
 }
 
 void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)

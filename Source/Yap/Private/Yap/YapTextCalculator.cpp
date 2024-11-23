@@ -4,7 +4,7 @@
 
 #include "Yap/YapProjectSettings.h"
 
-int16 UYapTextCalculator::CalculateWordCount(const FText& Text)
+int32 UYapTextCalculator::CalculateWordCount(const FText& Text)
 {
 	FString TextAsString = Text.ToString();
 

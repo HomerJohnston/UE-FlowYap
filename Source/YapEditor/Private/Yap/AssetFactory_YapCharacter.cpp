@@ -5,7 +5,7 @@
 #include "Yap/AssetFactory_YapCharacter.h"
 
 #include "Yap/YapCharacter.h"
-#include "Yap/FlowYapEditor.h"
+#include "Yap/YapEditorModule.h"
 
 UAssetFactory_YapCharacter::UAssetFactory_YapCharacter()
 {

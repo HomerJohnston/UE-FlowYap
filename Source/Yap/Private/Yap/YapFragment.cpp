@@ -50,7 +50,7 @@ void FYapFragment::ResetOptionalPins()
 
 float FYapFragment::GetPaddingToNextFragment() const
 {
-	if (PaddingToNextFragment < 0 && !UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeDisabled())
+	if (PaddingToNextFragment < 0 && UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeEnabled())
 	{
 		return UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
 	}

@@ -8,6 +8,7 @@ struct FYapPromptHandle;
 class UFlowAsset;
 class IYapConversationHandler;
 struct FYapBit;
+class UYapTextCalculator;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFlowYapConversationEvent, FName, ConversationName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, ConversationName, const FYapBit&, DialogueInfo);
@@ -92,6 +93,12 @@ protected:
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, FYapBitReplacement> BitReplacements;
 
+	UPROPERTY()
+	TSubclassOf<UYapTextCalculator> TextCalculatorClass;
+
+	UPROPERTY()
+	UClass* DialogueAudioAssetClass;
+	
 	// ------------------------------------------
 	// PUBLIC API
 public:

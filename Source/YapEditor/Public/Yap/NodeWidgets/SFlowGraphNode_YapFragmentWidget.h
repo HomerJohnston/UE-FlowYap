@@ -36,8 +36,6 @@ protected:
 
 	TSharedPtr<SOverlay> PortraitWidget;
 
-	TSharedPtr<SWidget> Test;
-	
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 

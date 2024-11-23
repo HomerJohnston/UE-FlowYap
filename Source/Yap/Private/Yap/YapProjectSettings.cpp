@@ -32,12 +32,6 @@ UYapProjectSettings::UYapProjectSettings()
 
 	bDefaultInterruptibleSetting = true;
 
-	TextWordsPerMinute = 120;
-	
-	MinimumAutoTextTimeLength = 2.5;
-
-	MinimumAutoAudioTimeLength = 1.0;
-
 	TextCalculator = UYapTextCalculator::StaticClass();
 
 	AudioTimeCacher = nullptr; // You *must* create your own class and set it to calculate audio time!
@@ -112,11 +106,6 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 			MoodKeyIconPath.Path = MoodKeyIconPath.Path.RightChop(FullPathDir.Len());
 		}
 	}
-}
-
-UClass* UYapProjectSettings::GetDialogueAssetClass() const
-{	
-	return DialogueAssetClass;
 }
 
 bool UYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const

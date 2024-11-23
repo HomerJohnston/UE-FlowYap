@@ -454,6 +454,9 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 	{
 		return FReply::Handled();
 	}
+
+	FOnTextCommitted Test;
+	Test.BindSP(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_Dialogue);
 	
 	if (ExpandedDialogueWidget == nullptr)
 	{
@@ -462,17 +465,8 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 		ExpandedDialogueWidget = SNew(SOverlay)
 		+ SOverlay::Slot()
 		[
-			SNew(SYapTextPropertyEditableTextBox, EditableTextProperty)
+			SNew(SYapTextPropertyEditableTextBox, EditableTextProperty, Test)
 		]
-			/*
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Bottom)
-		.Padding(8, 0, 35, -8)
-		[
-			SNew(SProgressBar)
-			.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
-		]*/
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Fill)
 		.VAlign(VAlign_Bottom)
@@ -503,15 +497,6 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 				.SliderHandleColor(YapColor::Gray)
 				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
 			]
-			/*
-			SNew(SSlider)
-			.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding)
-			.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding)
-			//.SliderBarColor(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_FillColorAndOpacity)
-			.SliderBarColor(YapColor::Transparent)
-			
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
-			*/
 		];
 	}
 
@@ -665,8 +650,6 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue() const
 
 	FNumberFormattingOptions Formatting;
 	Formatting.MaximumFractionalDigits = 2;
-
-	const FText& DialogueText = GetFragment().GetBit().GetDialogueText();
 
 	FText DialogueStr = Dialogue_Text().IsEmpty() ? INVTEXT("No dialogue") : Dialogue_Text(); 
 	
@@ -822,7 +805,7 @@ void SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding(float 
 	float NewValue = X * MaxPaddedSetting;
 
 	// We will attempt to snap to the default time unless you hold ctrl
-	if (!UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeDisabled() && !bCtrlPressed)
+	if (!bCtrlPressed && UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeEnabled())
 	{
 		float DefaultFragmentPaddingTime = UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
 		
@@ -1098,8 +1081,11 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TitleTextExpandButton()
 	if (ExpandedTitleTextWidget == nullptr)
 	{
 		TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetFragment().GetBitMutable().GetTitleTextMutable()));
+
+		FOnTextCommitted Test;
+		Test.BindSP(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted);
 		
-		ExpandedTitleTextWidget = SNew(SYapTextPropertyEditableTextBox, EditableTextProperty)
+		ExpandedTitleTextWidget = SNew(SYapTextPropertyEditableTextBox, EditableTextProperty, Test)
 		.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_TitleText);
 	}
 	
@@ -1457,7 +1443,7 @@ void SFlowGraphNode_YapFragmentWidget::OnValueCommitted_TimeEntryBox(double NewV
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget()
 {
-	UClass* DialogueAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass();
+	UClass* DialogueAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
 
 	if (!DialogueAssetClass)
 	{
@@ -1553,7 +1539,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorSta
 
 EYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() const
 {
-	UClass* AssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass();
+	UClass* AssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
 
 	static EYapErrorLevel CachedErrorLevel = EYapErrorLevel::OK;
 	static double LastUpdateTime = 0;

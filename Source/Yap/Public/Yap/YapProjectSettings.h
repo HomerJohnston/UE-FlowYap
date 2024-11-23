@@ -4,10 +4,9 @@
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
-
+#include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
-class UYapTextCalculator;
 enum class EYapErrorLevel : uint8;
 
 enum class EYap_TagFilter : uint8
@@ -24,7 +23,10 @@ class YAP_API UYapProjectSettings : public UDeveloperSettings
 public:
 	UYapProjectSettings();
 
-	static UYapProjectSettings* Get() { return StaticClass()->GetDefaultObject<UYapProjectSettings>(); }
+	static UYapProjectSettings* Get()
+	{
+		return StaticClass()->GetDefaultObject<UYapProjectSettings>();
+	}
 
 	// ------------------------------------------
 	// SETTINGS
@@ -36,45 +38,51 @@ protected:
 	/** Controls how missing audio fields are handled.
 	 * - OK: Missing audio falls back to using text time.
 	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow.
-	 * - Error: Missing audio will not package. */
+	 * - Error: Missing audio will not package. */ // TODO make it not package
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
 	EYapErrorLevel MissingAudioErrorLevel;
 	
-	/**  */
+	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bDefaultInterruptibleSetting;
 
+	/** Turn this on if you want to completely disable padding time (delays after each fragment of dialogue). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bDisableDefaultFragmentPaddingTime = false;
+	bool bUseDefaultFragmentPaddingTime = true;
 	
-	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "!bDisableDefaultFragmentPaddingTime", EditConditionHides))
+	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "bUseDefaultFragmentPaddingTime", EditConditionHides))
 	float DefaultFragmentPaddingTime = 0.25f;
 
+	/** Controls how fast dialogue plays. Only useful for word-based playtime. */ // TODO I need some way for users to overide this within game settings
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
-	int32 TextWordsPerMinute;
+	int32 TextWordsPerMinute = 120;
 
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bCacheFragmentWordCount = true;
+	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
-	double MinimumAutoTextTimeLength;
+	double MinimumAutoTextTimeLength = 2.0;
 
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
-	double MinimumAutoAudioTimeLength;
+	double MinimumAutoAudioTimeLength = 1.0;
 
 	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	double MinimumFragmentTime;
+	double MinimumFragmentTime = 2.0;
 
-	// TODO needs to be soft
+	/** What type of class to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	UClass* DialogueAssetClass;
+	TSoftClassPtr<UObject> DialogueAssetClass;
 
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
 
 	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSubclassOf<UYapTextCalculator> TextCalculator;
+	TSoftClassPtr<UYapTextCalculator> TextCalculator;
 
 	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -111,6 +119,9 @@ protected:
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
 #endif
+
+	// ------------------------------------------
+	// API
 	
 #if WITH_EDITOR
 public:
@@ -132,7 +143,7 @@ public:
 
 	bool GetDialogueInterruptibleByDefault() const { return bDefaultInterruptibleSetting; }
 	
-	UClass* GetDialogueAssetClass() const;
+	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; };
 
 public:
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
@@ -145,7 +156,9 @@ public:
 
 	double GetMinimumFragmentTime();
 
-	bool IsDefaultFragmentPaddingTimeDisabled() const { return bDisableDefaultFragmentPaddingTime; }
+	bool IsDefaultFragmentPaddingTimeEnabled() const { return bUseDefaultFragmentPaddingTime; }
+
+	bool CacheFragmentWordCount() const { return bCacheFragmentWordCount; }
 	
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
@@ -153,7 +166,7 @@ public:
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
-	TSubclassOf<UYapTextCalculator> GetTextCalculator() const { return TextCalculator; }
+	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculator; }
 
 	TSubclassOf<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
 

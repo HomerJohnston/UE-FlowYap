@@ -116,7 +116,7 @@ private:
 	}
 };
 
-void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty)
+void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty, FOnTextCommitted OnTextCommittedDelegate)
 {
 	EditableTextProperty = InEditableTextProperty;
 
@@ -146,14 +146,14 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 					.SelectAllTextWhenFocused(false)
 					.ClearKeyboardFocusOnCommit(false)
 					.OnTextChanged(this, &SYapTextPropertyEditableTextBox::OnTextChanged)
-					.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
+					//.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
+					.OnTextCommitted(OnTextCommittedDelegate)
 					.SelectAllTextOnCommit(false)
 					.IsReadOnly(this, &SYapTextPropertyEditableTextBox::IsSourceTextReadOnly)
 					.AutoWrapText(InArgs._AutoWrapText)
 					.WrapTextAt(InArgs._WrapTextAt)
 					.ModiferKeyForNewLine(EModifierKey::Shift)
 					.Padding(FMargin(4, 4))
-					//.IsPassword(bIsPassword)
 				]
 			]
 		];

@@ -1,6 +1,6 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 
-#include "Yap/FlowYapEditor.h"
+#include "Yap/YapEditorModule.h"
 
 #include "Yap/AssetFactory_YapCharacter.h"
 #include "Yap/YapProjectSettings.h"

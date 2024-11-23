@@ -9,6 +9,7 @@
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
 #include "Yap/YapConversationHandler.h"
+#include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
@@ -197,6 +198,9 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	ActiveConversation.OnConversationStarts.BindUObject(this, &UYapSubsystem::OnConversationStarts_Internal);
 	ActiveConversation.OnConversationEnds.BindUObject(this, &UYapSubsystem::OnConversationEnds_Internal);
+
+	TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator().LoadSynchronous();
+	DialogueAudioAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
 }
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
