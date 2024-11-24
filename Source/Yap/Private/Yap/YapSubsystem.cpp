@@ -8,7 +8,7 @@
 #include "Logging/StructuredLog.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
-#include "Yap/YapConversationHandler.h"
+#include "Yap/YapConversationHandlerInterface.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
@@ -64,7 +64,7 @@ UYapSubsystem::UYapSubsystem()
 
 void UYapSubsystem::AddConversationHandler(UObject* NewListener)
 {
-	if (NewListener->Implements<UYapConversationHandler>())
+	if (NewListener->Implements<UYapConversationHandlerInterface>())
 	{
 		Listeners.AddUnique(NewListener);
 	}
@@ -77,6 +77,18 @@ void UYapSubsystem::AddConversationHandler(UObject* NewListener)
 void UYapSubsystem::RemoveConversationHandler(UObject* RemovedListener)
 {
 	Listeners.Remove(RemovedListener);
+}
+
+UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& CharacterTag)
+{
+	TWeakObjectPtr<UYapCharacterComponent>* CharacterComponentPtr = YapCharacterComponents.Find(CharacterTag);
+
+	if (CharacterComponentPtr && CharacterComponentPtr->IsValid())
+	{
+		return CharacterComponentPtr->Get();
+	}
+
+	return nullptr;
 }
 
 void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode)
@@ -143,7 +155,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandler::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
+		IYapConversationHandlerInterface::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
 	}
 }
 
@@ -163,7 +175,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandler::Execute_OnDialogueStart(Listener, ConversationName, Bit);
+		IYapConversationHandlerInterface::Execute_OnDialogueStart(Listener, ConversationName, Bit);
 	}
 }
 
@@ -181,7 +193,7 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandler::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
+		IYapConversationHandlerInterface::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
 	}
 }
 
@@ -192,6 +204,25 @@ void UYapSubsystem::RunPrompt(FYapPromptHandle& Handle)
 	Handle.DialogueNode->RunPrompt(Handle.FragmentIndex);
 }
 
+void UYapSubsystem::RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)
+{
+	AActor* Actor = YapCharacterComponent->GetOwner();
+
+	if (RegisteredYapCharacterActors.Contains(Actor))
+	{
+		UE_LOG(LogYap, Error, TEXT("Multiple character components on actor, ignoring! Actor: %s"), *Actor->GetName());
+		return;
+	}
+
+	YapCharacterComponents.Add(YapCharacterComponent->GetCharacterTag(), YapCharacterComponent);
+	
+	RegisteredYapCharacterActors.Add(Actor);
+}
+
+void UYapSubsystem::UnregisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)
+{
+}
+
 // =====================================================================================================
 
 void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -199,8 +230,14 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ActiveConversation.OnConversationStarts.BindUObject(this, &UYapSubsystem::OnConversationStarts_Internal);
 	ActiveConversation.OnConversationEnds.BindUObject(this, &UYapSubsystem::OnConversationEnds_Internal);
 
+	// TODO handle null unset values
 	TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator().LoadSynchronous();
 	DialogueAudioAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
+	ConversationHandlerClass = UYapProjectSettings::Get()->GetConversationHandlerClass().LoadSynchronous();
+
+	ConversationHandler = NewObject<UObject>(this, ConversationHandlerClass);
+
+	AddConversationHandler(ConversationHandler);
 }
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
@@ -208,7 +245,7 @@ void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandler::Execute_OnConversationStarts(Listener, Name);
+		IYapConversationHandlerInterface::Execute_OnConversationStarts(Listener, Name);
 	}
 }
 
@@ -217,7 +254,7 @@ void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandler::Execute_OnConversationEnds(Listener, Name);
+		IYapConversationHandlerInterface::Execute_OnConversationEnds(Listener, Name);
 	}
 }
 

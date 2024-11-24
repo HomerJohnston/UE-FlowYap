@@ -7,6 +7,7 @@
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
+class UYapConversationHandlerInterface;
 enum class EYapErrorLevel : uint8;
 
 enum class EYap_TagFilter : uint8
@@ -61,6 +62,11 @@ protected:
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bCacheFragmentWordCount = true;
+
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bCacheFragmentAudioLength = true;
+	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
 	double MinimumAutoTextTimeLength = 2.0;
@@ -73,20 +79,21 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	double MinimumFragmentTime = 2.0;
 
+	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
+	float FragmentPaddingSliderMax;
+	
 	/** What type of class to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftClassPtr<UObject> DialogueAssetClass;
 
-	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	float FragmentPaddingSliderMax;
-
-	// TODO needs to be soft
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UYapTextCalculator> TextCalculator;
-
-	// TODO needs to be soft
+	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSubclassOf<UYapAudioTimeCacher> AudioTimeCacher;
+	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSoftClassPtr<UObject> ConversationHandlerClass;
 	
 #if WITH_EDITORONLY_DATA
 public:
@@ -143,7 +150,9 @@ public:
 
 	bool GetDialogueInterruptibleByDefault() const { return bDefaultInterruptibleSetting; }
 	
-	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; };
+	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; }
+	
+	TSoftClassPtr<UObject>  GetConversationHandlerClass() const { return ConversationHandlerClass; }
 
 public:
 	bool GetHideTitleTextOnNPCDialogueNodes() const;
@@ -160,15 +169,17 @@ public:
 
 	bool CacheFragmentWordCount() const { return bCacheFragmentWordCount; }
 	
+	bool CacheFragmentAudioLength() const { return bCacheFragmentAudioLength; }
+	
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
 	EYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
-	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculator; }
+	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculatorClass; }
 
-	TSubclassOf<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacher; }
+	TSoftClassPtr<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacherClass; }
 
 #if WITH_EDITOR
 public:

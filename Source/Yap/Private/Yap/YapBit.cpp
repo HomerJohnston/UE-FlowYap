@@ -169,7 +169,7 @@ void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
 	DialogueAudioAsset = NewAudio;
 
-	TSubclassOf<UYapAudioTimeCacher> AudioTimeCacheClass = UYapProjectSettings::Get()->GetAudioTimeCacheClass();
+	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacheClass = UYapProjectSettings::Get()->GetAudioTimeCacheClass();
 
 	if (AudioTimeCacheClass == nullptr)
 	{
@@ -178,15 +178,15 @@ void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 		return;
 	}
 	
-	UYapAudioTimeCacher* CacherCDO = AudioTimeCacheClass->GetDefaultObject<UYapAudioTimeCacher>();
-
 	if (AudioTimeCacheClass == nullptr)
 	{
 		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
 		CachedAudioTime = -1.0;
 		return;
 	}
-	
+
+	UYapAudioTimeCacher* CacherCDO = AudioTimeCacheClass.LoadSynchronous()->GetDefaultObject<UYapAudioTimeCacher>();
+
 	CachedAudioTime = CacherCDO->GetAudioLengthInSeconds(DialogueAudioAsset);
 }
 #endif

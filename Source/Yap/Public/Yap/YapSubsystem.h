@@ -1,14 +1,16 @@
 #pragma once
 #include "GameplayTagContainer.h"
+#include "YapCharacterComponent.h"
 #include "Yap/YapBitReplacement.h"
 #include "YapSubsystem.generated.h"
 
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
-class IYapConversationHandler;
+class IYapConversationHandlerInterface;
 struct FYapBit;
 class UYapTextCalculator;
+class UYapCharacterComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFlowYapConversationEvent, FName, ConversationName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, ConversationName, const FYapBit&, DialogueInfo);
@@ -93,11 +95,27 @@ protected:
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, FYapBitReplacement> BitReplacements;
 
-	UPROPERTY()
+	/**  */
+	UPROPERTY(Transient)
 	TSubclassOf<UYapTextCalculator> TextCalculatorClass;
 
-	UPROPERTY()
+	/**  */
+	UPROPERTY(Transient)
 	UClass* DialogueAudioAssetClass;
+
+	/**  */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, TWeakObjectPtr<UYapCharacterComponent>> YapCharacterComponents;
+
+	/**  */
+	UPROPERTY(Transient)
+	TSet<TObjectPtr<AActor>> RegisteredYapCharacterActors;
+
+	UPROPERTY(Transient)
+	TSubclassOf<UObject> ConversationHandlerClass;
+	
+	UPROPERTY(Transient)
+	TObjectPtr<UObject> ConversationHandler;
 	
 	// ------------------------------------------
 	// PUBLIC API
@@ -110,15 +128,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveConversationHandler(UObject* RemovedListener);
 
-	/**  */
-	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
-
+	UFUNCTION(BlueprintCallable)
+	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
+	
+	// ------------------------------------------
+	// FLOW YAP API - These are called by Yap classes
+public:
 	/**  */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
 
-	// ------------------------------------------
-	// FLOW YAP API - These are called by Yap classes
 protected:
+	/**  */
+	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
+
 	/**  */
 	bool StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by ConversationStart node
 
@@ -137,6 +159,13 @@ protected:
 	/**  */
 	void RunPrompt(FYapPromptHandle& Handle);
 
+public:
+	/**  */
+	void RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent);
+
+	/**  */
+	void UnregisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent);
+	
 public:
 	/**  */
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

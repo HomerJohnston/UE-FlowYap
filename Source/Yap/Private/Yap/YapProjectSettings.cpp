@@ -5,6 +5,7 @@
 
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
+#include "Yap/YapConversationHandlerBase.h"
 #include "Yap/YapTextCalculator.h"
 
 UYapProjectSettings::UYapProjectSettings()
@@ -32,12 +33,14 @@ UYapProjectSettings::UYapProjectSettings()
 
 	bDefaultInterruptibleSetting = true;
 
-	TextCalculator = UYapTextCalculator::StaticClass();
-
-	AudioTimeCacher = nullptr; // You *must* create your own class and set it to calculate audio time!
+	DialogueAssetClass = nullptr;
 	
-	DialogueAssetClass = USoundBase::StaticClass();
+	AudioTimeCacherClass = nullptr; // You *must* create your own class and set it to calculate audio time!
 
+	TextCalculatorClass = UYapTextCalculator::StaticClass();
+
+	ConversationHandlerClass = nullptr; // You *must* create your own conversation handler class!
+	
 	FragmentPaddingSliderMax = 5.0;
 
 #if WITH_EDITOR
