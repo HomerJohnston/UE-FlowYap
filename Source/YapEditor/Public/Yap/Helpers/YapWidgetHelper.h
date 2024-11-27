@@ -3,6 +3,7 @@
 #include "Yap/YapColors.h"
 #include "Yap/YapEditorStyle.h"
 
+class SVirtualWindow;
 class UFlowNode_YapDialogue;
 struct FGameplayTag;
 class UYapCondition;
@@ -11,7 +12,7 @@ class FYapWidgetHelper
 {
 public:
 	
-	static TSharedRef<SWidget> CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition);
+	static TSharedRef<SWidget> CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition,  TSharedPtr<SBox> VirtualWindowBox);
 
 	static TSharedRef<SWidget> CreateTagPreviewWidget(TAttribute<FText> Text, TAttribute<EVisibility> Visibility);
 

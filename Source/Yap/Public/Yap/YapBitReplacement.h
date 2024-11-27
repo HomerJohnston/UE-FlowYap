@@ -48,7 +48,7 @@ struct FYapBitReplacement
 	// TODO calculate and serialize below on PostEditChangeProperty
 
 	/**  */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	TOptional<double> ManualTime = 0;
 
 	/**  */

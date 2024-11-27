@@ -6,15 +6,15 @@ struct FYapBit;
 
 #include "Yap/YapPromptHandle.h"
 
-#include "YapConversationHandlerInterface.generated.h"
+#include "YapConversationListenerInterface.generated.h"
 
 UINTERFACE(MinimalAPI, Blueprintable)
-class UYapConversationHandlerInterface : public UInterface
+class UYapConversationListenerInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class IYapConversationHandlerInterface
+class IYapConversationListenerInterface
 {
 	GENERATED_BODY()
 

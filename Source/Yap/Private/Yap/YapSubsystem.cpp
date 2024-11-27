@@ -8,7 +8,7 @@
 #include "Logging/StructuredLog.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
-#include "Yap/YapConversationHandlerInterface.h"
+#include "Yap/YapConversationListenerInterface.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
@@ -62,19 +62,19 @@ UYapSubsystem::UYapSubsystem()
 {
 }
 
-void UYapSubsystem::AddConversationHandler(UObject* NewListener)
+void UYapSubsystem::AddConversationListener(UObject* NewListener)
 {
-	if (NewListener->Implements<UYapConversationHandlerInterface>())
+	if (NewListener->Implements<UYapConversationListenerInterface>())
 	{
 		Listeners.AddUnique(NewListener);
 	}
 	else
 	{
-		UE_LOGFMT(LogYap, Warning, "Tried to register a conversation handler, {0} but it does not implement the FlowYapConversationHandler interface!");
+		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation handler, but it does not implement the FlowYapConversationHandler interface!"));
 	}
 }
 
-void UYapSubsystem::RemoveConversationHandler(UObject* RemovedListener)
+void UYapSubsystem::RemoveConversationListener(UObject* RemovedListener)
 {
 	Listeners.Remove(RemovedListener);
 }
@@ -95,7 +95,7 @@ void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlo
 {
 	if (TaggedFragments.Contains(FragmentTag))
 	{
-		UE_LOGFMT(LogYap, Warning, "Tried to register tagged fragment with tag [{0}] but this tag was already registered! Find and fix the duplicate tag usage.", FragmentTag.ToString()); // TODO if I pass in the full fragment I could log the dialogue text to make this easier for designers?
+		UE_LOG(LogYap, Warning, TEXT("Tried to register tagged fragment with tag [%s] but this tag was already registered! Find and fix the duplicate tag usage."), *FragmentTag.ToString()); // TODO if I pass in the full fragment I could log the dialogue text to make this easier for designers?
 		return;
 	}
 	
@@ -139,7 +139,6 @@ void UYapSubsystem::EndCurrentConversation()
 
 void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
-	FGuid DialogueGUID = Dialogue->GetGuid();
 	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 	const FYapBit& Bit = Fragment.GetBit();
 
@@ -155,7 +154,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandlerInterface::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
+		IYapConversationListenerInterface::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
 	}
 }
 
@@ -175,7 +174,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandlerInterface::Execute_OnDialogueStart(Listener, ConversationName, Bit);
+		IYapConversationListenerInterface::Execute_OnDialogueStart(Listener, ConversationName, Bit);
 	}
 }
 
@@ -193,7 +192,7 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandlerInterface::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
+		IYapConversationListenerInterface::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
 	}
 }
 
@@ -233,11 +232,17 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	// TODO handle null unset values
 	TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator().LoadSynchronous();
 	DialogueAudioAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
-	ConversationHandlerClass = UYapProjectSettings::Get()->GetConversationHandlerClass().LoadSynchronous();
+	ConversationBrokerClass = UYapProjectSettings::Get()->GetConversationBrokerClass().LoadSynchronous();
 
-	ConversationHandler = NewObject<UObject>(this, ConversationHandlerClass);
-
-	AddConversationHandler(ConversationHandler);
+	if (ConversationBrokerClass)
+	{
+		ConversationBroker = NewObject<UObject>(this, ConversationBrokerClass);
+		AddConversationListener(ConversationBroker);
+	}
+	else
+	{
+		UE_LOG(LogYap, Error, TEXT("No conversation broker!")); // TODO better logging
+	}
 }
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
@@ -245,7 +250,7 @@ void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandlerInterface::Execute_OnConversationStarts(Listener, Name);
+		IYapConversationListenerInterface::Execute_OnConversationStarts(Listener, Name);
 	}
 }
 
@@ -254,7 +259,7 @@ void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& Name)
 	for (int i = 0; i < Listeners.Num(); ++i)
 	{
 		UObject* Listener = Listeners[i];
-		IYapConversationHandlerInterface::Execute_OnConversationEnds(Listener, Name);
+		IYapConversationListenerInterface::Execute_OnConversationEnds(Listener, Name);
 	}
 }
 

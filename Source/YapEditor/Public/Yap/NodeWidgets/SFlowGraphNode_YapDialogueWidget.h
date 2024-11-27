@@ -3,6 +3,8 @@
 #include "Graph/Widgets/SFlowGraphNode.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
+class SConditionDetailsViewWidget;
+class SVirtualWindow;
 struct FYapFragment;
 class SFlowGraphNode_YapFragmentWidget;
 class UFlowNode_YapDialogue;
@@ -133,6 +135,7 @@ protected:
 	EVisibility Visibility_DialogueTagPreview() const;
 
 	EVisibility Visibility_ConditionWidgets() const;
+	void OnConditionButtonClick(TSharedPtr<SConditionDetailsViewWidget> Shared);
 	TSharedRef<SWidget> CreateConditionWidgets();
 	TSharedRef<SWidget> CreateConditionWidget(const UYapCondition* Condition);
 	
@@ -185,4 +188,9 @@ public:
 	FLinearColor TestColor() const;
 
 	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
+
+	TArray<FOverlayWidgetInfo> GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const override;
+	
+	TSharedPtr<class SConditionDetailsViewWidget> VirtualWindow;
 };
+

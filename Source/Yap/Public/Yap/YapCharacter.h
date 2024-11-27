@@ -26,6 +26,9 @@ protected:
 public:
 	const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& GetPortraits() const;
 	
+	UFUNCTION(BlueprintCallable)
+	const FSlateBrush& GetPortraitBrush(const FGameplayTag& MoodKey) const;
+	
 #if WITH_EDITORONLY_DATA
 protected:
 	TMap<FGameplayTag, FSlateBrush> PortraitBrushes;
@@ -39,7 +42,6 @@ public:
 
 	const TMap<FGameplayTag, FSlateBrush>& GetPortraitBrushes();
 
-	const FSlateBrush* GetPortraitBrush(const FGameplayTag& MoodKey) const;
 
 private:
 	void RebuildPortraitBrushes();

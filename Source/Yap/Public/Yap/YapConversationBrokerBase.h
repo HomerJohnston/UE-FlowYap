@@ -1,11 +1,12 @@
 ﻿#pragma once
 
-#include "YapConversationHandlerInterface.h"
+#include "YapConversationListenerInterface.h"
 
-#include "YapConversationHandlerBase.generated.h"
+#include "YapConversationBrokerBase.generated.h"
 
+/** Optional base class for brokering Yap to your game. Create a child class of this and override the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
 UCLASS(Abstract, Blueprintable)
-class UYapConversationHandlerBase : public UObject, public IYapConversationHandlerInterface
+class UYapConversationBrokerBase : public UObject, public IYapConversationListenerInterface
 {
 	GENERATED_BODY()
 

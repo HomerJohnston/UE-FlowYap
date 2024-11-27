@@ -4,7 +4,7 @@
 
 #include "FlowNode_YapConversationEnd.generated.h"
 
-UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Convo End", Keywords = "yap"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Conversation End", Keywords = "yap"))
 class YAP_API UFlowNode_YapConversationEnd : public UFlowNode
 {
 	GENERATED_BODY()
@@ -16,4 +16,7 @@ public:
 	UFlowNode_YapConversationEnd();
 
 	void ExecuteInput(const FName& PinName) override;
+#if WITH_EDITOR
+	FText GetNodeTitle() const override;
+#endif
 };

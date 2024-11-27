@@ -75,7 +75,7 @@ class SYapTextPropertyEditableTextBox : public SCompoundWidget
 		/** When specified, will report the MaxDesiredHeight if smaller than the content's desired height */
 		SLATE_ATTRIBUTE(FOptionalSize, MaxDesiredHeight)
 	SLATE_END_ARGS()
-
+	
 public:
 	void Construct(const FArguments& Arguments, const TSharedRef<IEditableTextProperty>& InEditableTextProperty, FOnTextCommitted OnTextCommittedDelegate);
 	virtual bool SupportsKeyboardFocus() const override;
@@ -131,4 +131,6 @@ private:
 	bool bIsMultiLine = false;
 
 	static FText MultipleValuesText;
+
+	bool bChanged = false;
 };

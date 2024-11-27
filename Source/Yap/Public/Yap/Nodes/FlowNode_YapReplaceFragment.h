@@ -7,7 +7,7 @@
 
 class UFlowNode_YapDialogue;
 
-UCLASS( meta = (DisplayName = "Replace Fragment"))
+UCLASS( meta = (DisplayName = "Yap Replace Fragment"))
 class YAP_API UFlowNode_YapReplaceFragment : public UFlowNode
 {
 	GENERATED_BODY()

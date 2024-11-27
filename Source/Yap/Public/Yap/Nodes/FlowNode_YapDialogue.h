@@ -72,12 +72,6 @@ protected:
 
 	UPROPERTY(Transient)
 	FTimerHandle TimerHandle;
-
-#if WITH_EDITORONLY_DATA
-private:
-	UPROPERTY(Transient, VisibleAnywhere, Instanced, SkipSerialization, meta = (AllowPrivateAccess))
-	TObjectPtr<UYapCondition> SelectedCondition;
-#endif
 	
 	// API
 public:

@@ -260,6 +260,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	else if (BroadcastedFragments.Num() == 1)
 	{
 		// TODO - auto select last option. Project setting? Overridable in dialogue node???
+		// TODO instead, I should emit a "Prompts Finished Broadcasting" type of event and let the game decide whether to automatically select it or not
 	}
 }
 

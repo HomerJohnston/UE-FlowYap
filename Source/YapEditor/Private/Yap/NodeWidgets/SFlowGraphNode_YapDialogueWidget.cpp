@@ -9,6 +9,8 @@
 #include "Graph/FlowGraphUtils.h"
 #include "Logging/StructuredLog.h"
 #include "Math/BigInt.h"
+#include "Widgets/SCanvas.h"
+#include "Widgets/SVirtualWindow.h"
 #include "Widgets/Images/SLayeredImage.h"
 #include "Yap/YapBit.h"
 #include "Yap/YapColors.h"
@@ -24,6 +26,8 @@
 #include "Yap/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "Yap/NodeWidgets/SConditionEntryWidget.h"
+#include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
 #include "Yap/NodeWidgets/SYapGraphPinExec.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
@@ -868,6 +872,11 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets() cons
 	return (GetFlowYapDialogueNode()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
+void SFlowGraphNode_YapDialogueWidget::OnConditionButtonClick(TSharedPtr<SConditionDetailsViewWidget> Shared)
+{
+	VirtualWindow = Shared;
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
 {
 	TSharedRef<SScrollBox> Box = SNew(SScrollBox)
@@ -877,18 +886,41 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
 	.AllowOverscroll(EAllowOverscroll::No)
 	.AnimateWheelScrolling(true)
 	.Orientation(Orient_Horizontal);
-
+	
 	for (UYapCondition* Condition : GetFlowYapDialogueNode()->GetConditions())
 	{
+		TSharedRef<SConditionEntryWidget> Widget = SNew(SConditionEntryWidget)
+			.Condition(Condition)
+			.DialogueNode(GetFlowYapDialogueNodeMutable());
+
+		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnConditionButtonClick);
+		
 		Box->AddSlot()
 		.Padding(0, 0, 4, 0)
 		[
-			FYapWidgetHelper::CreateConditionWidget(GetFlowYapDialogueNodeMutable(), Condition)
-		];	
+			Widget
+		];
 	}
 	
 	return Box;
 }
+
+TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const
+{
+	TArray<FOverlayWidgetInfo> Widgets;
+
+	if (VirtualWindow)
+	{
+		FOverlayWidgetInfo Info;
+		Info.OverlayOffset = FVector2D(0,0);
+		Info.Widget = VirtualWindow;
+
+		Widgets.Add(Info);	
+	}
+
+	return Widgets;
+}
+
 
 // ------------------------------------------
 // PUBLIC API & THEIR HELPERS
@@ -1008,10 +1040,12 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		return;
 	}
 
+	/*
 	if (GetFlowYapDialogueNode()->SelectedCondition && !GetIsSelected())
 	{
 		///GetFlowYapDialogueNodeMutable()->SelectedCondition = nullptr;
 	}
+	*/
 	
 	// TODO cleanup
 	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
@@ -1029,6 +1063,8 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		bShiftHooked = false;
 		FocusedFragmentIndex.Reset();
 		bKeyboardFocused = false;
+		VirtualWindow = nullptr;
+		//VirtualWindow->SetVisibility(EVisibility::Collapsed);
 	}
 
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);

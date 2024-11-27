@@ -50,7 +50,7 @@ FText UFlowNode_YapReplaceFragment::GetNodeTitle() const
 		return INVTEXT("Replace Fragment");
 	}
 
-	return INVTEXT("Yap Replace Fragment");
+	return INVTEXT("Replace Fragment");
 }
 
 #if WITH_EDITOR

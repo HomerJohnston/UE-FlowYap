@@ -490,7 +490,6 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 			.Padding(0, -2)
 			[
 				SNew(SSlider)
-				//.Visibility(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePaddingSlider_Visibility)
 				.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding)
 				.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding)
 				.Style(FYapEditorStyle::Get(), YapStyles.SliderStyle_FragmentTimePadding)
@@ -589,15 +588,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 				.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
 			]
 		]
-		/*
-		+ SOverlay::Slot()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.Padding(-4)
-		[
-			CreateTextEditButtonWidget(TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Visibility_DialogueEdit))
-		]
-		*/
 	];
 
 	return DialogueEditButtonWidget.ToSharedRef();
@@ -743,7 +733,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets() c
 		Box->AddSlot()
 		.Padding(0, 0, 4, 0)
 		[
-			FYapWidgetHelper::CreateConditionWidget(GetFlowYapDialogueNode(), Condition)
+			FYapWidgetHelper::CreateConditionWidget(GetFlowYapDialogueNode(), Condition, nullptr)
 		];	
 	}
 	

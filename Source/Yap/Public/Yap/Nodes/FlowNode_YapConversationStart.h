@@ -24,6 +24,9 @@ public:
 	void ExecuteInput(const FName& PinName) override;
 	
 #if WITH_EDITOR
+public:
+	FText GetNodeTitle() const override;
+
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 };

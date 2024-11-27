@@ -5,7 +5,7 @@
 
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
-#include "Yap/YapConversationHandlerBase.h"
+#include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapTextCalculator.h"
 
 UYapProjectSettings::UYapProjectSettings()
@@ -39,7 +39,7 @@ UYapProjectSettings::UYapProjectSettings()
 
 	TextCalculatorClass = UYapTextCalculator::StaticClass();
 
-	ConversationHandlerClass = nullptr; // You *must* create your own conversation handler class!
+	ConversationBrokerClass = nullptr; // You *must* create your own conversation handler class!
 	
 	FragmentPaddingSliderMax = 5.0;
 

@@ -31,7 +31,7 @@ const FSlateBrush* FYapBit::GetSpeakerPortraitBrush() const
 	
 	if (Character.IsValid())
 	{
-		return Character->GetPortraitBrush(MoodKey);
+		return &Character->GetPortraitBrush(MoodKey);
 	}
 
 	return nullptr;

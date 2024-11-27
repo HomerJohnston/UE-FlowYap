@@ -38,6 +38,16 @@ const TMap<FGameplayTag, TObjectPtr<UTexture2D>>& UYapCharacter::GetPortraits() 
 	return Portraits;
 }
 
+const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
+{
+	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
+
+	// TODO This should only occur when the character is out of date, should I return a default or a null texture? Maybe a project setting to determine what to do?
+	check(Brush);
+	
+	return *Brush;
+}
+
 #if WITH_EDITOR
 void UYapCharacter::PostLoad()
 {
@@ -61,19 +71,6 @@ const TMap<FGameplayTag, FSlateBrush>& UYapCharacter::GetPortraitBrushes()
 	return PortraitBrushes;
 }
 
-const FSlateBrush* UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
-{
-	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
-
-	if (Brush)
-	{
-		return Brush;
-	}
-
-	// TODO This should only occur when the character is out of date, should I return a default or a null texture? Maybe a project setting to determine what to do?
-	
-	return nullptr;
-}
 
 void UYapCharacter::RebuildPortraitBrushes()
 {

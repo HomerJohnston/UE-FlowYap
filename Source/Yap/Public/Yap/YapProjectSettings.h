@@ -7,7 +7,7 @@
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
-class UYapConversationHandlerInterface;
+class UYapConversationListenerInterface;
 enum class EYapErrorLevel : uint8;
 
 enum class EYap_TagFilter : uint8
@@ -92,8 +92,9 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
 
+	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UObject> ConversationHandlerClass;
+	TSoftClassPtr<UObject> ConversationBrokerClass;
 	
 #if WITH_EDITORONLY_DATA
 public:
@@ -152,7 +153,7 @@ public:
 	
 	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; }
 	
-	TSoftClassPtr<UObject>  GetConversationHandlerClass() const { return ConversationHandlerClass; }
+	TSoftClassPtr<UObject>  GetConversationBrokerClass() const { return ConversationBrokerClass; }
 
 public:
 	bool GetHideTitleTextOnNPCDialogueNodes() const;

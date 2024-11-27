@@ -7,7 +7,7 @@
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
-class IYapConversationHandlerInterface;
+class IYapConversationListenerInterface;
 struct FYapBit;
 class UYapTextCalculator;
 class UYapCharacterComponent;
@@ -112,21 +112,21 @@ protected:
 	TSet<TObjectPtr<AActor>> RegisteredYapCharacterActors;
 
 	UPROPERTY(Transient)
-	TSubclassOf<UObject> ConversationHandlerClass;
+	TSubclassOf<UObject> ConversationBrokerClass;
 	
 	UPROPERTY(Transient)
-	TObjectPtr<UObject> ConversationHandler;
+	TObjectPtr<UObject> ConversationBroker;
 	
 	// ------------------------------------------
 	// PUBLIC API
 public:
 	/** When a conversation starts */
 	UFUNCTION(BlueprintCallable)
-	void AddConversationHandler(UObject* NewListener);
+	void AddConversationListener(UObject* NewListener);
 
 	/**  */
 	UFUNCTION(BlueprintCallable)
-	void RemoveConversationHandler(UObject* RemovedListener);
+	void RemoveConversationListener(UObject* RemovedListener);
 
 	UFUNCTION(BlueprintCallable)
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);

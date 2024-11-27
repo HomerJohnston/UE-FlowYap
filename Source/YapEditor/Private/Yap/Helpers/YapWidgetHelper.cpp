@@ -1,5 +1,6 @@
 #include "Yap/Helpers/YapWidgetHelper.h"
 
+#include "SGraphPanel.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Yap/YapColors.h"
@@ -9,7 +10,7 @@
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
 
-TSharedRef<SWidget> FYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition)
+TSharedRef<SWidget> FYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition, TSharedPtr<SBox> VirtualWindowBox)
 {
 	FString Description = IsValid(Condition) ? Condition->GetDescription() : "-";
 
@@ -17,7 +18,6 @@ TSharedRef<SWidget> FYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogu
 	FLinearColor TextColor = ButtonColor.GetLuminance() < 0.6 ? YapColor::White : YapColor::Black;
 
 	TWeakObjectPtr<UFlowNode_YapDialogue> DialogueWeakPtr = Dialogue;
-	TWeakObjectPtr<UYapCondition> ConditionWeakPtr = Condition;
 	
 	return SNew(SButton)
 	.ButtonColorAndOpacity(ButtonColor)
@@ -25,14 +25,43 @@ TSharedRef<SWidget> FYapWidgetHelper::CreateConditionWidget(UFlowNode_YapDialogu
 	.ForegroundColor(TextColor)
 	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
 	.ToolTipText(INVTEXT("Prerequisite for this to run."))
-	.OnClicked(FOnClicked::CreateLambda([=]()
+	.OnClicked(FOnClicked::CreateLambda([DialogueWeakPtr, Condition, VirtualWindowBox]()
 	{
-		DialogueWeakPtr->SelectedCondition = ConditionWeakPtr.Get();
+		if (!DialogueWeakPtr.IsValid())
+		{
+			return  FReply::Handled();
+		}
+		
+		if (!IsValid(Condition))
+		{
+			return FReply::Handled();
+		}
+		
+		if (!VirtualWindowBox.IsValid())
+		{
+			return FReply::Handled();
+		}
+		
+		FDetailsViewArgs Args;
+		Args.bHideSelectionTip = true;
+		Args.bLockable = false;
+		Args.bShowOptions = false;
+		Args.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Show;
+	
+		FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<IDetailsView> DetailsWidget = PropertyEditorModule.CreateDetailView(Args);
+		DetailsWidget->SetObject(Condition, true);
+
+		VirtualWindowBox->GetParentWidget()->SetVisibility(EVisibility::Visible);
+		VirtualWindowBox->SetContent(DetailsWidget.ToSharedRef());
+		VirtualWindowBox->SetVisibility(EVisibility::Visible);
+		
 		TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(DialogueWeakPtr->GetGraphNode()->GetGraph());
 		if (GraphEditor)
 		{
 			GraphEditor->SelectSingleNode(DialogueWeakPtr->GetGraphNode());
 		}
+
 		return FReply::Handled();
 	}))
 	[
