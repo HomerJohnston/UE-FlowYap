@@ -21,7 +21,7 @@ FYapBit::FYapBit()
 }
 
 #if WITH_EDITOR
-const FSlateBrush* FYapBit::GetSpeakerPortraitBrush() const
+const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
 	if (Character.IsPending())
 	{
@@ -31,10 +31,10 @@ const FSlateBrush* FYapBit::GetSpeakerPortraitBrush() const
 	
 	if (Character.IsValid())
 	{
-		return &Character->GetPortraitBrush(MoodKey);
+		return Character->GetPortraitBrush(MoodKey);
 	}
 
-	return nullptr;
+	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
 }
 
 FGameplayTag FYapBit::GetMoodKeyLazyInit()

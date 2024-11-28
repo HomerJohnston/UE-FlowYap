@@ -948,7 +948,6 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 	return Widgets;
 }
 
-
 // ------------------------------------------
 // PUBLIC API & THEIR HELPERS
 

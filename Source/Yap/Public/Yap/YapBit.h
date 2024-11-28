@@ -101,7 +101,7 @@ public:
 		return nullptr;
 	}
 
-	const FSlateBrush* GetSpeakerPortraitBrush() const;
+	const FSlateBrush& GetSpeakerPortraitBrush() const;
 
 #if WITH_EDITOR
 	FGameplayTag GetMoodKeyLazyInit();

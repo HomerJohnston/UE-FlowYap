@@ -71,6 +71,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreSettingsWidget
 			.EnableContentPicker(true)
 			.ObjectPath(this, &SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect)
 			.OnObjectChanged(this, &SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect)
+			.ToolTipText(INVTEXT("Select a character asset"))
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
@@ -551,6 +552,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
 	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
+	.ContentPadding(0)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -562,7 +564,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 			.AllowOverscroll(EAllowOverscroll::No)
 			.AnimateWheelScrolling(true)
 			+ SScrollBox::Slot()
-			.Padding(0,0,0,0)
+			.Padding(4,4,4,4)
 			.FillSize(1.0)
 			.VAlign(VAlign_Center)
 			[
@@ -626,10 +628,7 @@ void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_Dialogue(const FText& Com
 {
 	FYapTransactions::BeginModify(LOCTEXT("NodeDialogueTextChanged", "Dialogue Text Changed"), GetFlowYapDialogueNode());
 
-	if (CommitType == ETextCommit::OnEnter)
-	{
-		GetFragment().Bit.SetDialogueText(CommittedText);
-	}
+	GetFragment().Bit.SetDialogueText(CommittedText);
 
 	FYapTransactions::EndModify();
 }
@@ -757,13 +756,8 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 	if (GEditor->PlayWorld)
 	{
 		const TOptional<uint8>& RunningIndex = GetFlowYapDialogueNode()->RunningFragmentIndex;
-
-		if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment().IndexInDialogue)
-		{
-			return FragmentPadding / MaxPaddedSetting;
-		}
-
-		if (RunningIndex == GetFragment().IndexInDialogue)
+		
+		if (RunningIndex == GetFragment().IndexInDialogue) // TODO IndexInDialogue isn't being updated maybe when I add fragments from the details pane?
 		{
 			if (GetFlowYapDialogueNode()->FragmentStartedTime < GetFlowYapDialogueNode()->FragmentEndedTime)
 			{
@@ -774,6 +768,10 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 			{
 				return FragmentPadding / MaxPaddedSetting;
 			}
+		}
+		else if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment().IndexInDialogue)
+		{
+			return FragmentPadding / MaxPaddedSetting;
 		}
 
 		return 0.0;
@@ -961,19 +959,23 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_PortraitImage() const
 {
-	return GetFragment().GetBit().GetSpeakerPortraitBrush();
+	const FSlateBrush& PortraitBrush = GetFragment().GetBit().GetSpeakerPortraitBrush();
+
+	if (PortraitBrush.GetResourceObject())
+	{
+		return &PortraitBrush;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush* Brush = GetFragment().GetBit().GetSpeakerPortraitBrush();
-
-	if (Brush)
-	{
-		return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
-	}
+	const FSlateBrush& Brush = GetFragment().GetBit().GetSpeakerPortraitBrush();
 	
-	return EVisibility::Visible;
+	return (Brush.GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_CharacterSelect() const
@@ -997,18 +999,15 @@ FString SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect() const
 
 void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAssetData& InAssetData)
 {
+	FYapTransactions::BeginModify(LOCTEXT("NodeCharacterChanged", "Character Changed"), GetFlowYapDialogueNode());
+
 	UObject* Asset = InAssetData.GetAsset();
 
 	UYapCharacter* Character = Cast<UYapCharacter>(Asset);
+	
+	GetFragment().Bit.SetCharacter(Character);
 
-	if (Character)
-	{
-		FYapTransactions::BeginModify(LOCTEXT("NodeCharacterChanged", "Character Changed"), GetFlowYapDialogueNode());
-
-		GetFragment().Bit.SetCharacter(Character);
-
-		FYapTransactions::EndModify();
-	}
+	FYapTransactions::EndModify();
 }
 
 // ================================================================================================
@@ -1433,17 +1432,17 @@ void SFlowGraphNode_YapFragmentWidget::OnValueCommitted_TimeEntryBox(double NewV
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget()
 {
-	UClass* DialogueAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
+	UClass* DialogueAssetClass = UObject::StaticClass(); // if I use nullptr then SObjectPropertyEntryBox throws a shitfit
+	
+	TSoftClassPtr<UObject> DialogueAssetClassPtr = UYapProjectSettings::Get()->GetDialogueAssetClass();
 
-	if (!DialogueAssetClass)
+	if (!DialogueAssetClassPtr.IsNull())
 	{
-		DialogueAssetClass = UObject::StaticClass();
+		DialogueAssetClass = DialogueAssetClassPtr.LoadSynchronous();
 	}
-
-	
-	GetFragment().GetBit().GetDialogueAudioAsset_SoftPtr<USoundBase>();
-	
+		
 	TSharedRef<SObjectPropertyEntryBox> AudioAssetProperty = SNew(SObjectPropertyEntryBox)
+		.IsEnabled(!DialogueAssetClassPtr.IsNull())
 		.DisplayBrowse(true)
 		.DisplayUseSelected(false)
 		.DisplayThumbnail(false)

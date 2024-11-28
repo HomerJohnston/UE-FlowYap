@@ -95,6 +95,9 @@ protected:
 	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftClassPtr<UObject> ConversationBrokerClass;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	FSlateBrush MissingPortraitBrush;
 	
 #if WITH_EDITORONLY_DATA
 public:
@@ -186,7 +189,7 @@ public:
 public:
 	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
 	
-	
+	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
 
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 

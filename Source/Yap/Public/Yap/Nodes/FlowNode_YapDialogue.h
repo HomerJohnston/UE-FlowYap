@@ -23,7 +23,7 @@ enum class EFlowYapMultipleFragmentSequencing : uint8
 /**
  * Emits a FlowYap Dialogue Fragment
  */
-UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap", ToolTip = "Emits Yap dialogue events"))
+UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
 class YAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -208,5 +208,7 @@ public:
 	virtual void PostEditImport() override;
 	
 	virtual bool CanRefreshContextPinsOnLoad() const { return true; }
+	
+	FText GetNodeToolTip() const override { return FText::GetEmpty(); };
 #endif // WITH_EDITOR
 };

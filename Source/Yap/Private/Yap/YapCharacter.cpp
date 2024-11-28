@@ -42,10 +42,14 @@ const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) 
 {
 	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKey);
 
-	// TODO This should only occur when the character is out of date, should I return a default or a null texture? Maybe a project setting to determine what to do?
-	check(Brush);
-	
-	return *Brush;
+	if (Brush)
+	{
+		return *Brush;
+	}
+	else
+	{
+		return UYapProjectSettings::Get()->GetMissingPortraitBrush();
+	}
 }
 
 #if WITH_EDITOR

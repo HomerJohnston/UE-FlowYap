@@ -197,5 +197,7 @@ public:
 	TWeakObjectPtr<UYapCondition> EditedCondition;
 	
 	FVector2D ConditionDetailsPaneOffset;
+
+	virtual TSharedPtr<IToolTip> GetToolTip() override { return nullptr; };
 };
 
