@@ -872,9 +872,36 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets() cons
 	return (GetFlowYapDialogueNode()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnConditionButtonClick(TSharedPtr<SConditionDetailsViewWidget> Shared)
+void SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget)
 {
-	VirtualWindow = Shared;
+	if (ConditionDetailsPane != nullptr && EditedCondition == Condition)
+	{
+		ConditionDetailsPane = nullptr;
+		return;
+	}
+	
+	if (ConditionDetailsPane == nullptr)
+	{
+		ConditionDetailsPane = SNew(SVirtualWindow);
+	}
+	
+	ConditionDetailsPane->SetContent
+	(
+		SNew(SConditionDetailsViewWidget)
+		.Condition(Condition)
+	);
+
+	EditedCondition = Condition;
+
+	FVector2D LTA = ConditionEntryWidget->GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
+	FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
+	
+	ConditionDetailsPaneOffset = LTA - OwnerLTA;
+}
+
+bool SFlowGraphNode_YapDialogueWidget::IsEnabled_ConditionWidgetsScrollBox() const
+{
+	return (EditedCondition != nullptr);
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
@@ -893,7 +920,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
 			.Condition(Condition)
 			.DialogueNode(GetFlowYapDialogueNodeMutable());
 
-		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnConditionButtonClick);
+		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton);
 		
 		Box->AddSlot()
 		.Padding(0, 0, 4, 0)
@@ -909,11 +936,11 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 {
 	TArray<FOverlayWidgetInfo> Widgets;
 
-	if (VirtualWindow)
+	if (ConditionDetailsPane)
 	{
 		FOverlayWidgetInfo Info;
-		Info.OverlayOffset = FVector2D(0,0);
-		Info.Widget = VirtualWindow;
+		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 16);
+		Info.Widget = ConditionDetailsPane;
 
 		Widgets.Add(Info);	
 	}
@@ -1039,13 +1066,6 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		return;
 	}
-
-	/*
-	if (GetFlowYapDialogueNode()->SelectedCondition && !GetIsSelected())
-	{
-		///GetFlowYapDialogueNodeMutable()->SelectedCondition = nullptr;
-	}
-	*/
 	
 	// TODO cleanup
 	bIsSelected = GraphEditor->GetSelectedFlowNodes().Contains(FlowGraphNode);
@@ -1057,14 +1077,13 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		bShiftHooked = true;
 	}
-
+	
 	if (!bIsSelected)
 	{
 		bShiftHooked = false;
 		FocusedFragmentIndex.Reset();
 		bKeyboardFocused = false;
-		VirtualWindow = nullptr;
-		//VirtualWindow->SetVisibility(EVisibility::Collapsed);
+		ConditionDetailsPane = nullptr;
 	}
 
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);
