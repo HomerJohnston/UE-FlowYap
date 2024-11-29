@@ -100,6 +100,10 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
 	
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Sharp,					"Panel_Sharp", ".png",					FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Deburred,					"Panel_Deburred", ".png",				FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Rounded,					"Panel_Rounded", ".png",				FMargin(4.0/8.0));
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0));
@@ -111,7 +115,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Red);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Red);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Red);
-
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
 	
 	YAP_DEFINE_STYLE(FSliderStyle, SliderStyle_FragmentTimePadding, FSliderStyle::GetDefault(),

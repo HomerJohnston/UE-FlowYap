@@ -37,6 +37,10 @@ struct FYapBrushes
 	FName Box_SolidRed;
 	FName Box_SolidRed_Deburred;
 	FName Box_SolidRed_Rounded;
+
+	FName Panel_Deburred;
+	FName Panel_Rounded;
+	FName Panel_Sharp;
 	
 	FName Outline_White_Deburred;
 

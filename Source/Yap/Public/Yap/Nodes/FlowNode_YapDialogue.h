@@ -117,6 +117,9 @@ public:
 
 #if WITH_EDITOR
 	void InvalidateFragmentTags();
+
+	TArray<TObjectPtr<UYapCondition>>& GetConditionsMutable() { return Conditions; }
+
 #endif
 	
 	bool ActivationLimitsMet() const;

@@ -3,6 +3,7 @@
 #include "Graph/Widgets/SFlowGraphNode.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
+class SCanvas;
 class SConditionEntryWidget;
 class SConditionDetailsViewWidget;
 class SVirtualWindow;
@@ -136,7 +137,7 @@ protected:
 	EVisibility Visibility_DialogueTagPreview() const;
 
 	EVisibility Visibility_ConditionWidgets() const;
-	void OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget);
+	void OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget, int32 ConditionIndexInArray);
 	bool IsEnabled_ConditionWidgetsScrollBox() const;
 	TSharedRef<SWidget> CreateConditionWidgets();
 	TSharedRef<SWidget> CreateConditionWidget(const UYapCondition* Condition);
@@ -187,13 +188,11 @@ public:
 
 	FYapFragment& GetFragmentMutable(uint8 FragmentIndex);
 
-	FLinearColor TestColor() const;
-
 	void CreateStandardPinWidget(UEdGraphPin* Pin) override;
 
 	TArray<FOverlayWidgetInfo> GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const override;
 
-	TSharedPtr<SVirtualWindow> ConditionDetailsPane;
+	TSharedPtr<SConditionDetailsViewWidget> ConditionDetailsPane;
 	TWeakObjectPtr<UYapCondition> EditedCondition;
 	
 	FVector2D ConditionDetailsPaneOffset;

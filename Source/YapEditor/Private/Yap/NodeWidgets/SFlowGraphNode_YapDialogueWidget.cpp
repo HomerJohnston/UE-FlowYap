@@ -4,6 +4,7 @@
 
 #include "FlowEditorStyle.h"
 #include "NodeFactory.h"
+#include "PropertyCustomizationHelpers.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
@@ -872,24 +873,23 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets() cons
 	return (GetFlowYapDialogueNode()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget)
+void SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget, int32 ConditionIndexInArray)
 {
 	if (ConditionDetailsPane != nullptr && EditedCondition == Condition)
 	{
 		ConditionDetailsPane = nullptr;
+		EditedCondition = nullptr;
 		return;
 	}
 	
+	
 	if (ConditionDetailsPane == nullptr)
 	{
-		ConditionDetailsPane = SNew(SVirtualWindow);
+		ConditionDetailsPane = SNew(SConditionDetailsViewWidget)
+			.Dialogue(GetFlowYapDialogueNodeMutable())
+			.Condition(Condition)
+			.ConditionIndexInArray(ConditionIndexInArray);
 	}
-	
-	ConditionDetailsPane->SetContent
-	(
-		SNew(SConditionDetailsViewWidget)
-		.Condition(Condition)
-	);
 
 	EditedCondition = Condition;
 
@@ -914,13 +914,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
 	.AnimateWheelScrolling(true)
 	.Orientation(Orient_Horizontal);
 	
-	for (UYapCondition* Condition : GetFlowYapDialogueNode()->GetConditions())
+	for (int32 i = 0; i < GetFlowYapDialogueNode()->GetConditions().Num(); ++i)
 	{
+		UYapCondition* Condition = GetFlowYapDialogueNode()->GetConditions()[i];
 		TSharedRef<SConditionEntryWidget> Widget = SNew(SConditionEntryWidget)
 			.Condition(Condition)
 			.DialogueNode(GetFlowYapDialogueNodeMutable());
 
-		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton);
+		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton, i);
 		
 		Box->AddSlot()
 		.Padding(0, 0, 4, 0)
@@ -1271,16 +1272,6 @@ const FYapFragment& SFlowGraphNode_YapDialogueWidget::GetFragment(uint8 Fragment
 FYapFragment& SFlowGraphNode_YapDialogueWidget::GetFragmentMutable(uint8 FragmentIndex)
 {
 	return GetFlowYapDialogueNodeMutable()->GetFragmentByIndexMutable(FragmentIndex);
-}
-
-FLinearColor SFlowGraphNode_YapDialogueWidget::TestColor() const
-{
-	if (GetFlowYapDialogueNode()->ActivationLimitsMet())
-	{
-		return YapColor::Red;
-	}
-	
-	return YapColor::White;
 }
 
 void SFlowGraphNode_YapDialogueWidget::CreateStandardPinWidget(UEdGraphPin* Pin)
