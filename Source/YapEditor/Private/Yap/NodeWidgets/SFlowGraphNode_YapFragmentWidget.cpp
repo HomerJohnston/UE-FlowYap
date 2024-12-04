@@ -317,12 +317,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 	
 	TSharedRef<SWidget> Box = SNew(SBox)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_UpperFragmentBar)
-	.Padding(0, 0, 0, 4)
+	.Padding(0, 0, 32, 4)
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
-		.Padding(32, 0, 4, 0)
+		.Padding(32, 0, 0, 0)
 		[
 			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
 			.DialogueNode(DialogueNode)
@@ -336,7 +336,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		.HAlign(HAlign_Right)
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
-		.Padding(4, 0, 32, 0)
+		.Padding(4, 0, 0, 0)
 		[
 			SNew(SBox)
 			.HAlign(HAlign_Fill)

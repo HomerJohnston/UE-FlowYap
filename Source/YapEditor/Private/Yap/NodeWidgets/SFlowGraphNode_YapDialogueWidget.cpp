@@ -202,7 +202,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
-		.Padding(-8,0,2,0)
+		.Padding(-10,0,2,0)
 		[
 			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
 			.DialogueNode(GetFlowYapDialogueNodeMutable())
