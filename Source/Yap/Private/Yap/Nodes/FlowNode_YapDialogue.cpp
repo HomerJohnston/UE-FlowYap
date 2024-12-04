@@ -578,7 +578,7 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 
 	if (bBypassRequired != IsBypassPinRequired())
 	{
-		OnReconstructionRequested.Execute();
+		OnReconstructionRequested.ExecuteIfBound();
 	}
 }
 
@@ -731,15 +731,7 @@ void UFlowNode_YapDialogue::ForceReconstruction()
 void UFlowNode_YapDialogue::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	FProperty* Property = PropertyChangedEvent.Property;
-	
-	if (Property && Property->HasMetaData("Yap_ReconstructNodeOnChange"))
-	{
-		ForceReconstruction();
-	}
 }
-
 
 void UFlowNode_YapDialogue::PostEditImport()
 {

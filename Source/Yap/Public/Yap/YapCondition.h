@@ -2,6 +2,8 @@
 
 #include "YapCondition.generated.h"
 
+struct FPropertyChangedEvent;
+
 UCLASS(Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class YAP_API UYapCondition : public UObject
 {
@@ -20,7 +22,11 @@ class YAP_API UYapCondition : public UObject
 	UPROPERTY(EditInstanceOnly)
 	TOptional<FLinearColor> NodeColorOverride;
 #endif
-
+	
+public:
+	UFUNCTION(BlueprintNativeEvent)
+	bool Evaluate() const;
+	
 #if WITH_EDITOR
 public:
 	UFUNCTION(BlueprintNativeEvent)
@@ -28,26 +34,10 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	FLinearColor GetNodeColor() const;
+
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	TMulticastDelegate<void(FPropertyChangedEvent&)> OnPropertyChanged;
 #endif
-	
-public:
-	UFUNCTION(BlueprintNativeEvent)
-	bool Evaluate() const;
 };
 
-#if WITH_EDITOR
-inline FString UYapCondition::GetDescription_Implementation() const
-{
-	return DescriptionOverride.Get(DefaultDescription);
-}
-
-inline FLinearColor UYapCondition::GetNodeColor_Implementation() const
-{
-	return NodeColorOverride.Get(DefaultNodeColor);
-}
-#endif
-
-inline bool UYapCondition::Evaluate_Implementation() const
-{
-	return true;
-}

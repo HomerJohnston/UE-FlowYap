@@ -59,7 +59,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
 
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, meta = (Yap_ReconstructNodeOnChange))
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, meta = (Yap_ReconstructNodeOnChange, Yap_ConditionProperty))
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -113,7 +113,7 @@ public:
 
 	EFlowYapInterruptible GetInterruptibleSetting() const;
 	
-	const TArray<TObjectPtr<UYapCondition>>& GetConditions() const { return Conditions; }
+	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
 
 #if WITH_EDITOR
 	void InvalidateFragmentTags();

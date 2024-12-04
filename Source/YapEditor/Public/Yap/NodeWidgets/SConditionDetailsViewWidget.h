@@ -7,26 +7,37 @@
 struct FYapFragment;
 class UFlowNode_YapDialogue;
 
+DECLARE_DELEGATE_OneParam(FOnClickedDeleteCondition, int32 /*ConditionIndex*/);
+DECLARE_DELEGATE_OneParam(FOnClickedNewClassCondition, int32 /*ConditionIndex*/);
+
 class SConditionDetailsViewWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SConditionDetailsViewWidget)
 		:
 		_Dialogue(nullptr),
-		_Condition(nullptr),
-		_Fragment(nullptr),
-		_ConditionIndexInArray(INDEX_NONE)
+		_FragmentIndex(INDEX_NONE),
+		_ConditionIndex(INDEX_NONE)
 		{}
 		SLATE_ARGUMENT(UFlowNode_YapDialogue*, Dialogue)
-		SLATE_ARGUMENT(UYapCondition*, Condition)
-		SLATE_ARGUMENT(FYapFragment*, Fragment)
-		SLATE_ARGUMENT(int32, ConditionIndexInArray)
+		SLATE_ARGUMENT(int32, FragmentIndex)
+		SLATE_ARGUMENT(int32, ConditionIndex)
+		SLATE_EVENT(FOnClickedDeleteCondition, OnClickedDelete)
+		SLATE_EVENT(FOnClickedNewClassCondition, OnClickedNewClass)
+		SLATE_ARGUMENT(FArrayProperty*, ConditionsArray)
+		SLATE_ARGUMENT(void*, ConditionsContainer)
 	SLATE_END_ARGS()
 
 public:
+	FReply OnClicked_Delete() const;
+	
 	void Construct(const FArguments& InArgs);
 
-private:
+private:	
+	const UYapCondition* GetCondition() const;
+	
+	UYapCondition* GetCondition();
+	
 	const UClass* SelectedClass_ConditionProperty() const;
 
 	void OnSetClass_ConditionProperty(const UClass* NewConditionClass);
@@ -37,13 +48,20 @@ private:
 	TSharedPtr<IStructureDetailsView> StructDetailView;
 
 	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
-
-	// TODO this is dangerous. this will crash.
-	FYapFragment* Fragment = nullptr;
 	
-	TWeakObjectPtr<UYapCondition> Condition;
-
 	FPropertyPath ConditionPropertyPath;
 
-	int32 ConditionIndexInArray = 0;
+	int32 FragmentIndex = INDEX_NONE;
+	int32 ConditionIndex = INDEX_NONE;
+	
+	FOnClickedDeleteCondition OnClickedDelete;
+
+	FOnClickedNewClassCondition OnClickedNewClassCondition;
+	
+//	FArrayProperty* ConditionsArrayProperty;
+	
+//	TWeakObjectPtr<UYapCondition> ConditionWeakPtr = nullptr;
+
+public:
+	FVector2D Offset = FVector2D::ZeroVector;
 };

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
 
+class SConditionsScrollBox;
 struct FFlowPin;
 class UYapCondition;
 struct FYapFragment;
@@ -66,6 +67,8 @@ protected:
 
 	TSharedPtr<SButton> TitleTextEditButtonWidget;
 	TSharedPtr<SButton> DialogueEditButtonWidget;
+	TSharedPtr<SConditionsScrollBox> ConditionsScrollBox;
+
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
@@ -120,10 +123,10 @@ protected:
 	FText				FragmentTagPreview_Text() const;
 
 	// ---------------------------------------------------
-	TSharedRef<SWidget> CreateConditionWidgets() const;
-
 	EVisibility			Visibility_ConditionWidgets() const;
 
+	void				OnConditionsUpdated();
+	
 	// ---------------------------------------------------
 	TOptional<float>	FragmentTimePadding_Percent() const;
 	float				Value_FragmentTimePadding() const;

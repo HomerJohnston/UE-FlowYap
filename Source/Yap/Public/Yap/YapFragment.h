@@ -102,8 +102,8 @@ public:
 
 	bool UsesEndPin() const { return bShowOnEndPin; }
 
-	const TArray<TObjectPtr<UYapCondition>>& GetConditions() const { return Conditions; }
-
+	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
+	
 #if WITH_EDITOR
 public:
 	FYapBit& GetBitMutable() { return Bit; }

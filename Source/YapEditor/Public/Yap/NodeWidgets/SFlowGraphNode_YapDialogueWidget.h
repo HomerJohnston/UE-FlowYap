@@ -4,13 +4,15 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 class SCanvas;
-class SConditionEntryWidget;
 class SConditionDetailsViewWidget;
 class SVirtualWindow;
 struct FYapFragment;
 class SFlowGraphNode_YapFragmentWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
+class SConditionsScrollBox;
+
+//DECLARE_DELEGATE_ThreeParams(FOnClickDeleteConditionButton, int32 /*FragmentIndex*/, int32 /*ConditionIndex*/);
 
 class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 {
@@ -63,8 +65,8 @@ protected:
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
-	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
-
+	void ChildConstruct(const FArguments& InArgs, UFlowGraphNode* InNode) override;
+	
 	void RequestUpdateGraphNode() { UpdateGraphNode(); };
 	
 	// ------------------------------------------
@@ -137,17 +139,19 @@ protected:
 	EVisibility Visibility_DialogueTagPreview() const;
 
 	EVisibility Visibility_ConditionWidgets() const;
-	void OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget, int32 ConditionIndexInArray);
+
+public:
+	void OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex);
+	void OnUpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget);
+	void OnClick_NewConditionButton(int32 FragmentIndex);
 	bool IsEnabled_ConditionWidgetsScrollBox() const;
-	TSharedRef<SWidget> CreateConditionWidgets();
-	TSharedRef<SWidget> CreateConditionWidget(const UYapCondition* Condition);
 	
 	// ------------------------------------------
 	// PUBLIC API & THEIR HELPERS
 public:
 	bool GetIsSelected() const { return bIsSelected; };
 
-	void SetSelected();
+	void SetNodeSelected();
 
 	bool GetShiftHooked() const { return bShiftHooked; };
 	
@@ -192,11 +196,11 @@ public:
 
 	TArray<FOverlayWidgetInfo> GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const override;
 
-	TSharedPtr<SConditionDetailsViewWidget> ConditionDetailsPane;
-	TWeakObjectPtr<UYapCondition> EditedCondition;
+	TSharedPtr<SConditionDetailsViewWidget> ConditionDetailsWidget;
+	int32 SelectedConditionFragmentIndex = INDEX_NONE;
+	int32 SelectedConditionIndex = INDEX_NONE;
 	
-	FVector2D ConditionDetailsPaneOffset;
-
 	virtual TSharedPtr<IToolTip> GetToolTip() override { return nullptr; };
-};
 
+	TSharedPtr<SConditionsScrollBox> ConditionsScrollBox;
+};

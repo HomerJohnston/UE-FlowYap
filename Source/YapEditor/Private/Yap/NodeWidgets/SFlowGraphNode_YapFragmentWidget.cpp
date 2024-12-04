@@ -31,6 +31,7 @@
 #include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Helpers/SYapTextPropertyEditableTextBox.h"
 #include "Yap/Helpers/YapEditableTextPropertyHandle.h"
+#include "Yap/NodeWidgets/SConditionsScrollBox.h"
 
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget()
 {	
@@ -199,8 +200,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentShift, EYapFragmentControlsDirection::Up)
 			[
 				SNew(SImage)
-				.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_UpArrow))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_UpArrow))
+				.Image(FAppStyle::Get().GetBrush("Icons.ChevronUp"))
+				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
 			]
 		]
@@ -216,10 +218,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			.ContentPadding(FMargin(3, 4))
 			.ToolTipText(LOCTEXT("DialogueDeleteFragment_Tooltip", "Delete Fragment"))
 			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentDelete)
+			//.ButtonColorAndOpacity(YapColor::Red)
 			[
 				SNew(SImage)
-				.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
+				.Image(FAppStyle::Get().GetBrush("Icons.Delete"))
+				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseStyle())
 			]
 		]
@@ -238,8 +242,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentShift, EYapFragmentControlsDirection::Down)
 			[
 				SNew(SImage)
-				.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_DownArrow))
-				.DesiredSizeOverride(FVector2D(12, 12))
+				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_DownArrow))
+				.Image(FAppStyle::Get().GetBrush("Icons.ChevronDown"))
+				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseForeground())
 			]
 		]
@@ -308,7 +313,9 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentRowNormalContro
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 {
-	return SNew(SBox)
+	UFlowNode_YapDialogue* DialogueNode = GetFlowYapDialogueNode();
+	
+	TSharedRef<SWidget> Box = SNew(SBox)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_UpperFragmentBar)
 	.Padding(0, 0, 0, 4)
 	[
@@ -317,11 +324,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		.HAlign(HAlign_Fill)
 		.Padding(32, 0, 4, 0)
 		[
-			SNew(SBox)
-			.ToolTipText(INVTEXT("Conditions"))
-			[
-				CreateConditionWidgets()
-			]
+			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
+			.DialogueNode(DialogueNode)
+			.FragmentIndex(FragmentIndex)
+			.OnUpdateConditionDetailsWidget(Owner, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
+			.OnClickNewConditionButton(Owner, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
+			.ConditionsArray(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
+			.ConditionsContainer(&GetFragment())
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -338,6 +347,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			]
 		]
 	];
+	
+	OnConditionsUpdated();
+
+	return Box;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() const
@@ -456,6 +469,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 		return FReply::Handled();
 	}
 
+	// TODO change to proper slate event
 	FOnTextCommitted Test;
 	Test.BindSP(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_Dialogue);
 	
@@ -718,30 +732,16 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 	}
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateConditionWidgets() const
-{
-	TSharedRef<SScrollBox> Box = SNew(SScrollBox)
-	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_ConditionWidgets)
-	.ScrollBarVisibility(EVisibility::Collapsed)
-	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-	.AllowOverscroll(EAllowOverscroll::No)
-	.AnimateWheelScrolling(true)
-	.Orientation(Orient_Horizontal);
-	for (UYapCondition* Condition : GetFragment().GetConditionsMutable())
-	{
-		Box->AddSlot()
-		.Padding(0, 0, 4, 0)
-		[
-			FYapWidgetHelper::CreateConditionWidget(GetFlowYapDialogueNode(), Condition, nullptr)
-		];	
-	}
-	
-	return Box;
-}
-
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_ConditionWidgets() const
 {
-	return (GetFragment().GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
+	return EVisibility::Visible;
+	//return (GetFragment().GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnConditionsUpdated()
+{
+	Owner->ConditionDetailsWidget = nullptr;
+	ConditionsScrollBox->OnConditionsUpdated();
 }
 
 // ================================================================================================
@@ -1692,7 +1692,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 		FragmentWidgetOverlay->AddSlot()
 		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
-		.Padding(-24, 0, 0, 0)
+		.Padding(-28, 0, 0, 0)
 		[
 			MoveFragmentControls.ToSharedRef()
 		];

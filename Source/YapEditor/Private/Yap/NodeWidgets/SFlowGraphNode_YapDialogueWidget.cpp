@@ -8,14 +8,8 @@
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
-#include "Logging/StructuredLog.h"
-#include "Math/BigInt.h"
-#include "Widgets/SCanvas.h"
-#include "Widgets/SVirtualWindow.h"
-#include "Widgets/Images/SLayeredImage.h"
 #include "Yap/YapBit.h"
 #include "Yap/YapColors.h"
-#include "Yap/YapCondition.h"
 #include "Yap/YapEditorSettings.h"
 #include "Yap/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
@@ -27,8 +21,8 @@
 #include "Yap/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "Yap/NodeWidgets/SConditionEntryWidget.h"
 #include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
+#include "Yap/NodeWidgets/SConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SYapGraphPinExec.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
@@ -40,12 +34,11 @@ constexpr int32 YAP_DEFAULT_NODE_WIDTH = 400;
 FButtonStyle SFlowGraphNode_YapDialogueWidget::MoveFragmentButtonStyle;
 bool SFlowGraphNode_YapDialogueWidget::bStylesInitialized = false;
 
+
 // ------------------------------------------
 // CONSTRUCTION
-void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
-{
-	GraphNode = InNode;
-	FlowGraphNode = InNode;
+void SFlowGraphNode_YapDialogueWidget::ChildConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
+{	
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
 
 	DialogueButtonsColor = YapColor::DarkGray;
@@ -55,6 +48,10 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	
 	ConnectedFragmentPinColor = YapColor::White;
 	DisconnectedFragmentPinColor = YapColor::Red;
+	
+	//SetCursor(EMouseCursor::CardinalCross);
+	
+	bDragMarkerVisible = false;
 	
 	FocusedFragmentIndex.Reset();
 	
@@ -77,8 +74,6 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 
 	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
-
-	UpdateGraphNode();
 }
 
 int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
@@ -108,6 +103,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_InterruptibleToggleIcon
 			return EVisibility::Visible;
 		}
 	}
+	
 	return (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
 }
 
@@ -148,6 +144,22 @@ int32 SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
 }
 
+void SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton(int32 FragmentIndex)
+{
+	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Add New Condition"), GetFlowYapDialogueNodeMutable());
+
+	if (FragmentIndex == INDEX_NONE)
+	{
+		GetFlowYapDialogueNodeMutable()->GetConditionsMutable().Add(nullptr);
+	}
+	else
+	{
+		GetFragmentMutable(FragmentIndex).GetConditionsMutable().Add(nullptr);
+	}
+
+	FYapTransactions::EndModify();
+}
+
 // ------------------------------------------
 // WIDGETS
 
@@ -172,7 +184,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
 
 	const int32 TITLE_LEFT_RIGHT_EXTRA_WIDTH = 44;
-
+	
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.MaxDesiredWidth(GetMaxNodeWidth() - TITLE_LEFT_RIGHT_EXTRA_WIDTH)
 	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
@@ -192,7 +204,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.HAlign(HAlign_Fill)
 		.Padding(-8,0,2,0)
 		[
-			CreateConditionWidgets()
+			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
+			.DialogueNode(GetFlowYapDialogueNodeMutable())
+			.OnUpdateConditionDetailsWidget(this, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
+			.OnClickNewConditionButton(this, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
+			.ConditionsArray(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
+			.ConditionsContainer(GetFlowYapDialogueNodeMutable())
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -557,7 +574,6 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgro
 	return YapColor::Transparent;
 }
 
-
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex) const
 {
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
@@ -574,7 +590,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWid
 
 	return Box;
 }
-
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentSeparator_Visibility() const
 {
@@ -735,7 +750,8 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 	FragmentSequencingButton_Text->SetText(Text_FragmentSequencingButton());
 	FragmentSequencingButton_Text->SetColorAndOpacity(ColorAndOpacity_FragmentSequencingButton());
 
-	UpdateGraphNode();
+	FlowGraphNode->ReconstructNode();
+	//UpdateGraphNode();
 	
 	FYapTransactions::EndModify();
 	
@@ -873,77 +889,51 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets() cons
 	return (GetFlowYapDialogueNode()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton(UYapCondition* Condition, TSharedRef<SConditionEntryWidget> ConditionEntryWidget, int32 ConditionIndexInArray)
+void SFlowGraphNode_YapDialogueWidget::OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex)
 {
-	if (ConditionDetailsPane != nullptr && EditedCondition == Condition)
+	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Delete Condition"), GetFlowYapDialogueNodeMutable());
+
+	if (FragmentIndex == INDEX_NONE)
 	{
-		ConditionDetailsPane = nullptr;
-		EditedCondition = nullptr;
-		return;
+		GetFlowYapDialogueNodeMutable()->GetConditionsMutable().RemoveAt(ConditionIndex);
 	}
-	
-	
-	if (ConditionDetailsPane == nullptr)
+	else
 	{
-		ConditionDetailsPane = SNew(SConditionDetailsViewWidget)
-			.Dialogue(GetFlowYapDialogueNodeMutable())
-			.Condition(Condition)
-			.ConditionIndexInArray(ConditionIndexInArray);
+		GetFragmentMutable(FragmentIndex).GetConditionsMutable().RemoveAt(ConditionIndex);
 	}
 
-	EditedCondition = Condition;
+	FYapTransactions::EndModify();
+}
 
-	FVector2D LTA = ConditionEntryWidget->GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
-	FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
-	
-	ConditionDetailsPaneOffset = LTA - OwnerLTA;
+void SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget)
+{
+	ConditionDetailsWidget = InConditionDetailsWidget;
+
+	if (ConditionDetailsWidget.IsValid())
+	{
+		SetNodeSelected();
+	}
 }
 
 bool SFlowGraphNode_YapDialogueWidget::IsEnabled_ConditionWidgetsScrollBox() const
 {
-	return (EditedCondition != nullptr);
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidgets()
-{
-	TSharedRef<SScrollBox> Box = SNew(SScrollBox)
-	.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets)
-	.ScrollBarVisibility(EVisibility::Collapsed)
-	.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-	.AllowOverscroll(EAllowOverscroll::No)
-	.AnimateWheelScrolling(true)
-	.Orientation(Orient_Horizontal);
-	
-	for (int32 i = 0; i < GetFlowYapDialogueNode()->GetConditions().Num(); ++i)
-	{
-		UYapCondition* Condition = GetFlowYapDialogueNode()->GetConditions()[i];
-		TSharedRef<SConditionEntryWidget> Widget = SNew(SConditionEntryWidget)
-			.Condition(Condition)
-			.DialogueNode(GetFlowYapDialogueNodeMutable());
-
-		Widget->OnClick.BindSP(this, &SFlowGraphNode_YapDialogueWidget::OnClick_ConditionEntryButton, i);
-		
-		Box->AddSlot()
-		.Padding(0, 0, 4, 0)
-		[
-			Widget
-		];
-	}
-	
-	return Box;
+	return (ConditionDetailsWidget == nullptr);
 }
 
 TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const
 {
 	TArray<FOverlayWidgetInfo> Widgets;
 
-	if (ConditionDetailsPane)
+	if (ConditionDetailsWidget)
 	{
+		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
+		FVector2D ConditionDetailsPaneOffset = ConditionDetailsWidget->Offset - OwnerLTA;
+		
 		FOverlayWidgetInfo Info;
-		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 16);
-		Info.Widget = ConditionDetailsPane;
+		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);
+		Info.Widget = ConditionDetailsWidget;
 
-		Widgets.Add(Info);	
+		Widgets.Add(Info);
 	}
 
 	return Widgets;
@@ -952,24 +942,7 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 // ------------------------------------------
 // PUBLIC API & THEIR HELPERS
 
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateConditionWidget(const UYapCondition* Condition)
-{
-	FString Description = IsValid(Condition) ? Condition->GetDescription() : "<Null Condition>";
-	
-	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
-	.BorderBackgroundColor(YapColor::DarkOrangeRed)
-	.VAlign(VAlign_Center)
-	.HAlign(HAlign_Center)
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString(Description))
-		.ColorAndOpacity(YapColor::White)
-		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
-	];
-}
-
-void SFlowGraphNode_YapDialogueWidget::SetSelected()
+void SFlowGraphNode_YapDialogueWidget::SetNodeSelected()
 {
 	TSharedPtr<SFlowGraphEditor> GraphEditor = FFlowGraphUtils::GetFlowGraphEditor(this->FlowGraphNode->GetGraph());
 
@@ -1083,7 +1056,7 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		bShiftHooked = false;
 		FocusedFragmentIndex.Reset();
 		bKeyboardFocused = false;
-		ConditionDetailsPane = nullptr;
+		ConditionDetailsWidget = nullptr;
 	}
 
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);
@@ -1161,14 +1134,15 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			OptionalPins.Add(EndPin);
 		}
 
-		if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
-		{
+		// We store all potential prompt pin names anyway - this helps deal with orphaned pins easier if the user switches the dialogue node type
+		//if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+		//{
 			FFlowPin PromptPin = Fragment.GetPromptPin();
 
 			FragmentPins[i].Add(PromptPin);
 			FragmentPinsFragmentIndex.Add(PromptPin, i);
 			PromptOutPins.Add(PromptPin);
-		}
+		//}
 	}
 	
 	// Create Pin widgets for each of the pins.
@@ -1235,7 +1209,10 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 		else if (int32* FragmentIndex = FragmentPinsFragmentIndex.Find(Pin->GetFName()))
 		{
 			PinBox = FragmentWidgets[*FragmentIndex]->GetPinContainer(Pin->GetFName());
-			NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? ConnectedFragmentPinColor : DisconnectedFragmentPinColor);
+
+			FLinearColor PinColor = NewPinRef->IsConnected() ? ConnectedFragmentPinColor : DisconnectedFragmentPinColor;
+			
+			NewPinRef->SetColorAndOpacity(PinColor);
 		}
 		else if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 		{
