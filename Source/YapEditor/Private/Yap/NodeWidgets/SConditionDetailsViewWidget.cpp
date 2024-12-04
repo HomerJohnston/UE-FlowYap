@@ -65,6 +65,7 @@ void SConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 					.AllowAbstract(false)
 					.ShowTreeView(false)
 					.AllowNone(false)
+					
 				]
 				+ SHorizontalBox::Slot()
 				.Padding(2, 1, 0, 1)

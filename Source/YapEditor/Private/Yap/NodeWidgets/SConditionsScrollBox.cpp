@@ -7,6 +7,8 @@
 #include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
 
 TSharedPtr<SConditionDetailsViewWidget> SConditionsScrollBox::ConditionDetailsWidget = nullptr;
+int32 SConditionsScrollBox::SelectedFragmentIndex = INDEX_NONE;
+int32 SConditionsScrollBox::SelectedConditionIndex = INDEX_NONE;
 
 // ----------------------------------------------
 void SConditionsScrollBox::Construct(const FArguments& InArgs)
@@ -68,7 +70,11 @@ FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 {
 	if (ConditionDetailsWidget != nullptr)
 	{
-		// Check if we should just replace it (different condition) or close it (same condition)
+		if (SelectedFragmentIndex == FragmentIndex && SelectedConditionIndex == ConditionIndex)
+		{
+			UpdateConditionDetailsWidget();
+			return FReply::Handled();
+		}
 	}
 	
 	if (!IsValid(DialogueNode))
@@ -76,6 +82,9 @@ FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 		return  FReply::Handled();
 	}
 
+	SelectedFragmentIndex = FragmentIndex;
+	SelectedConditionIndex = ConditionIndex;
+	
 	TSharedPtr<SConditionDetailsViewWidget> NewConditionDetailsWidget = SNew(SConditionDetailsViewWidget)
 		.Dialogue(DialogueNode)
 		.FragmentIndex(FragmentIndex)

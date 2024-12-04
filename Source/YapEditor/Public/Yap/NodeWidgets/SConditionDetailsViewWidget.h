@@ -51,9 +51,6 @@ private:
 	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
 	
 	FPropertyPath ConditionPropertyPath;
-
-	int32 FragmentIndex = INDEX_NONE;
-	int32 ConditionIndex = INDEX_NONE;
 	
 	FOnClickedDeleteCondition OnClickedDelete;
 
@@ -65,4 +62,8 @@ private:
 
 public:
 	TSharedPtr<SWidget> ParentButton;
+	
+	int32 FragmentIndex = INDEX_NONE;
+
+	int32 ConditionIndex = INDEX_NONE;
 };
