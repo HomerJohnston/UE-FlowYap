@@ -927,7 +927,7 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 	if (ConditionDetailsWidget)
 	{
 		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
-		FVector2D ConditionDetailsPaneOffset = ConditionDetailsWidget->Offset - OwnerLTA;
+		FVector2D ConditionDetailsPaneOffset = ConditionDetailsWidget->ParentButton->GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
 		
 		FOverlayWidgetInfo Info;
 		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);

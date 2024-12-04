@@ -44,7 +44,6 @@ FReply SConditionsScrollBox::OnClicked_AddConditionButton()
 
 	OnConditionsUpdated();
 
-	// Fake click on the new condition entry to open the details panel for it
 	OnConditionClicked(ConditionsArray->Num() - 1);
 	
 	return FReply::Handled();
@@ -85,7 +84,7 @@ FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 		.OnClickedNewClass(this, &SConditionsScrollBox::OnClickedNewClass_Condition);
 
 	TSharedPtr<SWidget> ConditionButton = ConditionButtons[ConditionIndex];
-	NewConditionDetailsWidget->Offset = ConditionButtons[ConditionIndex]->GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
+	NewConditionDetailsWidget->ParentButton = ConditionButtons[ConditionIndex];
 
 	UpdateConditionDetailsWidget(NewConditionDetailsWidget);
 	

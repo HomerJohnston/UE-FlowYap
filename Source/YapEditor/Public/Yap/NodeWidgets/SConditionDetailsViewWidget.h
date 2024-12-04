@@ -4,6 +4,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Yap/YapCondition.h"
 
+class SWidget;
 struct FYapFragment;
 class UFlowNode_YapDialogue;
 
@@ -63,5 +64,5 @@ private:
 //	TWeakObjectPtr<UYapCondition> ConditionWeakPtr = nullptr;
 
 public:
-	FVector2D Offset = FVector2D::ZeroVector;
+	TSharedPtr<SWidget> ParentButton;
 };
