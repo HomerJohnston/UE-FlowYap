@@ -6,7 +6,7 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
 
-TSharedPtr<SConditionDetailsViewWidget> SConditionsScrollBox::ConditionDetailsWidget = nullptr;
+TWeakPtr<SConditionDetailsViewWidget> SConditionsScrollBox::ConditionDetailsWidget = nullptr;
 int32 SConditionsScrollBox::SelectedFragmentIndex = INDEX_NONE;
 int32 SConditionsScrollBox::SelectedConditionIndex = INDEX_NONE;
 
@@ -176,7 +176,7 @@ void SConditionsScrollBox::UpdateConditionDetailsWidget(TSharedPtr<SConditionDet
 {
 	ConditionDetailsWidget = InConditionDetailsWidget;
 	
-	OnUpdateConditionDetailsWidget.Execute(ConditionDetailsWidget);
+	OnUpdateConditionDetailsWidget.Execute(InConditionDetailsWidget);
 }
 
 // ----------------------------------------------

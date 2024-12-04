@@ -71,8 +71,8 @@ private:
 	UYapCondition* GetCondition(int32 ConditionIndex) const;
 	
 	UYapCondition* GetCondition(int32 ConditionIndex);
-	
-	static TSharedPtr<SConditionDetailsViewWidget> ConditionDetailsWidget;
+
+	static TWeakPtr<SConditionDetailsViewWidget> ConditionDetailsWidget;
 	static int32 SelectedFragmentIndex;
 	static int32 SelectedConditionIndex;
 };
