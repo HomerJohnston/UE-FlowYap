@@ -6,6 +6,7 @@
 
 #include "Engine/World.h"
 #include "PropertyCustomizationHelpers.h"
+#include "SLevelOfDetailBranchNode.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
@@ -337,12 +338,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		.VAlign(VAlign_Fill)
 		.Padding(4, 0, 0, 0)
 		[
-			SNew(SBox)
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget)
+			SNew(SLevelOfDetailBranchNode)
+			.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+			.HighDetail()
 			[
-				CreateFragmentTagWidget()
+				SNew(SBox)
+				.HAlign(HAlign_Fill)
+				.VAlign(VAlign_Fill)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget)
+				[
+					CreateFragmentTagWidget()
+				]
 			]
 		]
 	];
@@ -396,10 +402,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 				.HAlign(HAlign_Center)
 				.VAlign(VAlign_Center)
 				[
-					SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_FragmentActivationLimit))
-					.ActivationCount(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationCount)
-					.ActivationLimit(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationLimit)
-					.FontHeight(10)
+					SNew(SLevelOfDetailBranchNode)
+					.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+					.HighDetail()
+					[
+						SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_FragmentActivationLimit))
+						.ActivationCount(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationCount)
+						.ActivationLimit(this, &SFlowGraphNode_YapFragmentWidget::GetFragmentActivationLimit)
+						.FontHeight(10)	
+					]
 				]
 			]
 			+ SHorizontalBox::Slot()
@@ -561,51 +572,67 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTextEditButtonWidget
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
-	DialogueEditButtonWidget = SNew(SButton)
-	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
-	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
-	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
-	.ContentPadding(0)
+	return SNew(SLevelOfDetailBranchNode)
+	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+	.HighDetail()
 	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
+		SNew(SButton)
+		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
+		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
+		.ContentPadding(0)
 		[
-			SNew(SScrollBox)
-			.Orientation(Orient_Horizontal)
-			.ScrollBarVisibility(EVisibility::Collapsed)
-			.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-			.AllowOverscroll(EAllowOverscroll::No)
-			.AnimateWheelScrolling(true)
-			+ SScrollBox::Slot()
-			.Padding(4,4,4,4)
-			.FillSize(1.0)
-			.VAlign(VAlign_Center)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
 			[
-				SNew(STextBlock)
-				.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_Dialogue)
-				.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+				SNew(SScrollBox)
+				.Orientation(Orient_Horizontal)
+				.ScrollBarVisibility(EVisibility::Collapsed)
+				.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+				.AllowOverscroll(EAllowOverscroll::No)
+				.AnimateWheelScrolling(true)
+				+ SScrollBox::Slot()
+				.Padding(4,4,4,4)
+				.FillSize(1.0)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_Dialogue)
+					.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
+				]
+			]
+			+ SOverlay::Slot()
+			.VAlign(VAlign_Bottom)
+			.HAlign(HAlign_Fill)
+			.Padding(0, 0, 0, 2)
+			[
+				SNew(SBox)
+				.HeightOverride(2)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+				[
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+					.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+					.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
+				]
 			]
 		]
-		+ SOverlay::Slot()
-		.VAlign(VAlign_Bottom)
-		.HAlign(HAlign_Fill)
-		.Padding(0, 0, 0, 2)
+	]
+	.LowDetail()
+	[
+		SNew(SBorder)
+		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Rounded))
+		.BorderBackgroundColor(YapColor::DarkGray_Glass)
+		.VAlign(VAlign_Center)
 		[
-			SNew(SBox)
-			.HeightOverride(2)
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
-			[
-				SNew(SProgressBar)
-				.BorderPadding(0)
-				.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
-				.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
-				.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
-				.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
-			]
+			SNew(STextBlock)
+			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_Dialogue)
+			.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
 		]
 	];
-
-	return DialogueEditButtonWidget.ToSharedRef();
+		
 }
 
 FVector2D SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness() const
@@ -913,30 +940,42 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	]
 	+ SOverlay::Slot()
 	[
-		SNew(SButton)
-		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
-		.ContentPadding(0)
-		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
+		SNew(SLevelOfDetailBranchNode)
+		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+		.HighDetail()
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
+			SNew(SButton)
+			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
+			.ContentPadding(0)
+			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
 			[
-				SNew(SImage)
-				.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-				.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Center)
+				.HAlign(HAlign_Center)
+				[
+					SNew(SImage)
+					.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+					.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
+				]
+				+ SOverlay::Slot()
+				.VAlign(VAlign_Center)
+				.HAlign(HAlign_Center)
+				[
+					SNew(STextBlock)
+					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning)
+					.Text(LOCTEXT("FragmentCharacterMissing", "?"))
+					.Justification(ETextJustify::Center)
+				]
 			]
-			+ SOverlay::Slot()
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
-			[
-				SNew(STextBlock)
-				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning)
-				.Text(LOCTEXT("FragmentCharacterMissing", "?"))
-				.Justification(ETextJustify::Center)
-			]
+			
+		]
+		.LowDetail()
+		[
+			SNew(SImage)
+			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
 		]
 	];
 }

@@ -6,9 +6,11 @@
 #include "NodeFactory.h"
 #include "PropertyCustomizationHelpers.h"
 #include "SGraphPanel.h"
+#include "SLevelOfDetailBranchNode.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
+#include "Widgets/Text/SInlineEditableTextBlock.h"
 #include "Yap/YapBit.h"
 #include "Yap/YapColors.h"
 #include "Yap/YapEditorSettings.h"
@@ -200,10 +202,20 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.AutoWidth()
 		.Padding(-8, -5, 16, -6)
 		[
-			SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit))
-			.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)
-			.ActivationLimit(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit)
-			.FontHeight(8)
+			SNew(SLevelOfDetailBranchNode)
+			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+			.HighDetail()
+			[
+				SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit))
+				.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)
+				.ActivationLimit(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit)
+				.FontHeight(8)
+			]
+			.LowDetail()
+			[
+				SNew(SSpacer)
+				.Size(20)
+			]
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
@@ -222,13 +234,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
 		[
-			SNew(SBox)
+			SNew(SLevelOfDetailBranchNode)
+			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+			.HighDetail()
 			[
 				SNew(SGameplayTagComboFiltered)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
 				.Filter(GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString())
 				.OnTagChanged(TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag))
-				.ToolTipText(INVTEXT("Dialogue tag"))
+				.ToolTipText(INVTEXT("Dialogue tag"))	
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -516,7 +530,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	{
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 0 : 15, 0, 15)
+		.Padding(0, bFirstFragment ? 0 : 14, 0, 14)
 		[
 			CreateFragmentSeparatorWidget(FragmentIndex)
 		];
@@ -573,6 +587,10 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgro
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex) const
 {
+	return SNew(SSeparator)
+		.Thickness(3);
+
+	/*
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
 	
 	Box->AddSlot()
@@ -586,6 +604,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWid
 	];
 
 	return Box;
+	*/
 }
 
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentSeparator_Visibility() const

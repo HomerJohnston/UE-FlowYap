@@ -51,7 +51,8 @@ public class YapEditor : ModuleRules
                 "BlueprintGraph", "LiveCoding",
                 
                 "EditorWidgets",
-                "ToolWidgets"
+                "ToolWidgets",
+                "KismetWidgets"
                 
             }
         );
