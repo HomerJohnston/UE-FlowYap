@@ -40,7 +40,8 @@ protected:
 	
 	// TODO move to a proper style
 	FCheckBoxStyle InterruptibleCheckBoxStyle;
-
+	TSharedPtr<SButton> NodeHeaderButton;
+	TSharedPtr<STextBlock> NodeHeaderButtonToolTip;
 	static FButtonStyle MoveFragmentButtonStyle;
 	static bool bStylesInitialized;
 	
@@ -93,7 +94,6 @@ protected:
 	// ------------------------------------------
 
 	FSlateColor ColorAndOpacity_NodeHeaderButton() const;
-	FSlateColor ColorAndOpacity_NodeHeader() const;
 	FText Text_FragmentSequencingButton() const;
 	FReply OnClicked_TogglePlayerPrompt();
 
@@ -203,4 +203,7 @@ public:
 	virtual TSharedPtr<IToolTip> GetToolTip() override { return nullptr; };
 
 	TSharedPtr<SConditionsScrollBox> ConditionsScrollBox;
+
+	TMap<FName, FName> EventUpdateMemberMap;
+	TMap<FName, FSimpleDelegate> MemberUpdateDelegateMap;
 };

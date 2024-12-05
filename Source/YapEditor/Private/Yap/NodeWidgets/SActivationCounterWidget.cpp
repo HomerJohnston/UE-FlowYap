@@ -1,23 +1,7 @@
-#include "Yap/Helpers/YapWidgetHelper.h"
+﻿#include "Yap/NodeWidgets/SActivationCounterWidget.h"
 
-#include "SGraphPanel.h"
-#include "Graph/FlowGraphEditor.h"
-#include "Graph/FlowGraphUtils.h"
 #include "Yap/YapColors.h"
-#include "Yap/YapCondition.h"
-#include "Yap/YapEditorStyle.h"
-#include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
-
-TSharedRef<SWidget> FYapWidgetHelper::CreateFilteredTagWidget(TAttribute<FGameplayTag> Tag, FString FilterString, TDelegate<void(const FGameplayTag)> OnTagChanged, FText ToolTipText)
-{
-	return SNew(SGameplayTagComboFiltered)
-	.Tag(Tag)
-	.Filter(FilterString)
-	.OnTagChanged(OnTagChanged)
-	.ToolTipText(ToolTipText);
-}
 
 FText SActivationCounterWidget::NumeratorText() const
 {

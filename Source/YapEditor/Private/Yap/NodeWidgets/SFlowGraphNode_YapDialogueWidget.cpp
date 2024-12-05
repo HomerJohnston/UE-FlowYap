@@ -20,11 +20,12 @@
 #include "Yap/YapTransactions.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/GraphNodes/FlowGraphNode_YapDialogue.h"
-#include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "Yap/NodeWidgets/SActivationCounterWidget.h"
 #include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
 #include "Yap/NodeWidgets/SConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SYapGraphPinExec.h"
+#include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
@@ -75,6 +76,9 @@ void SFlowGraphNode_YapDialogueWidget::ChildConstruct(const FArguments& InArgs, 
 
 	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
+
+	// Testing
+	
 }
 
 int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
@@ -220,11 +224,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		[
 			SNew(SBox)
 			[
-				FYapWidgetHelper::CreateFilteredTagWidget(
-					TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag),
-					GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString(),
-					TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag),
-					INVTEXT("Dialogue tag"))
+				SNew(SGameplayTagComboFiltered)
+				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
+				.Filter(GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString())
+				.OnTagChanged(TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag))
+				.ToolTipText(INVTEXT("Dialogue tag"))
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -377,16 +381,6 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeaderButton()
 	return YapColor::DarkGray;
 }
 
-FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader() const
-{
-	if (GetFlowYapDialogueNode()->ActivationLimitsMet() && GetFlowYapDialogueNode()->GetActivationState() != EFlowNodeState::Active)
-	{
-		//return YapColor::Red;
-	}
-
-	return YapColor::White;
-}
-
 FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
@@ -420,6 +414,8 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 	
 	FYapTransactions::EndModify();	
 
+	NodeHeaderButtonToolTip->SetText(Text_NodeHeader());
+	
 	return FReply::Handled();
 }
 
@@ -436,17 +432,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.AutoWidth()
 	.Padding(-2, 0, 0, 0)
 	[
-		SNew(SButton)
+		SAssignNew(NodeHeaderButton, SButton)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton)
 		.ContentPadding(FMargin(4, 0, 4, 0))
 		.ButtonColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeaderButton)
-		.ForegroundColor(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeader)
+		.ForegroundColor(YapColor::White)
 		.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt)
 		.ToolTipText(INVTEXT("Toggle between player prompt or normal speech"))
 		[
-			SNew(STextBlock)
+			SAssignNew(NodeHeaderButtonToolTip, STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_NodeHeader)
-			.Text(this, &SFlowGraphNode_YapDialogueWidget::Text_NodeHeader)
+			.Text(Text_NodeHeader())
 			.ColorAndOpacity(FSlateColor::UseForeground())
 		]
 	]

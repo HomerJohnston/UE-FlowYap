@@ -25,12 +25,11 @@
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 #include "Yap/YapBitReplacement.h"
-#include "Yap/YapCondition.h"
 #include "Yap/YapEditorSettings.h"
 #include "Yap/YapInputTracker.h"
-#include "Yap/Helpers/YapWidgetHelper.h"
 #include "Yap/Helpers/SYapTextPropertyEditableTextBox.h"
 #include "Yap/Helpers/YapEditableTextPropertyHandle.h"
+#include "Yap/NodeWidgets/SActivationCounterWidget.h"
 #include "Yap/NodeWidgets/SConditionsScrollBox.h"
 
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget()
@@ -1139,8 +1138,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagWidget()
 	auto TagAttribute = TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTag);
 	FString FilterString = GetFlowYapDialogueNode()->GetDialogueTag().ToString();
 	auto OnTagChanged = TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::OnTagChanged_FragmentTag);
-	
-	return FYapWidgetHelper::CreateFilteredTagWidget(TagAttribute, FilterString, OnTagChanged, INVTEXT("Fragment tag"));
+
+	return SNew(SGameplayTagComboFiltered)
+	.Tag(TagAttribute)
+	.Filter(FilterString)
+	.OnTagChanged(OnTagChanged)
+	.ToolTipText(INVTEXT("Fragment tag"));
 }
 
 FGameplayTag SFlowGraphNode_YapFragmentWidget::Value_FragmentTag() const

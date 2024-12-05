@@ -1,22 +1,10 @@
-#pragma once
-#include "Widgets/SUserWidget.h"
-#include "Yap/YapColors.h"
-#include "Yap/YapEditorStyle.h"
+﻿#pragma once
 
-class SVirtualWindow;
-class UFlowNode_YapDialogue;
-struct FGameplayTag;
-class UYapCondition;
-
-class FYapWidgetHelper
-{
-public:
-	static TSharedRef<SWidget> CreateFilteredTagWidget(TAttribute<FGameplayTag> Tag, FString FilterString, TDelegate<void(const FGameplayTag)> OnTagChanged, FText ToolTipText);
-};
+#include "Widgets/SCompoundWidget.h"
 
 class SActivationCounterWidget : public SCompoundWidget
 {
-	public:
+public:
 	SLATE_USER_ARGS( SActivationCounterWidget )
 		: _FontHeight(8) {}
 
