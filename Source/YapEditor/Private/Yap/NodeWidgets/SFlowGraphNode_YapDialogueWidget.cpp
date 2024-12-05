@@ -5,6 +5,7 @@
 #include "FlowEditorStyle.h"
 #include "NodeFactory.h"
 #include "PropertyCustomizationHelpers.h"
+#include "SGraphPanel.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
@@ -928,6 +929,8 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 	{
 		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
 		FVector2D ConditionDetailsPaneOffset = ConditionDetailsWidget->ParentButton->GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
+
+		ConditionDetailsPaneOffset *= 1.0 / OwnerGraphPanelPtr.Pin()->GetZoomAmount();
 		
 		FOverlayWidgetInfo Info;
 		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);

@@ -33,7 +33,7 @@ bool FYapFragment::CheckConditions() const
 			UE_LOG(LogYap, Warning, TEXT("Ignoring null condition. Clean this up!")); // TODO more info
 			continue;
 		}
-		if (!Condition->Evaluate())
+		if (!Condition->EvaluateCondition())
 		{
 			return false;
 		}

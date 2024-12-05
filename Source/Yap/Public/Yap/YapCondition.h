@@ -11,33 +11,29 @@ class YAP_API UYapCondition : public UObject
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditDefaultsOnly)
-	FString DefaultDescription = "Unnamed Condition";
+	FString DefaultTitle = "Unnamed Condition";
 
 	UPROPERTY(EditInstanceOnly)
-	TOptional<FString> DescriptionOverride;
+	TOptional<FString> TitleOverride;
 	
 	UPROPERTY(EditDefaultsOnly)
-	FLinearColor DefaultNodeColor = FLinearColor(0.080, 0.200, 0.100, 1.0);
-
-	UPROPERTY(EditInstanceOnly)
-	TOptional<FLinearColor> NodeColorOverride;
+	FLinearColor Color = FLinearColor(0.080, 0.200, 0.100, 1.0);
 #endif
 	
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	bool Evaluate() const;
+	bool EvaluateCondition() const;
 	
 #if WITH_EDITOR
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	FString GetDescription() const;
+	FString GetTitle() const;
 
 	UFUNCTION(BlueprintNativeEvent)
-	FLinearColor GetNodeColor() const;
+	FLinearColor GetColor() const;
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 	TMulticastDelegate<void(FPropertyChangedEvent&)> OnPropertyChanged;
 #endif
 };
-

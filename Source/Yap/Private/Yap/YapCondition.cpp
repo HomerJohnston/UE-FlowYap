@@ -1,19 +1,19 @@
 ﻿#include "Yap/YapCondition.h"
 
-inline bool UYapCondition::Evaluate_Implementation() const
+inline bool UYapCondition::EvaluateCondition_Implementation() const
 {
 	return true;
 }
 
 #if WITH_EDITOR
-inline FString UYapCondition::GetDescription_Implementation() const
+inline FString UYapCondition::GetTitle_Implementation() const
 {
-	return DescriptionOverride.Get(DefaultDescription);
+	return TitleOverride.Get(DefaultTitle);
 }
 
-inline FLinearColor UYapCondition::GetNodeColor_Implementation() const
+inline FLinearColor UYapCondition::GetColor_Implementation() const
 {
-	return NodeColorOverride.Get(DefaultNodeColor);
+	return Color;
 }
 
 void UYapCondition::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)

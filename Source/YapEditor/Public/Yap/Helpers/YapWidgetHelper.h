@@ -11,11 +11,6 @@ class UYapCondition;
 class FYapWidgetHelper
 {
 public:
-	
-	static TSharedRef<SWidget> CreateConditionWidget(UFlowNode_YapDialogue* Dialogue, UYapCondition* Condition,  TSharedPtr<SBox> VirtualWindowBox);
-
-	static TSharedRef<SWidget> CreateTagPreviewWidget(TAttribute<FText> Text, TAttribute<EVisibility> Visibility);
-
 	static TSharedRef<SWidget> CreateFilteredTagWidget(TAttribute<FGameplayTag> Tag, FString FilterString, TDelegate<void(const FGameplayTag)> OnTagChanged, FText ToolTipText);
 };
 

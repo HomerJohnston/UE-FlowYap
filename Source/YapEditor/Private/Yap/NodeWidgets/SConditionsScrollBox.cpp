@@ -54,7 +54,7 @@ FReply SConditionsScrollBox::OnClicked_AddConditionButton()
 // ----------------------------------------------
 FSlateColor SConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(UYapCondition* Condition) const
 {
-	return IsValid(Condition) ? Condition->GetNodeColor() : YapColor::DeepOrangeRed;
+	return IsValid(Condition) ? Condition->GetColor() : YapColor::DeepOrangeRed;
 }
 
 // ----------------------------------------------
@@ -186,7 +186,7 @@ FText SConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
 
 	if (Condition)
 	{
-		return FText::FromString(GetCondition(ConditionIndex)->GetDescription());
+		return FText::FromString(GetCondition(ConditionIndex)->GetTitle());
 	}
 	else
 	{
