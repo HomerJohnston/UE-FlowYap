@@ -30,6 +30,8 @@ void UFlowNode_YapConversationStart::InitializeInstance()
 
 void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes)
 {
+	// TODO determine if I need to do this
+	/*
 	for (UFlowNode* ConnectedNode : DownstreamNode->GetConnectedNodes())
 	{
 		if (ConnectedNode && !ConnectedNodes.Contains(ConnectedNode))
@@ -51,6 +53,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 			IterateDownstreamNodes(ConnectedNode, ConnectedNodes);
 		}
 	}
+	*/
 }
 
 void UFlowNode_YapConversationStart::OnActivate()

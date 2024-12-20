@@ -39,9 +39,18 @@ FButtonStyle SFlowGraphNode_YapDialogueWidget::MoveFragmentButtonStyle;
 bool SFlowGraphNode_YapDialogueWidget::bStylesInitialized = false;
 
 
+void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
+{
+	PreConstruct(InArgs, InNode);
+	
+	SFlowGraphNode::Construct(InArgs, InNode);
+
+	PostConstruct(InArgs, InNode);
+}
+
 // ------------------------------------------
 // CONSTRUCTION
-void SFlowGraphNode_YapDialogueWidget::ChildConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
+void SFlowGraphNode_YapDialogueWidget::PreConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {	
 	FlowGraphNode_YapDialogue = Cast<UFlowGraphNode_YapDialogue>(InNode);
 
@@ -52,8 +61,6 @@ void SFlowGraphNode_YapDialogueWidget::ChildConstruct(const FArguments& InArgs, 
 	
 	ConnectedFragmentPinColor = YapColor::White;
 	DisconnectedFragmentPinColor = YapColor::Red;
-	
-	//SetCursor(EMouseCursor::CardinalCross);
 	
 	bDragMarkerVisible = false;
 	
@@ -75,12 +82,12 @@ void SFlowGraphNode_YapDialogueWidget::ChildConstruct(const FArguments& InArgs, 
 
 		bStylesInitialized = true;
 	}
+}
 
+void SFlowGraphNode_YapDialogueWidget::PostConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
+{
 	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
-
-	// Testing
-	
 }
 
 int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount() const
@@ -727,7 +734,8 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 				[
 					SNew(SImage)
 					.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
-					.ColorAndOpacity(DialogueButtonsColor)
+					//.DesiredSizeOverride(FVector2D(8, 8))
+					.ColorAndOpacity(YapColor::Noir/* DialogueButtonsColor*/)
 				]
 			]
 		]
@@ -853,9 +861,21 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton
 		return EVisibility::Hidden;
 	}
 
+	if (!GetIsSelected())
+	{
+		return EVisibility::Visible; 
+	}
+	
+	for (int i = 0; i < FragmentWidgets.Num(); ++i)
+	{
+		if (FragmentWidgets[i]->IsBeingEdited())
+		{
+			return EVisibility::Hidden;
+		}
+	}
+
 	return EVisibility::Visible;
 }
-
 
 FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 {
@@ -1157,15 +1177,12 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			OptionalPins.Add(EndPin);
 		}
 
-		// We store all potential prompt pin names anyway - this helps deal with orphaned pins easier if the user switches the dialogue node type
-		//if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
-		//{
-			FFlowPin PromptPin = Fragment.GetPromptPin();
+		// We store all potential prompt pin names regardless of whether this is a Player Prompt node or not - this helps deal with orphaned pins easier if the user switches the dialogue node type
+		FFlowPin PromptPin = Fragment.GetPromptPin();
 
-			FragmentPins[i].Add(PromptPin);
-			FragmentPinsFragmentIndex.Add(PromptPin, i);
-			PromptOutPins.Add(PromptPin);
-		//}
+		FragmentPins[i].Add(PromptPin);
+		FragmentPinsFragmentIndex.Add(PromptPin, i);
+		PromptOutPins.Add(PromptPin);
 	}
 	
 	// Create Pin widgets for each of the pins.

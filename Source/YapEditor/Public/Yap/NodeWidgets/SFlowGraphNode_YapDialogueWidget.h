@@ -66,7 +66,12 @@ protected:
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
-	void ChildConstruct(const FArguments& InArgs, UFlowGraphNode* InNode) override;
+
+	void Construct(const FArguments& InArgs, UFlowGraphNode* InNode);
+	
+	void PreConstruct(const FArguments& InArgs, UFlowGraphNode* InNode);// override;
+	
+	void PostConstruct(const FArguments& InArgs, UFlowGraphNode* InNode);// override;
 	
 	void RequestUpdateGraphNode() { UpdateGraphNode(); };
 	
@@ -81,6 +86,11 @@ protected:
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
 	int32 GetMaxNodeWidth() const;
+
+public:
+	virtual bool UseLowDetail() const { return false; };
+
+protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	

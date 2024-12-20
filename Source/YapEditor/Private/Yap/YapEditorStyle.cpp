@@ -70,9 +70,11 @@ FYapEditorStyle::~FYapEditorStyle()
 #if WITH_LIVE_CODING
 void FYapEditorStyle::OnPatchComplete()
 {
+#if 0
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 	Initialize();
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
+#endif
 }
 #endif
 
