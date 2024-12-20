@@ -1727,7 +1727,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 		FragmentOverlay->RemoveSlot(ExpandedTitleTextWidget.ToSharedRef());
 	}
 	
-	if (Owner->GetIsSelected() && !IsBeingEdited() && !MoveFragmentControls.IsValid())
+	if (Owner->GetIsSelected() && !MoveFragmentControls.IsValid())
 	{
 		UE_LOG(LogYap, Verbose, TEXT("Making)))"));
 		MoveFragmentControls = CreateFragmentControlsWidget();
@@ -1739,7 +1739,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 			MoveFragmentControls.ToSharedRef()
 		];
 	}
-	else if (MoveFragmentControls.IsValid() && (!Owner->GetIsSelected() || IsBeingEdited()))
+	else if (MoveFragmentControls.IsValid() && (!Owner->GetIsSelected()))
 	{
 		UE_LOG(LogYap, Verbose, TEXT("Removinging)))"));
 
@@ -1750,6 +1750,14 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 {
+	SAssignNew(StartPinBox, SBox)
+	.WidthOverride(16)
+	.HeightOverride(16);
+	
+	SAssignNew(EndPinBox, SBox)
+	.WidthOverride(16)
+	.HeightOverride(16);
+	
 	return SNew(SVerticalBox)
 	+ SVerticalBox::Slot()
 	.HAlign(HAlign_Center)
@@ -1769,29 +1777,36 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	.Padding(4, 0, 2, 0)
 	.AutoHeight()
 	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+		SNew(SLevelOfDetailBranchNode)
+		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+		.HighDetail()
 		[
-			SNew(SBox)
-			.WidthOverride(16)
-			.HeightOverride(8)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SButton)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton)
-				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
-				.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(8)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
+				[
+					SNew(SButton)
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton)
+					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+					.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
+				]
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			[
+				StartPinBox.ToSharedRef()
 			]
 		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+		.LowDetail()
 		[
-			SAssignNew(StartPinBox, SBox)
-			.WidthOverride(16)
-			.HeightOverride(16)
+			StartPinBox.ToSharedRef()
 		]
 	]
 	+ SVerticalBox::Slot()
@@ -1800,29 +1815,36 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	.Padding(4, 0, 2, 6)
 	.AutoHeight()
 	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+		SNew(SLevelOfDetailBranchNode)
+		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+		.HighDetail()
 		[
-			SNew(SBox)
-			.WidthOverride(16)
-			.HeightOverride(8)
-			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SButton)
-				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton)
-				.ButtonColorAndOpacity(YapColor::LightGray_Trans)
-				.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
+				SNew(SBox)
+				.WidthOverride(16)
+				.HeightOverride(8)
+				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
+				[
+					SNew(SButton)
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton)
+					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+					.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
+				]
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			[
+				EndPinBox.ToSharedRef()
 			]
 		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+		.LowDetail()
 		[
-			SAssignNew(EndPinBox, SBox)
-			.WidthOverride(16)
-			.HeightOverride(16)
+			EndPinBox.ToSharedRef()
 		]
 	];
 }

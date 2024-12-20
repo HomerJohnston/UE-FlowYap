@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Nodes/FlowNode_YapDialogue.h"
 #include "Yap/YapBit.h"
 #include "YapBitReplacement.generated.h"
 
@@ -43,7 +44,7 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<EFlowYapInterruptible> Interruptible = EFlowYapInterruptible::UseProjectDefaults;
+	TOptional<EYapDialogueInterruptible> Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
 
 	// TODO calculate and serialize below on PostEditChangeProperty
 

@@ -97,21 +97,21 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_InterruptibleToggleIcon
 {
 	switch (GetFlowYapDialogueNode()->GetInterruptibleSetting())
 	{
-		case EFlowYapInterruptible::UseProjectDefaults:
+		case EYapDialogueInterruptible::UseProjectDefaults:
 		{
 			return UYapProjectSettings::Get()->GetDialogueInterruptibleByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
 		}
-		case EFlowYapInterruptible::Interruptible:
+		case EYapDialogueInterruptible::Interruptible:
 		{
 			return EVisibility::Collapsed;
 		}
-		case EFlowYapInterruptible::NotInterruptible:
+		case EYapDialogueInterruptible::NotInterruptible:
 		{
 			return EVisibility::Visible;
 		}
 	}
 	
-	return (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
+	return (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
 }
 
 void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg)
@@ -221,12 +221,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.HAlign(HAlign_Fill)
 		.Padding(-10,0,2,0)
 		[
-			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
-			.DialogueNode(GetFlowYapDialogueNodeMutable())
-			.OnUpdateConditionDetailsWidget(this, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
-			.OnClickNewConditionButton(this, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
-			.ConditionsArray(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
-			.ConditionsContainer(GetFlowYapDialogueNodeMutable())
+			SNew(SLevelOfDetailBranchNode)
+			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+			.HighDetail()
+			[
+				SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
+				.DialogueNode(GetFlowYapDialogueNodeMutable())
+				.OnUpdateConditionDetailsWidget(this, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
+				.OnClickNewConditionButton(this, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
+				.ConditionsArray(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
+				.ConditionsContainer(GetFlowYapDialogueNodeMutable())
+			]
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -299,15 +304,15 @@ ECheckBoxState SFlowGraphNode_YapDialogueWidget::IsChecked_InterruptibleToggle()
 {
 	switch (GetFlowYapDialogueNode()->Interruptible)
 	{
-	case EFlowYapInterruptible::UseProjectDefaults:
+	case EYapDialogueInterruptible::UseProjectDefaults:
 		{
 			return ECheckBoxState::Undetermined;
 		}
-	case EFlowYapInterruptible::NotInterruptible:
+	case EYapDialogueInterruptible::NotInterruptible:
 		{
 			return ECheckBoxState::Unchecked;
 		}
-	case EFlowYapInterruptible::Interruptible:
+	case EYapDialogueInterruptible::Interruptible:
 		{
 			return ECheckBoxState::Checked;
 		}
@@ -323,15 +328,15 @@ void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_InterruptibleToggle(E
 
 	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EFlowYapInterruptible::UseProjectDefaults;
+		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
 	}
 	else if (CheckBoxState == ECheckBoxState::Checked)
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EFlowYapInterruptible::Interruptible;
+		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::Interruptible;
 	}
 	else
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EFlowYapInterruptible::NotInterruptible;
+		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::NotInterruptible;
 	}
 
 	FYapTransactions::EndModify();
@@ -339,11 +344,11 @@ void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_InterruptibleToggle(E
 
 FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_InterruptibleToggleIcon() const
 {
-	if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::NotInterruptible)
+	if (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::NotInterruptible)
 	{
 		return YapColor::Red;
 	}
-	else if (GetFlowYapDialogueNode()->Interruptible == EFlowYapInterruptible::Interruptible)
+	else if (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::Interruptible)
 	{
 		return YapColor::Green;
 	}
@@ -399,15 +404,15 @@ FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
-		case EFlowYapMultipleFragmentSequencing::RunAll:
+		case EYapDialogueTalkSequencing::RunAll:
 		{
 			return INVTEXT("Run all");
 		}
-		case EFlowYapMultipleFragmentSequencing::RunUntilFailure:
+		case EYapDialogueTalkSequencing::RunUntilFailure:
 		{
 			return INVTEXT("Run til failure");
 		}
-		case EFlowYapMultipleFragmentSequencing::SelectOne:
+		case EYapDialogueTalkSequencing::SelectOne:
 		{
 			return INVTEXT("Select one");
 		}
@@ -422,7 +427,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 {
 	FYapTransactions::BeginModify(LOCTEXT("DialogueNode", "Toggle Player Prompt"), GetFlowYapDialogueNodeMutable());
 	
-	GetFlowYapDialogueNodeMutable()->bIsPlayerPrompt = !GetFlowYapDialogueNode()->bIsPlayerPrompt;
+	GetFlowYapDialogueNodeMutable()->ToggleNodeType();
 
 	GetFlowYapDialogueNodeMutable()->ForceReconstruction();
 	
@@ -778,15 +783,15 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::Image_FragmentSequencingBut
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
-		case EFlowYapMultipleFragmentSequencing::RunAll:
+		case EYapDialogueTalkSequencing::RunAll:
 		{
 			return FAppStyle::Get().GetBrush("Icons.SortDown"); 
 		}
-		case EFlowYapMultipleFragmentSequencing::RunUntilFailure:
+		case EYapDialogueTalkSequencing::RunUntilFailure:
 		{
 			return FAppStyle::Get().GetBrush("Icons.SortDown"); 
 		}
-		case EFlowYapMultipleFragmentSequencing::SelectOne:
+		case EYapDialogueTalkSequencing::SelectOne:
 		{
 			return FAppStyle::Get().GetBrush("LevelEditor.Profile"); 
 		}
@@ -799,15 +804,15 @@ FText SFlowGraphNode_YapDialogueWidget::ToolTipText_FragmentSequencingButton() c
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
-		case EFlowYapMultipleFragmentSequencing::RunAll:
+		case EYapDialogueTalkSequencing::RunAll:
 		{
 			return LOCTEXT("DialogueNodeSequence", "Starting from the top, attempt to run all fragments");
 		}
-		case EFlowYapMultipleFragmentSequencing::RunUntilFailure:
+		case EYapDialogueTalkSequencing::RunUntilFailure:
 		{
 			return LOCTEXT("DialogueNodeSequence", "Starting from the top, attempt to run all fragments, stopping if one fails"); 
 		}
-		case EFlowYapMultipleFragmentSequencing::SelectOne:
+		case EYapDialogueTalkSequencing::SelectOne:
 		{
 			return LOCTEXT("DialogueNodeSequence", "Starting from the top, attempt to run all fragments, stopping if one succeeds");
 		}
@@ -822,15 +827,15 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_FragmentSequencing
 {
 	switch (GetFlowYapDialogueNode()->GetMultipleFragmentSequencing())
 	{
-		case EFlowYapMultipleFragmentSequencing::RunAll:
+		case EYapDialogueTalkSequencing::RunAll:
 		{
 			return YapColor::LightBlue;
 		}
-		case EFlowYapMultipleFragmentSequencing::RunUntilFailure:
+		case EYapDialogueTalkSequencing::RunUntilFailure:
 		{
 			return YapColor::LightGreen;
 		}
-		case EFlowYapMultipleFragmentSequencing::SelectOne:
+		case EYapDialogueTalkSequencing::SelectOne:
 		{
 			return YapColor::LightOrange;
 		}

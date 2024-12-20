@@ -6,22 +6,48 @@
 
 class UYapCharacter;
 
-enum class EFlowYapInterruptible : uint8;
-
-// Used for "Talk" nodes only. Prompt nodes don't use this.
-UENUM(BlueprintType)
-enum class EFlowYapMultipleFragmentSequencing : uint8
+// ------------------------------------------------------------------------------------------------
+/**
+ * Controls whether an ongoing dialogue can be interrupted or not. See UYapSubsystem:: // TODO implement interruption
+ */
+UENUM()
+enum class EYapDialogueInterruptible : uint8
 {
-	RunAll,
-	RunUntilFailure,
-	SelectOne,
-	COUNT		UMETA(Hidden)
+	UseProjectDefaults,
+	NotInterruptible,
+	Interruptible,
+	COUNT				UMETA(Hidden)
 };
 
-// TODO: you should NOT be able to set activation limits on any fragments which do not have unconnected nodes below them?
-// TODO: make sure this is NotBlueprintable for 1.0, I have it blueprintable to make it easier to check details customizaitons for dev
+// ------------------------------------------------------------------------------------------------
 /**
- * Emits a FlowYap Dialogue Fragment
+ * Determines how a Talk node evaluates. Player Prompt nodes don't use this.
+ */
+UENUM()
+enum class EYapDialogueTalkSequencing : uint8
+{
+	
+	RunAll				UMETA(ToolTip = "The node will always try to run every fragment. The node will execute the Out pin after it finishes trying to run all fragments."), 
+	RunUntilFailure		UMETA(ToolTip = "The node will attempt to run every fragment. If any one fails, the node will execute the Out pin."),
+	SelectOne			UMETA(ToolTip = "The node will attempt to run every fragment. If any one passes, the node will execute the Out pin."),
+	COUNT				UMETA(Hidden)
+};
+
+// ------------------------------------------------------------------------------------------------
+/**
+ * Node type. Freestyle talking or player prompt. Changes the execution flow of dialogue.
+ */
+UENUM()
+enum class EYapDialogueNodeType : uint8
+{
+	Talk,
+	PlayerPrompt,
+	COUNT				UMETA(Hidden)
+};
+
+// ------------------------------------------------------------------------------------------------
+/**
+ * Emits Dialogue through UYapSubsystem.
  */
 UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
 class YAP_API UFlowNode_YapDialogue : public UFlowNode
@@ -31,10 +57,7 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
-	friend class FDetailCustomization_FlowYapDialogueNode;
-	friend class SFlowYapBitDetailsWidget;
-	friend class FPropertyCustomization_FlowYapFragment;
-	friend class FYapWidgetHelper;
+	friend class SConditionDetailsViewWidget;
 #endif
 
 	friend class UYapSubsystem;
@@ -42,104 +65,143 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 public:
 	UFlowNode_YapDialogue();
 
+	// ============================================================================================
 	// SETTINGS
+	// ============================================================================================
+	
 protected:
+	/** What type of node we are. */
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsPlayerPrompt;
+	EYapDialogueNodeType DialogueNodeType;
 
+	/** Maximum number of times we can successfully enter & exit this node. Any further attempts will trigger the Bypass output. */
 	UPROPERTY(BlueprintReadOnly)
 	int32 NodeActivationLimit;
 
+	/** Controls how Talk nodes flow. See EYapDialogueTalkSequencing. */
 	UPROPERTY(BlueprintReadOnly)
-	EFlowYapMultipleFragmentSequencing FragmentSequencing;
+	EYapDialogueTalkSequencing TalkSequencing;
 
+	/** Controls if dialogue can be interrupted. See EYapDialogueInterruptible. */
 	UPROPERTY(BlueprintReadOnly)
-	EFlowYapInterruptible Interruptible;
+	EYapDialogueInterruptible Interruptible;
 
+	/** Tags can be used to interact with this dialogue node during the game. Dialogue nodes can be looked up and/or modified by UYapSubsystem by their tag. */
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
 
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, meta = (Yap_ReconstructNodeOnChange, Yap_ConditionProperty))
+	/** Conditions which must be met for this dialogue to run. All conditions must pass (AND, not OR evaluation). If any conditions fail, Bypass output is triggered. */
+	UPROPERTY(Instanced, BlueprintReadOnly, meta = (Yap_ReconstructNodeOnChange, Yap_ConditionProperty))
 	TArray<TObjectPtr<UYapCondition>> Conditions;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+
+	/** Actual dialogue contents. */
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FYapFragment> Fragments;
-	
+
+	// ============================================================================================
 	// STATE
+	// ============================================================================================
+	
 protected:
+	/** How many times this node has been successfully ran. */
 	UPROPERTY(Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
 
+	/** Timer handle, used internally for fragment runs. */
 	UPROPERTY(Transient)
-	FTimerHandle TimerHandle;
-	
-	// API
-public:
-	FText GetSpeakerName() const;
+	FTimerHandle FragmentTimerHandle;
 
-	const UTexture2D* GetDefaultSpeakerPortrait() const;
+	/** Which fragment is currently running? */
+	UPROPERTY(Transient)
+	TOptional<uint8> RunningFragmentIndex;
 
-	const UTexture2D* GetSpeakerPortrait(const FName& RequestedMoodKey) const;
+#if WITH_EDITORONLY_DATA
+	/** When was the current running fragment started? */ 
+	UPROPERTY(Transient)
+	double FragmentStartedTime = -1;
 
-	FSlateBrush* GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const;
-	
-	bool GetIsPlayerPrompt() const;
-
-	int32 GetNodeActivationCount() const;
-
-	int32 GetNodeActivationLimit() const;
-	
-	const TArray<FYapFragment>& GetFragments() const;
-
-	uint8 GetNumFragments() const;
-
-	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
-
-	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
-	
-	// -------------------
-
-	void InitializeInstance() override;
-
-	void OnActivate() override;
-
-	void ExecuteInput(const FName& PinName) override;
-
-	void Cleanup() override;
-	
-	void OnPassThrough_Implementation() override;
-	
-	bool GetInterruptible() const;
-
-	EFlowYapInterruptible GetInterruptibleSetting() const;
-	
-	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
-
-#if WITH_EDITOR
-	void InvalidateFragmentTags();
-
-	TArray<TObjectPtr<UYapCondition>>& GetConditionsMutable() { return Conditions; }
-
+	/** When did the most recently ran fragment finish? */
+	UPROPERTY(Transient)
+	double FragmentEndedTime = -1;
 #endif
 	
-	bool ActivationLimitsMet() const;
+	// ============================================================================================
+	// PUBLIC API
+	// ============================================================================================
 
+public:
+	/** Is this dialogue a Talk node or a Player Prompt node? */
+	bool GetIsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; };
+
+	/** How many times has this dialogue node successfully ran? */
+	int32 GetNodeActivationCount() const { return NodeActivationCount; }
+
+	/** How many times is this dialogue node allowed to successfully run? */
+	int32 GetNodeActivationLimit() const { return NodeActivationLimit; }
+
+	/** Dialogue fragments getter. */
+	const TArray<FYapFragment>& GetFragments() const { return Fragments; }
+
+	/** Simple helper function. */
+	uint8 GetNumFragments() const { return Fragments.Num(); }
+
+	/** Is this node interruptible? */
+	bool GetInterruptible() const;
+
+	// TODO this sucks can I register the fragments some other way instead
+	/** Finds the first fragment on this dialogue containing a tag. */
+	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
+	
+protected:
+	bool ActivationLimitsMet() const;
+	
+#if WITH_EDITOR
+private:
+	EYapDialogueInterruptible GetInterruptibleSetting() const;
+	
+	void InvalidateFragmentTags();
+
+	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
+	
+	TArray<UYapCondition*>& GetConditionsMutable() { return MutableView(Conditions); }
+
+	void ToggleNodeType();
+#endif
+	
+	// ============================================================================================
+	// OVERRIDES
+	// ============================================================================================
+
+protected:
+	/** UFlowNodeBase override */
+	void InitializeInstance() override;
+
+	/** UFlowNodeBase override */
+	void ExecuteInput(const FName& PinName) override;
+
+	/** UFlowNode override */
+	void OnPassThrough_Implementation() override;
+
+	// ============================================================================================
+	// INTERNAL API
+	// ============================================================================================
+	
 protected:
 	void BroadcastPrompts();
 
-protected:
 	void RunPrompt(uint8 Uint8);
 	
 	void FindStartingFragment();
 
 	bool RunFragment(uint8 FragmentIndex);
 
-	void OnFragmentComplete(uint8 FragmentIndex);
+	void WhenFragmentComplete(uint8 FragmentIndex);
 
-	void OnPaddingTimeComplete(uint8 FragmentIndex);
+	void WhenPaddingTimeComplete(uint8 FragmentIndex);
 
 	bool IsBypassPinRequired() const;
 
+	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
 
 protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
@@ -147,7 +209,7 @@ protected:
 	const FYapFragment& GetFragmentByIndex(uint8 Index) const;
 
 #if WITH_EDITOR
-public:
+private:
 	
 	FYapFragment& GetFragmentByIndexMutable(uint8 Index);
 	
@@ -169,11 +231,9 @@ public:
 	
 	bool GetUsesMultipleOutputs();
 
-	EFlowYapMultipleFragmentSequencing GetMultipleFragmentSequencing() const;
+	EYapDialogueTalkSequencing GetMultipleFragmentSequencing() const;
 	
 	TArray<FFlowPin> GetContextOutputs() const override;
-
-	void SetIsPlayerPrompt(bool NewValue);
 
 	void SetNodeActivationLimit(int32 NewValue);
 
@@ -186,14 +246,8 @@ public:
 	void UpdateFragmentIndices();
 
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
-
-	int32 GetFragmentIndex(const FGuid& Guid) const;
 	
 protected:
-	TOptional<uint8> RunningFragmentIndex;
-
-	double FragmentStartedTime;
-	double FragmentEndedTime;
 
 public:
 	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }

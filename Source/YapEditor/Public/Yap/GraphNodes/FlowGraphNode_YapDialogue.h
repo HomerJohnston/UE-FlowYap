@@ -34,6 +34,4 @@ public:
 	FLinearColor GetNodeBodyTintColor() const override;
 
 	FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
-
-	void DeleteFragment(FGuid FragmentGUID);
 };

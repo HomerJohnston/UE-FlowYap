@@ -38,16 +38,3 @@ FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) co
 {
 	return FSlateIcon();
 }
-
-void UFlowGraphNode_YapDialogue::DeleteFragment(FGuid FragmentGuid)
-{
-	uint32 FragmentIndex = GetFlowYapNode()->FindFragmentIndex(FragmentGuid);
-
-	if (FragmentIndex == INDEX_NONE)
-	{
-		UE_LOG(LogYap, Warning, TEXT("Fragment with Guid not found: %s"), *FragmentGuid.ToString());
-		return;
-	}
-	
-	GetFlowYapNode()->RemoveFragment(FragmentIndex);
-}

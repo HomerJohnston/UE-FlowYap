@@ -58,16 +58,6 @@ FGameplayTag FYapBit::GetMoodKey() const
 	return MoodKey;
 }
 
-bool FYapBit::GetInterruptible() const
-{
-	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
-	{
-		return UYapProjectSettings::Get()->GetDialogueInterruptibleByDefault();
-	}
-
-	return Interruptible == EFlowYapInterruptible::Interruptible;
-}
-
 EYapTimeMode FYapBit::GetTimeMode() const
 {
 	return bUseProjectDefaultTimeSettings ? UYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;

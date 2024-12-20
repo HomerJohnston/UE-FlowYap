@@ -18,20 +18,22 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	NodeStyle = EFlowNodeStyle::Custom;
 #endif
 
-	bIsPlayerPrompt = false;
+	DialogueNodeType = EYapDialogueNodeType::Talk;
 	
 	NodeActivationLimit = 0;
 	
-	FragmentSequencing = EFlowYapMultipleFragmentSequencing::RunAll;
+	TalkSequencing = EYapDialogueTalkSequencing::RunAll;
 
-	Interruptible = EFlowYapInterruptible::UseProjectDefaults;
+	Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
 
 	// Always have at least one fragment.
 	Fragments.Add(FYapFragment());
 
+	// The node will only have certain context-outputs which depend on the node type. 
 	OutputPins = {};
 	
 #if WITH_EDITOR
+	// TODO use the subsystem to manage crap like this
 	UYapProjectSettings::RegisterTagFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, DialogueTag), EYap_TagFilter::Prompts);
 	
 	if (IsTemplate())
@@ -39,76 +41,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 		UGameplayTagsManager::Get().OnFilterGameplayTagChildren.AddUObject(this, &ThisClass::OnFilterGameplayTagChildren);
 	}
 #endif
-}
-
-FText UFlowNode_YapDialogue::GetSpeakerName() const
-{
-	return FText::GetEmpty();
-	
-	/*
-	if (!Character)
-	{
-		return LOCTEXT("DialogueNodeMissingCharacter", "NO CHARACTER SET");
-	}
-
-	return Character->GetEntityName();
-	*/
-}
-
-const UTexture2D* UFlowNode_YapDialogue::GetDefaultSpeakerPortrait() const
-{
-	return nullptr;
-	
-	/*
-	if (!Character)
-	{
-		return nullptr;
-	}
-
-	const UFlowYapProjectSettings* Settings = UFlowYapProjectSettings::Get();
-
-	if (Settings->GetMoodKeys().Num() == 0)
-	{
-		return nullptr;
-	}
-
-	const FName& Key = Settings->GetMoodKeys()[0];
-	
-	return GetSpeakerPortrait(Key);
-	*/
-}
-
-const UTexture2D* UFlowNode_YapDialogue::GetSpeakerPortrait(const FName& RequestedMoodKey) const
-{
-	return nullptr;
-
-	/*
-	if (!Character)
-	{
-		return nullptr;
-	}
-
-	const TObjectPtr<UTexture2D>* Portrait = Character->GetPortraits().Find(RequestedMoodKey);
-
-	if (Portrait)
-	{
-		return *Portrait;
-	}
-	else
-	{
-		return nullptr;
-	}
-	*/
-}
-
-const TArray<FYapFragment>& UFlowNode_YapDialogue::GetFragments() const
-{
-	return Fragments;
-}
-
-uint8 UFlowNode_YapDialogue::GetNumFragments() const
-{
-	return Fragments.Num();
 }
 
 int16 UFlowNode_YapDialogue::FindFragmentIndex(const FGuid& InFragmentGuid) const
@@ -137,21 +69,6 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 	return nullptr;
 }
 
-bool UFlowNode_YapDialogue::GetIsPlayerPrompt() const
-{
-	return bIsPlayerPrompt;
-}
-
-int32 UFlowNode_YapDialogue::GetNodeActivationCount() const
-{
-	return NodeActivationCount;
-}
-
-int32 UFlowNode_YapDialogue::GetNodeActivationLimit() const
-{
-	return NodeActivationLimit;
-}
-
 void UFlowNode_YapDialogue::InitializeInstance()
 {
 	Super::InitializeInstance();
@@ -164,10 +81,6 @@ void UFlowNode_YapDialogue::InitializeInstance()
 			Subsystem->RegisterTaggedFragment(Fragment.GetFragmentTag(), this);
 		}
 	}
-}
-
-void UFlowNode_YapDialogue::OnActivate()
-{
 }
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
@@ -188,10 +101,6 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 }
 
-void UFlowNode_YapDialogue::Cleanup()
-{
-}
-
 void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 {
 	if (GetIsPlayerPrompt())
@@ -206,17 +115,17 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 
 bool UFlowNode_YapDialogue::GetInterruptible() const
 {
-	if (Interruptible == EFlowYapInterruptible::UseProjectDefaults)
+	if (Interruptible == EYapDialogueInterruptible::UseProjectDefaults)
 	{
 		return UYapProjectSettings::Get()->GetDialogueInterruptibleByDefault();
 	}
 	else
 	{
-		return Interruptible == EFlowYapInterruptible::Interruptible;
+		return Interruptible == EYapDialogueInterruptible::Interruptible;
 	}
 }
 
-EFlowYapInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
+EYapDialogueInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
 {
 	return Interruptible;
 }
@@ -328,11 +237,11 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 
 		if (Time <= 0.f)
 		{
-			OnFragmentComplete(FragmentIndex);
+			WhenFragmentComplete(FragmentIndex);
 		}
 		else
 		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnFragmentComplete, FragmentIndex), Time, false);
+			GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::WhenFragmentComplete, FragmentIndex), Time, false);
 		}
 
 		return true;
@@ -343,7 +252,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 	}
 }
 
-void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
 {
 	FYapFragment& Fragment = Fragments[FragmentIndex];
 
@@ -359,11 +268,11 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
 	
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingTimeComplete, FragmentIndex), PaddingTime, false);
+		GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::WhenPaddingTimeComplete, FragmentIndex), PaddingTime, false);
 	}
 	else
 	{
-		OnPaddingTimeComplete(FragmentIndex);
+		WhenPaddingTimeComplete(FragmentIndex);
 	}
 
 #if WITH_EDITOR
@@ -372,7 +281,7 @@ void UFlowNode_YapDialogue::OnFragmentComplete(uint8 FragmentIndex)
 }
 
 
-void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 {
 #if WITH_EDITOR
 	RunningFragmentIndex.Reset();
@@ -388,7 +297,7 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 	}
 	else
 	{
-		if (FragmentSequencing == EFlowYapMultipleFragmentSequencing::SelectOne)
+		if (TalkSequencing == EYapDialogueTalkSequencing::SelectOne)
 		{
 			TriggerOutput(FName("Out"), true);
 		}
@@ -398,7 +307,7 @@ void UFlowNode_YapDialogue::OnPaddingTimeComplete(uint8 FragmentIndex)
 			{
 				bool bRanNextFragment =  RunFragment(NextIndex);
 
-				if (!bRanNextFragment && FragmentSequencing == EFlowYapMultipleFragmentSequencing::RunUntilFailure)
+				if (!bRanNextFragment && TalkSequencing == EYapDialogueTalkSequencing::RunUntilFailure)
 				{
 					// Whoops, this is the end of the line
 					TriggerOutput(FName("Out"), true);
@@ -521,16 +430,16 @@ bool UFlowNode_YapDialogue::GetUsesMultipleOutputs()
 	return true;
 }
 
-EFlowYapMultipleFragmentSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing() const
+EYapDialogueTalkSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing() const
 {
-	return FragmentSequencing;
+	return TalkSequencing;
 }
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
 	TArray<FFlowPin> ContextOutputPins;
 
-	if (!bIsPlayerPrompt)
+	if (!GetIsPlayerPrompt())
 	{
 		ContextOutputPins.Add(FName("Out"));
 	}
@@ -563,13 +472,6 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 	return ContextOutputPins;
 }
 
-void UFlowNode_YapDialogue::SetIsPlayerPrompt(bool NewValue)
-{
-	bIsPlayerPrompt = NewValue;
-
-	OnReconstructionRequested.ExecuteIfBound();
-}
-
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 {
 	bool bBypassRequired = IsBypassPinRequired();
@@ -584,14 +486,14 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 
 void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
-	uint8 AsInt = static_cast<uint8>(FragmentSequencing);
+	uint8 AsInt = static_cast<uint8>(TalkSequencing);
 
-	if (++AsInt >= static_cast<uint8>(EFlowYapMultipleFragmentSequencing::COUNT))
+	if (++AsInt >= static_cast<uint8>(EYapDialogueTalkSequencing::COUNT))
 	{
 		AsInt = 0;
 	}
 
-	FragmentSequencing = static_cast<EFlowYapMultipleFragmentSequencing>(AsInt);
+	TalkSequencing = static_cast<EYapDialogueTalkSequencing>(AsInt);
 }
 
 void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
@@ -668,19 +570,6 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 	OnReconstructionRequested.ExecuteIfBound();
 }
 
-int32 UFlowNode_YapDialogue::GetFragmentIndex(const FGuid& Guid) const
-{
-	for (int32 i = 0; i < Fragments.Num(); ++i)
-	{
-		if (Fragments[i].GetGuid() == Guid)
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 FString UFlowNode_YapDialogue::GetNodeDescription() const
 {
 	return "";
@@ -722,17 +611,33 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
+void UFlowNode_YapDialogue::ToggleNodeType()
+{
+	uint8 AsInt = static_cast<uint8>(DialogueNodeType);
+
+	if (++AsInt >= static_cast<uint8>(EYapDialogueNodeType::COUNT))
+	{
+		AsInt = 0;
+	}
+
+	DialogueNodeType = static_cast<EYapDialogueNodeType>(AsInt);
+}
+
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ForceReconstruction()
 {
 	OnReconstructionRequested.ExecuteIfBound();
 }
+#endif
 
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::PostEditImport()
 {
 	Super::PostEditImport();
@@ -742,20 +647,6 @@ void UFlowNode_YapDialogue::PostEditImport()
 		Fragment.ResetGUID();
 		Fragment.ResetOptionalPins();
 	}
-}
-
-FSlateBrush* UFlowNode_YapDialogue::GetSpeakerPortraitBrush(const FName& RequestedMoodKey) const
-{
-	return nullptr;
-
-	/*
-	if (Character)
-	{
-		return Character->GetPortraitBrush(RequestedMoodKey);
-	}
-
-	return nullptr;
-	*/
 }
 #endif
 

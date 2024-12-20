@@ -1,22 +1,14 @@
+// Copyright Ghost Pepper Games Inc., all rights reserved.
+
 #pragma once
 
 #include "YapLog.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
-
 #include "YapBit.generated.h"
 
 class UYapCharacter;
 struct FYapBitReplacement;
-
-UENUM(BlueprintType)
-enum class EFlowYapInterruptible : uint8
-{
-	UseProjectDefaults,
-	NotInterruptible,
-	Interruptible,
-	MAX						UMETA(Hidden)
-};
 
 USTRUCT(BlueprintType)
 struct YAP_API FYapBit
@@ -24,8 +16,6 @@ struct YAP_API FYapBit
 	GENERATED_BODY()
 
 	FYapBit();
-
-	friend class FPropertyCustomization_FlowYapFragment;
 	
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
@@ -51,10 +41,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
 	EYapTimeMode TimeMode = EYapTimeMode::AudioTime;
 
-	// TODO is this variable in use? Should I display it?
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EFlowYapInterruptible Interruptible = EFlowYapInterruptible::UseProjectDefaults;
-	
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
 protected:
@@ -158,10 +144,6 @@ public:
 	EYapTimeMode GetBitTimeMode() const { return TimeMode; }
 
 	void SetBitTimeMode(EYapTimeMode NewValue) { TimeMode = NewValue; }
-
-	void SetBitInterruptible(EFlowYapInterruptible NewValue) { Interruptible = NewValue; }
-
-	EFlowYapInterruptible GetBitInterruptible() const { return Interruptible; }
 	
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 #endif

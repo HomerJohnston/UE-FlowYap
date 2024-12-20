@@ -159,7 +159,7 @@ void SConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* New
 	}
 	else
 	{
-		TArray<TObjectPtr<UYapCondition>>& ConditionsArray = Dialogue->GetConditionsMutable();
+		TArray<UYapCondition*>& ConditionsArray = Dialogue->GetConditionsMutable();
 
 		if (NewConditionClass)
 		{
