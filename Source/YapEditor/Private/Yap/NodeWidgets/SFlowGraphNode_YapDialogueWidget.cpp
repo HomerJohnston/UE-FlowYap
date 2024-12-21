@@ -769,7 +769,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 
 	GetFlowYapDialogueNodeMutable()->CycleFragmentSequencingMode();
 
-	FragmentSequencingButton_Box->SetVisibility(Visibility_FragmentSequencingButton());
+	//FragmentSequencingButton_Box->SetVisibility(Visibility_FragmentSequencingButton());
 
 	FragmentSequencingButton_Button->SetToolTipText(ToolTipText_FragmentSequencingButton());
 	
@@ -779,7 +779,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 	FragmentSequencingButton_Text->SetText(Text_FragmentSequencingButton());
 	FragmentSequencingButton_Text->SetColorAndOpacity(ColorAndOpacity_FragmentSequencingButton());
 
-	FlowGraphNode->ReconstructNode();
+	//FlowGraphNode->ReconstructNode();
 	//UpdateGraphNode();
 	
 	FYapTransactions::EndModify();
