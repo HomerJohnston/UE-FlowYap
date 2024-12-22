@@ -85,7 +85,8 @@ protected:
 	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
-	int32 GetMaxNodeWidth() const;
+	FOptionalSize GetMaxNodeWidth() const;
+	FOptionalSize GetMaxTitleWidth() const;
 
 public:
 	virtual bool UseLowDetail() const { return false; };

@@ -38,14 +38,14 @@ public:
 	// ==========================================
 	// SETTINGS
 protected:
-	UPROPERTY(EditAnywhere, Instanced, meta = (Yap_ReconstructNodeOnChange))
+	UPROPERTY(Instanced, meta = (Yap_ReconstructNodeOnChange))
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	FYapBit Bit;
 
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
-	UPROPERTY(BlueprintReadOnly, meta = (ClampMin = 0, UIMin = 0, UIMax = 5, Yap_ReconstructNodeOnChange))
+	UPROPERTY()
 	int32 ActivationLimit = 0;
 	
 	UPROPERTY()
@@ -64,15 +64,15 @@ protected:
 	// ==========================================
 	// STATE
 protected:
+	UPROPERTY(VisibleAnywhere)
+	FGuid Guid = FGuid(0, 0, 0, 0);
+	
 	// TODO should this be serialized or transient
 	UPROPERTY(BlueprintReadOnly)
 	uint8 IndexInDialogue = 0; 
 
 	UPROPERTY(BlueprintReadOnly, Transient)
 	int32 ActivationCount = 0;
-
-	UPROPERTY(VisibleAnywhere)
-	FGuid Guid = FGuid(0, 0, 0, 0);
 	
 	// ==========================================
 	// API

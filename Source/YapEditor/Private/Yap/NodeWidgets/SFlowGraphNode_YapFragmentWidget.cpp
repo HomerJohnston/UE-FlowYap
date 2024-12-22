@@ -153,12 +153,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentShiftWidget(EYa
 {
 	if (FragmentIndex == 0 && YapFragmentControlsDirection == EYapFragmentControlsDirection::Up)
 	{
-		return EVisibility::Collapsed;
+		return EVisibility::Hidden;
 	}
 
 	if (FragmentIndex == GetFlowYapDialogueNode()->GetNumFragments() - 1 && YapFragmentControlsDirection == EYapFragmentControlsDirection::Down)
 	{
-		return EVisibility::Collapsed;
+		return EVisibility::Hidden;
 	}
 
 	return EVisibility::Visible;
@@ -686,13 +686,13 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue() const
 	double PaddingTime = GetFragment().GetPaddingToNextFragment();
 
 	FNumberFormattingOptions Formatting;
-	Formatting.MaximumFractionalDigits = 2;
+	Formatting.MaximumFractionalDigits = 3;
 
 	FText DialogueStr = Dialogue_Text().IsEmpty() ? INVTEXT("No dialogue") : Dialogue_Text(); 
 	
 	if (PaddingTime > 0)
 	{
-		return FText::Format(INVTEXT("{0}\nPadding: {1}"), DialogueStr, FText::AsNumber(PaddingTime, &Formatting));
+		return FText::Format(INVTEXT("{0}\nPost-delay: {1}"), DialogueStr, FText::AsNumber(PaddingTime, &Formatting));
 	}
 	else
 	{
@@ -868,12 +868,30 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePa
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding() const
 {
-	return FText::Format(LOCTEXT("Fragment", "Delay: {0}"), GetFragment().GetPaddingToNextFragment());
+	FNumberFormattingOptions Formatting;
+	Formatting.MaximumFractionalDigits = 3;
+	
+	return FText::Format(LOCTEXT("Fragment", "Post-delay: {0}"), FText::AsNumber(GetFragment().GetPaddingToNextFragment(), &Formatting));
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_PortraitImage() const
 {
-	return GetFlowYapDialogueNode()->GetIsPlayerPrompt() ? YapColor::YellowGray_Trans : YapColor::Gray_Glass;
+	const FYapBit& Bit = GetFragment().GetBit();
+
+	FLinearColor Color;
+	
+	if (Bit.GetCharacterAsset().IsValid())
+	{
+		Color = Bit.GetCharacterAsset().Get()->GetEntityColor();
+	}
+	else
+	{
+		Color = YapColor::Gray_Glass;		
+	}
+
+	Color.A *= UYapEditorSettings::Get()->GetPortraitBorderAlpha();
+
+	return Color;
 }
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget() const
@@ -931,26 +949,32 @@ FText SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget() const
 	{
 		return INVTEXT("Character\nUnset");
 	}
-
+	
 	if (Image_PortraitImage() == nullptr)
 	{
 		TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodKey());
+		
+		FText CharacterName = Bit.GetCharacterAsset().IsValid() ? Bit.GetCharacterAsset().Get()->GetEntityName() : INVTEXT("Unloaded");
+		
+		if (CharacterName.IsEmpty())
+		{
+			CharacterName = INVTEXT("Unnamed");
+		}
 
+		FText MoodTagName;
+		
 		if (GTN.IsValid())
 		{
-			FText CharacterName = Bit.GetCharacterAsset().IsValid() ? Bit.GetCharacterAsset().Get()->GetEntityName() : INVTEXT("Unloaded");
-
-			if (CharacterName.IsEmpty())
-			{
-				CharacterName = INVTEXT("Unnamed");
-			}
-			
-			return FText::Format(INVTEXT("{0}\n\n{1}\n<missing>"), CharacterName, FText::FromName(GTN->GetSimpleTagName()));
+			MoodTagName = FText::FromName(GTN->GetSimpleTagName());
 		}
 		else
 		{
-			return INVTEXT("Unset");
+			TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::Get()->GetDefaultMoodTag());
+
+			MoodTagName = DefaultGTN.IsValid() ? FText::Format(INVTEXT("{0}{1}"), FText::FromName(DefaultGTN->GetSimpleTagName()), INVTEXT("(D)")) : INVTEXT("None(D)");
 		}
+		
+		return FText::Format(INVTEXT("{0}\n\n{1}\n<missing>"), CharacterName, MoodTagName);
 	}
 	
 	return INVTEXT("");
@@ -966,20 +990,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 	
 	return SNew(SOverlay)
 	+ SOverlay::Slot()
-	.Padding(0, 0, 0, 0)
-	[
-		SNew(SBox)
-		.WidthOverride(PortraitSize + 8)
-		.HeightOverride(PortraitSize + 8)
-		[
-			SNew(SBorder)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_DeburredSquare))
-			.BorderBackgroundColor(YapColor::Gray_Glass)
-		]
-	]
-	+ SOverlay::Slot()
+	.Padding(0)
 	[
 		SNew(SLevelOfDetailBranchNode)
 		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
@@ -995,9 +1006,14 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 				SNew(SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SImage)
-					.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-					.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
+					SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+					[
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+						.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
+					]	
 				]
 				+ SOverlay::Slot()
 				.HAlign(HAlign_Center)
@@ -1016,6 +1032,21 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			SNew(SImage)
 			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
 			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
+		]
+	]
+	+ SOverlay::Slot()
+	.Padding(0, 0, 0, 0)
+	[
+		SNew(SBox)
+		.WidthOverride(PortraitSize + 8)
+		.HeightOverride(PortraitSize + 8)
+		.Visibility(EVisibility::HitTestInvisible)
+		[
+			SNew(SBorder)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
+			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_PortraitImage)
 		]
 	];
 }
@@ -1090,7 +1121,7 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAs
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector() const
 {
-	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetBit().GetMoodKey(false));
+	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetBit().GetMoodKey());
 
 	if (TagNode.IsValid())
 	{
@@ -2073,7 +2104,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector() con
 
 FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
 {
-	return GetFragment().Bit.GetMoodKey(false);
+	return GetFragment().Bit.GetMoodKey();
 }
 
 // ================================================================================================
@@ -2140,7 +2171,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 			SNew(SBorder)
 			.Visibility_Lambda([this, MoodKey]()
 			{
-				if (GetFragment().GetBit().GetMoodKey(false) == MoodKey)
+				if (GetFragment().GetBit().GetMoodKey() == MoodKey)
 				{
 					return EVisibility::Visible;
 				}

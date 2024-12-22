@@ -30,14 +30,9 @@ const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 }
 #endif
 
-FGameplayTag FYapBit::GetMoodKey(bool bReturnDefault) const
+FGameplayTag FYapBit::GetMoodKey() const
 {
-	if (MoodKey.IsValid() || !bReturnDefault)
-	{
-		return MoodKey;
-	}
-
-	return UYapProjectSettings::Get()->GetDefaultMoodTag();
+	return MoodKey;
 }
 
 EYapTimeMode FYapBit::GetTimeMode() const

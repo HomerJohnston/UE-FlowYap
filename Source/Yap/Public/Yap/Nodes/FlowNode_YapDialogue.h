@@ -95,7 +95,7 @@ protected:
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 
 	/** Actual dialogue contents. */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FYapFragment> Fragments;
 
 	// ============================================================================================

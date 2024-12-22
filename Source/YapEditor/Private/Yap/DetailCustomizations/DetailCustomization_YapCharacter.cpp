@@ -20,24 +20,48 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 		return;
 	}
 	
-	// Add a button we can click on to open the documentation
-	IDetailCategoryBuilder& HelpCategory = DetailBuilder.EditCategory("Yap Character");
-	HelpCategory.AddCustomRow(INVTEXT("Test"))
-	[
-		SNew(SButton)
-		.Cursor(EMouseCursor::Default)
-		.Text(this, &FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton)
-		.ToolTipText(this, &FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton)
-		.HAlign(HAlign_Center)
-		.OnClicked(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
-		.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)
-	];
+	DetailBuilder.SortCategories([](const TMap<FName, IDetailCategoryBuilder*>& CategoryMap)
+	{
+		const TMap<FName, int32> SortOrder =
+		{
+			{ TEXT("YapEntity"), 0},
+			{ TEXT("YapCharacter"), 1}
+		};
 
+		for (const TPair<FName, int32>& SortPair : SortOrder)
+		{
+			if (CategoryMap.Contains(SortPair.Key))
+			{
+				CategoryMap[SortPair.Key]->SetSortOrder(SortPair.Value);
+			}
+		}
+	});
+	
+	IDetailCategoryBuilder& HelpCategory = DetailBuilder.EditCategory("YapCharacter");
+	
 	auto fuckyouunreal = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
 
 	fuckyouunreal->MarkHiddenByCustomization();
 
 	HelpCategory.AddProperty(fuckyouunreal);
+	
+	HelpCategory.AddCustomRow(INVTEXT("Test"))
+	[
+		SNew(SBox)
+		.Padding(0, 8)
+		[
+			SNew(SButton)
+			.ContentPadding(FMargin(0, 4))
+			.Cursor(EMouseCursor::Default)
+			.VAlign(VAlign_Center)
+			.Text(this, &FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton)
+			.ToolTipText(this, &FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton)
+			.HAlign(HAlign_Center)
+			.OnClicked(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
+			.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)	
+		]
+	];
+
 }
 
 FText FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton() const

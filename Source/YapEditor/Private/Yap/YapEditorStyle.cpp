@@ -102,6 +102,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
 	
+	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_Thick_RoundedSquare,		"Border_Thick_Rounded", ".png",			FMargin(8.0/16.0));
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Sharp,					"Panel_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Deburred,					"Panel_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Rounded,					"Panel_Rounded", ".png",				FMargin(4.0/8.0));

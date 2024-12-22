@@ -24,6 +24,7 @@ struct FYapBrushes
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
+	FName Border_Thick_RoundedSquare;
 	FName Border_SharpSquare;
 	
 	FName Box_SolidLightGray;

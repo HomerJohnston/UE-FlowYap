@@ -153,9 +153,16 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 	UpdateGraphNode();
 }
 
-int32 SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
+FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 {
 	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
+}
+
+FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth() const
+{
+	const int32 TITLE_LEFT_RIGHT_EXTRA_WIDTH = 44;
+
+	return GetMaxNodeWidth().Get() - TITLE_LEFT_RIGHT_EXTRA_WIDTH;
 }
 
 void SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton(int32 FragmentIndex)
@@ -197,11 +204,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
 	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
 
-	const int32 TITLE_LEFT_RIGHT_EXTRA_WIDTH = 44;
 	
 	TSharedRef<SWidget> Widget = SNew(SBox)
-	.MaxDesiredWidth(GetMaxNodeWidth() - TITLE_LEFT_RIGHT_EXTRA_WIDTH)
-	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
+	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
@@ -252,7 +257,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			[
 				SNew(SGameplayTagComboFiltered)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
-				.Filter(GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString())
+				.Filter(UYapProjectSettings::Get()->DialogueTagsParent.ToString())
 				.OnTagChanged(TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag))
 				.ToolTipText(INVTEXT("Dialogue tag"))	
 			]
@@ -375,8 +380,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 	TSharedPtr<SVerticalBox> Content; 
 	
 	return SNew(SBox)
-	.WidthOverride(GetMaxNodeWidth())
-	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
+	.WidthOverride(this, &SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth)
+	//.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
+	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
 	[
 		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
