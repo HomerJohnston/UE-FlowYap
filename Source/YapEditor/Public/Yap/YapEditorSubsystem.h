@@ -45,7 +45,8 @@ protected:
 
 public:
 	void UpdateMoodKeyIconsMap();
-	
+	void BuildIcon(const FGameplayTag& MoodKey);
+
 	UTexture2D* GetMoodKeyIcon(FGameplayTag MoodKey);
 
 	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);

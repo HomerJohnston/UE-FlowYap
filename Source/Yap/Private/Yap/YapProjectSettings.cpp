@@ -53,7 +53,7 @@ FString UYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 {
 	int32 Index;
 
-	FString KeyString = Key.ToString();
+	FString KeyString = (Key.IsValid()) ?  Key.ToString() : "None";
 
 	if (KeyString.FindLastChar('.', Index))
 	{
@@ -67,7 +67,7 @@ FString UYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 		
 		static FString PluginDir = IPluginManager::Get().FindPlugin(TEXT("Yap"))->GetBaseDir();
 		
-		return PluginDir / FString::Format(TEXT("Resources/DefaultMoodKeys/{1}.png"), { MoodKeyIconPath.Path, KeyString });
+		return PluginDir / FString::Format(TEXT("Resources/DefaultMoodKeys/{0}.png"), { KeyString });
 	}
 	
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { MoodKeyIconPath.Path, KeyString });

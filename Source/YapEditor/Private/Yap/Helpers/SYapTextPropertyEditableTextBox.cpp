@@ -214,6 +214,7 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 						.ContentHAlign(HAlign_Left)
 						[
 							SNew(SCheckBox)
+							.Cursor(EMouseCursor::Default)
 							.IsEnabled(this, &SYapTextPropertyEditableTextBox::IsCultureInvariantFlagEnabled)
 							.IsChecked(this, &SYapTextPropertyEditableTextBox::GetLocalizableCheckState)
 							.OnCheckStateChanged(this, &SYapTextPropertyEditableTextBox::HandleLocalizableCheckStateChanged)

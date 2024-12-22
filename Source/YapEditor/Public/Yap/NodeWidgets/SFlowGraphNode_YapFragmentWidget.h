@@ -138,7 +138,8 @@ protected:
 	FSlateColor BorderBackgroundColor_PortraitImage() const;
 	FText ToolTipText_PortraitWidget() const;
 	FReply OnClicked_PortraitWidget();
-	
+
+	FText Text_PortraitWidget() const;
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreatePortraitWidget();
 
@@ -148,7 +149,8 @@ protected:
 	EVisibility			Visibility_CharacterSelect() const;
 	FString				ObjectPath_CharacterSelect() const;
 	void				OnObjectChanged_CharacterSelect(const FAssetData& InAssetData);
-	
+
+	FText ToolTipText_MoodKeySelector() const;
 	// ------------------------------------------
 	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
 
@@ -156,7 +158,7 @@ protected:
 	void				OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen);
 	const FSlateBrush*	Image_MoodKeySelector() const;
 	FGameplayTag		GetCurrentMoodKey() const;
-
+	
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 

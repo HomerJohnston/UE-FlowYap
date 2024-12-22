@@ -54,6 +54,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreSettingsWidget()
 {
 	return SNew(SVerticalBox)
+	.Cursor(EMouseCursor::Default)
 	+ SVerticalBox::Slot()
 	.Padding(0, 0, 0, 1)
 	.VAlign(VAlign_Top)
@@ -193,6 +194,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 		.Padding(0, 2)
 		[
 			SNew(SButton)
+			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_FragmentControls)
 			.ContentPadding(FMargin(3, 4))
 			.ToolTipText(LOCTEXT("DialogueMoveFragmentUp_Tooltip", "Move Fragment Up"))
@@ -214,6 +216,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 		.Padding(0, 0)
 		[
 			SNew(SButton)
+			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_FragmentControls)
 			.ContentPadding(FMargin(3, 4))
 			.ToolTipText(LOCTEXT("DialogueDeleteFragment_Tooltip", "Delete Fragment"))
@@ -235,6 +238,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 		.Padding(0, 2)
 		[
 			SNew(SButton)
+			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_FragmentControls)
 			.ContentPadding(FMargin(3, 4))
 			.ToolTipText(LOCTEXT("DialogueMoveFragmentDown_Tooltip", "Move Fragment Down"))
@@ -264,6 +268,7 @@ bool SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton() const
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioPreviewWidget(TAttribute<EVisibility> Attribute)
 {
 	return SNew(SButton)
+	.Cursor(EMouseCursor::Default)
 	.ButtonColorAndOpacity(YapColor::Gray)
 	.ContentPadding(0)
 	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
@@ -482,15 +487,17 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton()
 	// TODO change to proper slate event
 	FOnTextCommitted Test;
 	Test.BindSP(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_Dialogue);
-	
+		
 	if (ExpandedDialogueWidget == nullptr)
 	{
 		TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetFragment().GetBitMutable().GetDialogueTextMutable()));
 		
 		ExpandedDialogueWidget = SNew(SOverlay)
+		.Cursor(EMouseCursor::Default)
 		+ SOverlay::Slot()
 		[
 			SNew(SYapTextPropertyEditableTextBox, EditableTextProperty, Test)
+			.Cursor(EMouseCursor::Default)
 		]
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Fill)
@@ -577,6 +584,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 	.HighDetail()
 	[
 		SNew(SButton)
+		.Cursor(EMouseCursor::Default)
 		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueExpandButton)
@@ -915,6 +923,39 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget()
 	return FReply::Handled();
 }
 
+FText SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget() const
+{
+	const FYapBit& Bit = GetFragment().GetBit();
+	
+	if (Bit.GetCharacterAsset().IsNull())
+	{
+		return INVTEXT("Character\nUnset");
+	}
+
+	if (Image_PortraitImage() == nullptr)
+	{
+		TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodKey());
+
+		if (GTN.IsValid())
+		{
+			FText CharacterName = Bit.GetCharacterAsset().IsValid() ? Bit.GetCharacterAsset().Get()->GetEntityName() : INVTEXT("Unloaded");
+
+			if (CharacterName.IsEmpty())
+			{
+				CharacterName = INVTEXT("Unnamed");
+			}
+			
+			return FText::Format(INVTEXT("{0}\n\n{1}\n<missing>"), CharacterName, FText::FromName(GTN->GetSimpleTagName()));
+		}
+		else
+		{
+			return INVTEXT("Unset");
+		}
+	}
+	
+	return INVTEXT("");
+}
+
 // ================================================================================================
 // PORTRAIT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -945,6 +986,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 		.HighDetail()
 		[
 			SNew(SButton)
+			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
 			.ContentPadding(0)
@@ -952,24 +994,22 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 			[
 				SNew(SOverlay)
 				+ SOverlay::Slot()
-				.VAlign(VAlign_Center)
-				.HAlign(HAlign_Center)
 				[
 					SNew(SImage)
 					.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-					.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)
+					.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
 				]
 				+ SOverlay::Slot()
-				.VAlign(VAlign_Center)
 				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning)
-					.Text(LOCTEXT("FragmentCharacterMissing", "?"))
+					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget)
+					.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
+					.ColorAndOpacity(YapColor::Red)
 					.Justification(ETextJustify::Center)
 				]
 			]
-			
 		]
 		.LowDetail()
 		[
@@ -1048,6 +1088,18 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAs
 	FYapTransactions::EndModify();
 }
 
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector() const
+{
+	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetBit().GetMoodKey(false));
+
+	if (TagNode.IsValid())
+	{
+		return FText::FromName(TagNode->GetSimpleTagName());
+	}
+
+	return INVTEXT("Default");
+}
+
 // ================================================================================================
 // TITLE TEXT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -1055,6 +1107,7 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAs
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
 	TitleTextEditButtonWidget = SNew(SButton)
+	.Cursor(EMouseCursor::Default)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_TitleText)
 	.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TitleText)
 	.ButtonStyle(FYapEditorStyle::Get(),YapStyles.ButtonStyle_ActivationLimit)
@@ -1113,6 +1166,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TitleTextExpandButton()
 		Test.BindSP(this, &SFlowGraphNode_YapFragmentWidget::TitleText_OnTextCommitted);
 		
 		ExpandedTitleTextWidget = SNew(SYapTextPropertyEditableTextBox, EditableTextProperty, Test)
+		.Cursor(EMouseCursor::Default)
 		.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_TitleText);
 	}
 	
@@ -1263,6 +1317,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					// USE PROJECT DEFAULTS BUTTON
 					// =============================
 					SNew(SCheckBox)
+					.Cursor(EMouseCursor::Default)
 					.Style(&UYapEditorSubsystem::GetCheckBoxStyles().ToggleButtonCheckBox_Green)
 					.Padding(FMargin(4, 3))
 					.CheckBoxContentUsesAutoWidth(true)
@@ -1287,6 +1342,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					// USE MANUAL TIME ENTRY BUTTON
 					// =============================
 					SNew(SCheckBox)
+					.Cursor(EMouseCursor::Default)
 					.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 					.Padding(FMargin(4, 3))
 					.CheckBoxContentUsesAutoWidth(true)
@@ -1310,6 +1366,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					// USE TEXT TIME BUTTON
 					// =============================
 					SNew(SCheckBox)
+					.Cursor(EMouseCursor::Default)
 					.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 					.Padding(FMargin(4, 3))
 					.CheckBoxContentUsesAutoWidth(true)
@@ -1335,6 +1392,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateBottomRowWidget()
 					// USE AUDIO TIME BUTTON
 					// =============================
 					SNew(SCheckBox)
+					.Cursor(EMouseCursor::Default)
 					.Style(&FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"))
 					.Padding(FMargin(4, 3))
 					.CheckBoxContentUsesAutoWidth(true)
@@ -1731,6 +1789,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	{
 		UE_LOG(LogYap, Verbose, TEXT("Making)))"));
 		MoveFragmentControls = CreateFragmentControlsWidget();
+		MoveFragmentControls->SetCursor(EMouseCursor::Default);
 		FragmentWidgetOverlay->AddSlot()
 		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
@@ -1792,6 +1851,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnStartPinButton)
 				[
 					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton)
 					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 					.ToolTipText(INVTEXT("Click to enable 'On Start' Pin"))
@@ -1830,6 +1890,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 				.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_EnableOnEndPinButton)
 				[
 					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton)
 					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
 					.ToolTipText(INVTEXT("Click to enable 'On End' Pin"))
@@ -1944,6 +2005,11 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 	TSharedRef<SUniformWrapPanel> MoodTagSelectorPanel = SNew(SUniformWrapPanel)
 		.NumColumnsOverride(4); // TODO use maff
 
+	MoodTagSelectorPanel->AddSlot()
+	[
+		CreateMoodKeyMenuEntryWidget(FGameplayTag::EmptyTag, SelectedMoodKey == FGameplayTag::EmptyTag)
+	];
+	
 	for (const FGameplayTag& MoodKey : UYapProjectSettings::Get()->GetMoodTags())
 	{
 		if (!MoodKey.IsValid())
@@ -1972,7 +2038,7 @@ TSharedRef<SBox> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.OnMenuOpenChanged(this, &SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodKeySelector)
-		.ToolTipText(LOCTEXT("Fragment", "Choose a mood key"))
+		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector)
 		.ButtonContent()
 		[
 			SNew(SBox)
@@ -2007,7 +2073,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector() con
 
 FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
 {
-	return GetFragment().Bit.GetMoodKey();
+	return GetFragment().Bit.GetMoodKey(false);
 }
 
 // ================================================================================================
@@ -2028,7 +2094,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
 	
 	FSlateBrush Brush;
-	Brush.ImageSize = FVector2D(16, 16);
+	Brush.ImageSize = FVector2D(24, 24);
 	Brush.SetResourceObject(MoodKeyIcon);
 	
 	TSharedRef<FDeferredCleanupSlateBrush> MoodKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
@@ -2046,12 +2112,26 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))
 		];
 	}
+
+	FText ToolTipText;
+	
+	if (MoodKey.IsValid())
+	{
+		TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(MoodKey);
+		ToolTipText = FText::FromName(TagNode->GetSimpleTagName());
+	}
+	else
+	{
+		ToolTipText = INVTEXT("Default");
+	}
 	
 	return SNew(SButton)
+	.Cursor(EMouseCursor::Default)
 	.ContentPadding(FMargin(4, 4))
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 	.ClickMethod(EButtonClickMethod::MouseDown)
 	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry, MoodKey)
+	.ToolTipText(ToolTipText)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -2060,7 +2140,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 			SNew(SBorder)
 			.Visibility_Lambda([this, MoodKey]()
 			{
-				if (GetFragment().GetBit().GetMoodKey() == MoodKey)
+				if (GetFragment().GetBit().GetMoodKey(false) == MoodKey)
 				{
 					return EVisibility::Visible;
 				}

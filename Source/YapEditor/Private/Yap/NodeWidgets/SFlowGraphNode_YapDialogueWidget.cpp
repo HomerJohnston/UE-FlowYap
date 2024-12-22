@@ -267,6 +267,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.HAlign(HAlign_Center)
 			[
 				SAssignNew(InterruptibleCheckBox, SCheckBox)
+				.Cursor(EMouseCursor::Default)
 				.Style(&InterruptibleCheckBoxStyle)
 				.Type(ESlateCheckBoxType::ToggleButton)
 				.Padding(FMargin(0, 0))
@@ -459,6 +460,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 	.Padding(-2, 0, 0, 0)
 	[
 		SAssignNew(NodeHeaderButton, SButton)
+		.Cursor(EMouseCursor::Default)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton)
 		.ContentPadding(FMargin(4, 0, 4, 0))
 		.ButtonColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_NodeHeaderButton)
@@ -484,6 +486,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentHeader()
 		.Padding(0)
 		[
 			SAssignNew(FragmentSequencingButton_Button, SButton)
+			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 			.ContentPadding(FMargin(2, 1, 2, 1))
 			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton)
@@ -723,6 +726,7 @@ TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter
 		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
 		[
 			SNew(SButton)
+			.Cursor(EMouseCursor::Default)
 			.HAlign(HAlign_Center)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 			.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))

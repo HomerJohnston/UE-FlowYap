@@ -3,10 +3,11 @@
 #include "Yap/YapEditorModule.h"
 
 #include "Yap/AssetFactory_YapCharacter.h"
+#include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/DetailCustomizations/DetailCustomization_YapProjectSettings.h"
-#include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "Yap/DetailCustomizations/DetailCustomization_YapCharacter.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredStyle.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -18,6 +19,7 @@ void FYapEditorModule::StartupModule()
 	AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FlowYapCharacter()));
 	
 	DetailCustomizations.Add({UYapProjectSettings::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapProjectSettings::MakeInstance)});
+	DetailCustomizations.Add({UYapCharacter::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapCharacter::MakeInstance)});
 	
 	//PropertyCustomizations.Add(*FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance));
 	

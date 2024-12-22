@@ -89,13 +89,9 @@ public:
 
 	const FSlateBrush& GetSpeakerPortraitBrush() const;
 
-#if WITH_EDITOR
-	FGameplayTag GetMoodKeyLazyInit();
-#endif
-
 	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
 
-	FGameplayTag GetMoodKey() const;
+	FGameplayTag GetMoodKey(bool bReturnDefault = true) const;
 
 	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetInterruptible() const;

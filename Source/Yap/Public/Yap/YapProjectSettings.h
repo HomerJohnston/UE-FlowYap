@@ -32,6 +32,24 @@ public:
 	// ------------------------------------------
 	// SETTINGS
 protected:
+	
+	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
+	UPROPERTY(Config, EditAnywhere, Category = "Core")
+	TSoftClassPtr<UObject> ConversationBrokerClass;
+
+	/** What type of class to use for dialogue assets (sounds). */
+	UPROPERTY(Config, EditAnywhere, Category = "Core")
+	TSoftClassPtr<UObject> DialogueAssetClass;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Core")
+	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
+	
+	UPROPERTY(Config, EditAnywhere, Category = "Core")
+	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	FSlateBrush MissingPortraitBrush;
+	
 	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapTimeMode DefaultTimeModeSetting;
@@ -82,23 +100,6 @@ protected:
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
 	
-	/** What type of class to use for dialogue assets (sounds). */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UObject> DialogueAssetClass;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
-	
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
-
-	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftClassPtr<UObject> ConversationBrokerClass;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FSlateBrush MissingPortraitBrush;
-	
 #if WITH_EDITORONLY_DATA
 public:
 	/** If set, enables nicer filtering of condition tags display */
@@ -108,9 +109,12 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Tags")
 	FGameplayTag DialogueTagsParent;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Tags")
+	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
 	FGameplayTag MoodTagsParent;
-		
+
+	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
+	FGameplayTag DefaultMoodTag;
+	
 	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
 	TMulticastDelegate<void()> OnMoodTagsChanged;
@@ -143,6 +147,8 @@ public:
 	FString GetPortraitIconPath(FGameplayTag Key) const;
 
 	FGameplayTagContainer GetMoodTags() const;
+
+	FGameplayTag GetDefaultMoodTag() const { return DefaultMoodTag; }
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	

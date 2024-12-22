@@ -72,8 +72,6 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 		TArray<TSharedRef<IPropertyHandle>> Properties;
 		Category.GetDefaultProperties(Properties, true, true);
 
-		FGameplayTag ParentTag = ProjectSettings->MoodTagsParent;
-		
 		for (TSharedPtr<IPropertyHandle> PropertyHandle : Properties)
 		{
 			FProperty* Property = PropertyHandle->GetProperty();
@@ -83,130 +81,174 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 			if (Property == DialogueTagsParentProperty)
 			{
 				Category.AddCustomRow(INVTEXT("TODO Test"))
+				.NameContent()
+				[
+					SNew(STextBlock)
+					.Text(INVTEXT("Dialogue Tags"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
+				]
 				.ValueContent()
 				[
 					SNew(SButton)
 					.VAlign(VAlign_Center)
 					.HAlign(HAlign_Center)
 					.ToolTipText(INVTEXT("Open tags manager"))
-					.OnClicked_Lambda([this]()
-					{
-						FGameplayTagManagerWindowArgs Args;
-						Args.Title = INVTEXT("Dialogue Tags");
-						Args.bRestrictedTags = false;
-						Args.Filter = GetDefault<UYapProjectSettings>()->DialogueTagsParent.ToString();
-						UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
-						return FReply::Handled();
-					})
-					[
-						SNew(SHorizontalBox)
-						+SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(FMargin(0,0,4,0))
-						[
-							SNew(STextBlock)
-							.Text(INVTEXT("Edit Dialogue Tags"))
-						]
-					]
+					.Text(INVTEXT("Edit Dialogue Tags"))
+					.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, INVTEXT("Dialogue Tags"), ProjectSettings->DialogueTagsParent.ToString())
 				];
+
+				continue;
 			}
-			else if (Property == MoodTagsParentProperty)
+			
+			if (Property == MoodTagsParentProperty)
 			{
+				float VerticalPadding = 3;
+
+				FString DefaultMoodTagsToolTip = "Sets the following tags:\n" + FString::Join(DefaultMoodTags, TEXT("\n"));
+				
 				Category.AddCustomRow(INVTEXT("TODO Test"))
 				.NameContent()
 				[
 					SNew(STextBlock)
 					.Text(INVTEXT("Mood Tags"))
+					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
 					.AutoHeight()
+					.Padding(0, VerticalPadding)
+					.MaxHeight(200)
 					[
-						SNew(SBorder)
-						.BorderImage(this, &FDetailCustomization_YapProjectSettings::TODOBorderImage)
-						.Padding(4, 2, 4, 2)
+						SNew(SScrollBox)
+						+ SScrollBox::Slot()
 						[
-							SNew(STextBlock)
-							.Text(this, &FDetailCustomization_YapProjectSettings::GetMoodTags)
-							.LineHeightPercentage(1.25)
+							SNew(SBorder)
+							.BorderImage(this, &FDetailCustomization_YapProjectSettings::TODOBorderImage)
+							.Padding(4, 2, 4, 2)
+							[
+								SNew(STextBlock)
+								.Text(this, &FDetailCustomization_YapProjectSettings::GetMoodTags)
+								.LineHeightPercentage(1.25)
+							]
 						]
 					]
 					+ SVerticalBox::Slot()
 					.AutoHeight()
+					.Padding(0, VerticalPadding)
 					[
-						SNew(SBox)
-						.Visibility(this, &FDetailCustomization_YapProjectSettings::Visibility_AddDefaultMoodTags)
-						[
-							SNew(SButton)
-							.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_AddDefaultMoodTags)
-							.ToolTipText(INVTEXT("Adds the following tags:\nAngry\nCalm\nConfused\nDisgusted\nDoubtful\nHappy\nInjured\nLaughing\nPanicked\nSad\nScared\nStressed\nSurprised"))
-							[
-								SNew(STextBlock)
-								.Text(INVTEXT("Add default values..."))
-							]
-						]
+						SNew(SButton)
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags)
+						.Text(INVTEXT("Reset to defaults..."))
+						.ToolTipText(FText::FromString(DefaultMoodTagsToolTip))
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0, VerticalPadding)
+					[
+						SNew(SButton)
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags)
+						.Text(INVTEXT("Delete all..."))
+						.ToolTipText(INVTEXT("Attempts to delete all tags"))
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0, VerticalPadding)
+					[
+						SNew(SButton)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
+						.ToolTipText(INVTEXT("Open tags manager"))
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, INVTEXT("Mood Tags"), ProjectSettings->MoodTagsParent.ToString())
+						.Text(INVTEXT("Edit Mood Tags"))
 					]
 				];
 
-				Category.AddCustomRow(INVTEXT("TODO Test"))
-				.ValueContent()
-				[
-					SNew(SButton)
-					.VAlign(VAlign_Center)
-					.HAlign(HAlign_Center)
-					.ToolTipText(INVTEXT("Open tags manager"))
-					.OnClicked_Lambda([this]()
-					{
-						FGameplayTagManagerWindowArgs Args;
-						Args.Title = INVTEXT("Mood Tags");
-						Args.bRestrictedTags = false;
-						Args.Filter = GetDefault<UYapProjectSettings>()->MoodTagsParent.ToString();
-						UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
-						return FReply::Handled();
-					})
-					[
-						SNew(SHorizontalBox)
-						+SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(FMargin(0,0,4,0))
-						[
-							SNew(STextBlock)
-							.Text(INVTEXT("Edit Mood Tags"))
-						]
-					]
-				];
+				continue;
 			}
 		}
 	}
 }
 
-EVisibility FDetailCustomization_YapProjectSettings::Visibility_AddDefaultMoodTags() const
+FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags() const
 {
-	return (GetDefault<UYapProjectSettings>()->GetMoodTags().Num() == 0) ? EVisibility::Visible : EVisibility::Collapsed;
-}
-
-FReply FDetailCustomization_YapProjectSettings::OnClicked_AddDefaultMoodTags() const
-{
-	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), GetMutableDefault<UYapProjectSettings>());
+	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, INVTEXT("Are you sure?")) )
+	{
+		return FReply::Handled();
+	}
 	
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Angry", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Angry", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Calm", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Confused", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Disgusted", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Doubtful", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Happy", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Injured", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Laughing", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Panicked", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Sad", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Scared", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Stressed", "", "YapGameplayTags.ini");
-	IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI("Yap.Mood.Surprised", "", "YapGameplayTags.ini");
+	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
+	
+	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), ProjectSettings);
+
+	FString DefaultTagParent = "Yap.Mood";
+	
+	FName IniFile = "YapGameplayTags.ini";
+
+	// Remove any tags that should not be present
+	for (FGameplayTag ExistingTag : ProjectSettings->GetMoodTags())// DefaultTags.CreateIterator(); It; ++It)
+	{
+		if (!ExistingTag.IsValid())
+		{
+			continue;
+		}
+		
+		FString ExistingTagString = ExistingTag.ToString();
+		
+		if (!DefaultMoodTags.Contains(ExistingTagString))
+		{
+			TSharedPtr<FGameplayTagNode> ExistingTagNode = UGameplayTagsManager::Get().FindTagNode(ExistingTag);
+			IGameplayTagsEditorModule::Get().DeleteTagFromINI(ExistingTagNode);
+		}
+	}
+	
+	// Make sure all of the default tags exist
+	for (const FString& Tag : DefaultMoodTags)
+	{
+		FGameplayTag ExistingTag = UGameplayTagsManager::Get().RequestGameplayTag(FName(Tag), false);
+
+		if (!ExistingTag.IsValid())
+		{
+			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag, "", IniFile);
+		}
+	}
 
 	FYapTransactions::EndModify();
 	
+	return FReply::Handled();
+}
+
+FReply FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags() const
+{
+	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, INVTEXT("Are you sure?")) )
+	{
+		return FReply::Handled();
+	}
+	
+	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
+
+	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), ProjectSettings);
+
+	for (FGameplayTag ExistingTag : ProjectSettings->GetMoodTags())// DefaultTags.CreateIterator(); It; ++It)
+	{
+		TSharedPtr<FGameplayTagNode> ExistingTagNode = UGameplayTagsManager::Get().FindTagNode(ExistingTag);
+		IGameplayTagsEditorModule::Get().DeleteTagFromINI(ExistingTagNode);
+	}
+	
+	FYapTransactions::EndModify();
+
+	return FReply::Handled();
+}
+
+FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager(FText Title, FString Filter)
+{
+	FGameplayTagManagerWindowArgs Args;
+	Args.Title = Title;
+	Args.bRestrictedTags = false;
+	Args.Filter = Filter;
+
+	/*CurrentYapTagPicker = */UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
+
 	return FReply::Handled();
 }

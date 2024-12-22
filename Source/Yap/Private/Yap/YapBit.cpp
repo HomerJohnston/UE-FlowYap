@@ -10,14 +10,6 @@
 
 FYapBit::FYapBit()
 {
-#if WITH_EDITOR
-	FGameplayTagContainer Keys = UYapProjectSettings::Get()->GetMoodTags();
-
-	if (Keys.Num() > 0)
-	{
-		MoodKey = Keys.First();
-	}
-#endif
 }
 
 #if WITH_EDITOR
@@ -36,26 +28,16 @@ const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 
 	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
 }
-
-FGameplayTag FYapBit::GetMoodKeyLazyInit()
-{
-	if (!MoodKey.IsValid())
-	{
-		FGameplayTagContainer Keys = UYapProjectSettings::Get()->GetMoodTags();
-
-		if (Keys.Num() > 0)
-		{
-			MoodKey = Keys.First();
-		}
-	}
-	
-	return MoodKey;
-}
 #endif
 
-FGameplayTag FYapBit::GetMoodKey() const
+FGameplayTag FYapBit::GetMoodKey(bool bReturnDefault) const
 {
-	return MoodKey;
+	if (MoodKey.IsValid() || !bReturnDefault)
+	{
+		return MoodKey;
+	}
+
+	return UYapProjectSettings::Get()->GetDefaultMoodTag();
 }
 
 EYapTimeMode FYapBit::GetTimeMode() const

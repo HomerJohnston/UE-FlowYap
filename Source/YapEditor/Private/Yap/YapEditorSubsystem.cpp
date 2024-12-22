@@ -22,35 +22,38 @@ void UYapEditorSubsystem::UpdateMoodKeyIconsMap()
 	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
 
 	FGameplayTagContainer MoodKeys = ProjectSettings->GetMoodTags();
-
-
+	
 	MoodKeyIconTextures.Empty(MoodKeys.Num());
 	MoodKeyIconBrushes.Empty(MoodKeys.Num());
 
 	for (const FGameplayTag& MoodKey : MoodKeys)
 	{
-		if (!MoodKey.IsValid())
-		{
-			continue;
-		}
-		
-		FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
-		UTexture2D* MoodKeyIcon = FImageUtils::ImportFileAsTexture2D(IconPath);
-
-		if (!IsValid(MoodKeyIcon))
-		{
-			continue;
-		}
-
-		MoodKeyIconTextures.Add(MoodKey, MoodKeyIcon);
-
-		TSharedPtr<FSlateBrush> MoodKeyBrush = MakeShareable(new FSlateBrush);
-
-		MoodKeyBrush->SetResourceObject(MoodKeyIcon);
-		MoodKeyBrush->SetImageSize(FVector2D(16, 16));
-		
-		MoodKeyIconBrushes.Add(MoodKey, MoodKeyBrush);
+		BuildIcon(MoodKey);
 	}
+
+	BuildIcon(FGameplayTag::EmptyTag);
+}
+
+void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodKey)
+{
+	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
+
+	FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
+	UTexture2D* MoodKeyIcon = FImageUtils::ImportFileAsTexture2D(IconPath);
+
+	if (!IsValid(MoodKeyIcon))
+	{
+		return;
+	}
+
+	MoodKeyIconTextures.Add(MoodKey, MoodKeyIcon);
+
+	TSharedPtr<FSlateBrush> MoodKeyBrush = MakeShareable(new FSlateBrush);
+
+	MoodKeyBrush->SetResourceObject(MoodKeyIcon);
+	MoodKeyBrush->SetImageSize(FVector2D(16, 16));
+		
+	MoodKeyIconBrushes.Add(MoodKey, MoodKeyBrush);
 }
 
 UTexture2D* UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
@@ -80,18 +83,18 @@ const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 
 void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection);
-
 	if (UGameplayTagsManager::Get().FindTagSource("YapGameplayTags.ini") == nullptr)
 	{
 		IGameplayTagsEditorModule::Get().AddNewGameplayTagSource("YapGameplayTags.ini");
 	}
 
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
+
 	ProjectSettings->OnMoodTagsChanged.AddUObject(this, &ThisClass::UpdateMoodKeyIconsMap);
 
 	UpdateMoodKeyIconsMap();
 
+	// TODO move these into my style
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Green, Green);
 	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);

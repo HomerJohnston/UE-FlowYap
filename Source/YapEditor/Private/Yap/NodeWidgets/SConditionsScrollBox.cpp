@@ -123,6 +123,7 @@ void SConditionsScrollBox::OnConditionsUpdated()
 		UYapCondition* Condition = (*ConditionsArray)[i];
 		
 		TSharedRef<SWidget> ConditionButton = SNew(SButton)
+			
 			.ButtonColorAndOpacity(this, &SConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, Condition)
 			.ContentPadding(FMargin(4, 2, 4, 0))
 			.HAlign(HAlign_Center)
@@ -143,6 +144,7 @@ void SConditionsScrollBox::OnConditionsUpdated()
 		.Padding(0, 0, 4, 0)
 		[
 			SNew(SBox)
+			.Cursor(EMouseCursor::Default)
 			.MinDesiredWidth(24)
 			[
 				ConditionButton
@@ -154,6 +156,7 @@ void SConditionsScrollBox::OnConditionsUpdated()
 	.Padding(0, 0, 0, 0)
 	[
 		SNew(SButton)
+		.Cursor(EMouseCursor::Default)
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ToolTipText(INVTEXT("Add Condition"))

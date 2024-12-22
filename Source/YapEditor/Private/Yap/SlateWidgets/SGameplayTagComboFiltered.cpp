@@ -73,6 +73,7 @@ void SGameplayTagComboFiltered::Construct(const FArguments& InArgs)
 		[*/
 			SAssignNew(ComboButton, SComboButton)
 			/*.ComboButtonStyle(FAppStyle::Get(), "SimpleComboButton")*/ .ComboButtonStyle(FGameplayTagFilteredStyle::Get(), "GameplayTags.ComboButton")
+			.Cursor(EMouseCursor::Default)
 			.HasDownArrow(false)
 			.ContentPadding(FMargin(3, 0, 3, 0))
 			.IsEnabled(this, &SGameplayTagComboFiltered::IsValueEnabled)
