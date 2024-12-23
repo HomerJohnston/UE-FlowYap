@@ -891,6 +891,11 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_PortraitImag
 
 	Color.A *= UYapEditorSettings::Get()->GetPortraitBorderAlpha();
 
+	if (!GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	{
+		Color.A *= 0.5f;
+	}
+
 	return Color;
 }
 

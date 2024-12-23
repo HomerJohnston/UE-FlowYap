@@ -1,9 +1,11 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "YapCharacterComponent.h"
+#include "YapConversationBrokerBase.h"
 #include "Yap/YapBitReplacement.h"
 #include "YapSubsystem.generated.h"
 
+class UYapConversationBrokerBase;
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
@@ -87,6 +89,9 @@ protected:
 	UPROPERTY(Transient)
 	TArray<UObject*> Listeners;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UYapConversationBrokerBase> ConversationBroker;
+	
 	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, UFlowNode_YapDialogue*> TaggedFragments;
@@ -113,9 +118,6 @@ protected:
 
 	UPROPERTY(Transient)
 	TSubclassOf<UObject> ConversationBrokerClass;
-	
-	UPROPERTY(Transient)
-	TObjectPtr<UObject> ConversationBroker;
 	
 	// ------------------------------------------
 	// PUBLIC API
@@ -151,6 +153,9 @@ protected:
 	void BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
 
 	/**  */
+	void OnFinishedBroadcastingPrompts();
+	
+	/**  */
 	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
 	/**  */
@@ -172,11 +177,43 @@ public:
 
 protected:
 	/**  */
-	void OnConversationStarts_Internal(const FGameplayTag& Name);
+	void OnConversationStarts_Internal(const FGameplayTag& ConversationName);
 
 	/**  */
 	void OnConversationEnds_Internal(const FGameplayTag& Name);
 
 	/**  */
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
+
+	//#define FUNCTION_REF(Class, FunctionRef) Class, &Class::FunctionRef, &Class::Execute_##FunctionRef
+	
+	template<auto TFunction, auto TExecFunction, typename... TArgs>
+	void BroadcastBrokerListenerFuncs(TArgs&&... Args)
+	{
+		bool bHandled = false;
+		
+		if (IsValid(ConversationBroker))
+		{
+			(ConversationBroker->*TFunction)(Args...);
+			bHandled = true;
+		}
+
+		for (int i = 0; i < Listeners.Num(); ++i)
+		{
+			UObject* Listener = Listeners[i];
+
+			if (!IsValid(Listener))
+			{
+				continue;
+			}
+
+			(*TExecFunction)(Listener, Args...);
+			bHandled = true;
+		}
+
+		if (!bHandled)
+		{
+			UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
+		}
+	}
 };

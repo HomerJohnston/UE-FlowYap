@@ -4,9 +4,9 @@
 
 #include "YapConversationBrokerBase.generated.h"
 
-/** Optional base class for brokering Yap to your game. Create a child class of this and override the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
-UCLASS(Abstract, Blueprintable)
-class UYapConversationBrokerBase : public UObject, public IYapConversationListenerInterface
+/** Optional base class for brokering Yap to your game. Create a child class of this and the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
+UCLASS(Abstract)
+class UYapConversationBrokerBase : public UObject
 {
 	GENERATED_BODY()
 
@@ -14,14 +14,22 @@ public:
 	bool ImplementsGetWorld() const override { return true; }
 	
 public:
-	
-	void OnConversationStarts_Implementation(const FGameplayTag& Conversation) override;
 
-	void OnConversationEnds_Implementation(const FGameplayTag& Conversation) override;
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnConversationBegins(const FGameplayTag& Conversation);
 
-	void OnDialogueStart_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo) override;
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnConversationEnds(const FGameplayTag& Conversation);
 
-	void OnDialogueEnd_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo) override;
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Character, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset);
 
-	void AddPrompt_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle) override;
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
+
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnPromptOptionAdded(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle);
+
+	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	void OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
 };

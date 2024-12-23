@@ -6,9 +6,12 @@
 
 #include "GameplayTagsManager.h"
 #include "Logging/StructuredLog.h"
+#include "Yap/YapCharacter.h"
+#include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
 #include "Yap/YapConversationListenerInterface.h"
+#include "Yap/YapDialogueHandle.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
@@ -150,12 +153,17 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	}
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
-	
-	for (int i = 0; i < Listeners.Num(); ++i)
-	{
-		UObject* Listener = Listeners[i];
-		IYapConversationListenerInterface::Execute_AddPrompt(Listener, ConversationName, Bit, Handle);
-	}
+
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListenerInterface::Execute_OnPromptOptionAdded>
+		(ConversationName, Bit, Handle);
+}
+
+void UYapSubsystem::OnFinishedBroadcastingPrompts()
+{
+	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation : FGameplayTag::EmptyTag;
+
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionsAllAdded, &IYapConversationListenerInterface::Execute_OnPromptOptionsAllAdded>
+		(ConversationName);
 }
 
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
@@ -170,12 +178,11 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	{
 		ConversationName = ActiveConversation.Conversation;
 	}
-	
-	for (int i = 0; i < Listeners.Num(); ++i)
-	{
-		UObject* Listener = Listeners[i];
-		IYapConversationListenerInterface::Execute_OnDialogueStart(Listener, ConversationName, Bit);
-	}
+
+	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex);
+
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListenerInterface::Execute_OnDialogueBegins>
+		(ConversationName, DialogueHandle, Bit.GetCharacterAsset().Get(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>());
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -188,18 +195,15 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 	{
 		ConversationName = ActiveConversation.Conversation;
 	}
-	
-	for (int i = 0; i < Listeners.Num(); ++i)
-	{
-		UObject* Listener = Listeners[i];
-		IYapConversationListenerInterface::Execute_OnDialogueEnd(Listener, ConversationName, Bit);
-	}
+
+	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex);
+
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueEnds, &IYapConversationListenerInterface::Execute_OnDialogueEnds>
+		(ConversationName, DialogueHandle);
 }
 
 void UYapSubsystem::RunPrompt(FYapPromptHandle& Handle)
 {
-	//BroadcastDialogueStart(Handle.DialogueNode, Handle.FragmentIndex);
-
 	Handle.DialogueNode->RunPrompt(Handle.FragmentIndex);
 }
 
@@ -236,31 +240,21 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	if (ConversationBrokerClass)
 	{
-		ConversationBroker = NewObject<UObject>(this, ConversationBrokerClass);
-		AddConversationListener(ConversationBroker);
-	}
-	else
-	{
-		UE_LOG(LogYap, Error, TEXT("No conversation broker!")); // TODO better logging
+		ConversationBroker = NewObject<UYapConversationBrokerBase>(this, ConversationBrokerClass);
 	}
 }
 
-void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& Name)
+
+void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& ConversationName)
 {
-	for (int i = 0; i < Listeners.Num(); ++i)
-	{
-		UObject* Listener = Listeners[i];
-		IYapConversationListenerInterface::Execute_OnConversationStarts(Listener, Name);
-	}
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationBegins, &IYapConversationListenerInterface::Execute_OnConversationBegins>
+		(ConversationName);
 }
 
-void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& Name)
+void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& ConversationName)
 {
-	for (int i = 0; i < Listeners.Num(); ++i)
-	{
-		UObject* Listener = Listeners[i];
-		IYapConversationListenerInterface::Execute_OnConversationEnds(Listener, Name);
-	}
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationEnds, &IYapConversationListenerInterface::Execute_OnConversationEnds>
+		(ConversationName);
 }
 
 bool UYapSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const

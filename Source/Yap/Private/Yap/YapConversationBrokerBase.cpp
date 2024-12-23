@@ -1,26 +1,34 @@
 ﻿#include "Yap/YapConversationBrokerBase.h"
 
-void UYapConversationBrokerBase::OnConversationStarts_Implementation(const FGameplayTag& Conversation)
+#include "Yap/YapDialogueHandle.h"
+#include "Yap/YapLog.h"
+
+void UYapConversationBrokerBase::OnConversationBegins_Implementation(const FGameplayTag& Conversation)
 {
-	
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 void UYapConversationBrokerBase::OnConversationEnds_Implementation(const FGameplayTag& Conversation)
 {
-	
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnDialogueStart_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo)
+void UYapConversationBrokerBase::OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Character, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset)
 {
-	
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnDialogueEnd_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo)
+void UYapConversationBrokerBase::OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
 {
-	
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::AddPrompt_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle)
+void UYapConversationBrokerBase::OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle)
 {
-	
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
+}
+
+void UYapConversationBrokerBase::OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
+{
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
