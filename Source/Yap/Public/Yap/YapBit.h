@@ -11,6 +11,7 @@
 
 enum class EYapDialogueSkippable : uint8;
 class UYapCharacter;
+class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
 
 USTRUCT(BlueprintType)
@@ -28,7 +29,7 @@ struct YAP_API FYapBit
 	// SETTINGS
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	TSoftObjectPtr<UYapCharacter> Character;
+	TSoftObjectPtr<UYapCharacter> CharacterAsset;
 	
 	UPROPERTY(BlueprintReadOnly)
 	FText DialogueText;
@@ -62,11 +63,20 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	double CachedAudioTime = 0;
+
+	// --------------------------------------------------------------------------------------------
+	// STATE
+protected:
+	UPROPERTY(Transient)
+	mutable TObjectPtr<UYapCharacter> Character;
 	
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
+protected:
+	const TSoftObjectPtr<UYapCharacter> GetCharacterAsset() const { return CharacterAsset; }
+
 public:
-	const TSoftObjectPtr<UYapCharacter> GetCharacterAsset() const { return Character; }
+	const UYapCharacter* GetCharacter(bool bSuppressWarnings = false) const;
 	
 	const FText& GetTitleText() const { return TitleText; }
 
@@ -111,6 +121,10 @@ public:
 	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
 	double GetTime() const;
+	
+	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
+	
+	void OnCharacterLoadComplete();
 
 protected:
 	double GetManualTime() const { return ManualTime; }
@@ -129,9 +143,9 @@ public:
 	// EDITOR API
 #if WITH_EDITOR
 public:
-	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return Character; }
+	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return CharacterAsset; }
 	
-	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter) { Character = InCharacter; }
+	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter) { CharacterAsset = InCharacter; }
 	
 	void SetTitleText(const FText& InText) { TitleText = InText; }
 	

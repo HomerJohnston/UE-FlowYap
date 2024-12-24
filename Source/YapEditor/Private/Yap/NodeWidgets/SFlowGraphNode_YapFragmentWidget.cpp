@@ -910,7 +910,7 @@ void SFlowGraphNode_YapFragmentWidget::OnConditionsUpdated()
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
-	const float MaxPaddedSetting =  UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
 	if (GEditor->PlayWorld)

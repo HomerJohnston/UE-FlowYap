@@ -14,14 +14,7 @@
 #undef LOCTEXT_NAMESPACE
 FYapFragment::FYapFragment()
 {
-#if WITH_EDITOR
-	//FragmentTagFilterDelegateHandle = UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddStatic(&FFlowYapFragment::OnGetCategoriesMetaFromPropertyHandle);
-#endif
 	Guid = FGuid::NewGuid();
-}
-
-FYapFragment::~FYapFragment()
-{
 }
 
 bool FYapFragment::CheckConditions() const
@@ -46,6 +39,11 @@ void FYapFragment::ResetOptionalPins()
 {
 	bShowOnStartPin = false;
 	bShowOnEndPin = false;
+}
+
+void FYapFragment::PreloadContent(UFlowNode_YapDialogue* OwningContext)
+{
+	Bit.PreloadContent(OwningContext);
 }
 
 float FYapFragment::GetPaddingToNextFragment() const
@@ -101,17 +99,17 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 	
 	if (Owner.IsValid() && Owner->GetIsPlayerPrompt())
 	{
-		OutPins.Add(GetPromptPin());
+		OutPins.Add(PromptPin);
 	}
 	
 	if (UsesEndPin())
 	{
-		OutPins.Add(GetEndPin());
+		OutPins.Add(EndPin);
 	}
 	
 	if (UsesStartPin())
 	{
-		OutPins.Add(GetStartPin());
+		OutPins.Add(StartPin);
 	}
 	
 	return OutPins;
@@ -119,22 +117,37 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 
 FFlowPin FYapFragment::GetPromptPin() const
 {
-	FFlowPin PromptPin = FName("Prompt_" + GetGuid().ToString());
-	PromptPin.PinToolTip = "Out";
+	if (!PromptPin.IsValid())
+	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->PromptPin = FName("Prompt_" + Guid.ToString());
+		MutableThis->PromptPin.PinToolTip = "Out";
+	}
+	
 	return PromptPin;
 }
 
 FFlowPin FYapFragment::GetEndPin() const
 {
-	FFlowPin EndPin = FName("End_" + GetGuid().ToString());
-	EndPin.PinToolTip = "Runs before any end-padding time begins";
+	if (!PromptPin.IsValid())
+	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->EndPin = FName("End_" + Guid.ToString());
+		MutableThis->PromptPin.PinToolTip = "Runs before end-padding time begins";
+	}
+	
 	return EndPin;
 }
 
 FFlowPin FYapFragment::GetStartPin() const
 {
-	FFlowPin StartPin = FName("Start_" + GetGuid().ToString());
-	StartPin.PinToolTip = "Runs when the fragment starts playback";
+	if (!PromptPin.IsValid())
+ 	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->StartPin = FName("Start_" + Guid.ToString());
+		 MutableThis->StartPin.PinToolTip = "Runs when fragment starts playback";
+ 	}
+	
 	return StartPin;
 }
 

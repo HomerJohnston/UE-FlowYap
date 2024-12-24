@@ -10,6 +10,9 @@
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 
+FName UFlowNode_YapDialogue::OutputPinName = FName("Out");
+FName UFlowNode_YapDialogue::BypassPinName = FName("Bypass");
+
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
 #if WITH_EDITOR
@@ -80,6 +83,8 @@ void UFlowNode_YapDialogue::InitializeInstance()
 			UYapSubsystem* Subsystem = GetWorld()->GetSubsystem<UYapSubsystem>();
 			Subsystem->RegisterTaggedFragment(Fragment.GetFragmentTag(), this);
 		}
+
+		Fragment.PreloadContent(this);
 	}
 }
 
@@ -111,6 +116,11 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 	{
 		TriggerOutput("Out", true, EFlowPinActivationType::PassThrough);
 	}
+}
+
+void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit)
+{
+	Bit->OnCharacterLoadComplete();
 }
 
 bool UFlowNode_YapDialogue::GetSkippable() const
@@ -164,7 +174,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 
 	if (BroadcastedFragments.Num() == 0)
 	{
-		TriggerOutput(FName("Bypass"), true);
+		TriggerOutput(BypassPinName, true);
 	}
 	else if (BroadcastedFragments.Num() == 1)
 	{
@@ -180,7 +190,7 @@ void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 	{
 		// TODO log error? This should never happen?
 		
-		TriggerOutput(FName("Bypass"), true);
+		TriggerOutput(BypassPinName, true);
 	}
 
 	++NodeActivationCount;
@@ -205,7 +215,7 @@ void UFlowNode_YapDialogue::FindStartingFragment()
 	
 	if (!bStartedSuccessfully)
 	{
-		TriggerOutput(FName("Bypass"), true);
+		TriggerOutput(BypassPinName, true);
 	}
 }
 
@@ -292,15 +302,13 @@ void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
 
-		FName PromptOutPinName("PromptOut_" + Fragment.GetGuid().ToString());
-
-		TriggerOutput(PromptOutPinName, true);
+		TriggerOutput(Fragment.GetPromptPin().PinName, true);
 	}
 	else
 	{
 		if (TalkSequencing == EYapDialogueTalkSequencing::SelectOne)
 		{
-			TriggerOutput(FName("Out"), true);
+			TriggerOutput(OutputPinName, true);
 		}
 		else
 		{
@@ -311,7 +319,7 @@ void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 				if (!bRanNextFragment && TalkSequencing == EYapDialogueTalkSequencing::RunUntilFailure)
 				{
 					// Whoops, this is the end of the line
-					TriggerOutput(FName("Out"), true);
+					TriggerOutput(OutputPinName, true);
 					return;
 				}
 				else if (bRanNextFragment)
@@ -322,7 +330,7 @@ void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 			}
 
 			// No more fragments to try and run!
-			TriggerOutput(FName("Out"), true);
+			TriggerOutput(OutputPinName, true);
 		}
 	}
 }
@@ -401,21 +409,6 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 	return FText::FromString(" ");
 }
 
-bool UFlowNode_YapDialogue::GetDynamicTitleColor(FLinearColor& OutColor) const
-{
-	return Super::GetDynamicTitleColor(OutColor);
-
-	/*
-	if (!Character)
-	{
-		return Super::GetDynamicTitleColor(OutColor);
-	}
-
-	OutColor = Character->GetEntityColor();
-	return true;
-	*/
-}
-
 bool UFlowNode_YapDialogue::SupportsContextPins() const
 {
 	return true;
@@ -442,7 +435,7 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 
 	if (!GetIsPlayerPrompt())
 	{
-		ContextOutputPins.Add(FName("Out"));
+		ContextOutputPins.Add(OutputPinName);
 	}
 
 	for (uint8 Index = 0; Index < Fragments.Num(); ++Index)
@@ -467,7 +460,7 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 
 	if (IsBypassPinRequired())
 	{
-		ContextOutputPins.Add(FName("Bypass"));
+		ContextOutputPins.Add(BypassPinName);
 	}
 	
 	return ContextOutputPins;
@@ -533,7 +526,9 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 
 		if (Fragments.IsValidIndex(PreviousFragmentIndex))
 		{
-			NewFragment.GetBitMutable().SetCharacter(GetFragmentByIndex(PreviousFragmentIndex).GetBit().GetCharacterMutable());
+			const FYapFragment& PreviousFragment = GetFragmentByIndex(PreviousFragmentIndex);
+			NewFragment.GetBitMutable().SetCharacter(PreviousFragment.GetBit().GetCharacterMutable());
+			NewFragment.GetBitMutable().SetMoodKey(PreviousFragment.GetBit().GetMoodKey());
 		}
 	}
 	else

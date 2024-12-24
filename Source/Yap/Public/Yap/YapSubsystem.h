@@ -164,7 +164,8 @@ protected:
 	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
 
 	/**  */
-	void RunPrompt(FYapPromptHandle& Handle);
+	UFUNCTION(BlueprintCallable)
+	void RunPrompt(const FYapPromptHandle& Handle);
 
 public:
 	/**  */

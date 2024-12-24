@@ -1,8 +1,11 @@
 #include "Yap/YapBit.h"
 
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
 #include "Yap/YapBitReplacement.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
+#include "Yap/YapStreamableManager.h"
 #include "Yap/YapTextCalculator.h"
 
 // --------------------------------------------------------------------------------------------
@@ -12,18 +15,61 @@ FYapBit::FYapBit()
 {
 }
 
+const UYapCharacter* FYapBit::GetCharacter(bool bSuppressWarnings) const
+{
+	if (IsValid(Character))
+	{
+		return Character;
+	}
+	
+	if (CharacterAsset.IsNull())
+	{
+#if WITH_EDITOR
+		if (IsValid(GEditor->EditorWorld))
+		{
+			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
+		}
+#endif
+		return nullptr;
+	}
+	
+	if (CharacterAsset.IsValid())
+	{
+		Character = CharacterAsset.Get();
+		return Character;
+	}
+
+	Character = CharacterAsset.LoadSynchronous();
+
+	if (!bSuppressWarnings)
+	{
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loading character: %s"), *CharacterAsset->GetName());
+
+#if WITH_EDITOR
+		FNotificationInfo NotificationInfo(INVTEXT("Yap: Synchronously loading UYapCharacter."));
+		NotificationInfo.ExpireDuration = 5.0f;
+		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
+		NotificationInfo.SubText = FText::Format(INVTEXT("Loading: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
+		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+#endif
+	}
+	
+	if (!IsValid(Character))
+	{
+		UE_LOG(LogYap, Error, TEXT("Unknown error - could not load UYapCharacter: %s"), *CharacterAsset->GetName());
+	}
+	
+	return Character;
+}
+
 #if WITH_EDITOR
 const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
-	if (Character.IsPending())
+	const UYapCharacter* Char = GetCharacter();
+
+	if (IsValid(Char))
 	{
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loading portrait brushes. This should ONLY happen during editor time!"))
-		Character.LoadSynchronous();
-	}
-	
-	if (Character.IsValid())
-	{
-		return Character->GetPortraitBrush(MoodKey);
+		return Char->GetPortraitBrush(MoodKey);
 	}
 
 	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
@@ -69,6 +115,24 @@ double FYapBit::GetTime() const
 	}
 }
 
+void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
+{
+	if (IsValid(Character))
+	{
+		return;
+	}
+
+	if (CharacterAsset.IsPending())
+	{
+		FYapStreamableManager::Get().RequestAsyncLoad(CharacterAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this));
+	}
+}
+
+void FYapBit::OnCharacterLoadComplete()
+{
+	Character = CharacterAsset.Get();
+}
+
 // --------------------------------------------------------------------------------------------
 // Protected
 
@@ -92,7 +156,7 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 {
 #define FLOWYAP_REPLACE(X) if (Replacement.X.IsSet()) {X = Replacement.X.GetValue(); }  
 
-	FLOWYAP_REPLACE(Character);
+	FLOWYAP_REPLACE(CharacterAsset);
 	FLOWYAP_REPLACE(TitleText);
 	FLOWYAP_REPLACE(DialogueText);
 	FLOWYAP_REPLACE(DialogueAudioAsset);

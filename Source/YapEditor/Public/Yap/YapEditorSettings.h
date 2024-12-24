@@ -21,7 +21,7 @@ protected:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
 	float PortraitBorderAlpha = 1.0f;
-	
+
 public:
 	int32 GetDialogueWidthAdjustment() const { return DialogueWidthAdjustment; };
 

@@ -16,7 +16,7 @@ struct FYapBitReplacement
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<TSoftObjectPtr<UYapCharacter>> Character;
+	TOptional<TSoftObjectPtr<UYapCharacter>> CharacterAsset;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -63,9 +63,9 @@ struct FYapBitReplacement
 
 inline FYapBitReplacement::FYapBitReplacement()
 {
-	Character.Reset();
+	CharacterAsset.Reset();
 
-	// TODO investigate this more, why is FText TOptional crashing if I don't do all this?
+	// TODO investigate this more, why is FText TOptional crashing if I don't do this?
 	TitleText = FText::GetEmpty();
 	DialogueText = FText::GetEmpty();
 

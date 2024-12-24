@@ -1,6 +1,7 @@
 #pragma once
 #include "YapBit.h"
 #include "GameplayTagContainer.h"
+#include "Nodes/FlowPin.h"
 
 #include "YapFragment.generated.h"
 
@@ -18,6 +19,7 @@ enum class EFlowYapFragmentPause : uint8
 	Custom
 };
 
+
 USTRUCT(BlueprintType)
 struct YAP_API FYapFragment
 {
@@ -26,9 +28,9 @@ struct YAP_API FYapFragment
 public:
 	FYapFragment();
 	
-	~FYapFragment();
 	bool CheckConditions() const;
 	void ResetOptionalPins();
+	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -73,7 +75,16 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Transient)
 	int32 ActivationCount = 0;
-	
+
+	UPROPERTY()
+	FFlowPin PromptPin;
+
+	UPROPERTY()
+	FFlowPin StartPin;
+
+	UPROPERTY()
+	FFlowPin EndPin;
+
 	// ==========================================
 	// API
 public:
@@ -124,10 +135,16 @@ public:
 	TArray<FFlowPin> GetOutputPins() const;
 
 	FFlowPin GetPromptPin() const;
+
+	FName GetPromptPinName() const { return GetPromptPin().PinName; }
 	
 	FFlowPin GetEndPin() const;
 
-	FFlowPin GetStartPin() const;
+	FName GetEndPinName() const { return GetEndPin().PinName; }
+
+	FFlowPin GetStartPin() const;;
+
+	FName GetStartPinName() const { return GetStartPin().PinName; }
 
 	void InvalidateFragmentTag();
 

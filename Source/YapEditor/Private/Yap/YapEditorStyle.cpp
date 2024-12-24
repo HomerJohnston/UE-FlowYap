@@ -164,7 +164,6 @@ void FYapEditorStyle::Initialize()
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
 
-	/*
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_FragmentControls, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray_Glass))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
@@ -174,7 +173,6 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
-	*/
 	
 	YAP_DEFINE_STYLE(FCheckBoxStyle, CheckBoxStyle_Skippable, FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"),
 		.SetCheckBoxType(ESlateCheckBoxType::ToggleButton)

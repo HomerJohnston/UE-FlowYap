@@ -112,6 +112,9 @@ protected:
 	UPROPERTY(Transient)
 	double FragmentEndedTime = -1;
 #endif
+
+	static FName OutputPinName;
+	static FName BypassPinName;
 	
 	// ============================================================================================
 	// PUBLIC API
@@ -191,6 +194,9 @@ protected:
 
 	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
 
+public:
+	void OnCharacterLoadComplete(FYapBit* Bit);
+	
 protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
 	
@@ -207,8 +213,6 @@ private:
 
 	FText GetNodeTitle() const override;
 	
-	bool GetDynamicTitleColor(FLinearColor& OutColor) const override;
-
 	bool CanUserAddInput() const override { return false; }
 
 	bool CanUserAddOutput() const override { return false; }
@@ -235,8 +239,6 @@ private:
 
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
 	
-protected:
-
 public:
 	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
 

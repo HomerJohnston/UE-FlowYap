@@ -8,6 +8,8 @@
 #include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapTextCalculator.h"
 
+FName UYapProjectSettings::CategoryName = FName("Yap");
+
 UYapProjectSettings::UYapProjectSettings()
 {
 

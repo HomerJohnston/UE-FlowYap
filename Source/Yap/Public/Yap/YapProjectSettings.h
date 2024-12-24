@@ -140,7 +140,9 @@ protected:
 	
 #if WITH_EDITOR
 public:
-	virtual FName GetCategoryName() const override { return FName("Yap"); }
+	static FName CategoryName;
+	
+	virtual FName GetCategoryName() const override { return CategoryName; }
 
 	virtual FText GetSectionText() const override { return INVTEXT("Settings"); }
 
