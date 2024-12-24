@@ -97,24 +97,24 @@ void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHan
 
 TArray<FFlowPin> FYapFragment::GetOutputPins() const
 {
-	TArray<FFlowPin> Pins;
+	TArray<FFlowPin> OutPins;
 	
 	if (Owner.IsValid() && Owner->GetIsPlayerPrompt())
 	{
-		Pins.Add(GetPromptPin());
+		OutPins.Add(GetPromptPin());
 	}
 	
 	if (UsesEndPin())
 	{
-		Pins.Add(GetEndPin());
+		OutPins.Add(GetEndPin());
 	}
 	
 	if (UsesStartPin())
 	{
-		Pins.Add(GetStartPin());
+		OutPins.Add(GetStartPin());
 	}
 	
-	return Pins;
+	return OutPins;
 }
 
 FFlowPin FYapFragment::GetPromptPin() const
