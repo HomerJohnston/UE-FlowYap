@@ -155,7 +155,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListenerInterface::Execute_OnPromptOptionAdded>
-		(ConversationName, Bit, Handle);
+		(ConversationName, Handle, Bit.GetCharacterAsset().LoadSynchronous(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTitleText());
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
@@ -181,8 +181,10 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex);
 
+	bool bSkippable = (Bit.GetSkippable() == EYapDialogueSkippable::Default) ? Dialogue->GetSkippable() : Bit.GetSkippable() == EYapDialogueSkippable::Skippable;
+	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListenerInterface::Execute_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetCharacterAsset().Get(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>());
+		(ConversationName, DialogueHandle, Bit.GetCharacterAsset().Get(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>(), bSkippable);
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)

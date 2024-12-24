@@ -15,21 +15,21 @@ public:
 	
 public:
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	UFUNCTION(BlueprintNativeEvent)
 	void OnConversationBegins(const FGameplayTag& Conversation);
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	UFUNCTION(BlueprintNativeEvent)
 	void OnConversationEnds(const FGameplayTag& Conversation);
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
-	void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Character, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset);
+	UFUNCTION(BlueprintNativeEvent)
+	void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, bool bSkippable);
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	UFUNCTION(BlueprintNativeEvent)
 	void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
-	void OnPromptOptionAdded(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle);
+	UFUNCTION(BlueprintNativeEvent)
+	void OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
-	UFUNCTION(BlueprintNativeEvent, meta=(ForceAsFunction))
+	UFUNCTION(BlueprintNativeEvent)
 	void OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
 };

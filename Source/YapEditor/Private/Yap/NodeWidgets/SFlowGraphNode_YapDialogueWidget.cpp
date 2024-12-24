@@ -26,6 +26,7 @@
 #include "Yap/NodeWidgets/SActivationCounterWidget.h"
 #include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
 #include "Yap/NodeWidgets/SConditionsScrollBox.h"
+#include "Yap/NodeWidgets/SSkippableCheckBox.h"
 #include "Yap/NodeWidgets/SYapGraphPinExec.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
@@ -100,25 +101,29 @@ int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit() const
 	return GetFlowYapDialogueNode()->GetNodeActivationLimit();
 }
 
-EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_InterruptibleToggleIconOff() const
+EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff() const
 {
-	switch (GetFlowYapDialogueNode()->GetInterruptibleSetting())
+	switch (GetFlowYapDialogueNode()->GetSkippableSetting())
 	{
-		case EYapDialogueInterruptible::UseProjectDefaults:
+		case EYapDialogueSkippable::Default:
 		{
-			return UYapProjectSettings::Get()->GetDialogueInterruptibleByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
+			return UYapProjectSettings::Get()->GetDialogueSkippableByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
 		}
-		case EYapDialogueInterruptible::Interruptible:
+		case EYapDialogueSkippable::Skippable:
 		{
 			return EVisibility::Collapsed;
 		}
-		case EYapDialogueInterruptible::NotInterruptible:
+		case EYapDialogueSkippable::NotSkippable:
 		{
 			return EVisibility::Visible;
 		}
+		default:
+		{
+			check(false);
+		}
 	}
 	
-	return (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::NotInterruptible) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
+	return (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::NotSkippable) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
 }
 
 void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg)
@@ -190,20 +195,7 @@ void SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton(int32 Fragment
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
-	TSharedPtr<SCheckBox> InterruptibleCheckBox;
-
-	// TODO move to a proper style
-	InterruptibleCheckBoxStyle = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
-
-	InterruptibleCheckBoxStyle.SetCheckBoxType(ESlateCheckBoxType::ToggleButton);
-	InterruptibleCheckBoxStyle.CheckedImage = InterruptibleCheckBoxStyle.UncheckedImage;
-	InterruptibleCheckBoxStyle.CheckedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
-	InterruptibleCheckBoxStyle.CheckedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
-
-	InterruptibleCheckBoxStyle.UndeterminedImage = InterruptibleCheckBoxStyle.UncheckedImage;
-	InterruptibleCheckBoxStyle.UndeterminedHoveredImage = InterruptibleCheckBoxStyle.UncheckedHoveredImage;
-	InterruptibleCheckBoxStyle.UndeterminedPressedImage = InterruptibleCheckBoxStyle.UncheckedPressedImage;
-
+	TSharedPtr<SCheckBox> SkippableCheckBox;
 	
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
@@ -271,41 +263,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.WidthOverride(20)
 			.HAlign(HAlign_Center)
 			[
-				SAssignNew(InterruptibleCheckBox, SCheckBox)
-				.Cursor(EMouseCursor::Default)
-				.Style(&InterruptibleCheckBoxStyle)
-				.Type(ESlateCheckBoxType::ToggleButton)
-				.Padding(FMargin(0, 0))
-				.CheckBoxContentUsesAutoWidth(true)
-				.ToolTipText(LOCTEXT("DialogueNode_Tooltip", "Toggle whether this dialogue can be skipped by the player. Hold CTRL while clicking to reset to project defaults."))
-				.IsChecked(this, &SFlowGraphNode_YapDialogueWidget::IsChecked_InterruptibleToggle)
-				.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_InterruptibleToggle)
-				.Content()
-				[
-					SNew(SBox)
-					.WidthOverride(20)
-					.HeightOverride(20)
-					.HAlign(HAlign_Center)
-					.VAlign(VAlign_Center)
-					[
-						SNew(SOverlay)
-						+ SOverlay::Slot()
-						[
-							SNew(SImage)
-							.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_InterruptibleToggleIcon)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.Image(FAppStyle::Get().GetBrush("Icons.Rotate180"))
-						]
-						+ SOverlay::Slot()
-						[
-							SNew(SImage)
-							.ColorAndOpacity(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_InterruptibleToggleIcon)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
-							.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_InterruptibleToggleIconOff)
-						]
-					]
-				]
+				CreateSkippableCheckbox
+				(
+					TAttribute<ECheckBoxState>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle),
+					FOnCheckStateChanged::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle),
+					TAttribute<FSlateColor>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_SkippableToggleIcon),
+					TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff)
+				)
 			]
 		]
 	];
@@ -313,55 +277,57 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	return Widget;
 }
 
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::IsChecked_InterruptibleToggle() const
+ECheckBoxState SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle() const
 {
-	switch (GetFlowYapDialogueNode()->Interruptible)
+	switch (GetFlowYapDialogueNode()->Skippable)
 	{
-	case EYapDialogueInterruptible::UseProjectDefaults:
+		case EYapDialogueSkippable::Default:
 		{
 			return ECheckBoxState::Undetermined;
 		}
-	case EYapDialogueInterruptible::NotInterruptible:
+		case EYapDialogueSkippable::NotSkippable:
 		{
 			return ECheckBoxState::Unchecked;
 		}
-	case EYapDialogueInterruptible::Interruptible:
+		case EYapDialogueSkippable::Skippable:
 		{
 			return ECheckBoxState::Checked;
 		}
+		default:
+		{
+			check(false);
+		}
 	}
-
-	check(false);
 	return ECheckBoxState::Undetermined;
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_InterruptibleToggle(ECheckBoxState CheckBoxState)
+void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
 {
-	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Toggle Interruptible"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Toggle Skippable"), GetFlowYapDialogueNodeMutable());
 
 	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
+		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::Default;
 	}
 	else if (CheckBoxState == ECheckBoxState::Checked)
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::Interruptible;
+		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::Skippable;
 	}
 	else
 	{
-		GetFlowYapDialogueNodeMutable()->Interruptible = EYapDialogueInterruptible::NotInterruptible;
+		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::NotSkippable;
 	}
 
 	FYapTransactions::EndModify();
 }
 
-FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_InterruptibleToggleIcon() const
+FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_SkippableToggleIcon() const
 {
-	if (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::NotInterruptible)
+	if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::NotSkippable)
 	{
 		return YapColor::Red;
 	}
-	else if (GetFlowYapDialogueNode()->Interruptible == EYapDialogueInterruptible::Interruptible)
+	else if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::Skippable)
 	{
 		return YapColor::Green;
 	}
@@ -1074,7 +1040,7 @@ void SFlowGraphNode_YapDialogueWidget::OnDialogueStart(uint8 FragmentIndex)
 	SetFlashFragment(FragmentIndex);
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnDialogueInterrupt(uint8 FragmentIndex)
+void SFlowGraphNode_YapDialogueWidget::OnDialogueSkipped(uint8 FragmentIndex)
 {
 	SetFlashFragment(FragmentIndex);
 }

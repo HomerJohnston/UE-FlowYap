@@ -30,11 +30,6 @@ const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 }
 #endif
 
-FGameplayTag FYapBit::GetMoodKey() const
-{
-	return MoodKey;
-}
-
 EYapTimeMode FYapBit::GetTimeMode() const
 {
 	return bUseProjectDefaultTimeSettings ? UYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;

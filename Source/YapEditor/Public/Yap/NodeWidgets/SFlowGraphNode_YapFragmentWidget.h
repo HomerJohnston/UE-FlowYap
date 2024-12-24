@@ -96,8 +96,14 @@ protected:
 	TSharedRef<SWidget> CreateFragmentHighlightWidget();
 	void OnTextCommitted_FragmentActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	EVisibility Visibility_FragmentRowNormalControls() const;
+	
 	TSharedRef<SWidget> CreateUpperFragmentBar();
 	EVisibility Visibility_FragmentTagWidget() const;
+	
+	ECheckBoxState IsChecked_SkippableToggle() const;
+	FSlateColor ColorAndOpacity_SkippableToggleIcon() const;
+	EVisibility Visibility_SkippableToggleIconOff() const;
+	void OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 

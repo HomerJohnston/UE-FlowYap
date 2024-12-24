@@ -31,7 +31,7 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-	bDefaultInterruptibleSetting = true;
+	bDefaultSkippableSetting = true;
 
 	DialogueAssetClass = nullptr;
 	

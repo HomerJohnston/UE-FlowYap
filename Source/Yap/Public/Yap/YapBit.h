@@ -5,16 +5,23 @@
 #include "YapLog.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
+#include "Yap/Enums/YapDialogueSkippable.h"
+
 #include "YapBit.generated.h"
 
+enum class EYapDialogueSkippable : uint8;
 class UYapCharacter;
 struct FYapBitReplacement;
 
 USTRUCT(BlueprintType)
 struct YAP_API FYapBit
 {
+#if WITH_EDITOR
+	friend class SFlowGraphNode_YapFragmentWidget;
+#endif
+	
 	GENERATED_BODY()
-
+	
 	FYapBit();
 	
 	// --------------------------------------------------------------------------------------------
@@ -23,24 +30,27 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UYapCharacter> Character;
 	
-	UPROPERTY(BlueprintReadOnly, meta=(MultiLine=true))
+	UPROPERTY(BlueprintReadOnly)
 	FText DialogueText;
 
-	UPROPERTY(BlueprintReadOnly, meta=(MultiLine=true))
+	UPROPERTY(BlueprintReadOnly)
 	FText TitleText;
 	
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UObject> DialogueAudioAsset;
 
-	UPROPERTY(BlueprintReadOnly, meta = (Yap))
+	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag MoodKey;
 	
 	UPROPERTY(BlueprintReadOnly)
 	bool bUseProjectDefaultTimeSettings = true;
 	
-	UPROPERTY(BlueprintReadOnly, meta = (EditCondition = "!bUseProjectDefaultTimeSettings"))
+	UPROPERTY(BlueprintReadOnly)
 	EYapTimeMode TimeMode = EYapTimeMode::AudioTime;
 
+	UPROPERTY(BlueprintReadOnly)
+	EYapDialogueSkippable Skippable = EYapDialogueSkippable::Default;
+	
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
 protected:
@@ -91,17 +101,16 @@ public:
 
 	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
 
-	FGameplayTag GetMoodKey() const;
+	FGameplayTag GetMoodKey() const { return MoodKey; }
 
-	/** Gets the evaluated interruptible setting to be used for this bit (incorporating project default settings and fallbacks) */
-	bool GetInterruptible() const;
+	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
+	EYapDialogueSkippable GetSkippable() const { return Skippable; }
 
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
 	EYapTimeMode GetTimeMode() const;
 	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
 	double GetTime() const;
-	
 
 protected:
 	double GetManualTime() const { return ManualTime; }
@@ -115,7 +124,6 @@ public:
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
-
 
 	// --------------------------------------------------------------------------------------------
 	// EDITOR API

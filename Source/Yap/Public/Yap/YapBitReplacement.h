@@ -44,7 +44,7 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<EYapDialogueInterruptible> Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
+	TOptional<EYapDialogueSkippable> Skippable = EYapDialogueSkippable::Default;
 
 	// TODO calculate and serialize below on PostEditChangeProperty
 
@@ -76,7 +76,7 @@ inline FYapBitReplacement::FYapBitReplacement()
 	MoodKey.Reset();
 	bUseProjectDefaultTimeSettings.Reset();
 	TimeMode.Reset();
-	Interruptible.Reset();
+	Skippable.Reset();
 
 	ManualTime.Reset();
 	CachedWordCount.Reset();

@@ -32,6 +32,7 @@
 #include "Yap/Helpers/YapEditableTextPropertyHandle.h"
 #include "Yap/NodeWidgets/SActivationCounterWidget.h"
 #include "Yap/NodeWidgets/SConditionsScrollBox.h"
+#include "Yap/NodeWidgets/SSkippableCheckBox.h"
 
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget()
 {	
@@ -356,6 +357,24 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 				]
 			]
 		]
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Right)
+		.AutoWidth()
+		.Padding(2, -2, -27, -2)
+		[
+			SNew(SBox)
+			.WidthOverride(20)
+			.HAlign(HAlign_Center)
+			[
+				CreateSkippableCheckbox
+				(
+					TAttribute<ECheckBoxState>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::IsChecked_SkippableToggle),
+					FOnCheckStateChanged::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_SkippableToggle),
+					TAttribute<FSlateColor>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_SkippableToggleIcon),
+					TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Visibility_SkippableToggleIconOff)
+				)
+			]
+		]
 	];
 	
 	OnConditionsUpdated();
@@ -366,6 +385,113 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() const
 {
 	return GetFlowYapDialogueNode()->GetDialogueTag().IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_SkippableToggle() const
+{
+	switch (GetFragment().GetBit().GetSkippable())
+	{
+		case EYapDialogueSkippable::Default:
+		{
+			return ECheckBoxState::Undetermined;
+		}
+		case EYapDialogueSkippable::NotSkippable:
+		{
+			return ECheckBoxState::Unchecked;
+		}
+		case EYapDialogueSkippable::Skippable:
+		{
+			return ECheckBoxState::Checked;
+		}
+		default:
+		{
+			check(false);
+		}
+	}
+	return ECheckBoxState::Undetermined;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_SkippableToggleIcon() const
+{
+	EYapDialogueSkippable SkippableSetting = GetFragment().GetBit().GetSkippable();
+	
+	if (SkippableSetting == EYapDialogueSkippable::NotSkippable)
+	{
+		return YapColor::Red;
+	}
+	else if (SkippableSetting == EYapDialogueSkippable::Skippable)
+	{
+		return YapColor::Green;
+	}
+	else
+	{
+		return YapColor::DarkGray;
+	}
+}
+
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_SkippableToggleIconOff() const
+{
+	switch (GetFragment().GetBit().GetSkippable())
+	{
+		case EYapDialogueSkippable::Default:
+		{
+			EYapDialogueSkippable DefaultSkippable = GetFlowYapDialogueNode()->GetSkippableSetting();
+
+			switch (DefaultSkippable)
+			{
+				case EYapDialogueSkippable::Default:
+				{
+					return UYapProjectSettings::Get()->GetDialogueSkippableByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
+				}
+				case EYapDialogueSkippable::Skippable:
+				{
+					return EVisibility::Collapsed;
+				}
+				case EYapDialogueSkippable::NotSkippable:
+				{
+					return EVisibility::Visible;
+				}
+				default:
+				{
+					check(false);
+				}
+			}
+		}
+		case EYapDialogueSkippable::Skippable:
+		{
+			return EVisibility::Collapsed;
+		}
+		case EYapDialogueSkippable::NotSkippable:
+		{
+			return EVisibility::Visible;
+		}
+		default:
+		{
+			check(false);
+		}
+	}
+
+	return EVisibility::Collapsed;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
+{
+	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Toggle Skippable"), GetFlowYapDialogueNode());
+
+	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
+	{
+		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::Default;
+	}
+	else if (CheckBoxState == ECheckBoxState::Checked)
+	{
+		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::Skippable;
+	}
+	else
+	{
+		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::NotSkippable;
+	}	
+	
+	FYapTransactions::EndModify();
 }
 
 // ================================================================================================

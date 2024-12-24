@@ -39,7 +39,7 @@ protected:
 	FLinearColor DisconnectedFragmentPinColor;
 	
 	// TODO move to a proper style
-	FCheckBoxStyle InterruptibleCheckBoxStyle;
+	FCheckBoxStyle SkippableCheckBoxStyle;
 	TSharedPtr<SButton> NodeHeaderButton;
 	TSharedPtr<STextBlock> NodeHeaderButtonToolTip;
 	static FButtonStyle MoveFragmentButtonStyle;
@@ -81,7 +81,7 @@ protected:
 	int32 GetDialogueActivationCount() const;
 
 	int32 GetDialogueActivationLimit() const;
-	EVisibility Visibility_InterruptibleToggleIconOff() const;
+	EVisibility Visibility_SkippableToggleIconOff() const;
 	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
@@ -95,9 +95,9 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
-	ECheckBoxState		IsChecked_InterruptibleToggle() const;
-	void				OnCheckStateChanged_InterruptibleToggle(ECheckBoxState CheckBoxState);
-	FSlateColor			ColorAndOpacity_InterruptibleToggleIcon() const;
+	ECheckBoxState		IsChecked_SkippableToggle() const;
+	void				OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
+	FSlateColor			ColorAndOpacity_SkippableToggleIcon() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
@@ -187,7 +187,7 @@ protected:
 	
 	void OnDialogueEnd(uint8 FragmentIndex);
 	void OnDialogueStart(uint8 FragmentIndex);
-	void OnDialogueInterrupt(uint8 FragmentIndex);
+	void OnDialogueSkipped(uint8 FragmentIndex);
 	
 	// ------------------------------------------
 	// OVERRIDES & THEIR HELPERS

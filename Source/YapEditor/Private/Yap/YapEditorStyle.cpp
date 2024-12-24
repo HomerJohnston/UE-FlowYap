@@ -31,8 +31,8 @@ const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME))
 
 #define YAP_DEFINE_STYLE(TYPE, STYLENAME, TEMPLATE, MODS)\
 YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
-Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE) MODS);\
-const TYPE& STYLENAME = *static_cast<const TYPE*>(GetWidgetStyleInternal(YAP_QUOTE(TYPE), YAP_QUOTE(STYLENAME), &TEMPLATE, true))
+TYPE& STYLENAME = *const_cast<TYPE*>(static_cast<const TYPE*>(GetWidgetStyleInternal(YAP_QUOTE(TYPE), YAP_QUOTE(STYLENAME), &TEMPLATE, true)));\
+Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE) MODS)
 
 FYapEditorStyle::FYapEditorStyle()
 	: FSlateStyleSet("YapEditor")
@@ -164,6 +164,7 @@ void FYapEditorStyle::Initialize()
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
 
+	/*
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_FragmentControls, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray_Glass))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
@@ -172,6 +173,17 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
+	);
+	*/
+	
+	YAP_DEFINE_STYLE(FCheckBoxStyle, CheckBoxStyle_Skippable, FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"),
+		.SetCheckBoxType(ESlateCheckBoxType::ToggleButton)
+		.SetCheckedImage(CheckBoxStyle_Skippable.UncheckedImage)
+		.SetCheckedHoveredImage(CheckBoxStyle_Skippable.UncheckedHoveredImage)
+		.SetCheckedPressedImage(CheckBoxStyle_Skippable.UncheckedPressedImage)
+		.SetUndeterminedImage(CheckBoxStyle_Skippable.UncheckedImage)
+		.SetUndeterminedHoveredImage(CheckBoxStyle_Skippable.UncheckedHoveredImage)
+		.SetUndeterminedPressedImage(CheckBoxStyle_Skippable.UncheckedPressedImage)
 	);
 
 	/*

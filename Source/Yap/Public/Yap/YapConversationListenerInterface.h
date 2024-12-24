@@ -22,26 +22,26 @@ class IYapConversationListenerInterface
 
 public:
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnConversationBegins(const FGameplayTag& Conversation);
 
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnConversationEnds(const FGameplayTag& Conversation);
 
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Character, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset);
+	UFUNCTION(BlueprintNativeEvent)
+	void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, bool bSkippable);
 	
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnPromptOptionAdded(const FGameplayTag& Conversation, const FYapBit& DialogueInfo, FYapPromptHandle Handle);
+	UFUNCTION(BlueprintNativeEvent)
+	void OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/**  */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent)
 	void OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
 };

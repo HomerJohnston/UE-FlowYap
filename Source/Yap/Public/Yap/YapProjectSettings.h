@@ -63,7 +63,7 @@ protected:
 	
 	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bDefaultInterruptibleSetting;
+	bool bDefaultSkippableSetting;
 
 	/** Turn this on if you want to completely disable padding time (delays after each fragment of dialogue). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -158,7 +158,7 @@ public:
 public:
 	const EYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
 
-	bool GetDialogueInterruptibleByDefault() const { return bDefaultInterruptibleSetting; }
+	bool GetDialogueSkippableByDefault() const { return bDefaultSkippableSetting; }
 	
 	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; }
 	

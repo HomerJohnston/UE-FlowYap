@@ -3,6 +3,8 @@
 #include "YapCharacterComponent.h"
 #include "YapConversationBrokerBase.h"
 #include "Yap/YapBitReplacement.h"
+#include "Yap/Enums/YapDialogueSkippable.h"
+
 #include "YapSubsystem.generated.h"
 
 class UYapConversationBrokerBase;

@@ -82,6 +82,7 @@ public:
 	
 	int32 GetActivationCount() const { return ActivationCount; }
 	int32 GetActivationLimit() const { return ActivationLimit; }
+	
 	bool IsActivationLimitMet() const { if (ActivationLimit <= 0) return false; return (ActivationCount >= ActivationLimit); }
 	
 	const FYapBit& GetBit() const { return Bit; }

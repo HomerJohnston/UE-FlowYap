@@ -55,6 +55,8 @@ struct FYapStyles
 	FName ButtonStyle_FragmentControls;
 	FName ButtonStyle_HeaderButton;
 	FName ButtonStyle_SequencingSelector;
+
+	FName CheckBoxStyle_Skippable;
 	
 	FName EditableTextBoxStyle_Dialogue;
 	FName EditableTextBoxStyle_TitleText;

@@ -2,22 +2,11 @@
 
 #include "Nodes/FlowNode.h"
 #include "Yap/YapFragment.h"
+#include "Yap/Enums/YapDialogueSkippable.h"
+
 #include "FlowNode_YapDialogue.generated.h"
 
 class UYapCharacter;
-
-// ------------------------------------------------------------------------------------------------
-/**
- * Controls whether an ongoing dialogue can be interrupted or not. See UYapSubsystem:: // TODO implement interruption
- */
-UENUM()
-enum class EYapDialogueInterruptible : uint8
-{
-	UseProjectDefaults,
-	NotInterruptible,
-	Interruptible,
-	COUNT				UMETA(Hidden)
-};
 
 // ------------------------------------------------------------------------------------------------
 /**
@@ -26,7 +15,6 @@ enum class EYapDialogueInterruptible : uint8
 UENUM()
 enum class EYapDialogueTalkSequencing : uint8
 {
-	
 	RunAll				UMETA(ToolTip = "The node will always try to run every fragment. The node will execute the Out pin after it finishes trying to run all fragments."), 
 	RunUntilFailure		UMETA(ToolTip = "The node will attempt to run every fragment. If any one fails, the node will execute the Out pin."),
 	SelectOne			UMETA(ToolTip = "The node will attempt to run every fragment. If any one passes, the node will execute the Out pin."),
@@ -82,9 +70,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EYapDialogueTalkSequencing TalkSequencing;
 
-	/** Controls if dialogue can be interrupted. See EYapDialogueInterruptible. */
+	/** Controls if dialogue can be interrupted. See EYapDialogueSkippable. */
 	UPROPERTY(BlueprintReadOnly)
-	EYapDialogueInterruptible Interruptible;
+	EYapDialogueSkippable Skippable;
 
 	/** Tags can be used to interact with this dialogue node during the game. Dialogue nodes can be looked up and/or modified by UYapSubsystem by their tag. */
 	UPROPERTY(BlueprintReadOnly)
@@ -145,8 +133,8 @@ public:
 	/** Simple helper function. */
 	uint8 GetNumFragments() const { return Fragments.Num(); }
 
-	/** Is this node interruptible? */
-	bool GetInterruptible() const;
+	/** Is dialogue from this node skippable by default? */
+	bool GetSkippable() const;
 
 	// TODO this sucks can I register the fragments some other way instead
 	/** Finds the first fragment on this dialogue containing a tag. */
@@ -157,7 +145,7 @@ protected:
 	
 #if WITH_EDITOR
 private:
-	EYapDialogueInterruptible GetInterruptibleSetting() const;
+	EYapDialogueSkippable GetSkippableSetting() const;
 	
 	void InvalidateFragmentTags();
 

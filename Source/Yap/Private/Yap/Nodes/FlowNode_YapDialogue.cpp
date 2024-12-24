@@ -24,7 +24,7 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	
 	TalkSequencing = EYapDialogueTalkSequencing::RunAll;
 
-	Interruptible = EYapDialogueInterruptible::UseProjectDefaults;
+	Skippable = EYapDialogueSkippable::Default;
 
 	// Always have at least one fragment.
 	Fragments.Add(FYapFragment());
@@ -113,21 +113,21 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 	}
 }
 
-bool UFlowNode_YapDialogue::GetInterruptible() const
+bool UFlowNode_YapDialogue::GetSkippable() const
 {
-	if (Interruptible == EYapDialogueInterruptible::UseProjectDefaults)
+	if (Skippable == EYapDialogueSkippable::Default)
 	{
-		return UYapProjectSettings::Get()->GetDialogueInterruptibleByDefault();
+		return UYapProjectSettings::Get()->GetDialogueSkippableByDefault();
 	}
 	else
 	{
-		return Interruptible == EYapDialogueInterruptible::Interruptible;
+		return Skippable == EYapDialogueSkippable::Skippable;
 	}
 }
 
-EYapDialogueInterruptible UFlowNode_YapDialogue::GetInterruptibleSetting() const
+EYapDialogueSkippable UFlowNode_YapDialogue::GetSkippableSetting() const
 {
-	return Interruptible;
+	return Skippable;
 }
 
 // ================================================================================================
