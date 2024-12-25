@@ -11,10 +11,10 @@ class UFlowNode_YapDialogue;
 DECLARE_DELEGATE_OneParam(FOnClickedDeleteCondition, int32 /*ConditionIndex*/);
 DECLARE_DELEGATE_OneParam(FOnClickedNewClassCondition, int32 /*ConditionIndex*/);
 
-class SConditionDetailsViewWidget : public SCompoundWidget
+class SYapConditionDetailsViewWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SConditionDetailsViewWidget)
+	SLATE_BEGIN_ARGS(SYapConditionDetailsViewWidget)
 		:
 		_Dialogue(nullptr),
 		_FragmentIndex(INDEX_NONE),

@@ -15,3 +15,5 @@ public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
 };
+
+// TODO I'm getting a crash when I disconnect orphaned pins, don't forget

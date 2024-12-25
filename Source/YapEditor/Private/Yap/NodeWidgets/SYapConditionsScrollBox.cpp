@@ -1,17 +1,17 @@
-﻿#include "Yap/NodeWidgets/SConditionsScrollBox.h"
+﻿#include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 
 #include "Yap/YapColors.h"
 #include "Yap/YapCondition.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
+#include "Yap/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
-TWeakPtr<SConditionDetailsViewWidget> SConditionsScrollBox::ConditionDetailsWidget = nullptr;
-int32 SConditionsScrollBox::SelectedFragmentIndex = INDEX_NONE;
-int32 SConditionsScrollBox::SelectedConditionIndex = INDEX_NONE;
+TWeakPtr<SYapConditionDetailsViewWidget> SYapConditionsScrollBox::ConditionDetailsWidget = nullptr;
+int32 SYapConditionsScrollBox::SelectedFragmentIndex = INDEX_NONE;
+int32 SYapConditionsScrollBox::SelectedConditionIndex = INDEX_NONE;
 
 // ----------------------------------------------
-void SConditionsScrollBox::Construct(const FArguments& InArgs)
+void SYapConditionsScrollBox::Construct(const FArguments& InArgs)
 {
 	DialogueNode = InArgs._DialogueNode;
 	FragmentIndex = InArgs._FragmentIndex;
@@ -40,7 +40,7 @@ void SConditionsScrollBox::Construct(const FArguments& InArgs)
 }
 
 // ----------------------------------------------
-FReply SConditionsScrollBox::OnClicked_AddConditionButton()
+FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 {
 	OnClickNewConditionButton.Execute(FragmentIndex);
 
@@ -52,13 +52,13 @@ FReply SConditionsScrollBox::OnClicked_AddConditionButton()
 }
 
 // ----------------------------------------------
-FSlateColor SConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(UYapCondition* Condition) const
+FSlateColor SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(UYapCondition* Condition) const
 {
 	return IsValid(Condition) ? Condition->GetColor() : YapColor::DeepOrangeRed;
 }
 
 // ----------------------------------------------
-FSlateColor SConditionsScrollBox::ForegroundColor_ConditionButton(UYapCondition* Condition) const
+FSlateColor SYapConditionsScrollBox::ForegroundColor_ConditionButton(UYapCondition* Condition) const
 {
 	FSlateColor ButtonColor = ButtonColorAndOpacity_ConditionButton(Condition);
 	
@@ -66,7 +66,7 @@ FSlateColor SConditionsScrollBox::ForegroundColor_ConditionButton(UYapCondition*
 }
 
 // ----------------------------------------------
-FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
+FReply SYapConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 {
 	if (ConditionDetailsWidget != nullptr)
 	{
@@ -85,12 +85,12 @@ FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 	SelectedFragmentIndex = FragmentIndex;
 	SelectedConditionIndex = ConditionIndex;
 	
-	TSharedPtr<SConditionDetailsViewWidget> NewConditionDetailsWidget = SNew(SConditionDetailsViewWidget)
+	TSharedPtr<SYapConditionDetailsViewWidget> NewConditionDetailsWidget = SNew(SYapConditionDetailsViewWidget)
 		.Dialogue(DialogueNode)
 		.FragmentIndex(FragmentIndex)
 		.ConditionIndex(ConditionIndex)
-		.OnClickedDelete(this, &SConditionsScrollBox::OnClickedDelete_Condition)
-		.OnClickedNewClass(this, &SConditionsScrollBox::OnClickedNewClass_Condition);
+		.OnClickedDelete(this, &SYapConditionsScrollBox::OnClickedDelete_Condition)
+		.OnClickedNewClass(this, &SYapConditionsScrollBox::OnClickedNewClass_Condition);
 
 	TSharedPtr<SWidget> ConditionButton = ConditionButtons[ConditionIndex];
 	NewConditionDetailsWidget->ParentButton = ConditionButtons[ConditionIndex];
@@ -101,19 +101,19 @@ FReply SConditionsScrollBox::OnConditionClicked(int32 ConditionIndex)
 }
 
 // ----------------------------------------------
-UYapCondition* SConditionsScrollBox::GetCondition(int32 ConditionIndex) const
+UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex) const
 {
 	return ConditionsArray->IsValidIndex(ConditionIndex) ? (*ConditionsArray)[ConditionIndex] : nullptr;
 }
 
 // ----------------------------------------------
-UYapCondition* SConditionsScrollBox::GetCondition(int32 ConditionIndex)
+UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex)
 {
-	return const_cast<UYapCondition*>(const_cast<const SConditionsScrollBox*>(this)->GetCondition(ConditionIndex));
+	return const_cast<UYapCondition*>(const_cast<const SYapConditionsScrollBox*>(this)->GetCondition(ConditionIndex));
 }
 
 // ----------------------------------------------
-void SConditionsScrollBox::OnConditionsUpdated()
+void SYapConditionsScrollBox::OnConditionsUpdated()
 {
 	ScrollBox->ClearChildren();
 	ConditionButtons.Empty();
@@ -124,16 +124,16 @@ void SConditionsScrollBox::OnConditionsUpdated()
 		
 		TSharedRef<SWidget> ConditionButton = SNew(SButton)
 			
-			.ButtonColorAndOpacity(this, &SConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, Condition)
+			.ButtonColorAndOpacity(this, &SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, Condition)
 			.ContentPadding(FMargin(4, 2, 4, 0))
 			.HAlign(HAlign_Center)
-			.ForegroundColor(this, &SConditionsScrollBox::ForegroundColor_ConditionButton, Condition)
+			.ForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, Condition)
 			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
 			.ToolTipText(INVTEXT("Prerequisite for this to run."))
-			.OnClicked(this, &SConditionsScrollBox::OnConditionClicked, i)
+			.OnClicked(this, &SYapConditionsScrollBox::OnConditionClicked, i)
 			[
 				SNew(STextBlock)
-				.Text(this, &SConditionsScrollBox::Text_ConditionButton, i)
+				.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, i)
 				.ColorAndOpacity(FSlateColor::UseForeground())
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
 			];
@@ -160,7 +160,7 @@ void SConditionsScrollBox::OnConditionsUpdated()
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ToolTipText(INVTEXT("Add Condition"))
-		.OnClicked(this, &SConditionsScrollBox::OnClicked_AddConditionButton)
+		.OnClicked(this, &SYapConditionsScrollBox::OnClicked_AddConditionButton)
 		.ContentPadding(0)
 		[
 			SNew(SBox)
@@ -175,7 +175,7 @@ void SConditionsScrollBox::OnConditionsUpdated()
 }
 
 // ----------------------------------------------
-void SConditionsScrollBox::UpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget)
+void SYapConditionsScrollBox::UpdateConditionDetailsWidget(TSharedPtr<SYapConditionDetailsViewWidget> InConditionDetailsWidget)
 {
 	ConditionDetailsWidget = InConditionDetailsWidget;
 	
@@ -183,7 +183,7 @@ void SConditionsScrollBox::UpdateConditionDetailsWidget(TSharedPtr<SConditionDet
 }
 
 // ----------------------------------------------
-FText SConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
+FText SYapConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
 {
 	UYapCondition* Condition = GetCondition(ConditionIndex);
 
@@ -198,7 +198,7 @@ FText SConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
 }
 
 // ----------------------------------------------
-void SConditionsScrollBox::OnClickedDelete_Condition(int ConditionIndex)
+void SYapConditionsScrollBox::OnClickedDelete_Condition(int ConditionIndex)
 {
 	ConditionsArray->RemoveAt(ConditionIndex);
 
@@ -206,7 +206,7 @@ void SConditionsScrollBox::OnClickedDelete_Condition(int ConditionIndex)
 	UpdateConditionDetailsWidget();
 }
 
-void SConditionsScrollBox::OnClickedNewClass_Condition(int ConditionIndex)
+void SYapConditionsScrollBox::OnClickedNewClass_Condition(int ConditionIndex)
 {
 	OnConditionsUpdated();
 	UpdateConditionDetailsWidget();

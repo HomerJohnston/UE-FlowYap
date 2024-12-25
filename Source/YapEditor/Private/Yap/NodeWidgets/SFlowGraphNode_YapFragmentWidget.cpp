@@ -6,6 +6,7 @@
 
 #include "Engine/World.h"
 #include "PropertyCustomizationHelpers.h"
+#include "SAssetDropTarget.h"
 #include "SLevelOfDetailBranchNode.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
@@ -31,7 +32,7 @@
 #include "Yap/Helpers/SYapTextPropertyEditableTextBox.h"
 #include "Yap/Helpers/YapEditableTextPropertyHandle.h"
 #include "Yap/NodeWidgets/SActivationCounterWidget.h"
-#include "Yap/NodeWidgets/SConditionsScrollBox.h"
+#include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SSkippableCheckBox.h"
 
 TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreDialogueWidget()
@@ -330,7 +331,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		.HAlign(HAlign_Fill)
 		.Padding(32, 0, 0, 0)
 		[
-			SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
+			SAssignNew(ConditionsScrollBox, SYapConditionsScrollBox)
 			.DialogueNode(DialogueNode)
 			.FragmentIndex(FragmentIndex)
 			.OnUpdateConditionDetailsWidget(Owner, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
@@ -705,7 +706,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTextEditButtonWidget
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
-	return SNew(SLevelOfDetailBranchNode)
+	TSharedRef<SWidget> Widget = SNew(SLevelOfDetailBranchNode)
 	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 	.HighDetail()
 	[
@@ -766,7 +767,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 			.Text(this, &SFlowGraphNode_YapFragmentWidget::Dialogue_Text)
 		]
 	];
-		
+
+	return Widget;
 }
 
 FVector2D SFlowGraphNode_YapFragmentWidget::DialogueScrollBar_Thickness() const
@@ -1111,6 +1113,58 @@ FText SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget() const
 	return INVTEXT("");
 }
 
+bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_PortraitWidget(TArrayView<FAssetData> AssetDatas) const
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return false;
+	}
+
+	UClass* Class = AssetDatas[0].GetClass();
+	if (Class == UYapCharacter::StaticClass())
+	{
+		return true;
+	}
+
+	if (Class == UYapProjectSettings::Get()->GetDialogueAssetClass())
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_PortraitWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
+	UObject* Object = AssetDatas[0].GetAsset();
+	
+	UClass* Class = Object->GetClass();
+	
+	if (Class == UYapCharacter::StaticClass())
+	{
+		FYapTransactions::BeginModify(INVTEXT("Setting character"), GetFlowYapDialogueNode());
+
+		UYapCharacter* Character = Cast<UYapCharacter>(Object);
+		GetFragment().Bit.SetCharacter(Character);
+
+		FYapTransactions::EndModify();
+	}
+
+	if (Class == UYapProjectSettings::Get()->GetDialogueAssetClass())
+	{
+		FYapTransactions::BeginModify(INVTEXT("Setting dialogue asset"), GetFlowYapDialogueNode());
+
+		GetFragment().Bit.SetDialogueAudioAsset(Object);
+
+		FYapTransactions::EndModify();
+	}
+}
+
 // ================================================================================================
 // PORTRAIT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -1127,36 +1181,81 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 		.HighDetail()
 		[
-			SNew(SButton)
-			.Cursor(EMouseCursor::Default)
-			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
-			.ContentPadding(0)
-			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
+			SNew(SOverlay)
+			+ SOverlay::Slot()
 			[
-				SNew(SOverlay)
-				+ SOverlay::Slot()
+				SNew(SAssetDropTarget)
+				.bSupportsMultiDrop(false)
+				.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_PortraitWidget)
+				.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_PortraitWidget)
 				[
-					SNew(SBox)
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+					.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
+					.ContentPadding(0)
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
+					[
+						SNew(SOverlay)
+						+ SOverlay::Slot()
+						[
+							SNew(SBox)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							[
+								SNew(SImage)
+								.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+								.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
+							]	
+						]
+						+ SOverlay::Slot()
+						.HAlign(HAlign_Center)
+						.VAlign(VAlign_Center)
+						[
+							SNew(STextBlock)
+							.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget)
+							.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
+							.ColorAndOpacity(YapColor::Red)
+							.Justification(ETextJustify::Center)
+						]
+					]
+				]
+			]
+			/*
+			+ SOverlay::Slot()
+			[
+				SNew(SYapPortraitButton)
+				.Cursor(EMouseCursor::Default)
+				.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
+				.ContentPadding(0)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget)
+				[
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SBox)
+						.HAlign(HAlign_Center)
+						.VAlign(VAlign_Center)
+						[
+							SNew(SImage)
+							.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+							.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
+						]	
+					]
+					+ SOverlay::Slot()
 					.HAlign(HAlign_Center)
 					.VAlign(VAlign_Center)
 					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-						.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
-					]	
-				]
-				+ SOverlay::Slot()
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(STextBlock)
-					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget)
-					.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
-					.ColorAndOpacity(YapColor::Red)
-					.Justification(ETextJustify::Center)
+						SNew(STextBlock)
+						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget)
+						.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
+						.ColorAndOpacity(YapColor::Red)
+						.Justification(ETextJustify::Center)
+					]
 				]
 			]
+			*/
 		]
 		.LowDetail()
 		[

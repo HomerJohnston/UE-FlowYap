@@ -45,7 +45,7 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
-	friend class SConditionDetailsViewWidget;
+	friend class SYapConditionDetailsViewWidget;
 #endif
 
 	friend class UYapSubsystem;

@@ -145,8 +145,8 @@ public:
 public:
 	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return CharacterAsset; }
 	
-	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter) { CharacterAsset = InCharacter; }
-	
+	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter);
+
 	void SetTitleText(const FText& InText) { TitleText = InText; }
 	
 	void SetDialogueText(const FText& InText);

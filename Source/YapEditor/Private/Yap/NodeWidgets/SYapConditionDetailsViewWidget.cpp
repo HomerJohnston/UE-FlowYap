@@ -1,4 +1,4 @@
-﻿#include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
+﻿#include "Yap/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
 #include "Yap/YapEditorStyle.h"
@@ -6,14 +6,14 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 // ----------------------------------------------
-FReply SConditionDetailsViewWidget::OnClicked_Delete() const
+FReply SYapConditionDetailsViewWidget::OnClicked_Delete() const
 {
 	OnClickedDelete.Execute(ConditionIndex);
 	return FReply::Handled();
 }
 
 // ----------------------------------------------
-void SConditionDetailsViewWidget::Construct(const FArguments& InArgs)
+void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 {
 	check(InArgs._Dialogue);
 	check(InArgs._ConditionIndex != INDEX_NONE)
@@ -59,9 +59,9 @@ void SConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 				.Padding(0, 0, 2, 0)
 				[
 					SNew(SClassPropertyEntryBox)
-					.OnSetClass(this, &SConditionDetailsViewWidget::OnSetClass_ConditionProperty)
+					.OnSetClass(this, &SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty)
 					.MetaClass(UYapCondition::StaticClass())
-					.SelectedClass(this, &SConditionDetailsViewWidget::SelectedClass_ConditionProperty)
+					.SelectedClass(this, &SYapConditionDetailsViewWidget::SelectedClass_ConditionProperty)
 					.AllowAbstract(false)
 					.ShowTreeView(false)
 					.AllowNone(false)
@@ -77,7 +77,7 @@ void SConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 					.ForegroundColor(YapColor::White)
 					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
 					.ToolTipText(INVTEXT("Delete this condition"))
-					.OnClicked(this, &SConditionDetailsViewWidget::OnClicked_Delete)
+					.OnClicked(this, &SYapConditionDetailsViewWidget::OnClicked_Delete)
 					[
 						SNew(SImage)
 						//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
@@ -97,7 +97,7 @@ void SConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	];
 }
 
-const UYapCondition* SConditionDetailsViewWidget::GetCondition() const
+const UYapCondition* SYapConditionDetailsViewWidget::GetCondition() const
 {
 	if (FragmentIndex == INDEX_NONE)
 	{
@@ -109,13 +109,13 @@ const UYapCondition* SConditionDetailsViewWidget::GetCondition() const
 	}
 }
 
-UYapCondition* SConditionDetailsViewWidget::GetCondition()
+UYapCondition* SYapConditionDetailsViewWidget::GetCondition()
 {
-	return const_cast<UYapCondition*>(const_cast<const SConditionDetailsViewWidget*>(this)->GetCondition());
+	return const_cast<UYapCondition*>(const_cast<const SYapConditionDetailsViewWidget*>(this)->GetCondition());
 }
 
 // ----------------------------------------------
-const UClass* SConditionDetailsViewWidget::SelectedClass_ConditionProperty() const
+const UClass* SYapConditionDetailsViewWidget::SelectedClass_ConditionProperty() const
 {
 	if (GetCondition())
 	{
@@ -126,7 +126,7 @@ const UClass* SConditionDetailsViewWidget::SelectedClass_ConditionProperty() con
 }
 
 // ----------------------------------------------
-void SConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* NewConditionClass)
+void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* NewConditionClass)
 {
 	UClass* ExistingConditionClass = nullptr;
 

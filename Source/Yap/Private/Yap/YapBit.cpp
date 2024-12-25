@@ -25,7 +25,7 @@ const UYapCharacter* FYapBit::GetCharacter(bool bSuppressWarnings) const
 	if (CharacterAsset.IsNull())
 	{
 #if WITH_EDITOR
-		if (IsValid(GEditor->EditorWorld))
+		if (!bSuppressWarnings && IsValid(GEditor->EditorWorld))
 		{
 			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
 		}
@@ -65,7 +65,7 @@ const UYapCharacter* FYapBit::GetCharacter(bool bSuppressWarnings) const
 #if WITH_EDITOR
 const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
-	const UYapCharacter* Char = GetCharacter();
+	const UYapCharacter* Char = GetCharacter(true);
 
 	if (IsValid(Char))
 	{
@@ -170,6 +170,12 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 #undef FLOWYAP_REPLACE
 	
 	return *this;
+}
+
+void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
+{
+	CharacterAsset = InCharacter;
+	Character = nullptr;
 }
 
 // --------------------------------------------------------------------------------------------

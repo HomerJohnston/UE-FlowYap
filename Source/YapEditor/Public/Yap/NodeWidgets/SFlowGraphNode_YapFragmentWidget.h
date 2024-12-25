@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
 
-class SConditionsScrollBox;
+class SYapConditionsScrollBox;
 struct FFlowPin;
 class UYapCondition;
 struct FYapFragment;
@@ -67,7 +67,7 @@ protected:
 
 	TSharedPtr<SButton> TitleTextEditButtonWidget;
 	TSharedPtr<SButton> DialogueEditButtonWidget;
-	TSharedPtr<SConditionsScrollBox> ConditionsScrollBox;
+	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -146,6 +146,8 @@ protected:
 	FReply OnClicked_PortraitWidget();
 
 	FText Text_PortraitWidget() const;
+	bool OnAreAssetsAcceptableForDrop_PortraitWidget(TArrayView<FAssetData> AssetDatas) const;
+	void OnAssetsDropped_PortraitWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreatePortraitWidget();
 

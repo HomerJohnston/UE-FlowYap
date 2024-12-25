@@ -78,6 +78,12 @@ void FYapEditorStyle::OnPatchComplete()
 }
 #endif
 
+#define YAP_COMMON_BRUSH "Common/ButtonHoverHint"
+//#define YAP_COMMON_BRUSH "Common/Button/simple_sharp_normal"
+//#define YAP_COMMON_BRUSH_HOVERED "Common/Button/simple_sharp_hovered"
+#define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
+#define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
+
 void FYapEditorStyle::Initialize()
 {
 	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	9);
@@ -127,12 +133,6 @@ void FYapEditorStyle::Initialize()
 		.SetNormalThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::Gray))
 		.SetHoveredThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::LightGray))
 	);
-
-#define YAP_COMMON_BRUSH "Common/ButtonHoverHint"
-//#define YAP_COMMON_BRUSH "Common/Button/simple_sharp_normal"
-//#define YAP_COMMON_BRUSH_HOVERED "Common/Button/simple_sharp_hovered"
-#define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
-#define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
 
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HeaderButton, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))

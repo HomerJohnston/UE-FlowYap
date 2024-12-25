@@ -24,8 +24,8 @@
 #include "Yap/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/NodeWidgets/SActivationCounterWidget.h"
-#include "Yap/NodeWidgets/SConditionDetailsViewWidget.h"
-#include "Yap/NodeWidgets/SConditionsScrollBox.h"
+#include "Yap/NodeWidgets/SYapConditionDetailsViewWidget.h"
+#include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SSkippableCheckBox.h"
 #include "Yap/NodeWidgets/SYapGraphPinExec.h"
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
@@ -229,7 +229,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 			.HighDetail()
 			[
-				SAssignNew(ConditionsScrollBox, SConditionsScrollBox)
+				SAssignNew(ConditionsScrollBox, SYapConditionsScrollBox)
 				.DialogueNode(GetFlowYapDialogueNodeMutable())
 				.OnUpdateConditionDetailsWidget(this, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
 				.OnClickNewConditionButton(this, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
@@ -922,7 +922,7 @@ void SFlowGraphNode_YapDialogueWidget::OnClick_DeleteConditionButton(int32 Fragm
 	FYapTransactions::EndModify();
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget)
+void SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget(TSharedPtr<SYapConditionDetailsViewWidget> InConditionDetailsWidget)
 {
 	ConditionDetailsWidget = InConditionDetailsWidget;
 

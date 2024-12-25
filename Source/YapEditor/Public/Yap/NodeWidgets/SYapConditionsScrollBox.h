@@ -2,19 +2,19 @@
 
 #include "Widgets/SCompoundWidget.h"
 
-class SConditionDetailsViewWidget;
+class SYapConditionDetailsViewWidget;
 class UFlowNode_YapDialogue;
 class UYapCondition;
 class SConditionEntryWidget;
-class SConditionsScrollBox;
+class SYapConditionsScrollBox;
 
-DECLARE_DELEGATE_OneParam(FOnUpdateConditionDetailsWidget, TSharedPtr<SConditionDetailsViewWidget>);
+DECLARE_DELEGATE_OneParam(FOnUpdateConditionDetailsWidget, TSharedPtr<SYapConditionDetailsViewWidget>);
 DECLARE_DELEGATE_OneParam(FOnClickNewConditionButton, int32 /*FragmentIndex*/)
 
-class SConditionsScrollBox : public SCompoundWidget
+class SYapConditionsScrollBox : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SConditionsScrollBox) :
+	SLATE_BEGIN_ARGS(SYapConditionsScrollBox) :
 		_DialogueNode(nullptr),
 		_FragmentIndex(INDEX_NONE)
 		{}
@@ -38,7 +38,7 @@ public:
 	
 	void OnConditionsUpdated();
 
-	void UpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget = nullptr);
+	void UpdateConditionDetailsWidget(TSharedPtr<SYapConditionDetailsViewWidget> InConditionDetailsWidget = nullptr);
 	
 private:
 	TSharedPtr<SScrollBox> ScrollBox = nullptr;
@@ -72,7 +72,7 @@ private:
 	
 	UYapCondition* GetCondition(int32 ConditionIndex);
 
-	static TWeakPtr<SConditionDetailsViewWidget> ConditionDetailsWidget;
+	static TWeakPtr<SYapConditionDetailsViewWidget> ConditionDetailsWidget;
 	static int32 SelectedFragmentIndex;
 	static int32 SelectedConditionIndex;
 };

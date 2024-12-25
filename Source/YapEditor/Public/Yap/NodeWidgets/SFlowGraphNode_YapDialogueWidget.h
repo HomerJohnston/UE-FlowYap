@@ -4,13 +4,13 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 class SCanvas;
-class SConditionDetailsViewWidget;
+class SYapConditionDetailsViewWidget;
 class SVirtualWindow;
 struct FYapFragment;
 class SFlowGraphNode_YapFragmentWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
-class SConditionsScrollBox;
+class SYapConditionsScrollBox;
 
 //DECLARE_DELEGATE_ThreeParams(FOnClickDeleteConditionButton, int32 /*FragmentIndex*/, int32 /*ConditionIndex*/);
 
@@ -153,7 +153,7 @@ protected:
 
 public:
 	void OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex);
-	void OnUpdateConditionDetailsWidget(TSharedPtr<SConditionDetailsViewWidget> InConditionDetailsWidget);
+	void OnUpdateConditionDetailsWidget(TSharedPtr<SYapConditionDetailsViewWidget> InConditionDetailsWidget);
 	void OnClick_NewConditionButton(int32 FragmentIndex);
 	bool IsEnabled_ConditionWidgetsScrollBox() const;
 	
@@ -207,13 +207,13 @@ public:
 
 	TArray<FOverlayWidgetInfo> GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const override;
 
-	TSharedPtr<SConditionDetailsViewWidget> ConditionDetailsWidget;
+	TSharedPtr<SYapConditionDetailsViewWidget> ConditionDetailsWidget;
 	int32 SelectedConditionFragmentIndex = INDEX_NONE;
 	int32 SelectedConditionIndex = INDEX_NONE;
 	
 	virtual TSharedPtr<IToolTip> GetToolTip() override { return nullptr; };
 
-	TSharedPtr<SConditionsScrollBox> ConditionsScrollBox;
+	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
 	TMap<FName, FName> EventUpdateMemberMap;
 	TMap<FName, FSimpleDelegate> MemberUpdateDelegateMap;
