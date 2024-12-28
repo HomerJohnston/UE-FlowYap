@@ -66,6 +66,42 @@ void FYapFragment::ReplaceBit(const FYapBitReplacement& ReplacementBit)
 	Bit = ReplacementBit;
 }
 
+FFlowPin FYapFragment::GetPromptPin() const
+{
+	if (!PromptPin.IsValid())
+	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->PromptPin = FName("Prompt_" + Guid.ToString());
+		MutableThis->PromptPin.PinToolTip = "Out";
+	}
+	
+	return PromptPin;
+}
+
+FFlowPin FYapFragment::GetEndPin() const
+{
+	if (!EndPin.IsValid())
+	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->EndPin = FName("End_" + Guid.ToString());
+		MutableThis->PromptPin.PinToolTip = "Runs before end-padding time begins";
+	}
+	
+	return EndPin;
+}
+
+FFlowPin FYapFragment::GetStartPin() const
+{
+	if (!StartPin.IsValid())
+	{
+		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
+		MutableThis->StartPin = FName("Start_" + Guid.ToString());
+		MutableThis->StartPin.PinToolTip = "Runs when fragment starts playback";
+	}
+	
+	return StartPin;
+}
+
 #if WITH_EDITOR
 void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString)
 {
@@ -113,42 +149,6 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 	}
 	
 	return OutPins;
-}
-
-FFlowPin FYapFragment::GetPromptPin() const
-{
-	if (!PromptPin.IsValid())
-	{
-		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
-		MutableThis->PromptPin = FName("Prompt_" + Guid.ToString());
-		MutableThis->PromptPin.PinToolTip = "Out";
-	}
-	
-	return PromptPin;
-}
-
-FFlowPin FYapFragment::GetEndPin() const
-{
-	if (!PromptPin.IsValid())
-	{
-		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
-		MutableThis->EndPin = FName("End_" + Guid.ToString());
-		MutableThis->PromptPin.PinToolTip = "Runs before end-padding time begins";
-	}
-	
-	return EndPin;
-}
-
-FFlowPin FYapFragment::GetStartPin() const
-{
-	if (!PromptPin.IsValid())
- 	{
-		FYapFragment* MutableThis = const_cast<FYapFragment*>(this);
-		MutableThis->StartPin = FName("Start_" + Guid.ToString());
-		 MutableThis->StartPin.PinToolTip = "Runs when fragment starts playback";
- 	}
-	
-	return StartPin;
 }
 
 void FYapFragment::InvalidateFragmentTag()

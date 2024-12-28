@@ -135,10 +135,12 @@ bool UFlowNode_YapDialogue::GetSkippable() const
 	}
 }
 
+#if WITH_EDITOR
 EYapDialogueSkippable UFlowNode_YapDialogue::GetSkippableSetting() const
 {
 	return Skippable;
 }
+#endif
 
 // ================================================================================================
 
@@ -431,7 +433,7 @@ EYapDialogueTalkSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing(
 
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
-	TArray<FFlowPin> ContextOutputPins;
+	TArray<FFlowPin> ContextOutputPins = Super::GetContextOutputs();
 
 	if (!GetIsPlayerPrompt())
 	{
@@ -607,6 +609,7 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::ToggleNodeType()
 {
 	uint8 AsInt = static_cast<uint8>(DialogueNodeType);
@@ -618,6 +621,7 @@ void UFlowNode_YapDialogue::ToggleNodeType()
 
 	DialogueNodeType = static_cast<EYapDialogueNodeType>(AsInt);
 }
+#endif
 
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ForceReconstruction()

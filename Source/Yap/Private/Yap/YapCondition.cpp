@@ -1,6 +1,6 @@
 ﻿#include "Yap/YapCondition.h"
 
-inline bool UYapCondition::EvaluateCondition_Implementation() const
+bool UYapCondition::EvaluateCondition_Implementation() const
 {
 	return true;
 }

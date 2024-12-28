@@ -70,6 +70,7 @@ void UFlowNode_YapConversationStart::ExecuteInput(const FName& PinName)
 	TriggerFirstOutput(true);
 }
 
+#if WITH_EDITOR
 FText UFlowNode_YapConversationStart::GetNodeTitle() const
 {
 	if (IsTemplate())
@@ -80,7 +81,6 @@ FText UFlowNode_YapConversationStart::GetNodeTitle() const
 	return FText::FromString("Conv. Start");
 }
 
-#if WITH_EDITOR
 void UFlowNode_YapConversationStart::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);

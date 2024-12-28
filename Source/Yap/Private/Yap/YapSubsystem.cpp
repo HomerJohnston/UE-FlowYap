@@ -65,7 +65,7 @@ UYapSubsystem::UYapSubsystem()
 {
 }
 
-void UYapSubsystem::AddConversationListener(UObject* NewListener)
+void UYapSubsystem::RegisterConversationListener(UObject* NewListener)
 {
 	if (NewListener->Implements<UYapConversationListenerInterface>())
 	{
@@ -77,7 +77,7 @@ void UYapSubsystem::AddConversationListener(UObject* NewListener)
 	}
 }
 
-void UYapSubsystem::RemoveConversationListener(UObject* RemovedListener)
+void UYapSubsystem::UnregisterConversationListener(UObject* RemovedListener)
 {
 	Listeners.Remove(RemovedListener);
 }

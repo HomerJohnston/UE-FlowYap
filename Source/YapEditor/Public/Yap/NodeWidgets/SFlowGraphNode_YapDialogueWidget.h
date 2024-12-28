@@ -123,11 +123,11 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentBoxes();
 
-	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex) const;
+	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex);
 
-	EVisibility			FragmentSeparator_Visibility() const;
+	EVisibility			Visibility_FragmentSeparator() const;
 	FSlateColor			ColorAndOpacity_FragmentSeparator() const;
-	FReply				FragmentSeparator_OnClicked(uint8 Index);
+	FReply				OnClicked_FragmentSeparator(uint8 Index);
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentRowWidget(uint8 FragmentIndex);
@@ -138,10 +138,11 @@ protected:
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 
 	// ------------------------------------------
-	TSharedRef<SHorizontalBox> CreateContentFooter();
+	TSharedRef<SWidget> CreateContentFooter();
 
 	EVisibility			Visibility_BottomAddFragmentButton() const;
 	FReply				OnClicked_BottomAddFragmentButton();
+	EVisibility Visibility_AddonsSeparator() const;
 
 	// UNSORTED
 

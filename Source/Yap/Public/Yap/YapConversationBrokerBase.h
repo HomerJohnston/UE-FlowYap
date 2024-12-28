@@ -10,8 +10,10 @@ class UYapConversationBrokerBase : public UObject
 {
 	GENERATED_BODY()
 
+#if WITH_EDITOR
 public:
 	bool ImplementsGetWorld() const override { return true; }
+#endif
 	
 public:
 
@@ -33,3 +35,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
 };
+
+// NOTES:
+//
+// This class does NOT implement IYapConversationListenerInterface because it's very annoying that Unreal refuses to let you convert interface events to functions.
+// Instead, this class includes identical functions as IYapConversationListenerInterface.
+// Templates are used to call the same functions on either a conversation broker or a IYapConversationListenerInterface implementer.
+//
+// The BNE's above pass many individual args instead of a struct to make it easier to refer to individual args inside of a blueprint graph.

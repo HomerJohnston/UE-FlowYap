@@ -29,7 +29,7 @@ UCLASS()
 class UYapEditorSubsystem : public UEditorSubsystem
 {
 	GENERATED_BODY()
-
+	
 private:
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, UTexture2D*> MoodKeyIconTextures;

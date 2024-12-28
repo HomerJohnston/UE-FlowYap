@@ -172,14 +172,16 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	return *this;
 }
 
+// --------------------------------------------------------------------------------------------
+// EDITOR API
+
+#if WITH_EDITOR
 void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
 {
 	CharacterAsset = InCharacter;
 	Character = nullptr;
 }
-
-// --------------------------------------------------------------------------------------------
-// EDITOR API
+#endif
 
 #if WITH_EDITOR
 void FYapBit::SetDialogueText(const FText& NewText)
@@ -196,7 +198,9 @@ void FYapBit::SetDialogueText(const FText& NewText)
 		CachedWordCount = -1;
 	}
 }
+#endif
 
+#if WITH_EDITOR
 void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
 	DialogueAudioAsset = NewAudio;

@@ -32,10 +32,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const FSlateBrush& GetPortraitBrush(const FGameplayTag& MoodKey) const;
 	
-#if WITH_EDITORONLY_DATA
 protected:
 	TMap<FName, FSlateBrush> PortraitBrushes;
-#endif
 	
 #if WITH_EDITOR
 public:

@@ -113,7 +113,13 @@ public:
 	bool UsesEndPin() const { return bShowOnEndPin; }
 
 	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
-	
+
+	FFlowPin GetPromptPin() const;
+
+	FFlowPin GetEndPin() const;
+
+	FFlowPin GetStartPin() const;;
+
 #if WITH_EDITOR
 public:
 	FYapBit& GetBitMutable() { return Bit; }
@@ -134,15 +140,12 @@ public:
 
 	TArray<FFlowPin> GetOutputPins() const;
 
-	FFlowPin GetPromptPin() const;
 
 	FName GetPromptPinName() const { return GetPromptPin().PinName; }
 	
-	FFlowPin GetEndPin() const;
 
 	FName GetEndPinName() const { return GetEndPin().PinName; }
 
-	FFlowPin GetStartPin() const;;
 
 	FName GetStartPinName() const { return GetStartPin().PinName; }
 

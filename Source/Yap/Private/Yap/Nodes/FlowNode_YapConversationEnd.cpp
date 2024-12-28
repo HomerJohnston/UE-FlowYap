@@ -20,6 +20,7 @@ void UFlowNode_YapConversationEnd::ExecuteInput(const FName& PinName)
 	TriggerFirstOutput(true);
 }
 
+#if WITH_EDITOR
 FText UFlowNode_YapConversationEnd::GetNodeTitle() const
 {
 	if (IsTemplate())
@@ -29,5 +30,6 @@ FText UFlowNode_YapConversationEnd::GetNodeTitle() const
 
 	return FText::FromString("Conv. End");
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE

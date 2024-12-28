@@ -100,6 +100,9 @@ protected:
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
 	
+	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
+	FGameplayTag DefaultMoodTag;
+	
 #if WITH_EDITORONLY_DATA
 public:
 	/** If set, enables nicer filtering of condition tags display */
@@ -111,9 +114,6 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
 	FGameplayTag MoodTagsParent;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
-	FGameplayTag DefaultMoodTag;
 	
 	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
@@ -150,7 +150,6 @@ public:
 
 	FGameplayTagContainer GetMoodTags() const;
 
-	FGameplayTag GetDefaultMoodTag() const { return DefaultMoodTag; }
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
@@ -158,6 +157,8 @@ public:
 #endif
 
 public:
+	FGameplayTag GetDefaultMoodTag() const { return DefaultMoodTag; }
+	
 	const EYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
 
 	bool GetDialogueSkippableByDefault() const { return bDefaultSkippableSetting; }
@@ -193,12 +194,12 @@ public:
 
 	TSoftClassPtr<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacherClass; }
 
+	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
+
 #if WITH_EDITOR
 public:
 	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
 	
-	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
-
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 
 	static FString GetTrimmedGameplayTagString(EYap_TagFilter Filter, const FGameplayTag& PropertyTag);

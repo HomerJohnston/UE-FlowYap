@@ -126,11 +126,11 @@ protected:
 public:
 	/** When a conversation starts */
 	UFUNCTION(BlueprintCallable)
-	void AddConversationListener(UObject* NewListener);
+	void RegisterConversationListener(UObject* NewListener);
 
 	/**  */
 	UFUNCTION(BlueprintCallable)
-	void RemoveConversationListener(UObject* RemovedListener);
+	void UnregisterConversationListener(UObject* RemovedListener);
 
 	UFUNCTION(BlueprintCallable)
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);

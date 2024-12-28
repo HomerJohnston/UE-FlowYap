@@ -87,7 +87,6 @@ void SFlowGraphNode_YapDialogueWidget::PreConstruct(const FArguments& InArgs, UF
 
 void SFlowGraphNode_YapDialogueWidget::PostConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {
-	FlowGraphNode->OnSignalModeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 	FlowGraphNode_YapDialogue->OnYapNodeChanged.BindRaw(this, &SFlowGraphNode_YapDialogueWidget::UpdateGraphNode);
 }
 
@@ -353,7 +352,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 		SAssignNew(Content, SVerticalBox)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0, 5, 0, 5)
+		.Padding(0, 3, 0, 4)
 		[
 			CreateContentHeader()
 		]
@@ -517,7 +516,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	{
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 0 : 14, 0, 14)
+		.Padding(0, bFirstFragment ? 0 : 14, 0, bFirstFragment ? 11 : 14)
 		[
 			CreateFragmentSeparatorWidget(FragmentIndex)
 		];
@@ -572,10 +571,18 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgro
 	return YapColor::Transparent;
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex) const
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWidget(uint8 FragmentIndex)
 {
-	return SNew(SSeparator)
-		.Thickness(3);
+	return SNew(SButton)
+	.Cursor(EMouseCursor::Default)
+	.ContentPadding(2)
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton)
+	.ButtonColorAndOpacity(YapColor::DarkGray)
+	.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator, FragmentIndex)
+	[
+		SNew(SSeparator)
+		.Thickness(2)	
+	];
 
 	/*
 	TSharedRef<SHorizontalBox> Box = SNew(SHorizontalBox);
@@ -594,17 +601,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWid
 	*/
 }
 
-EVisibility SFlowGraphNode_YapDialogueWidget::FragmentSeparator_Visibility() const
+EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_FragmentSeparator() const
 {
 	return GetIsSelected() ? EVisibility::Visible : EVisibility::Hidden;
 }
 
-FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_FragmentSeparator() const
-{
-	return YapColor::Gray; 
-}
-
-FReply SFlowGraphNode_YapDialogueWidget::FragmentSeparator_OnClicked(uint8 Index)
+FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator(uint8 Index)
 {
 	FYapTransactions::BeginModify(LOCTEXT("DialogueAddFragment", "Add Fragment"), GetFlowYapDialogueNodeMutable());
 
@@ -685,47 +687,77 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 // BOTTOM BAR
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SHorizontalBox> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
+TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 {
-	return SNew(SHorizontalBox)
-	.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
-	+ SHorizontalBox::Slot()
-	.HAlign(HAlign_Fill)
-	.VAlign(VAlign_Fill)
-	.Padding(31, 4, 7, 4)
+	return SNew(SVerticalBox)
+	+ SVerticalBox::Slot()
+	.AutoHeight()
 	[
-		SNew(SBox)
-		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
+		SNew(SHorizontalBox)
+		.IsEnabled_Lambda([]() { return GEditor->PlayWorld == nullptr; })
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Fill)
+		.Padding(31, 4, 7, 4)
 		[
-			SNew(SButton)
-			.Cursor(EMouseCursor::Default)
-			.HAlign(HAlign_Center)
-			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))
-			.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton)
-			.ContentPadding(0)
+			SNew(SBox)
+			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
 			[
-				SNew(SBox)
-				.VAlign(VAlign_Center)
+				SNew(SButton)
+				.Cursor(EMouseCursor::Default)
+				.HAlign(HAlign_Center)
+				.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+				.ToolTipText(LOCTEXT("DialogueAddFragment_Tooltip", "Add Fragment"))
+				.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton)
+				.ContentPadding(0)
 				[
-					SNew(SImage)
-					.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
-					//.DesiredSizeOverride(FVector2D(8, 8))
-					.ColorAndOpacity(YapColor::Noir/* DialogueButtonsColor*/)
+					SNew(SBox)
+					.VAlign(VAlign_Center)
+					[
+						SNew(SImage)
+						.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
+						//.DesiredSizeOverride(FVector2D(8, 8))
+						.ColorAndOpacity(YapColor::Noir/* DialogueButtonsColor*/)
+					]
 				]
 			]
 		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.HAlign(HAlign_Right)
+		.Padding(0, 2, 1, 2)
+		[
+			SAssignNew(BypassOutputBox, SBox)
+			.HAlign(HAlign_Center)
+			.WidthOverride(24)
+			.HeightOverride(24)
+			.Padding(0)
+		]
 	]
-	+ SHorizontalBox::Slot()
-	.AutoWidth()
-	.HAlign(HAlign_Right)
-	.Padding(0, 2, 1, 2)
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.Padding(1)
 	[
-		SAssignNew(BypassOutputBox, SBox)
-		.HAlign(HAlign_Center)
-		.WidthOverride(24)
-		.HeightOverride(24)
-		.Padding(0)
+		SNew(SSeparator)
+		.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_AddonsSeparator)
+		.Thickness(1)
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		SNew(SHorizontalBox)
+		+SHorizontalBox::Slot()
+		.HAlign(HAlign_Left)
+		.FillWidth(1.0f)
+		[
+			SAssignNew(LeftNodeBox, SVerticalBox)
+		]
+		+SHorizontalBox::Slot()
+		.AutoWidth()
+		.HAlign(HAlign_Right)
+		[
+			SAssignNew(RightNodeBox, SVerticalBox)
+		]
 	];
 }
 
@@ -864,6 +896,11 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 	FYapTransactions::EndModify();
 	
 	return FReply::Handled();
+}
+
+EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_AddonsSeparator() const
+{
+	return GetFlowYapDialogueNode()->AddOns.Num() > 0 ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateDialogueTagPreviewWidget() const
@@ -1120,6 +1157,10 @@ const FSlateBrush* SFlowGraphNode_YapDialogueWidget::GetShadowBrush(bool bSelect
 	return FAppStyle::GetBrush(TEXT("Graph.Node.Shadow"));
 }
 
+static const FName OutPinName = FName("Out");
+static const FName BypassPinName = FName("Bypass");
+static const FName InputPinName = FName("In");
+
 void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 {	
 	TArray<TSet<FFlowPin>> FragmentPins;
@@ -1210,13 +1251,13 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 
 		TSharedPtr<SBox> PinBox = nullptr;
 
-		if (Pin->GetFName() == "Out")
+		if (Pin->GetFName() == OutPinName)
 		{
 			PinBox = DialogueOutputBoxArea;
 			NewPinRef->SetColorAndOpacity(YapColor::White);
 			NewPinRef->SetPadding(FMargin(-4, -2, 2, -2));
 		}
-		else if (Pin->GetFName() == "Bypass")
+		else if (Pin->GetFName() == BypassPinName)
 		{
 			PinBox = BypassOutputBox;
 			NewPinRef->SetColorAndOpacity(NewPinRef->IsConnected() ? ConnectedBypassPinColor : DisconnectedBypassPinColor);
@@ -1230,10 +1271,44 @@ void SFlowGraphNode_YapDialogueWidget::CreatePinWidgets()
 			
 			NewPinRef->SetColorAndOpacity(PinColor);
 		}
-		else if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+		else if (Pin->GetFName() == InputPinName)
 		{
 			PinBox = DialogueInputBoxArea;
-			NewPinRef->SetPadding(FMargin(4, -2, 0, -2));
+			NewPinRef->SetPadding(FMargin(4, -2, 0, -2));			
+		}
+		else
+		{
+			NewPinRef->SetShowLabel(true);
+			
+			if (bAdvancedParameter)
+			{
+				NewPinRef->SetVisibility(TAttribute<EVisibility>(NewPinRef, &SGraphPin::IsPinVisibleAsAdvanced));
+			}
+
+			if (NewPinRef->GetDirection() == EEdGraphPinDirection::EGPD_Input)
+			{
+				LeftNodeBox->AddSlot()
+					.AutoHeight()
+					.HAlign(HAlign_Left)
+					.VAlign(VAlign_Center)
+					.Padding(Settings->GetInputPinPadding())
+					[
+						NewPinRef
+					];
+				InputPins.Add(NewPinRef);
+			}
+			else // Direction == EEdGraphPinDirection::EGPD_Output
+			{
+				RightNodeBox->AddSlot()
+					.AutoHeight()
+					.HAlign(HAlign_Right)
+					.VAlign(VAlign_Center)
+					.Padding(Settings->GetOutputPinPadding())
+					[
+						NewPinRef
+					];
+				OutputPins.Add(NewPinRef);
+			}
 		}
 
 		if (PinBox.IsValid())
