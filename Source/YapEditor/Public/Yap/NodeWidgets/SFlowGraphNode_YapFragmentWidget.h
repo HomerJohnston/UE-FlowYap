@@ -69,6 +69,9 @@ protected:
 	TSharedPtr<SButton> DialogueEditButtonWidget;
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
+public:
+	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
+	
 	// ------------------------------------------
 	// CONSTRUCTION
 public:

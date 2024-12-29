@@ -25,6 +25,8 @@ public:
 	FSlateColor DenominatorColor() const;
 
 	TSharedPtr<SEditableText> Denominator;
-	
+
 	virtual void Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted);
+
+	EVisibility Visibility_UpperElements() const;
 };

@@ -6,13 +6,6 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 // ----------------------------------------------
-FReply SYapConditionDetailsViewWidget::OnClicked_Delete() const
-{
-	OnClickedDelete.Execute(ConditionIndex);
-	return FReply::Handled();
-}
-
-// ----------------------------------------------
 void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 {
 	check(InArgs._Dialogue);
@@ -22,7 +15,7 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	FragmentIndex = InArgs._FragmentIndex;
 	ConditionIndex = InArgs._ConditionIndex;
 	OnClickedDelete = InArgs._OnClickedDelete;
-	OnClickedNewClassCondition = InArgs._OnClickedNewClass;
+	OnSelectedNewClass = InArgs._OnClickedNewClass;
 	
 	//ConditionsArrayProperty = InArgs._ConditionsArray;
 	
@@ -65,7 +58,6 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 					.AllowAbstract(false)
 					.ShowTreeView(false)
 					.AllowNone(false)
-					
 				]
 				+ SHorizontalBox::Slot()
 				.Padding(2, 1, 0, 1)
@@ -97,6 +89,14 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	];
 }
 
+// ----------------------------------------------
+FReply SYapConditionDetailsViewWidget::OnClicked_Delete() const
+{
+	OnClickedDelete.Execute(ConditionIndex);
+	return FReply::Handled();
+}
+
+// ----------------------------------------------
 const UYapCondition* SYapConditionDetailsViewWidget::GetCondition() const
 {
 	if (FragmentIndex == INDEX_NONE)
@@ -109,6 +109,7 @@ const UYapCondition* SYapConditionDetailsViewWidget::GetCondition() const
 	}
 }
 
+// ----------------------------------------------
 UYapCondition* SYapConditionDetailsViewWidget::GetCondition()
 {
 	return const_cast<UYapCondition*>(const_cast<const SYapConditionDetailsViewWidget*>(this)->GetCondition());
@@ -173,5 +174,5 @@ void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* 
 
 	FYapTransactions::EndModify();
 
-	OnClickedNewClassCondition.Execute(ConditionIndex);
+	OnSelectedNewClass.Execute(ConditionIndex);
 }

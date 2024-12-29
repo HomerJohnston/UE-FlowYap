@@ -9,7 +9,7 @@ struct FYapFragment;
 class UFlowNode_YapDialogue;
 
 DECLARE_DELEGATE_OneParam(FOnClickedDeleteCondition, int32 /*ConditionIndex*/);
-DECLARE_DELEGATE_OneParam(FOnClickedNewClassCondition, int32 /*ConditionIndex*/);
+DECLARE_DELEGATE_OneParam(FOnSelectedNewConditionClass, int32 /*ConditionIndex*/);
 
 class SYapConditionDetailsViewWidget : public SCompoundWidget
 {
@@ -24,7 +24,7 @@ public:
 		SLATE_ARGUMENT(int32, FragmentIndex)
 		SLATE_ARGUMENT(int32, ConditionIndex)
 		SLATE_EVENT(FOnClickedDeleteCondition, OnClickedDelete)
-		SLATE_EVENT(FOnClickedNewClassCondition, OnClickedNewClass)
+		SLATE_EVENT(FOnSelectedNewConditionClass, OnClickedNewClass)
 		SLATE_ARGUMENT(FArrayProperty*, ConditionsArray)
 		SLATE_ARGUMENT(void*, ConditionsContainer)
 	SLATE_END_ARGS()
@@ -48,21 +48,16 @@ private:
 
 	TSharedPtr<IStructureDetailsView> StructDetailView;
 
-	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
 	
 	FPropertyPath ConditionPropertyPath;
 	
 	FOnClickedDeleteCondition OnClickedDelete;
 
-	FOnClickedNewClassCondition OnClickedNewClassCondition;
+	FOnSelectedNewConditionClass OnSelectedNewClass;
 	
-//	FArrayProperty* ConditionsArrayProperty;
-	
-//	TWeakObjectPtr<UYapCondition> ConditionWeakPtr = nullptr;
-
 public:
-	TSharedPtr<SWidget> ParentButton;
-	
+	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
+
 	int32 FragmentIndex = INDEX_NONE;
 
 	int32 ConditionIndex = INDEX_NONE;

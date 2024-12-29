@@ -68,12 +68,13 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			+ SVerticalBox::Slot()
 			.VAlign(VAlign_Bottom)
 			.HAlign(HAlign_Fill)
-			.Padding(0, 0, 0, (FontHeight - 8))
+			.Padding(0, 0, 0, (FontHeight - 10))
 			[
 				SNew(STextBlock)
+				.Visibility(this, &SActivationCounterWidget::Visibility_UpperElements)
 				.Text(this, &SActivationCounterWidget::NumeratorText)
 				.ColorAndOpacity(this, &SActivationCounterWidget::NumeratorColor)
-				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", FontHeight))
 				.Justification(ETextJustify::Center)
 				.ToolTipText(INVTEXT("Activation count"))
 			]
@@ -83,6 +84,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			.Padding(4, 0, 4, 0)
 			[
 				SNew(SSeparator)
+				.Visibility(this, &SActivationCounterWidget::Visibility_UpperElements)
 				.Orientation(Orient_Horizontal)
 				.Thickness(1)
 				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
@@ -91,13 +93,13 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			+ SVerticalBox::Slot()
 			.VAlign(VAlign_Top)
 			.HAlign(HAlign_Fill)
-			.Padding(0, (FontHeight - 8), 0, 0)
+			.Padding(0, (FontHeight - 11), 0, 0)
 			[
 				// TODO: SEditableText messes up justification on refresh, why??? STextBlock is ok
 				SAssignNew(Denominator, SEditableText)
 				.Text(this, &SActivationCounterWidget::DenominatorText)
 				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
-				.Font(FCoreStyle::GetDefaultFontStyle("Normal", FontHeight))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", FontHeight))
 				.Justification(ETextJustify::Center)
 				.OnTextCommitted(OnTextCommitted)
 				.OnIsTypedCharValid(FOnIsTypedCharValid::CreateLambda([Numbers](const TCHAR InCh) { return Numbers.Contains(InCh); }))
@@ -108,4 +110,14 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			]
 		]
 	];
+}
+
+EVisibility SActivationCounterWidget::Visibility_UpperElements() const
+{
+	if (GEditor->PlayWorld)
+	{
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
 }

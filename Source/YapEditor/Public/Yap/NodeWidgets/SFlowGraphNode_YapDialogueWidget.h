@@ -62,6 +62,9 @@ protected:
 	TSharedPtr<STextBlock> FragmentSequencingButton_Text;
 	
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
+
+	TSharedPtr<SYapConditionDetailsViewWidget> FocusedConditionWidget;
+	int32 HideTest = 0;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -91,8 +94,12 @@ protected:
 public:
 	virtual bool UseLowDetail() const { return false; };
 
-protected:
+public:
+	void OnConditionsArrayChanged();
+	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> NewWidget);
+	
 	// ------------------------------------------
+protected:
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
 	ECheckBoxState		IsChecked_SkippableToggle() const;
@@ -100,10 +107,11 @@ protected:
 	FSlateColor			ColorAndOpacity_SkippableToggleIcon() const;
 
 	// ------------------------------------------
+protected:
 	TSharedRef<SWidget>	CreateNodeContentArea() override;
 	
 	// ------------------------------------------
-
+protected:
 	FSlateColor ColorAndOpacity_NodeHeaderButton() const;
 	FText Text_FragmentSequencingButton() const;
 	FReply OnClicked_TogglePlayerPrompt();
@@ -121,6 +129,7 @@ protected:
 	FSlateColor			FragmentRowHighlight_BorderBackgroundColor(uint8 f) const;
 
 	// ------------------------------------------
+protected:
 	TSharedRef<SWidget> CreateFragmentBoxes();
 
 	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex);
@@ -130,14 +139,17 @@ protected:
 	FReply				OnClicked_FragmentSeparator(uint8 Index);
 
 	// ------------------------------------------
+protected:
 	TSharedRef<SWidget>	CreateFragmentRowWidget(uint8 FragmentIndex);
 	
 	TSharedRef<SBox>	CreateLeftFragmentPane(uint8 FragmentIndex);
 
 	// ------------------------------------------
+protected:
 	TSharedRef<SBox>	CreateLeftSideNodeBox();
 
 	// ------------------------------------------
+protected:
 	TSharedRef<SWidget> CreateContentFooter();
 
 	EVisibility			Visibility_BottomAddFragmentButton() const;
@@ -154,7 +166,7 @@ protected:
 
 public:
 	void OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex);
-	void OnUpdateConditionDetailsWidget(TSharedPtr<SYapConditionDetailsViewWidget> InConditionDetailsWidget);
+	void OnEditedConditionChanged(int32 FragmentIndex, int32 ConditionIndex);
 	void OnClick_NewConditionButton(int32 FragmentIndex);
 	bool IsEnabled_ConditionWidgetsScrollBox() const;
 	
@@ -195,8 +207,6 @@ protected:
 public:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
-	const FSlateBrush* GetShadowBrush(bool bSelected) const override;
-
 public:
 	void CreatePinWidgets() override;
 
@@ -208,13 +218,9 @@ public:
 
 	TArray<FOverlayWidgetInfo> GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const override;
 
-	TSharedPtr<SYapConditionDetailsViewWidget> ConditionDetailsWidget;
-	int32 SelectedConditionFragmentIndex = INDEX_NONE;
-	int32 SelectedConditionIndex = INDEX_NONE;
-	
 	virtual TSharedPtr<IToolTip> GetToolTip() override { return nullptr; };
 
-	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
+	TSharedPtr<SYapConditionsScrollBox> DialogueConditionsScrollBox;
 
 	TMap<FName, FName> EventUpdateMemberMap;
 	TMap<FName, FSimpleDelegate> MemberUpdateDelegateMap;

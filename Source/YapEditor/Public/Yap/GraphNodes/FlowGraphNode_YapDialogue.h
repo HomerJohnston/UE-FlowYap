@@ -17,9 +17,6 @@ class UFlowGraphNode_YapDialogue : public UFlowGraphNode
 public:
 	UFlowGraphNode_YapDialogue();
 
-public:
-	FFlowGraphNodeEvent OnYapNodeChanged;
-
 protected:
 	// Fragment GUID, array of pin names for this fragment - basically only used for fragment deletion
 	TMap<FGuid, TArray<FName>> FragmentPins;

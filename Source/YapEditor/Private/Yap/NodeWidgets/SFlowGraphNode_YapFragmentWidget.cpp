@@ -334,10 +334,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			SAssignNew(ConditionsScrollBox, SYapConditionsScrollBox)
 			.DialogueNode(DialogueNode)
 			.FragmentIndex(FragmentIndex)
-			.OnUpdateConditionDetailsWidget(Owner, &SFlowGraphNode_YapDialogueWidget::OnUpdateConditionDetailsWidget)
-			.OnClickNewConditionButton(Owner, &SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton)
-			.ConditionsArray(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
+			.ConditionsArrayProperty(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
 			.ConditionsContainer(&GetFragment())
+			.OnConditionsArrayChanged(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
+			.OnConditionDetailsViewBuilt(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -515,7 +515,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0, 0, 0, 0)
+		.Padding(0, 0, 0, 3)
 		[
 			CreateUpperFragmentBar()
 		]
@@ -902,8 +902,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_ConditionWidgets() cons
 
 void SFlowGraphNode_YapFragmentWidget::OnConditionsUpdated()
 {
-	Owner->ConditionDetailsWidget = nullptr;
-	ConditionsScrollBox->OnConditionsUpdated();
+	//Owner->EditedConditionDetailsWidget = nullptr;
 }
 
 // ================================================================================================
