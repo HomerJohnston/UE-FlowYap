@@ -57,6 +57,8 @@ class SYapTextPropertyEditableTextBox : public SCompoundWidget
 		, _AutoWrapText(false)
 		, _MinDesiredWidth()
 		, _MaxDesiredHeight(300.0f)
+		, _Text()
+		, _OnTextCommitted()
 		{}
 		/** The styling of the textbox */
 		SLATE_STYLE_ARGUMENT(FEditableTextBoxStyle, Style)
@@ -72,10 +74,14 @@ class SYapTextPropertyEditableTextBox : public SCompoundWidget
 		SLATE_ATTRIBUTE(FOptionalSize, MinDesiredWidth)
 		/** When specified, will report the MaxDesiredHeight if smaller than the content's desired height */
 		SLATE_ATTRIBUTE(FOptionalSize, MaxDesiredHeight)
+		/**  */
+		SLATE_ATTRIBUTE(FText, Text)
+		/**  */
+		SLATE_EVENT(FOnTextCommitted, OnTextCommitted)
 	SLATE_END_ARGS()
 	
 public:
-	void Construct(const FArguments& Arguments, const TSharedRef<IEditableTextProperty>& InEditableTextProperty, FOnTextCommitted OnTextCommittedDelegate);
+	void Construct(const FArguments& Arguments, const TSharedRef<IEditableTextProperty>& InEditableTextProperty);
 	virtual bool SupportsKeyboardFocus() const override;
 	virtual FReply OnFocusReceived(const FGeometry& MyGeometry, const FFocusEvent& InFocusEvent) override;
 
@@ -126,6 +132,8 @@ private:
 
 	TSharedPtr<SEditableTextBox> KeyEditableTextBox;
 
+	TAttribute<FText> BoundText;
+	
 	bool bIsMultiLine = false;
 
 	static FText MultipleValuesText;

@@ -1,23 +1,26 @@
-﻿#pragma once
+#pragma once
 
-#include "Yap/IYapConversationListener.h"
-
-#include "YapConversationBrokerBase.generated.h"
-
-class UYapCharacter;
-struct FYapDialogueHandle;
+struct FGameplayTag;
 struct FYapPromptHandle;
+struct FYapDialogueHandle;
+struct FYapBit;
 
-/** Optional base class for brokering Yap to your game. Create a child class of this and the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
-UCLASS(Abstract)
-class UYapConversationBrokerBase : public UObject
+#include "Yap/YapPromptHandle.h"
+#include "Yap/YapDialogueHandle.h"
+
+#include "IYapConversationListener.generated.h"
+
+UINTERFACE(MinimalAPI, Blueprintable)
+class UYapConversationListener : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class IYapConversationListener
 {
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-public:
-	bool ImplementsGetWorld() const override { return true; }
-
 	bool bWarnedAboutMatureDialogue = false;
 #endif
 	
@@ -25,31 +28,38 @@ protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnConversationBegins(const FGameplayTag& Conversation);
-
+	virtual void K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation);
+	
 	/** Code to run when a conversation ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnConversationEnds(const FGameplayTag& Conversation);
+	virtual void K2_OnConversationEnds_Implementation(const FGameplayTag& Conversation);
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
+	virtual void K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
+	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
+	virtual void K2_OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	void K2_OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
+	virtual void K2_OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation);
 
 	/** Use this to read your game's settings and determine if mature language is permitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
 	bool K2_UseMatureDialogue();
-	
+	virtual bool K2_UseMatureDialogue_Implementation();
+
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
 	virtual void OnConversationBegins(const FGameplayTag& Conversation)
@@ -93,12 +103,3 @@ public:
 		return K2_UseMatureDialogue();
 	}
 };
-
-// NOTES:
-//
-// This class does NOT implement IYapConversationListenerInterface because it's very annoying that Unreal refuses to let you convert interface events to functions,
-// but you can convert BIE/BNE's to functions. This class includes identical functions as IYapConversationListenerInterface.
-//
-// Templates are used in the Yap Subsystem to call the same functions on either a conversation broker or a IYapConversationListenerInterface implementer.
-//
-// The BNE's above pass many individual args instead of a struct to make it easier to refer to individual args inside of a blueprint graph.

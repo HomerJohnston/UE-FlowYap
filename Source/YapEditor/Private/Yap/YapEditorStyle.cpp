@@ -92,17 +92,18 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Baby,						"Icon_Baby", ".png",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DialogueExpand,			"Icon_DialogueExpand", ".png",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_TextTime,					"DialogueNodeIcons/TextTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Timer,						"DialogueNodeIcons/Timer", ".png",		FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_LocalLimit,				"DialogueNodeIcons/LocalLimit", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Speaker,					"Icon_Audio", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Tag,						"Icon_Tag", ".png",						FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DialogueExpand,			"Icon_DialogueExpand", ".png",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_MoodKeyMissing,			"Icon_MoodKey_Missing", ".png",			FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
 	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));

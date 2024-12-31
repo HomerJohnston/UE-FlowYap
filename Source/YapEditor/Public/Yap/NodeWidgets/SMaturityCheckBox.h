@@ -4,11 +4,11 @@
 
 namespace YapEditor
 {
-	TSharedRef<SCheckBox> CreateSkippableCheckBox
+	TSharedRef<SCheckBox> CreateMaturityCheckBox
 	(
 		const TAttribute<ECheckBoxState>& IsCheckedAtt,
 		const FOnCheckStateChanged& OnCheckStateChangedEvt,
 		const TAttribute<FSlateColor>& ColorAndOpacityAtt,
-		const TAttribute<EVisibility>& VisibilityOffIconAtt
+		const TAttribute<EVisibility>& ActiveIndicatorAtt
 	);
 }

@@ -216,6 +216,8 @@ void SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt(TSharedPtr<SY
 {
 	FocusedConditionWidget = NewWidget;
 
+	FocusedConditionWidgetStartTime = -1.0;
+	
 	SetNodeSelected();
 }
 
@@ -267,7 +269,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
-		.Padding(2,0,2,0)
+		.Padding(2,0,7,0)
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
 		[
@@ -291,7 +293,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.WidthOverride(20)
 			.HAlign(HAlign_Center)
 			[
-				CreateSkippableCheckbox
+				YapEditor::CreateSkippableCheckBox
 				(
 					TAttribute<ECheckBoxState>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle),
 					FOnCheckStateChanged::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle),
@@ -642,7 +644,9 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator(uint8 Index
 	UpdateGraphNode();
 
 	FYapTransactions::EndModify();
-		
+
+	SetNodeSelected();
+	
 	return FReply::Handled();
 }
 
@@ -931,6 +935,8 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 	UpdateGraphNode();
 
 	FYapTransactions::EndModify();
+
+	SetNodeSelected();
 	
 	return FReply::Handled();
 }
@@ -939,50 +945,6 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_AddonsSeparator() const
 {
 	return GetFlowYapDialogueNode()->AddOns.Num() > 0 ? EVisibility::Visible : EVisibility::Collapsed;
-}
-
-// ------------------------------------------------------------------------------------------------
-TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateDialogueTagPreviewWidget() const
-{	
-	return SNew(SBorder)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
-	.BorderBackgroundColor(YapColor::DeepGray)
-	.ColorAndOpacity(YapColor::White)//this, &SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_ColorAndOpacity)
-	.VAlign(VAlign_Center)
-	.HAlign(HAlign_Center)
-	[
-		SNew(STextBlock)
-		.Text(this, &SFlowGraphNode_YapDialogueWidget::Text_DialogueTagPreview)
-		.IsEnabled(false)
-		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
-	];
-}
-
-// ------------------------------------------------------------------------------------------------
-FText SFlowGraphNode_YapDialogueWidget::Text_DialogueTagPreview() const
-{
-	FText Text = FText::FromString(UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter::Prompts, GetFlowYapDialogueNode()->GetDialogueTag()));
-
-	if (Text.IsEmptyOrWhitespace())
-	{
-		return INVTEXT("<None>");
-	}
-	else
-	{
-		return Text;
-	}
-}
-
-// ------------------------------------------------------------------------------------------------
-EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_DialogueTagPreview() const
-{
-	return GetFlowYapDialogueNode()->DialogueTag.IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
-}
-
-// ------------------------------------------------------------------------------------------------
-EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_ConditionWidgets() const
-{
-	return (GetFlowYapDialogueNode()->GetConditions().Num() > 0) ? EVisibility::Visible : EVisibility::Hidden;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1021,26 +983,33 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 	
 	if (FocusedConditionWidget.IsValid())
 	{
+		if (FocusedConditionWidgetStartTime < 0)
+		{
+			FocusedConditionWidget->SetRenderOpacity(0.0);
+		}
+		else
+		{
+			const float Delta = 0.2;
+			float Opacity = FMath::Lerp(0.0, 1.0, (FPlatformTime::Seconds() - FocusedConditionWidgetStartTime) / Delta);
+			FocusedConditionWidget->SetRenderOpacity(Opacity);
+		}
 		TSharedPtr<SYapConditionsScrollBox> ScrollBox = (FocusedConditionWidget->FragmentIndex == INDEX_NONE) ? DialogueConditionsScrollBox : FragmentWidgets[FocusedConditionWidget->FragmentIndex]->GetConditionsScrollBox();
 
 		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
 		
 		TSharedPtr<SWidget> EditedButton = ScrollBox->GetEditedButton(FocusedConditionWidget->ConditionIndex);
 
-		if (EditedButton.IsValid())
-		{
-			const FGeometry& ButtonGeo = EditedButton->GetPaintSpaceGeometry();
-		
-			FVector2D ConditionDetailsPaneOffset = ButtonGeo.LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
+		const FGeometry& ButtonGeo = EditedButton->GetPaintSpaceGeometry();
+	
+		FVector2D ConditionDetailsPaneOffset = ButtonGeo.LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
 
-			ConditionDetailsPaneOffset *= 1.0 / OwnerGraphPanelPtr.Pin()->GetZoomAmount();
-		
-			FOverlayWidgetInfo Info;
-			Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);
-			Info.Widget = FocusedConditionWidget;
+		ConditionDetailsPaneOffset *= 1.0 / OwnerGraphPanelPtr.Pin()->GetZoomAmount();
+	
+		FOverlayWidgetInfo Info;
+		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);
+		Info.Widget = FocusedConditionWidget;
 
-			Widgets.Add(Info);
-		}
+		Widgets.Add(Info);
 	}
 
 	return Widgets;
@@ -1173,15 +1142,10 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 
 	if (bIsSelected)
 	{
-		//if (!FocusedConditionWidget.IsValid() && SYapConditionsScrollBox::CurrentEditedConditionDetailsWidget.IsValid())
-		//{
-		//	TSharedPtr<SYapConditionDetailsViewWidget> DetailsViewWidget = SYapConditionsScrollBox::CurrentEditedConditionDetailsWidget.Pin();
-
-		//	if (DetailsViewWidget->Dialogue == GetFlowYapDialogueNode())
-		//	{
-		//		FocusedConditionWidget = DetailsViewWidget;
-		//	}
-		//}
+		if (FocusedConditionWidget.IsValid() && FocusedConditionWidgetStartTime < 0)
+		{
+			FocusedConditionWidgetStartTime = FPlatformTime::Seconds();
+		}
 	}
 	else
 	{
@@ -1190,6 +1154,7 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 		bKeyboardFocused = false;
 
 		FocusedConditionWidget = nullptr;
+		FocusedConditionWidgetStartTime = -1;
 	}
 
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);

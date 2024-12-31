@@ -7,7 +7,7 @@
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
-class UYapConversationListenerInterface;
+class UYapConversationListener;
 enum class EYapErrorLevel : uint8;
 
 enum class EYap_TagFilter : uint8
@@ -102,6 +102,9 @@ protected:
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
 	FGameplayTag DefaultMoodTag;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
+	bool bSuppressMatureWarning = false;
 	
 #if WITH_EDITORONLY_DATA
 public:
@@ -154,6 +157,8 @@ public:
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+
+	bool GetSuppressMatureWarning() const { return bSuppressMatureWarning; }
 #endif
 
 public:

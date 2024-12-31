@@ -1,15 +1,14 @@
-#include "Yap/NodeWidgets/SSkippableCheckBox.h"
-
+#include "Yap/NodeWidgets/SMaturityCheckBox.h"
 #include "Yap/YapEditorStyle.h"
 
 namespace YapEditor
 {
-	TSharedRef<SCheckBox> CreateSkippableCheckBox
+	TSharedRef<SCheckBox> CreateMaturityCheckBox
 	(
 		const TAttribute<ECheckBoxState>& IsCheckedAtt,
 		const FOnCheckStateChanged& OnCheckStateChangedEvt,
 		const TAttribute<FSlateColor>& ColorAndOpacityAtt,
-		const TAttribute<EVisibility>& VisibilityOffIconAtt
+		const TAttribute<EVisibility>& ActiveIndicatorAtt
 	)
 	{
 		return SNew(SCheckBox)
@@ -18,9 +17,11 @@ namespace YapEditor
 		.Type(ESlateCheckBoxType::ToggleButton)
 		.Padding(FMargin(0, 0))
 		.CheckBoxContentUsesAutoWidth(true)
-		.ToolTipText(INVTEXT("Toggle whether this can be skipped by the player. Hold CTRL while clicking to use default."))
+		.ToolTipText(INVTEXT("Child-safe settings."))
 		.IsChecked(IsCheckedAtt)
 		.OnCheckStateChanged(OnCheckStateChangedEvt)
+			//.BackgroundImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidRed))
+			//.BorderBackgroundColor(YapColor::Error)
 		.Content()
 		[
 			SNew(SBox)
@@ -31,19 +32,19 @@ namespace YapEditor
 			[
 				SNew(SOverlay)
 				+ SOverlay::Slot()
+				.Padding(-3)
 				[
-					SNew(SImage)
-					.ColorAndOpacity(ColorAndOpacityAtt)
-					.DesiredSizeOverride(FVector2D(16, 16))
-					.Image(FAppStyle::Get().GetBrush("Icons.Rotate180"))
+					SNew(SBorder)
+					.Visibility(ActiveIndicatorAtt)
+					.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
+					.BorderBackgroundColor(YapColor::Yellow_Trans)
 				]
 				+ SOverlay::Slot()
 				[
 					SNew(SImage)
 					.ColorAndOpacity(ColorAndOpacityAtt)
 					.DesiredSizeOverride(FVector2D(16, 16))
-					.Image(FAppStyle::Get().GetBrush("SourceControl.StatusIcon.Off"))
-					.Visibility(VisibilityOffIconAtt)
+					.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
 				]
 			]
 		];

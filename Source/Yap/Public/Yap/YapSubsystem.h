@@ -11,7 +11,7 @@ class UYapConversationBrokerBase;
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
-class IYapConversationListenerInterface;
+class IYapConversationListener;
 struct FYapBit;
 class UYapTextCalculator;
 class UYapCharacterComponent;
@@ -218,5 +218,30 @@ protected:
 		{
 			UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
 		}
+	}
+	
+	template<auto TFunction, auto TExecFunction, typename R, typename... TArgs>
+	R ExecuteBrokerListenerFuncs(TArgs&&... Args)
+	{
+		if (IsValid(ConversationBroker))
+		{
+			return (ConversationBroker->*TFunction)(Args...);
+		}
+
+		for (int i = 0; i < Listeners.Num(); ++i)
+		{
+			UObject* Listener = Listeners[i];
+
+			if (!IsValid(Listener))
+			{
+				continue;
+			}
+
+			return (*TExecFunction)(Listener, Args...);
+		}
+
+		UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
+
+		return R{};
 	}
 };

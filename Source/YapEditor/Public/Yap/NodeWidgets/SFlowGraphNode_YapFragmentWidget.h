@@ -44,14 +44,23 @@ protected:
 
 	bool bCtrlPressed = false;
 
+	float Opacity = 0;
+
+	double InitTime = -1;
+	
 	uint64 LastBitReplacementCacheFrame = 0;
 	FYapBitReplacement* CachedBitReplacement = nullptr;
 
-	bool bRunning;
-
 	bool bShowSettings = false;
 	bool bTitleTextExpanded = false;
+	bool bShowMaturitySettings = false;
+	static bool bShowMaturitySettingsGlobal;
 
+	bool GetShowMaturitySettings() const
+	{
+		return bShowMaturitySettings || bShowMaturitySettingsGlobal;
+	}
+	
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
@@ -99,7 +108,7 @@ protected:
 	TSharedRef<SWidget> CreateFragmentHighlightWidget();
 	void OnTextCommitted_FragmentActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	EVisibility Visibility_FragmentRowNormalControls() const;
-	
+
 	TSharedRef<SWidget> CreateUpperFragmentBar();
 	EVisibility Visibility_FragmentTagWidget() const;
 	
@@ -107,6 +116,11 @@ protected:
 	FSlateColor ColorAndOpacity_SkippableToggleIcon() const;
 	EVisibility Visibility_SkippableToggleIconOff() const;
 	void OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
+
+	ECheckBoxState		IsChecked_MaturitySettings() const;
+	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
+	FSlateColor			ColorAndOpacity_MaturitySettingsCheckBox() const;
+
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -118,12 +132,14 @@ protected:
 
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
-	FText				Dialogue_Text() const;
+	FText				Text_Dialogue() const;
 	void				OnTextCommitted_Dialogue(const FText& CommittedText, ETextCommit::Type CommitType);
+	void				OnTextCommitted_DialogueSafe(const FText& CommittedText, ETextCommit::Type CommitType);
 	FText				ToolTipText_Dialogue() const;
 	FSlateColor			BackgroundColor_Dialogue() const;
-	FSlateColor			ForegroundColor_Dialogue() const;
+	FLinearColor			ForegroundColor_Dialogue() const;
 
+	FSlateColor ColorAndOpacity_DialogueText() const;
 	EVisibility			Visibility_DialogueBackground() const;
 	FSlateColor			BorderBackgroundColor_Dialogue() const;
 		
@@ -183,7 +199,8 @@ protected:
 
 	EVisibility			Visibility_TitleText() const;
 	FText				Text_TitleText() const;
-	void				TitleText_OnTextCommitted(const FText& CommittedText, ETextCommit::Type CommitType);
+	void				OnTextCommitted_TitleText(const FText& CommittedText, ETextCommit::Type CommitType);
+	void				OnTextCommitted_TitleTextSafe(const FText& CommittedText, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTagWidget();
@@ -214,7 +231,7 @@ protected:
 	void				OnValueCommitted_TimeEntryBox(double NewValue, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateAudioAssetWidget();
+	TSharedRef<SWidget> CreateAudioAssetWidget(TAttribute<EVisibility> VisibilityAtt, TAttribute<FString> ObjectPathAtt, TDelegate<void(const FAssetData&)> OnObjectChangedAtt);
 
 	FText				ObjectPathText_AudioAsset() const;
 	FString				ObjectPath_AudioAsset() const;
@@ -228,16 +245,15 @@ protected:
 	// ------------------------------------------
 	// HELPERS
 protected:
-	UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+	UFlowNode_YapDialogue* GetDialogueNode() const;
 
 	FYapFragment& GetFragment() const;
 
-	bool FragmentFocused() const;
+	bool IsFragmentFocused() const;
 
 	EVisibility			Visibility_RowHighlight() const;
 	FSlateColor			BorderBackgroundColor_RowHighlight() const;
 
-	void SetNodeSelected();
 	// ------------------------------------------
 	// OVERRIDES
 public:

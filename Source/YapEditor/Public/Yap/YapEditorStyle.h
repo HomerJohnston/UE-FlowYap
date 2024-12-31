@@ -9,7 +9,11 @@
 struct FYapBrushes
 {
 	FName Icon_AudioTime;
+	FName Icon_Baby;
+	FName Icon_CrossX;
+	FName Icon_Delete;
 	FName Icon_DialogueExpand;
+	FName Icon_DownArrow;
 	FName Icon_Edit;
 	FName Icon_LocalLimit;
 	FName Icon_MoodKeyMissing;
@@ -17,10 +21,7 @@ struct FYapBrushes
 	FName Icon_Tag;
 	FName Icon_TextTime;
 	FName Icon_Timer;
-	FName Icon_Delete;
 	FName Icon_UpArrow;
-	FName Icon_DownArrow;
-	FName Icon_CrossX;
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;

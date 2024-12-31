@@ -122,7 +122,7 @@ protected:
 
 public:
 	/** Is this dialogue a Talk node or a Player Prompt node? */
-	bool GetIsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; };
+	bool GetIsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; }
 
 	/** How many times has this dialogue node successfully ran? */
 	int32 GetNodeActivationCount() const { return NodeActivationCount; }
@@ -195,7 +195,7 @@ protected:
 	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
 
 public:
-	void OnCharacterLoadComplete(FYapBit* Bit);
+	void OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
 	
 protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
@@ -257,5 +257,9 @@ public:
 	virtual bool CanRefreshContextPinsOnLoad() const { return true; }
 	
 	FText GetNodeToolTip() const override { return FText::GetEmpty(); };
+
+	void PostLoad() override;
+
+	void PreloadContent() override;
 #endif // WITH_EDITOR
 };

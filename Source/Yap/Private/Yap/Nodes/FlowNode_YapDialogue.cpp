@@ -83,9 +83,9 @@ void UFlowNode_YapDialogue::InitializeInstance()
 			UYapSubsystem* Subsystem = GetWorld()->GetSubsystem<UYapSubsystem>();
 			Subsystem->RegisterTaggedFragment(Fragment.GetFragmentTag(), this);
 		}
-
-		Fragment.PreloadContent(this);
 	}
+	
+	TriggerPreload();
 }
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
@@ -118,9 +118,9 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 	}
 }
 
-void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit)
+void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
 {
-	Bit->OnCharacterLoadComplete();
+	Bit->OnCharacterLoadComplete(CharacterAsset, Character);
 }
 
 bool UFlowNode_YapDialogue::GetSkippable() const
@@ -647,6 +647,21 @@ void UFlowNode_YapDialogue::PostEditImport()
 		Fragment.ResetGUID();
 		Fragment.ResetOptionalPins();
 	}
+}
+
+void UFlowNode_YapDialogue::PostLoad()
+{
+	Super::PostLoad();
+	
+	TriggerPreload();
+}
+
+void UFlowNode_YapDialogue::PreloadContent()
+{
+	for (FYapFragment& Fragment : Fragments)
+	{
+		Fragment.PreloadContent(this);
+	}	
 }
 #endif
 

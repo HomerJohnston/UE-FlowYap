@@ -10,7 +10,7 @@
 #include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
-#include "Yap/YapConversationListenerInterface.h"
+#include "Yap/IYapConversationListener.h"
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
@@ -67,7 +67,7 @@ UYapSubsystem::UYapSubsystem()
 
 void UYapSubsystem::RegisterConversationListener(UObject* NewListener)
 {
-	if (NewListener->Implements<UYapConversationListenerInterface>())
+	if (NewListener->Implements<UYapConversationListener>())
 	{
 		Listeners.AddUnique(NewListener);
 	}
@@ -154,15 +154,15 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListenerInterface::Execute_OnPromptOptionAdded>
-		(ConversationName, Handle, Bit.GetCharacter(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTitleText());
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
+		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTitleText());
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation : FGameplayTag::EmptyTag;
 
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionsAllAdded, &IYapConversationListenerInterface::Execute_OnPromptOptionsAllAdded>
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionsAllAdded, &IYapConversationListener::Execute_K2_OnPromptOptionsAllAdded>
 		(ConversationName);
 }
 
@@ -179,12 +179,14 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 		ConversationName = ActiveConversation.Conversation;
 	}
 
-	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex);
-
 	bool bSkippable = (Bit.GetSkippable() == EYapDialogueSkippable::Default) ? Dialogue->GetSkippable() : Bit.GetSkippable() == EYapDialogueSkippable::Skippable;
+
+	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex, bSkippable);
+
+	bool bUseChildSafe = ExecuteBrokerListenerFuncs<&UYapConversationBrokerBase::UseMatureDialogue, &IYapConversationListener::Execute_K2_UseMatureDialogue, bool>();
 	
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListenerInterface::Execute_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetCharacter(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>(), bSkippable);
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
+		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetSpokenText(bUseChildSafe), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>(), Bit.GetDirectedAt());
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -198,9 +200,9 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 		ConversationName = ActiveConversation.Conversation;
 	}
 
-	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex);
+	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex, false);
 
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueEnds, &IYapConversationListenerInterface::Execute_OnDialogueEnds>
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueEnds, &IYapConversationListener::Execute_K2_OnDialogueEnds>
 		(ConversationName, DialogueHandle);
 }
 
@@ -226,6 +228,8 @@ void UYapSubsystem::RegisterCharacterComponent(UYapCharacterComponent* YapCharac
 
 void UYapSubsystem::UnregisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)
 {
+	// TODO
+	UE_LOG(LogYap, Error, TEXT("Unimplemented function UYapSubsystem::UnregisterCharacterComponent"));
 }
 
 // =====================================================================================================
@@ -249,13 +253,13 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationBegins, &IYapConversationListenerInterface::Execute_OnConversationBegins>
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationBegins, &IYapConversationListener::Execute_K2_OnConversationBegins>
 		(ConversationName);
 }
 
 void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationEnds, &IYapConversationListenerInterface::Execute_OnConversationEnds>
+	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationEnds, &IYapConversationListener::Execute_K2_OnConversationEnds>
 		(ConversationName);
 }
 

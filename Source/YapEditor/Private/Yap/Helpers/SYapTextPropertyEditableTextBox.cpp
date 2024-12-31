@@ -116,10 +116,11 @@ private:
 	}
 };
 
-void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty, FOnTextCommitted OnTextCommittedDelegate)
+void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty)
 {
 	EditableTextProperty = InEditableTextProperty;
-
+	BoundText = InArgs._Text;
+	
 	TSharedPtr<SHorizontalBox> HorizontalBox;
 
 	const bool bIsPassword = EditableTextProperty->IsPassword();
@@ -147,7 +148,7 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 					.ClearKeyboardFocusOnCommit(false)
 					.OnTextChanged(this, &SYapTextPropertyEditableTextBox::OnTextChanged)
 					//.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
-					.OnTextCommitted(OnTextCommittedDelegate)
+					.OnTextCommitted(InArgs._OnTextCommitted)
 					.SelectAllTextOnCommit(false)
 					.IsReadOnly(this, &SYapTextPropertyEditableTextBox::IsSourceTextReadOnly)
 					.AutoWrapText(InArgs._AutoWrapText)

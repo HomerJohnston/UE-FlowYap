@@ -2,33 +2,51 @@
 
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
+#include "Yap/YapProjectSettings.h"
+#include "Yap/YapPromptHandle.h"
 
-void UYapConversationBrokerBase::OnConversationBegins_Implementation(const FGameplayTag& Conversation)
+void UYapConversationBrokerBase::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnConversationEnds_Implementation(const FGameplayTag& Conversation)
+void UYapConversationBrokerBase::K2_OnConversationEnds_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, bool bSkippable)
+void UYapConversationBrokerBase::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+void UYapConversationBrokerBase::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+void UYapConversationBrokerBase::K2_OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
+void UYapConversationBrokerBase::K2_OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
+}
+
+bool UYapConversationBrokerBase::K2_UseMatureDialogue_Implementation()
+{
+#if WITH_EDITOR
+	if (!bWarnedAboutMatureDialogue)
+	{
+		if (!UYapProjectSettings::Get()->GetSuppressMatureWarning())
+		{
+			UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s\nDefaulting to use mature language; child-safe language will never be displayed.\nYou can suppress this warning in project settings."), *FString(__func__));
+		}
+
+		bWarnedAboutMatureDialogue = true;
+	}
+#endif
+	return true;
 }

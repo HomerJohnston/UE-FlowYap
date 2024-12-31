@@ -15,57 +15,35 @@ FYapBit::FYapBit()
 {
 }
 
-const UYapCharacter* FYapBit::GetCharacter(bool bSuppressWarnings) const
+const UYapCharacter* FYapBit::GetSpeaker() const
 {
-	if (IsValid(Character))
+	return GetCharacterAsset_Internal(SpeakerAsset, Speaker);
+}
+
+const UYapCharacter* FYapBit::GetDirectedAt() const
+{
+	return GetCharacterAsset_Internal(DirectedAtAsset, DirectedAt);
+}
+
+const FText& FYapBit::GetSpokenText(bool bUseChildSafeText) const
+{
+	if (!bUseChildSafeText)
 	{
-		return Character;
-	}
-	
-	if (CharacterAsset.IsNull())
-	{
-#if WITH_EDITOR
-		if (!bSuppressWarnings && IsValid(GEditor->EditorWorld))
-		{
-			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
-		}
-#endif
-		return nullptr;
-	}
-	
-	if (CharacterAsset.IsValid())
-	{
-		Character = CharacterAsset.Get();
-		return Character;
+		return GetDialogueText();
 	}
 
-	Character = CharacterAsset.LoadSynchronous();
-
-	if (!bSuppressWarnings)
+	if (GetDialogueTextSafe().IsEmpty())
 	{
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loading character: %s"), *CharacterAsset->GetName());
+		return GetDialogueText();
+	}
 
-#if WITH_EDITOR
-		FNotificationInfo NotificationInfo(INVTEXT("Yap: Synchronously loading UYapCharacter."));
-		NotificationInfo.ExpireDuration = 5.0f;
-		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-		NotificationInfo.SubText = FText::Format(INVTEXT("Loading: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
-		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
-#endif
-	}
-	
-	if (!IsValid(Character))
-	{
-		UE_LOG(LogYap, Error, TEXT("Unknown error - could not load UYapCharacter: %s"), *CharacterAsset->GetName());
-	}
-	
-	return Character;
+	return GetDialogueTextSafe();
 }
 
 #if WITH_EDITOR
 const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
-	const UYapCharacter* Char = GetCharacter(true);
+	const UYapCharacter* Char = GetSpeaker();
 
 	if (IsValid(Char))
 	{
@@ -117,20 +95,26 @@ double FYapBit::GetTime() const
 
 void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 {
-	if (IsValid(Character))
+	if (!IsValid(Speaker))
 	{
-		return;
+		if (SpeakerAsset.IsPending())
+		{
+			FYapStreamableManager::Get().RequestAsyncLoad(SpeakerAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this, &SpeakerAsset, &Speaker));
+		}
 	}
 
-	if (CharacterAsset.IsPending())
+	if (!IsValid(DirectedAt))
 	{
-		FYapStreamableManager::Get().RequestAsyncLoad(CharacterAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this));
+		if (DirectedAtAsset.IsPending())
+		{
+			FYapStreamableManager::Get().RequestAsyncLoad(DirectedAtAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this, &DirectedAtAsset, &DirectedAt));
+		}
 	}
 }
 
-void FYapBit::OnCharacterLoadComplete()
+void FYapBit::OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
 {
-	Character = CharacterAsset.Get();
+	*Character = CharacterAsset->Get();
 }
 
 // --------------------------------------------------------------------------------------------
@@ -156,7 +140,8 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 {
 #define FLOWYAP_REPLACE(X) if (Replacement.X.IsSet()) {X = Replacement.X.GetValue(); }  
 
-	FLOWYAP_REPLACE(CharacterAsset);
+	FLOWYAP_REPLACE(SpeakerAsset);
+	FLOWYAP_REPLACE(DirectedAtAsset);
 	FLOWYAP_REPLACE(TitleText);
 	FLOWYAP_REPLACE(DialogueText);
 	FLOWYAP_REPLACE(DialogueAudioAsset);
@@ -178,51 +163,121 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 #if WITH_EDITOR
 void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
 {
-	CharacterAsset = InCharacter;
-	Character = nullptr;
+	SpeakerAsset = InCharacter;
+	Speaker = nullptr;
 }
 #endif
 
 #if WITH_EDITOR
 void FYapBit::SetDialogueText(const FText& NewText)
 {
-	DialogueText = NewText;
-
-	if (UYapProjectSettings::Get()->CacheFragmentWordCount())
-	{
-		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
-		CachedWordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(DialogueText);
-	}
-	else
-	{
-		CachedWordCount = -1;
-	}
+	SetDialogueText_Internal(DialogueText, CachedWordCount, NewText);
 }
+
+void FYapBit::SetDialogueTextSafe(const FText& NewText)
+{
+	SetDialogueText_Internal(DialogueTextSafe, CachedWordCountSafe, NewText);
+}
+
 #endif
 
 #if WITH_EDITOR
 void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
-	DialogueAudioAsset = NewAudio;
+	SetDialogueAudioAsset_Internal(DialogueAudioAsset, CachedAudioTime, NewAudio);
+}
+#endif
+
+#if WITH_EDITOR
+void FYapBit::SetDialogueAudioAssetSafe(UObject* NewAudio)
+{
+	SetDialogueAudioAsset_Internal(DialogueAudioAssetSafe, CachedAudioTimeSafe, NewAudio);
+}
+#endif
+
+#if WITH_EDITOR
+void FYapBit::SetDialogueText_Internal(FText& Text, int32& WordCount, const FText& NewText)
+{
+	Text = NewText;
+
+	if (UYapProjectSettings::Get()->CacheFragmentWordCount())
+	{
+		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
+		WordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(NewText);
+	}
+	else
+	{
+		WordCount = -1;
+	}
+}
+#endif
+
+#if WITH_EDITOR
+void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, double& CachedTime, UObject* NewAudio)
+{
+	AudioAsset = NewAudio;
 
 	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacheClass = UYapProjectSettings::Get()->GetAudioTimeCacheClass();
 
 	if (AudioTimeCacheClass == nullptr)
 	{
 		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
-		CachedAudioTime = -1.0;
+		CachedTime = -1.0;
 		return;
 	}
 	
 	if (AudioTimeCacheClass == nullptr)
 	{
 		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
-		CachedAudioTime = -1.0;
+		CachedTime = -1.0;
 		return;
 	}
 
 	UYapAudioTimeCacher* CacherCDO = AudioTimeCacheClass.LoadSynchronous()->GetDefaultObject<UYapAudioTimeCacher>();
 
-	CachedAudioTime = CacherCDO->GetAudioLengthInSeconds(DialogueAudioAsset);
+	CachedTime = CacherCDO->GetAudioLengthInSeconds(AudioAsset);
 }
 #endif
+
+const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr) const
+{
+	if (IsValid(CharacterPtr))
+	{
+		return CharacterPtr;
+	}
+	
+	if (CharacterAsset.IsNull())
+	{
+#if WITH_EDITOR
+		if (IsValid(GEditor->PlayWorld))
+		{
+			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
+		}
+#endif
+		return nullptr;
+	}
+	
+	if (CharacterAsset.IsValid())
+	{
+		CharacterPtr = CharacterAsset.Get();
+		return CharacterPtr;
+	}
+
+	if (GEngine->GetCurrentPlayWorld())
+	{
+		CharacterPtr = CharacterAsset.LoadSynchronous();
+
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
+
+#if WITH_EDITOR
+		FNotificationInfo NotificationInfo(FText::Format(INVTEXT("Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())));
+		NotificationInfo.ExpireDuration = 5.0f;
+		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
+		NotificationInfo.SubText = FText::Format(INVTEXT("Loading: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
+		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+#endif
+	}
+
+	// We get what we get. Nullptr in editor until the separate preload system finishes async loading it; sync loaded asset in play.
+	return CharacterPtr;
+}

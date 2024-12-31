@@ -23,5 +23,8 @@ public:
 	UPROPERTY(Transient)
 	uint8 FragmentIndex;
 
+	UPROPERTY(BlueprintReadOnly, Transient)
+	bool bSkippable = true;
+	
 	void RunPrompt(UObject* WorldContextObject);
 };

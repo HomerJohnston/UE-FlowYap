@@ -1,9 +1,8 @@
 #include "Yap/YapDialogueHandle.h"
 
-FYapDialogueHandle::FYapDialogueHandle()
+FYapDialogueHandle::FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable)
 {
-}
-
-FYapDialogueHandle::FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex)
-{
+	DialogueNode = InDialogueNode;
+	FragmentIndex = InFragmentIndex;
+	bSkippable = bInSkippable;
 }

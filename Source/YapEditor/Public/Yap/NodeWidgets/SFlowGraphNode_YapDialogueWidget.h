@@ -64,7 +64,7 @@ protected:
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
 
 	TSharedPtr<SYapConditionDetailsViewWidget> FocusedConditionWidget;
-	int32 HideTest = 0;
+	double FocusedConditionWidgetStartTime = -1;
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -155,14 +155,6 @@ protected:
 	EVisibility			Visibility_BottomAddFragmentButton() const;
 	FReply				OnClicked_BottomAddFragmentButton();
 	EVisibility Visibility_AddonsSeparator() const;
-
-	// UNSORTED
-
-	TSharedRef<SWidget> CreateDialogueTagPreviewWidget() const;
-	FText Text_DialogueTagPreview() const;
-	EVisibility Visibility_DialogueTagPreview() const;
-
-	EVisibility Visibility_ConditionWidgets() const;
 
 public:
 	void OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex);
