@@ -621,6 +621,162 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 	return YapColor::DarkGray * ActiveModifier;
 }
 
+FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage() const
+{
+	const FYapBit& Bit = GetFragment().GetBit();
+
+	FLinearColor Color;
+	
+	if (Bit.GetDirectedAtAsset().IsValid())
+	{
+		Color = Bit.GetDirectedAtAsset().Get()->GetEntityColor();
+	}
+	else
+	{
+		Color = YapColor::Transparent;		
+	}
+
+	float A = UYapEditorSettings::Get()->GetPortraitBorderAlpha();
+	
+	Color.R *= A;
+	Color.G *= A;
+	Color.B *= A;
+
+	return Color;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
+	UObject* Object = AssetDatas[0].GetAsset();
+	
+	if (UYapCharacter* Character = Cast<UYapCharacter>(Object))
+	{
+		FYapTransactions::BeginModify(INVTEXT("Setting character"), GetDialogueNode());
+
+		GetFragment().Bit.SetDirectedAt(Character);
+
+		FYapTransactions::EndModify();
+	}
+}
+
+bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return false;
+	}
+
+	UClass* Class = AssetDatas[0].GetClass();
+
+	if (Class == UYapCharacter::StaticClass())
+	{
+		return true;
+	}
+
+	return false;
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget()
+{
+	if (bCtrlPressed)
+	{
+		FYapTransactions::BeginModify(INVTEXT("Clearing Directed At Character"), GetDialogueNode());
+
+		GetBit().SetDirectedAt(nullptr);
+
+		FYapTransactions::EndModify();
+	}
+	
+	return FReply::Handled();
+}
+
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
+{
+	const FSlateBrush& PortraitBrush = GetFragment().GetBit().GetDirectedAtPortraitBrush();
+
+	if (PortraitBrush.GetResourceObject())
+	{
+		return &PortraitBrush;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
+{
+	int32 PortraitSize = UYapEditorSettings::Get()->GetPortraitSize() / 3;
+	
+	return SNew(SOverlay)
+	+ SOverlay::Slot()
+	.Padding(0, 0, 0, 0)
+	[
+		SNew(SBox)
+		.WidthOverride(PortraitSize)
+		.HeightOverride(PortraitSize)
+		.Visibility(EVisibility::HitTestInvisible)
+		[
+			SNew(SBorder)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Panel_Rounded))
+			.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage)
+		]
+	]
+	+ SOverlay::Slot()
+	.Padding(0)
+	[
+		SNew(SLevelOfDetailBranchNode)
+		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+		.HighDetail()
+		[
+			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.Padding(0)
+			[
+				SNew(SAssetDropTarget)
+				.bSupportsMultiDrop(false)
+				.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_DirectedAtWidget)
+				.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_DirectedAtWidget)
+				[
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+					//.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
+					.ContentPadding(0)
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget)
+					[
+						SNew(SOverlay)
+						+ SOverlay::Slot()
+						[
+							SNew(SBox)
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							[
+								SNew(SImage)
+								.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+								.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget)	
+							]
+						]
+					]
+				]
+			]
+		]
+		.LowDetail()
+		[
+			SNew(SImage)
+			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget)
+		]
+	];
+}
+
 // ================================================================================================
 // FRAGMENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -701,6 +857,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							[
 								CreateAudioPreviewWidget(TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioButton))
 							]
+							+ SOverlay::Slot()
+							.VAlign(VAlign_Top)
+							.HAlign(HAlign_Right)
+							.Padding(0, -2, -2, 0)
+							[
+								CreateDirectedAtWidget()
+							]
 						]
 						+ SHorizontalBox::Slot()
 						.HAlign(HAlign_Fill)
@@ -777,7 +940,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 	[
 		SNew(SButton)
 		.Cursor(EMouseCursor::Default)
-		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
 		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor, &GetBit().MatureDialogueText, &GetBit().SafeDialogueText, YapStyles.EditableTextBoxStyle_Dialogue, YapColor::White)
 		.ContentPadding(0)
@@ -798,8 +960,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 				[
 					SNew(STextBlock)
 					.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PreviewText, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureTitleText())
-					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_PreviewText, YapColor::White, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureTitleText())
+					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PreviewText, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureDialogueText())
+					.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PreviewText, INVTEXT("Dialogue Text"), &GetBit().GetMatureDialogueText(), &GetBit().GetSafeDialogueText())
+					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_PreviewText, YapColor::White, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureDialogueText())
 				]
 			]
 			+ SOverlay::Slot()
@@ -883,37 +1046,6 @@ FText SFlowGraphNode_YapFragmentWidget::Text_PreviewText(const FText* MatureText
 	}
 	
 	return *MatureText;
-}
-
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_Dialogue() const
-{
-	if (bCtrlPressed)
-	{
-		double PaddingTime = GetFragment().GetPaddingToNextFragment();
-
-		FNumberFormattingOptions Formatting;
-		Formatting.MaximumFractionalDigits = 3;
-
-		const FYapBit& Bit = GetBit();
-
-		if (GetFragment().GetHasChildSafeData())
-		{
-			const FText& MatureDialogue = Bit.GetMatureDialogueText();
-			const FText& SafeDialogue = Bit.GetSafeDialogueText();
-
-			return FText::Format(INVTEXT("(Mature)\n{0}\n\n(Child-safe)\n{1}\n\nCompletion time padding: {2}"), MatureDialogue.IsEmpty() ? INVTEXT("--- UNSET ---") : MatureDialogue, SafeDialogue.IsEmpty() ? INVTEXT("--- UNSET ---") : SafeDialogue, FText::AsNumber(PaddingTime, &Formatting));
-		}
-		else
-		{
-			const FText& MatureDialogue = Bit.GetMatureDialogueText();
-
-			return FText::Format(INVTEXT("{0}\n\nCompletion time padding: {1}"), MatureDialogue.IsEmpty() ? INVTEXT("--- UNSET ---") : MatureDialogue, FText::AsNumber(PaddingTime, &Formatting));
-		}
-	}
-	else
-	{
-		return INVTEXT("Hold CTRL to show");
-	}
 }
 
 /*
@@ -1205,6 +1337,7 @@ bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_PortraitWidg
 	}
 
 	UClass* Class = AssetDatas[0].GetClass();
+	
 	if (Class == UYapCharacter::StaticClass())
 	{
 		return true;
@@ -1227,19 +1360,16 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_PortraitWidget(const FDra
 
 	UObject* Object = AssetDatas[0].GetAsset();
 	
-	UClass* Class = Object->GetClass();
-	
-	if (Class == UYapCharacter::StaticClass())
+	if (UYapCharacter* Character = Cast<UYapCharacter>(Object))
 	{
 		FYapTransactions::BeginModify(INVTEXT("Setting character"), GetDialogueNode());
 
-		UYapCharacter* Character = Cast<UYapCharacter>(Object);
 		GetFragment().Bit.SetCharacter(Character);
 
 		FYapTransactions::EndModify();
 	}
 
-	if (Class == UYapProjectSettings::Get()->GetDialogueAssetClass())
+	else if (Object->GetClass() == UYapProjectSettings::Get()->GetDialogueAssetClass())
 	{
 		FYapTransactions::BeginModify(INVTEXT("Setting dialogue asset"), GetDialogueNode());
 
@@ -1290,7 +1420,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreatePortraitWidget()
 								SNew(SImage)
 								.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
 								.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_PortraitImage)	
-							]	
+							]
 						]
 						+ SOverlay::Slot()
 						.HAlign(HAlign_Center)
@@ -1440,7 +1570,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 				SNew(STextBlock)
 				.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_TitleText)
 				.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PreviewText, &GetBit().GetMatureTitleText(), &GetBit().GetSafeTitleText())
-				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TitleText)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PreviewText, INVTEXT("Title Text"), &GetBit().GetMatureTitleText(), &GetBit().GetSafeTitleText())
 				.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_PreviewText, YapColor::YellowGray, &GetBit().GetMatureTitleText(), &GetBit().GetSafeTitleText())// [this] () { return UseChildSafeSettings() ? YapColor::YellowGray * YapColor::LightBlue : YapColor::YellowGray; } )
 			]
 		]
@@ -1590,22 +1720,19 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor(FText* Matur
 
 }
 
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_TitleText() const
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_PreviewText(FText Label, const FText* MatureText, const FText* SafeText) const
 {
 	if (bCtrlPressed)
 	{
-		const FYapBit& Bit = GetBit();
-		const FText& MatureTitleText = Bit.GetMatureTitleText();
-
-		FText Unset = INVTEXT("\u26A0 UNSET \u26A0");
+		FText Unset = INVTEXT("\u26A0 No text \u26A0");//" !! \u203C \u270D \u2756 \u26A0");
+		
 		if (GetFragment().GetHasChildSafeData())
 		{
-			const FText& SafeTitleText = Bit.GetSafeTitleText();
-			return FText::Format(INVTEXT("\u2668\u2502{0}\n\n\u26F9\u2502{1}"), MatureTitleText.IsEmpty() ? Unset : MatureTitleText, SafeTitleText.IsEmpty() ? Unset : SafeTitleText);
+			return FText::Format(INVTEXT("{0}\n\n\u2668\u2502{1}\n\n\u26F9\u2502{2}"), Label, MatureText->IsEmpty() ? Unset : *MatureText, SafeText->IsEmpty() ? Unset : *SafeText);
 		}
 		else
 		{
-			return FText::Format(INVTEXT("{0}"), MatureTitleText.IsEmpty() ? Unset : MatureTitleText);
+			return FText::Format(INVTEXT("{0}\n\n\u2756\u2502{1}"), Label, MatureText->IsEmpty() ? Unset : *MatureText);
 		}
 	}
 	else

@@ -52,6 +52,18 @@ const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 
 	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
 }
+
+const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
+{
+	const UYapCharacter* Char = GetDirectedAt();
+
+	if (IsValid(Char))
+	{
+		return Char->GetPortraitBrush(MoodKey);
+	}
+
+	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
+}
 #endif
 
 EYapTimeMode FYapBit::GetTimeMode() const
@@ -168,6 +180,12 @@ void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
 {
 	SpeakerAsset = InCharacter;
 	Speaker = nullptr;
+}
+
+void FYapBit::SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt)
+{
+	DirectedAtAsset = InDirectedAt;
+	DirectedAt = nullptr;
 }
 #endif
 

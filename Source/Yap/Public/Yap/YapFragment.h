@@ -43,7 +43,7 @@ protected:
 	UPROPERTY(Instanced, meta = (Yap_ReconstructNodeOnChange))
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
-	UPROPERTY()
+	UPROPERTY(meta = (ShowOnlyInnerProperties))
 	FYapBit Bit;
 
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */

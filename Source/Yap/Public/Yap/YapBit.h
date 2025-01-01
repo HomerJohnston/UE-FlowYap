@@ -14,7 +14,7 @@ class UYapCharacter;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
 
-USTRUCT(BlueprintType)
+USTRUCT()
 struct YAP_API FYapBit
 {
 #if WITH_EDITOR
@@ -29,72 +29,72 @@ struct YAP_API FYapBit
 	// SETTINGS
 protected:
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TSoftObjectPtr<UYapCharacter> SpeakerAsset;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TSoftObjectPtr<UYapCharacter> DirectedAtAsset;
 	
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FText MatureTitleText;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FText SafeTitleText;
 	
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FText MatureDialogueText;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FText SafeDialogueText;
 	
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TSoftObjectPtr<UObject> MatureDialogueAudioAsset;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	TSoftObjectPtr<UObject> SafeDialogueAudioAsset;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	FGameplayTag MoodKey;
 	
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	bool bUseProjectDefaultTimeSettings = true;
 	
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	EYapTimeMode TimeMode = EYapTimeMode::AudioTime;
 
 	/**  */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY()
 	EYapDialogueSkippable Skippable = EYapDialogueSkippable::Default;
 	
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	double ManualTime = 0;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	int32 CachedWordCount = 0;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	int32 CachedWordCountSafe = 0;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	double CachedAudioTime = 0;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	double CachedAudioTimeSafe = 0;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	double CachedSafeAudioTime = 0;
 	
 	// --------------------------------------------------------------------------------------------
@@ -176,6 +176,8 @@ public:
 
 	const FSlateBrush& GetSpeakerPortraitBrush() const;
 
+	const FSlateBrush& GetDirectedAtPortraitBrush() const;
+
 	bool HasAudioAsset() { return !MatureDialogueAudioAsset.IsNull(); }
 
 	FGameplayTag GetMoodKey() const { return MoodKey; }
@@ -192,7 +194,7 @@ public:
 	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 	
 	void OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
-	
+
 protected:
 	double GetManualTime() const { return ManualTime; }
 
@@ -215,6 +217,8 @@ public:
 	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return SpeakerAsset; }
 	
 	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter);
+
+	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 
 	void SetTitleText(const FText& InText) { MatureTitleText = InText; }
 

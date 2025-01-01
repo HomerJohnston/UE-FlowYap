@@ -5,6 +5,7 @@
 #include "Yap/YapColors.h"
 //#include "Yap/YapFragment.h"
 
+class UYapCharacter;
 struct FYapBit;
 class SYapConditionsScrollBox;
 struct FFlowPin;
@@ -120,6 +121,12 @@ protected:
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
 
+	FSlateColor BorderBackgroundColor_DirectedAtImage() const;
+	void OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	bool OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const;
+	FReply OnClicked_DirectedAtWidget();
+	const FSlateBrush* Image_DirectedAtWidget() const;
+	TSharedRef<SOverlay> CreateDirectedAtWidget();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -133,7 +140,6 @@ protected:
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
 	FText				Text_PreviewText(const FText* MatureText, const FText* SafeText) const;
-	FText				ToolTipText_Dialogue() const;
 	
 	EVisibility			Visibility_DialogueBackground() const;
 	FSlateColor			BorderBackgroundColor_Dialogue() const;
@@ -161,6 +167,7 @@ protected:
 	FText Text_PortraitWidget() const;
 	bool OnAreAssetsAcceptableForDrop_PortraitWidget(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_PortraitWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreatePortraitWidget();
 
@@ -191,8 +198,9 @@ protected:
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, FText* EditedText);
 	FReply OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor);
 
-	FText ToolTipText_TitleText() const;
+	FText ToolTipText_PreviewText(FText Label, const FText* MatureText, const FText* SafeText) const;
 	FSlateColor ColorAndOpacity_PreviewText(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
+	
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 
