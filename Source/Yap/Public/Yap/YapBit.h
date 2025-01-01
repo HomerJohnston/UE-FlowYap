@@ -35,29 +35,30 @@ protected:
 	/**  */
 	UPROPERTY(BlueprintReadOnly)
 	TSoftObjectPtr<UYapCharacter> DirectedAtAsset;
-	/**  */
-	UPROPERTY(BlueprintReadOnly)
-	FText DialogueText;
-
-	/**  */
-	UPROPERTY(BlueprintReadOnly)
-	FText DialogueTextSafe;
-
-	/**  */
-	UPROPERTY(BlueprintReadOnly)
-	FText TitleText;
-
-	/**  */
-	UPROPERTY(BlueprintReadOnly)
-	FText TitleTextSafe;
 	
 	/**  */
 	UPROPERTY(BlueprintReadOnly)
-	TSoftObjectPtr<UObject> DialogueAudioAsset;
+	FText MatureTitleText;
 
 	/**  */
 	UPROPERTY(BlueprintReadOnly)
-	TSoftObjectPtr<UObject> DialogueAudioAssetSafe;
+	FText SafeTitleText;
+	
+	/**  */
+	UPROPERTY(BlueprintReadOnly)
+	FText MatureDialogueText;
+
+	/**  */
+	UPROPERTY(BlueprintReadOnly)
+	FText SafeDialogueText;
+	
+	/**  */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UObject> MatureDialogueAudioAsset;
+
+	/**  */
+	UPROPERTY(BlueprintReadOnly)
+	TSoftObjectPtr<UObject> SafeDialogueAudioAsset;
 
 	/**  */
 	UPROPERTY(BlueprintReadOnly)
@@ -123,33 +124,33 @@ public:
 
 	const UYapCharacter* GetDirectedAt() const;
 	
-	const FText& GetTitleText() const { return TitleText; }
+	const FText& GetMatureTitleText() const { return MatureTitleText; }
 	
-	const FText& GetTitleTextSafe() const { return TitleTextSafe; }
+	const FText& GetSafeTitleText() const { return SafeTitleText; }
 
-	const FText& GetDialogueText() const { return DialogueText; }
+	const FText& GetMatureDialogueText() const { return MatureDialogueText; }
 	
-	const FText& GetDialogueTextSafe() const { return DialogueTextSafe; }
-
+	const FText& GetSafeDialogueText() const { return SafeDialogueText; }
+	
 	/**  */
 	const FText& GetSpokenText(bool bUseChildSafeText) const;
 
 	template<class T>
-	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(DialogueAudioAsset->GetPathName()); }
+	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureDialogueAudioAsset->GetPathName()); }
 
 	template<class T>
 	const T* GetDialogueAudioAsset() const
 	{
-		if (DialogueAudioAsset.IsValid())
+		if (MatureDialogueAudioAsset.IsValid())
 		{
-			return DialogueAudioAsset.Get();
+			return MatureDialogueAudioAsset.Get();
 		}
 
-		if (DialogueAudioAsset.IsPending())
+		if (MatureDialogueAudioAsset.IsPending())
 		{
 			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return DialogueAudioAsset.LoadSynchronous();
+			return MatureDialogueAudioAsset.LoadSynchronous();
 		}
 
 		return nullptr;
@@ -158,16 +159,16 @@ public:
 	template<class T>
 	const T* GetDialogueAudioAssetSafe() const
 	{
-		if (DialogueAudioAssetSafe.IsValid())
+		if (SafeDialogueAudioAsset.IsValid())
 		{
-			return DialogueAudioAssetSafe.Get();
+			return SafeDialogueAudioAsset.Get();
 		}
 
-		if (DialogueAudioAssetSafe.IsPending())
+		if (SafeDialogueAudioAsset.IsPending())
 		{
 			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return DialogueAudioAssetSafe.LoadSynchronous();
+			return SafeDialogueAudioAsset.LoadSynchronous();
 		}
 
 		return nullptr;
@@ -175,7 +176,7 @@ public:
 
 	const FSlateBrush& GetSpeakerPortraitBrush() const;
 
-	bool HasAudioAsset() { return !DialogueAudioAsset.IsNull(); }
+	bool HasAudioAsset() { return !MatureDialogueAudioAsset.IsNull(); }
 
 	FGameplayTag GetMoodKey() const { return MoodKey; }
 
@@ -200,9 +201,9 @@ protected:
 	double GetAudioTime() const { return CachedAudioTime; }
 
 public:
-	bool HasDialogueAudioAsset() const { return !DialogueAudioAsset.IsNull(); }
+	bool HasDialogueAudioAsset() const { return !MatureDialogueAudioAsset.IsNull(); }
 	
-	bool HasDialogueAudioAssetSafe() const { return !DialogueAudioAssetSafe.IsNull(); }
+	bool HasDialogueAudioAssetSafe() const { return !SafeDialogueAudioAsset.IsNull(); }
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
@@ -215,9 +216,9 @@ public:
 	
 	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter);
 
-	void SetTitleText(const FText& InText) { TitleText = InText; }
+	void SetTitleText(const FText& InText) { MatureTitleText = InText; }
 
-	void SetTitleTextSafe(const FText& InText) { TitleTextSafe = InText; }
+	void SetTitleTextSafe(const FText& InText) { SafeTitleText = InText; }
 	
 	void SetDialogueText(const FText& InText);
 

@@ -62,6 +62,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, meta = (Yap_ReconstructNodeOnChange))
 	bool bShowOnEndPin = false;
+
+	UPROPERTY()
+	bool bHasChildSafeData = false;
 	
 	// ==========================================
 	// STATE
@@ -93,7 +96,9 @@ public:
 	
 	int32 GetActivationCount() const { return ActivationCount; }
 	int32 GetActivationLimit() const { return ActivationLimit; }
-	
+
+	bool GetHasChildSafeData() const { return bHasChildSafeData; };
+
 	bool IsActivationLimitMet() const { if (ActivationLimit <= 0) return false; return (ActivationCount >= ActivationLimit); }
 	
 	const FYapBit& GetBit() const { return Bit; }
@@ -152,6 +157,6 @@ public:
 	void InvalidateFragmentTag();
 
 	// TODO implement this
-	bool GetBitReplaced() { return false; };
+	bool GetBitReplaced() const { return false; };
 #endif
 };

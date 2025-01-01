@@ -29,15 +29,15 @@ const FText& FYapBit::GetSpokenText(bool bUseChildSafeText) const
 {
 	if (!bUseChildSafeText)
 	{
-		return GetDialogueText();
+		return GetMatureDialogueText();
 	}
 
-	if (GetDialogueTextSafe().IsEmpty())
+	if (GetSafeDialogueText().IsEmpty())
 	{
-		return GetDialogueText();
+		return GetMatureDialogueText();
 	}
 
-	return GetDialogueTextSafe();
+	return GetSafeDialogueText();
 }
 
 #if WITH_EDITOR
@@ -142,9 +142,12 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 
 	FLOWYAP_REPLACE(SpeakerAsset);
 	FLOWYAP_REPLACE(DirectedAtAsset);
-	FLOWYAP_REPLACE(TitleText);
-	FLOWYAP_REPLACE(DialogueText);
-	FLOWYAP_REPLACE(DialogueAudioAsset);
+	FLOWYAP_REPLACE(MatureTitleText);
+	FLOWYAP_REPLACE(MatureDialogueText);
+	FLOWYAP_REPLACE(SafeTitleText);
+	FLOWYAP_REPLACE(SafeDialogueText);
+	FLOWYAP_REPLACE(MatureDialogueAudioAsset);
+	FLOWYAP_REPLACE(SafeDialogueAudioAsset);
 	FLOWYAP_REPLACE(MoodKey);
 	FLOWYAP_REPLACE(bUseProjectDefaultTimeSettings);
 	FLOWYAP_REPLACE(TimeMode);
@@ -171,12 +174,12 @@ void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
 #if WITH_EDITOR
 void FYapBit::SetDialogueText(const FText& NewText)
 {
-	SetDialogueText_Internal(DialogueText, CachedWordCount, NewText);
+	SetDialogueText_Internal(MatureDialogueText, CachedWordCount, NewText);
 }
 
 void FYapBit::SetDialogueTextSafe(const FText& NewText)
 {
-	SetDialogueText_Internal(DialogueTextSafe, CachedWordCountSafe, NewText);
+	SetDialogueText_Internal(SafeDialogueText, CachedWordCountSafe, NewText);
 }
 
 #endif
@@ -184,14 +187,14 @@ void FYapBit::SetDialogueTextSafe(const FText& NewText)
 #if WITH_EDITOR
 void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(DialogueAudioAsset, CachedAudioTime, NewAudio);
+	SetDialogueAudioAsset_Internal(MatureDialogueAudioAsset, CachedAudioTime, NewAudio);
 }
 #endif
 
 #if WITH_EDITOR
 void FYapBit::SetDialogueAudioAssetSafe(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(DialogueAudioAssetSafe, CachedAudioTimeSafe, NewAudio);
+	SetDialogueAudioAsset_Internal(SafeDialogueAudioAsset, CachedAudioTimeSafe, NewAudio);
 }
 #endif
 

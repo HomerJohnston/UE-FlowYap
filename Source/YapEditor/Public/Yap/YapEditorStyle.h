@@ -40,6 +40,14 @@ struct FYapBrushes
 	FName Box_SolidRed_Deburred;
 	FName Box_SolidRed_Rounded;
 
+	FName Box_SolidNoir;
+	FName Box_SolidNoir_Deburred;
+	FName Box_SolidNoir_Rounded;
+	
+	FName Box_SolidBlack;
+	FName Box_SolidBlack_Deburred;
+	FName Box_SolidBlack_Rounded;
+	
 	FName Panel_Deburred;
 	FName Panel_Rounded;
 	FName Panel_Sharp;
@@ -68,7 +76,7 @@ struct FYapStyles
 	
 	FName ScrollBarStyle_DialogueBox;
 	
-	FName TextBlockStyle_Dialogue;
+	FName TextBlockStyle_DialogueText;
 	FName TextBlockStyle_NodeHeader;
 	FName TextBlockStyle_NodeSequencing;
 	FName TextBlockStyle_TitleText;

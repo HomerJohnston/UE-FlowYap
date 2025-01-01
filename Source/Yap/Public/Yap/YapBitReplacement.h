@@ -24,15 +24,27 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> TitleText;
+	TOptional<FText> MatureTitleText;
+	
+	/**  */
+	UPROPERTY(EditAnywhere)
+	TOptional<FText> SafeTitleText;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> DialogueText;
-
+	TOptional<FText> MatureDialogueText;
+	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<TSoftObjectPtr<UObject>> DialogueAudioAsset;
+	TOptional<FText> SafeDialogueText;
+	
+	/**  */
+	UPROPERTY(EditAnywhere)
+	TOptional<TSoftObjectPtr<UObject>> MatureDialogueAudioAsset;
+	
+	/**  */
+	UPROPERTY(EditAnywhere)
+	TOptional<TSoftObjectPtr<UObject>> SafeDialogueAudioAsset;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -71,13 +83,21 @@ inline FYapBitReplacement::FYapBitReplacement()
 	DirectedAtAsset.Reset();
 
 	// TODO investigate this more, why is FText TOptional crashing if I don't do this?
-	TitleText = FText::GetEmpty();
-	DialogueText = FText::GetEmpty();
+	MatureTitleText = FText::GetEmpty();
+	MatureTitleText.Reset();
 
-	TitleText.Reset();
-	DialogueText.Reset();
+	SafeTitleText = FText::GetEmpty();
+	SafeTitleText.Reset();
 
-	DialogueAudioAsset.Reset();
+	MatureDialogueText = FText::GetEmpty();
+	MatureDialogueText.Reset();
+	
+	SafeDialogueText = FText::GetEmpty();
+	SafeDialogueText.Reset();
+	
+	MatureDialogueAudioAsset.Reset();
+	SafeDialogueAudioAsset.Reset();
+	
 	MoodKey.Reset();
 	bUseProjectDefaultTimeSettings.Reset();
 	TimeMode.Reset();

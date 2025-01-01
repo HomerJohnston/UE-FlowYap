@@ -22,7 +22,7 @@ void SYapConditionsScrollBox::Construct(const FArguments& InArgs)
 	[
 		SAssignNew(ScrollBox, SScrollBox)
 		.ScrollBarVisibility(EVisibility::Collapsed)
-		.ConsumeMouseWheel(EConsumeMouseWheel::WhenScrollingPossible)
+		.ConsumeMouseWheel(EConsumeMouseWheel::Always)
 		.AllowOverscroll(EAllowOverscroll::No)
 		.AnimateWheelScrolling(true)
 		.Orientation(Orient_Horizontal)

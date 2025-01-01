@@ -123,6 +123,13 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 	
 	TSharedPtr<SHorizontalBox> HorizontalBox;
 
+	TSharedPtr<SScrollBar> ScrollBar = SNew(SScrollBar)
+		.RenderOpacity(0.5)
+		.Thickness(4)
+		.Orientation(Orient_Horizontal)
+		.Padding(2)
+		.Style(FYapEditorStyle::Get(), YapStyles.ScrollBarStyle_DialogueBox);
+	
 	const bool bIsPassword = EditableTextProperty->IsPassword();
 	bIsMultiLine = EditableTextProperty->IsMultiLineText();
 	if (bIsMultiLine)
@@ -147,14 +154,14 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 					.SelectAllTextWhenFocused(false)
 					.ClearKeyboardFocusOnCommit(false)
 					.OnTextChanged(this, &SYapTextPropertyEditableTextBox::OnTextChanged)
-					//.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
 					.OnTextCommitted(InArgs._OnTextCommitted)
 					.SelectAllTextOnCommit(false)
 					.IsReadOnly(this, &SYapTextPropertyEditableTextBox::IsSourceTextReadOnly)
 					.AutoWrapText(InArgs._AutoWrapText)
 					.WrapTextAt(InArgs._WrapTextAt)
 					.ModiferKeyForNewLine(EModifierKey::Shift)
-					.Padding(FMargin(4, 4))
+					.Padding(FMargin(6, 6, 6, 2))
+					.HScrollBar(ScrollBar)
 				]
 			]
 		];

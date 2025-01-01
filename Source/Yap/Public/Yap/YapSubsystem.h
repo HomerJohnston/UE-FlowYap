@@ -120,6 +120,10 @@ protected:
 
 	UPROPERTY(Transient)
 	TSubclassOf<UObject> ConversationBrokerClass;
+
+	// TODO running dialog interruption
+	//UPROPERTY(Transient)
+	//TMap<FYapDialogueHandle, 
 	
 	// ------------------------------------------
 	// PUBLIC API
@@ -134,6 +138,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsUsingChildSafeData();
 	
 	// ------------------------------------------
 	// FLOW YAP API - These are called by Yap classes
@@ -176,8 +183,10 @@ public:
 	
 public:
 	/**  */
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	void Deinitialize() override;
+	
 protected:
 	/**  */
 	void OnConversationStarts_Internal(const FGameplayTag& ConversationName);
@@ -243,5 +252,22 @@ protected:
 		UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
 
 		return R{};
+	}
+};
+
+class YAP_API FYap
+{
+public:
+	static TWeakObjectPtr<UWorld> World;
+
+public:
+	static bool IsUsingChildSafeData()
+	{
+		if (!World.IsValid())
+		{
+			return false; 
+		}
+		
+		return World->GetSubsystem<UYapSubsystem>()->IsUsingChildSafeData(); 
 	}
 };

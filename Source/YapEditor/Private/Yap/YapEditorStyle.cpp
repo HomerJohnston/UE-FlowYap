@@ -86,9 +86,9 @@ void FYapEditorStyle::OnPatchComplete()
 
 void FYapEditorStyle::Initialize()
 {
-	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	9);
-	YAP_DEFINE_FONT(Font_TitleText,			"Italic",	9);
-	YAP_DEFINE_FONT(Font_NodeHeader,		"Bold",		16);
+	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	10); // TODO font settings in project editor settings
+	YAP_DEFINE_FONT(Font_TitleText,			"Italic",	10);
+	YAP_DEFINE_FONT(Font_NodeHeader,		"Bold",		15);
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
@@ -126,6 +126,14 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Red);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Red);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Red);
+	
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Noir);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Noir);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Noir);
+	
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Black);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Black);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Black);
 	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
 	
@@ -220,31 +228,38 @@ void FYapEditorStyle::Initialize()
 	
 	YAP_DEFINE_STYLE(FScrollBarStyle, ScrollBarStyle_DialogueBox, FCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("ScrollBar"),
 		.SetThickness(2)
+		.SetHorizontalBackgroundImage(Box_SolidBlack)
+		.SetHorizontalBottomSlotImage(Box_SolidWhite)
+		.SetDraggedThumbImage(Box_SolidWhite)
+		.SetHoveredThumbImage(Box_SolidWhite)
+		.SetNormalThumbImage(Box_SolidLightGray)
 	);
 
-	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_Dialogue, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
+	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_DialogueText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
 		.SetFont(Font_DialogueText)
-		.SetColorAndOpacity(YapColor::White)
+		.SetColorAndOpacity(FSlateColor::UseForeground())
 	);
 
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_TitleText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
 		.SetFont(Font_TitleText)
-		.SetColorAndOpacity(YapColor::YellowGray)
+		.SetColorAndOpacity(FSlateColor::UseForeground())
 	);
 	
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_NodeHeader, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
 		.SetFont(Font_NodeHeader)
-		.SetColorAndOpacity(YapColor::White)
+		.SetColorAndOpacity(FSlateColor::UseForeground())
 	);
 
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_NodeSequencing, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
 		.SetFont(Font_NodeSequencing)
-		.SetColorAndOpacity(YapColor::White)
+		.SetColorAndOpacity(FSlateColor::UseForeground())
 	);
-	
+
 	YAP_DEFINE_STYLE(FEditableTextBoxStyle, EditableTextBoxStyle_Dialogue, FEditableTextBoxStyle::GetDefault(),
-		.SetScrollBarStyle(ScrollBarStyle_DialogueBox)
-		.SetTextStyle(TextBlockStyle_Dialogue)
+		.SetScrollBarStyle(ScrollBarStyle_DialogueBox) // This doesn't do dick, thanks Epic
+		.SetTextStyle(TextBlockStyle_DialogueText)
+		.SetFont(Font_DialogueText)
+		.SetForegroundColor(FSlateColor::UseForeground())
 		.SetPadding(0)
 		.SetBackgroundImageNormal(CORE_BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
 		.SetBackgroundImageHovered(CORE_BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
@@ -256,6 +271,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_STYLE(FEditableTextBoxStyle, EditableTextBoxStyle_TitleText, FEditableTextBoxStyle::GetDefault(),
 		.SetScrollBarStyle(ScrollBarStyle_DialogueBox)
 		.SetTextStyle(TextBlockStyle_TitleText)
+		.SetFont(Font_TitleText)
+		.SetForegroundColor(FSlateColor::UseForeground())
 		.SetPadding(0)
 		//.SetBackgroundImageNormal(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
 		//.SetBackgroundImageHovered(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))

@@ -37,7 +37,7 @@ namespace YapEditor
 					SNew(SBorder)
 					.Visibility(ActiveIndicatorAtt)
 					.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
-					.BorderBackgroundColor(YapColor::Yellow_Trans)
+					.BorderBackgroundColor(YapColor::LightBlue_Trans)
 				]
 				+ SOverlay::Slot()
 				[

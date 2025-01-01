@@ -16,6 +16,8 @@
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
+TWeakObjectPtr<UWorld> FYap::World = nullptr;
+
 FYapActiveConversation::FYapActiveConversation()
 {
 	FlowAsset = nullptr;
@@ -94,6 +96,14 @@ UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& Chara
 	return nullptr;
 }
 
+bool UYapSubsystem::IsUsingChildSafeData()
+{
+	// TODO - this is a bug source:
+	// This will return the FIRST VALID RESULT ONLY - if there is a conversation broker, it will use that - if there is a conversation listener, IT WILL USE THE FIRST REGISTERED ONE
+	// I should split out the functionality for this so that users can register multiple listeners without breaking anything
+	return ExecuteBrokerListenerFuncs<&UYapConversationBrokerBase::UseMatureDialogue, &IYapConversationListener::Execute_K2_UseMatureDialogue, bool>();
+}
+
 void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode)
 {
 	if (TaggedFragments.Contains(FragmentTag))
@@ -155,7 +165,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
-		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(), Bit.GetTitleText());
+		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetMatureDialogueText(), Bit.GetMatureTitleText());
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
@@ -168,7 +178,6 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
-	FGuid DialogueGUID = Dialogue->GetGuid();
 	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 	const FYapBit& Bit = Fragment.GetBit();
 
@@ -183,7 +192,12 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex, bSkippable);
 
-	bool bUseChildSafe = ExecuteBrokerListenerFuncs<&UYapConversationBrokerBase::UseMatureDialogue, &IYapConversationListener::Execute_K2_UseMatureDialogue, bool>();
+	if (Fragment.GetHasChildSafeData())
+	{
+		
+	}
+	
+	bool bUseChildSafe = IsUsingChildSafeData();
 	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
 		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetSpokenText(bUseChildSafe), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>(), Bit.GetDirectedAt());
@@ -191,8 +205,6 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
 {
-	const FYapBit& Bit = OwnerDialogue->GetFragmentByIndex(FragmentIndex).GetBit();
-
 	FGameplayTag ConversationName;
 
 	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
@@ -236,6 +248,8 @@ void UYapSubsystem::UnregisterCharacterComponent(UYapCharacterComponent* YapChar
 
 void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
+	FYap::World = Cast<UWorld>(GetOuter());
+	
 	ActiveConversation.OnConversationStarts.BindUObject(this, &UYapSubsystem::OnConversationStarts_Internal);
 	ActiveConversation.OnConversationEnds.BindUObject(this, &UYapSubsystem::OnConversationEnds_Internal);
 
@@ -248,6 +262,11 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		ConversationBroker = NewObject<UYapConversationBrokerBase>(this, ConversationBrokerClass);
 	}
+}
+
+void UYapSubsystem::Deinitialize()
+{
+	FYap::World = nullptr;
 }
 
 

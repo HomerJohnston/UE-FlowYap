@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
+#include "Yap/YapColors.h"
+//#include "Yap/YapFragment.h"
 
+struct FYapBit;
 class SYapConditionsScrollBox;
 struct FFlowPin;
 class UYapCondition;
@@ -52,15 +55,12 @@ protected:
 	FYapBitReplacement* CachedBitReplacement = nullptr;
 
 	bool bShowSettings = false;
-	bool bTitleTextExpanded = false;
-	bool bShowMaturitySettings = false;
-	static bool bShowMaturitySettingsGlobal;
+	float ExpandedTextEditorWidget_StartOffset = 0.f;
+	float ExpandedTextEditorWidget_Offset = 0.f;
+	float ExpandedTextEditorWidget_OffsetAlpha = 0.f;
 
-	bool GetShowMaturitySettings() const
-	{
-		return bShowMaturitySettings || bShowMaturitySettingsGlobal;
-	}
-	
+	bool UseChildSafeSettings() const;
+
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
@@ -69,9 +69,8 @@ protected:
 	TSharedPtr<SWidget> CreateCentreDialogueWidget();
 	TSharedPtr<SWidget> CreateCentreSettingsWidget();
 
-	bool bDialogueExpanded = false;
-	TSharedPtr<SWidget> ExpandedDialogueWidget;
-	TSharedPtr<SWidget> ExpandedTitleTextWidget;
+	bool bTextEditorExpanded = false;
+	TSharedPtr<SBox> ExpandedTextEditorWidget;
 	TSharedPtr<SOverlay> FragmentOverlay;
 
 	TSharedPtr<SButton> TitleTextEditButtonWidget;
@@ -119,27 +118,23 @@ protected:
 
 	ECheckBoxState		IsChecked_MaturitySettings() const;
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
-	FSlateColor			ColorAndOpacity_MaturitySettingsCheckBox() const;
+	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
 
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
-	FReply OnClicked_DialogueExpandButton();
 	EVisibility Visibility_DialogueEdit() const;
 	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
+	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;	
+	
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueWidget();
 
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
-	FText				Text_Dialogue() const;
-	void				OnTextCommitted_Dialogue(const FText& CommittedText, ETextCommit::Type CommitType);
-	void				OnTextCommitted_DialogueSafe(const FText& CommittedText, ETextCommit::Type CommitType);
+	FText				Text_PreviewText(const FText* MatureText, const FText* SafeText) const;
 	FText				ToolTipText_Dialogue() const;
-	FSlateColor			BackgroundColor_Dialogue() const;
-	FLinearColor			ForegroundColor_Dialogue() const;
-
-	FSlateColor ColorAndOpacity_DialogueText() const;
+	
 	EVisibility			Visibility_DialogueBackground() const;
 	FSlateColor			BorderBackgroundColor_Dialogue() const;
 		
@@ -155,7 +150,6 @@ protected:
 	// ---------------------------------------------------
 	TOptional<float>	FragmentTimePadding_Percent() const;
 	float				Value_FragmentTimePadding() const;
-	EVisibility			FragmentTimePaddingSlider_Visibility() const;
 	void				OnValueChanged_FragmentTimePadding(float X);
 	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
 	FText				ToolTipText_FragmentTimePadding() const;
@@ -191,16 +185,18 @@ protected:
 
 	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
 
-	FText ToolTipText_TitleText() const;
 	EVisibility Visibility_TitleTextEdit() const;
-	FReply OnClicked_TitleTextExpandButton();
+
+	FText Text_EditedText(FText* Text) const;
+	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, FText* EditedText);
+	FReply OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor);
+
+	FText ToolTipText_TitleText() const;
+	FSlateColor ColorAndOpacity_PreviewText(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextWidget();
 
 	EVisibility			Visibility_TitleText() const;
-	FText				Text_TitleText() const;
-	void				OnTextCommitted_TitleText(const FText& CommittedText, ETextCommit::Type CommitType);
-	void				OnTextCommitted_TitleTextSafe(const FText& CommittedText, ETextCommit::Type CommitType);
 
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateFragmentTagWidget();
@@ -245,10 +241,18 @@ protected:
 	// ------------------------------------------
 	// HELPERS
 protected:
-	UFlowNode_YapDialogue* GetDialogueNode() const;
+	const UFlowNode_YapDialogue* GetDialogueNode() const;
 
-	FYapFragment& GetFragment() const;
+	UFlowNode_YapDialogue* GetDialogueNode();
 
+	const FYapFragment& GetFragment() const;
+	
+	FYapFragment& GetFragment();
+
+	const FYapBit& GetBit() const;
+	
+	FYapBit& GetBit();
+	
 	bool IsFragmentFocused() const;
 
 	EVisibility			Visibility_RowHighlight() const;
@@ -274,6 +278,4 @@ public:
 	
 	FReply				OnClicked_EnableOnStartPinButton();
 	FReply				OnClicked_EnableOnEndPinButton();
-
-	bool GetNodeSelected() const;
 };
