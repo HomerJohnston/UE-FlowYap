@@ -47,11 +47,18 @@ void SFlowGraphNode_YapDialogueWidget::AddOverlayWidget(TSharedPtr<SWidget> Pare
 	}
 	
 	OverlayWidgets.Emplace(FYapWidgetOverlay(ParentWidget, OverlayWidget));
+
+	SetNodeSelected();
 }
 
 void SFlowGraphNode_YapDialogueWidget::RemoveOverlayWidget(TSharedPtr<SWidget> OverlayWidget)
 {
 	OverlayWidgets.RemoveAll( [OverlayWidget] (FYapWidgetOverlay& X) { return X.Overlay == OverlayWidget;} );
+}
+
+void SFlowGraphNode_YapDialogueWidget::ClearOverlayWidgets()
+{
+	OverlayWidgets.Empty();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -224,7 +231,14 @@ void SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged()
 {
 	GraphNode->ReconstructNode();
 
+	ClearOverlayWidgets();
+	
 	UpdateGraphNode();
+}
+
+void SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget)
+{
+	AddOverlayWidget(ButtonWidget, ConditionWidget);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -270,7 +284,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 				.ConditionsArrayProperty(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
 				.ConditionsContainer(GetFlowYapDialogueNodeMutable())
 				.OnConditionsArrayChanged(this, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
-				//.OnConditionDetailsViewBuilt(this, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
+				.OnConditionDetailsViewBuilt(this, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 			]
 		]
 		+ SHorizontalBox::Slot()

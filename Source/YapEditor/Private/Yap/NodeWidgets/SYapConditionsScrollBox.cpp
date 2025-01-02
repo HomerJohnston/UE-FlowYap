@@ -183,7 +183,7 @@ void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex
 
 	FYapTransactions::EndModify();
 
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr);
+	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr, nullptr);
 
 	(void)OnConditionsArrayChanged.ExecuteIfBound();
 
@@ -209,12 +209,12 @@ void SYapConditionsScrollBox::BuildConditionDetailsViewWidget(int32 ConditionInd
 
 	EditedConditionWidget = NewWidget;
 
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(NewWidget);
+	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(NewWidget, ConditionButtons[ConditionIndex]);
 }
 
 void SYapConditionsScrollBox::DestroyConditionDetailsWidget()
 {
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr);
+	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

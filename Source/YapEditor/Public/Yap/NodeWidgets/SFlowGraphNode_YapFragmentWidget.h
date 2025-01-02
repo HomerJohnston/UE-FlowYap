@@ -66,9 +66,10 @@ protected:
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
 	TSharedPtr<SWidget> CentreDialogueWidget;
-	TSharedPtr<SWidget> CentreSettingsWidget;
+	TSharedPtr<SWidget> CenterSettingsWidget;
+	FReply OnClicked_DialogueSettingsButton();
 	TSharedPtr<SWidget> CreateCentreDialogueWidget();
-	TSharedPtr<SWidget> CreateCentreSettingsWidget();
+	TSharedPtr<SWidget> CreateCenterSettingsWidget();
 
 	bool bTextEditorExpanded = false;
 	TSharedPtr<SBox> ExpandedTextEditorWidget;

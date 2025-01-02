@@ -83,6 +83,7 @@ public:
 	
 	void AddOverlayWidget(TSharedPtr<SWidget> ParentWidget, TSharedPtr<SWidget> OverlayWidget, bool bClearExisting = true);
 	void RemoveOverlayWidget(TSharedPtr<SWidget> OverlayWidget);
+	void ClearOverlayWidgets();
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -94,7 +95,9 @@ public:
 	
 	void PostConstruct(const FArguments& InArgs, UFlowGraphNode* InNode);// override;
 	
-	void RequestUpdateGraphNode() { UpdateGraphNode(); };
+	void RequestUpdateGraphNode() { UpdateGraphNode(); }
+
+	bool HasActiveOverlay() { return OverlayWidgets.Num() > 0; }
 	
 	// ------------------------------------------
 	// WIDGETS
@@ -117,6 +120,7 @@ public:
 	
 	// ------------------------------------------
 protected:
+	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget);
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
 	ECheckBoxState		IsChecked_SkippableToggle() const;

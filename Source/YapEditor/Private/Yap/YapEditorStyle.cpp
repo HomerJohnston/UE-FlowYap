@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games Inc.
+// This file is formatted to be viewable on tabs, 4-space tabs. If you use another setting, sorry!
+
 #include "Yap/YapEditorStyle.h"
 
 #include "FindInBlueprints.h"
@@ -104,6 +107,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_MoodKeyMissing,			"Icon_MoodKey_Missing", ".png",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_SettingsExpander,			"Icon_SettingsExpander_16px", ".png",	FVector2f(16, 16));
 	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
@@ -181,6 +185,20 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
+	);
+
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueSettings, FButtonStyle::GetDefault(),
+		.SetNormal(CORE_BOX_BRUSH("Icons.Toolbar.Settings", YAP_COMMON_MARGIN, YapColor::DarkGray))
+	);
+
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueExpander, FButtonStyle::GetDefault(),
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
+		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
+		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
+		.SetNormalForeground(YapColor::Gray)
+		.SetHoveredForeground(YapColor::LightGray)
+		.SetPressedForeground(YapColor::DarkGray)
+		.SetPressedPadding(FMargin(0))
 	);
 	
 	YAP_DEFINE_STYLE(FCheckBoxStyle, CheckBoxStyle_Skippable, FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"),

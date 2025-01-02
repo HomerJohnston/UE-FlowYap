@@ -22,6 +22,7 @@ struct FYapBrushes
 	FName Icon_TextTime;
 	FName Icon_Timer;
 	FName Icon_UpArrow;
+	FName Icon_SettingsExpander;
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
@@ -64,6 +65,9 @@ struct FYapStyles
 	FName ButtonStyle_FragmentControls;
 	FName ButtonStyle_HeaderButton;
 	FName ButtonStyle_SequencingSelector;
+	FName ButtonStyle_DialogueSettings;
+
+	FName ButtonStyle_DialogueExpander;
 
 	FName CheckBoxStyle_Skippable;
 	

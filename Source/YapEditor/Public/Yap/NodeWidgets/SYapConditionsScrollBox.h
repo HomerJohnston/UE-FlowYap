@@ -10,7 +10,7 @@ class SYapConditionsScrollBox;
 
 //DECLARE_DELEGATE_OneParam(FOnUpdateConditionDetailsWidget, TSharedPtr<SYapConditionDetailsViewWidget>);
 //DECLARE_DELEGATE_OneParam(FOnClickNewConditionButton, int32 /*FragmentIndex*/)
-DECLARE_DELEGATE_OneParam(FOnConditionDetailsViewBuilt, TSharedPtr<SYapConditionDetailsViewWidget>);
+DECLARE_DELEGATE_TwoParams(FOnConditionDetailsViewBuilt, TSharedPtr<SYapConditionDetailsViewWidget>, TSharedPtr<SWidget>);
 DECLARE_DELEGATE(FOnConditionsArrayChanged);
 
 class SYapConditionsScrollBox : public SCompoundWidget
