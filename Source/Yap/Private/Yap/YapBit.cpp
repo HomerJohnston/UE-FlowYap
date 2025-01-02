@@ -176,7 +176,7 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 // EDITOR API
 
 #if WITH_EDITOR
-void FYapBit::SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter)
+void FYapBit::SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter)
 {
 	SpeakerAsset = InCharacter;
 	Speaker = nullptr;

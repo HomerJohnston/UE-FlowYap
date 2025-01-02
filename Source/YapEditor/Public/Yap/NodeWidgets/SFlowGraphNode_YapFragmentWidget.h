@@ -78,6 +78,7 @@ protected:
 	TSharedPtr<SButton> DialogueEditButtonWidget;
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
+	TSharedPtr<SWidget> WTF;
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
 	
@@ -162,6 +163,8 @@ protected:
 
 	FSlateColor BorderBackgroundColor_PortraitImage() const;
 	FText ToolTipText_PortraitWidget() const;
+	void OnSetNewSpeaker(const FAssetData& AssetData);
+	
 	FReply OnClicked_PortraitWidget();
 
 	FText Text_PortraitWidget() const;

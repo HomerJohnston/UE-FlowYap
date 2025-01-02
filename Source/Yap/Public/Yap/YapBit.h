@@ -216,7 +216,7 @@ public:
 public:
 	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return SpeakerAsset; }
 	
-	void SetCharacter(TSoftObjectPtr<UYapCharacter> InCharacter);
+	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
 
 	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 

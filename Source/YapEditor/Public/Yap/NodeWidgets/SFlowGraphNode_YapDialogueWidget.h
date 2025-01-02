@@ -14,6 +14,16 @@ class SYapConditionsScrollBox;
 
 //DECLARE_DELEGATE_ThreeParams(FOnClickDeleteConditionButton, int32 /*FragmentIndex*/, int32 /*ConditionIndex*/);
 
+struct FYapWidgetOverlay
+{
+	TSharedPtr<SWidget> Parent;
+	TSharedPtr<SWidget> Overlay;
+
+	FYapWidgetOverlay(TSharedPtr<SWidget> InParent, TSharedPtr<SWidget> InOverlay) : Parent(InParent), Overlay(InOverlay) { }
+	
+	float Opacity = 0;
+};
+
 class SFlowGraphNode_YapDialogueWidget : public SFlowGraphNode
 {
 	// ------------------------------------------
@@ -62,9 +72,17 @@ protected:
 	TSharedPtr<STextBlock> FragmentSequencingButton_Text;
 	
 	TArray<TSharedPtr<SFlowGraphNode_YapFragmentWidget>> FragmentWidgets;
-
+	
 	TSharedPtr<SYapConditionDetailsViewWidget> FocusedConditionWidget;
+	
 	double FocusedConditionWidgetStartTime = -1;
+	
+public:
+	TArray<FYapWidgetOverlay> OverlayWidgets;
+	//TArray<TPair<TSharedPtr<SWidget>,TSharedPtr<SWidget>>> OverlayWidgets;
+	
+	void AddOverlayWidget(TSharedPtr<SWidget> ParentWidget, TSharedPtr<SWidget> OverlayWidget, bool bClearExisting = true);
+	void RemoveOverlayWidget(TSharedPtr<SWidget> OverlayWidget);
 	
 	// ------------------------------------------
 	// CONSTRUCTION
@@ -96,7 +114,6 @@ public:
 
 public:
 	void OnConditionsArrayChanged();
-	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> NewWidget);
 	
 	// ------------------------------------------
 protected:

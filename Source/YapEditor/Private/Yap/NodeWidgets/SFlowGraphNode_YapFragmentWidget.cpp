@@ -11,6 +11,7 @@
 #include "Slate/DeferredCleanupSlateBrush.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Input/SSlider.h"
+#include "Widgets/Layout/SPopup.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapColors.h"
@@ -34,6 +35,7 @@
 #include "Yap/NodeWidgets/SMaturityCheckBox.h"
 #include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SSkippableCheckBox.h"
+#include "Yap/Testing/SYapPropertyMenuAssetPicker.h"
 
 bool SFlowGraphNode_YapFragmentWidget::UseChildSafeSettings() const
 {
@@ -400,7 +402,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			.ConditionsArrayProperty(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
 			.ConditionsContainer(&GetFragment())
 			.OnConditionsArrayChanged(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
-			.OnConditionDetailsViewBuilt(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
+			//.OnConditionDetailsViewBuilt(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -1263,8 +1265,36 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget() const
 	}
 }
 
+void SFlowGraphNode_YapFragmentWidget::OnSetNewSpeaker(const FAssetData& AssetData)
+{
+	FYapTransactions::BeginModify(INVTEXT("Change character asset"), GetDialogueNode());
+	
+	GetBit().SetSpeaker(AssetData.GetAsset());
+
+	FYapTransactions::EndModify();
+}
+
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget()
 {
+	TSharedPtr<SWidget> Widget = SNew(SBorder)
+		.Padding(1, 1, 1, 1) // No idea why but the details view already has a 4 pixel transparent area on top
+		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
+		.BorderBackgroundColor(YapColor::DimGray)
+		[
+			SNew(SYapPropertyMenuAssetPicker)
+			.AllowedClasses({UYapCharacter::StaticClass()})
+			.AllowClear(true)
+			.InitialObject(GetBit().GetSpeaker())
+			.OnSet(this, &SFlowGraphNode_YapFragmentWidget::OnSetNewSpeaker)
+		];
+
+	Owner->AddOverlayWidget(PortraitWidget, Widget);
+
+	Owner->SetNodeSelected();
+	
+	return FReply::Handled();
+
+#if 0
 	bShowSettings = !bShowSettings;
 
 	if (bShowSettings)
@@ -1288,6 +1318,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_PortraitWidget()
 	}
 
 	return FReply::Handled();
+#endif
 }
 
 FText SFlowGraphNode_YapFragmentWidget::Text_PortraitWidget() const
@@ -1364,7 +1395,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_PortraitWidget(const FDra
 	{
 		FYapTransactions::BeginModify(INVTEXT("Setting character"), GetDialogueNode());
 
-		GetFragment().Bit.SetCharacter(Character);
+		GetBit().SetSpeaker(Character);
 
 		FYapTransactions::EndModify();
 	}
@@ -1373,7 +1404,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_PortraitWidget(const FDra
 	{
 		FYapTransactions::BeginModify(INVTEXT("Setting dialogue asset"), GetDialogueNode());
 
-		GetFragment().Bit.SetDialogueAudioAsset(Object);
+		GetBit().SetDialogueAudioAsset(Object);
 
 		FYapTransactions::EndModify();
 	}
@@ -1523,7 +1554,7 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAs
 
 	UYapCharacter* Character = Cast<UYapCharacter>(Asset);
 	
-	GetFragment().Bit.SetCharacter(Character);
+	GetFragment().Bit.SetSpeaker(Character);
 
 	FYapTransactions::EndModify();
 }

@@ -39,6 +39,21 @@ constexpr int32 YAP_DEFAULT_NODE_WIDTH = 400;
 FButtonStyle SFlowGraphNode_YapDialogueWidget::MoveFragmentButtonStyle;
 bool SFlowGraphNode_YapDialogueWidget::bStylesInitialized = false;
 
+void SFlowGraphNode_YapDialogueWidget::AddOverlayWidget(TSharedPtr<SWidget> ParentWidget, TSharedPtr<SWidget> OverlayWidget, bool bClearExisting)
+{
+	if (bClearExisting)
+	{
+		OverlayWidgets.Empty();
+	}
+	
+	OverlayWidgets.Emplace(FYapWidgetOverlay(ParentWidget, OverlayWidget));
+}
+
+void SFlowGraphNode_YapDialogueWidget::RemoveOverlayWidget(TSharedPtr<SWidget> OverlayWidget)
+{
+	OverlayWidgets.RemoveAll( [OverlayWidget] (FYapWidgetOverlay& X) { return X.Overlay == OverlayWidget;} );
+}
+
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {
@@ -212,15 +227,6 @@ void SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged()
 	UpdateGraphNode();
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> NewWidget)
-{
-	FocusedConditionWidget = NewWidget;
-
-	FocusedConditionWidgetStartTime = -1.0;
-	
-	SetNodeSelected();
-}
-
 // ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
@@ -264,7 +270,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 				.ConditionsArrayProperty(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
 				.ConditionsContainer(GetFlowYapDialogueNodeMutable())
 				.OnConditionsArrayChanged(this, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
-				.OnConditionDetailsViewBuilt(this, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
+				//.OnConditionDetailsViewBuilt(this, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -980,7 +986,8 @@ bool SFlowGraphNode_YapDialogueWidget::IsEnabled_ConditionWidgetsScrollBox() con
 TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const
 {
 	TArray<FOverlayWidgetInfo> Widgets;
-	
+
+	/*
 	if (FocusedConditionWidget.IsValid())
 	{
 		if (FocusedConditionWidgetStartTime < 0)
@@ -1010,6 +1017,26 @@ TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(b
 		Info.Widget = FocusedConditionWidget;
 
 		Widgets.Add(Info);
+	}
+*/
+
+	for (const FYapWidgetOverlay& WidgetOverlay : OverlayWidgets)
+	{
+		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
+
+		const FGeometry& ParentGeo = WidgetOverlay.Parent->GetPaintSpaceGeometry();
+	
+		FVector2D WidgetOfsset = ParentGeo.LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
+
+		WidgetOfsset *= 1.0 / OwnerGraphPanelPtr.Pin()->GetZoomAmount();
+	
+		FOverlayWidgetInfo Info;
+		Info.OverlayOffset = WidgetOfsset + FVector2D(0, ParentGeo.Size.Y);
+		Info.Widget = WidgetOverlay.Overlay;
+
+		Widgets.Add(Info);
+
+		WidgetOverlay.Overlay->SetRenderOpacity(WidgetOverlay.Opacity);
 	}
 
 	return Widgets;
@@ -1155,6 +1182,8 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 
 		FocusedConditionWidget = nullptr;
 		FocusedConditionWidgetStartTime = -1;
+
+		OverlayWidgets.Empty();
 	}
 
 	FlashHighlight = FMath::Max(FlashHighlight, FlashHighlight -= 2.0 * InDeltaTime);
@@ -1162,6 +1191,12 @@ void SFlowGraphNode_YapDialogueWidget::Tick(const FGeometry& AllottedGeometry, c
 	if (FlashHighlight <= 0)
 	{
 		FlashFragmentIndex.Reset();
+	}
+
+	for (FYapWidgetOverlay& Overlay : OverlayWidgets)
+	{
+		float NewValue = Overlay.Opacity += 7.0 * InDeltaTime;
+		Overlay.Opacity = FMath::Clamp(NewValue, 0.0, 1.0);
 	}
 }
 
