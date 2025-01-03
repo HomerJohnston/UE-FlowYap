@@ -23,6 +23,7 @@ struct FYapBrushes
 	FName Icon_Timer;
 	FName Icon_UpArrow;
 	FName Icon_SettingsExpander;
+	FName Icon_Circle_22px;
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;

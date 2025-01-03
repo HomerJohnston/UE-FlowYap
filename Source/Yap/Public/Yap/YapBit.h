@@ -114,12 +114,11 @@ protected:
 
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
-protected:
+public:
 	const TSoftObjectPtr<UYapCharacter> GetSpeakerAsset() const { return SpeakerAsset; }
 	
 	const TSoftObjectPtr<UYapCharacter> GetDirectedAtAsset() const { return DirectedAtAsset; }
 
-public:
 	const UYapCharacter* GetSpeaker() const;
 
 	const UYapCharacter* GetDirectedAt() const;
@@ -214,8 +213,6 @@ public:
 	// EDITOR API
 #if WITH_EDITOR
 public:
-	TSoftObjectPtr<UYapCharacter> GetCharacterMutable() const { return SpeakerAsset; }
-	
 	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
 
 	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);

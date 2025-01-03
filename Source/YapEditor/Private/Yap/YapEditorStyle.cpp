@@ -108,6 +108,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_MoodKeyMissing,			"Icon_MoodKey_Missing", ".png",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_SettingsExpander,			"Icon_SettingsExpander_16px", ".png",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Circle_22px,				"Icon_Circle_22px", ".png",				FVector2f(22, 22));
 	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
@@ -195,8 +196,8 @@ void FYapEditorStyle::Initialize()
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
-		.SetNormalForeground(YapColor::Gray)
-		.SetHoveredForeground(YapColor::LightGray)
+		.SetNormalForeground(YapColor::Gray_Trans)
+		.SetHoveredForeground(YapColor::Gray)
 		.SetPressedForeground(YapColor::DarkGray)
 		.SetPressedPadding(FMargin(0))
 	);

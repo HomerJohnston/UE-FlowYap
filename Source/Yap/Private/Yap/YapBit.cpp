@@ -59,7 +59,7 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 
 	if (IsValid(Char))
 	{
-		return Char->GetPortraitBrush(MoodKey);
+		return Char->GetPortraitBrush(FGameplayTag::EmptyTag);
 	}
 
 	return UYapProjectSettings::Get()->GetMissingPortraitBrush();

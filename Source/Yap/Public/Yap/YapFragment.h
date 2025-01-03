@@ -65,6 +65,11 @@ protected:
 
 	UPROPERTY()
 	bool bHasChildSafeData = false;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere)
+	bool bIgnoreChildSafeErrors = false;
+#endif
 	
 	// ==========================================
 	// STATE

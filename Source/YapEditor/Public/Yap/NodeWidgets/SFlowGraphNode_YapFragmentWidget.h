@@ -39,8 +39,10 @@ protected:
 
 	TSharedPtr<SEditableTextBox> TitleTextBox;
 
-	TSharedPtr<SOverlay> PortraitWidget;
+	TSharedPtr<SWidget> SpeakerWidget;
 
+	TSharedPtr<SWidget> DirectedAtWidget;
+	
 	bool bCursorContained = false;
 	bool MoodKeySelectorMenuOpen = false;
 
@@ -103,9 +105,8 @@ protected:
 	FReply OnClicked_FragmentShift(EYapFragmentControlsDirection YapFragmentControlsDirection);
 	FReply OnClicked_FragmentDelete();
 	TSharedRef<SWidget> CreateFragmentControlsWidget();
-	TSharedRef<SWidget> CreateAudioPreviewWidget();
 	bool Enabled_AudioPreviewButton() const;
-	TSharedRef<SWidget> CreateAudioPreviewWidget(TAttribute<EVisibility> Attribute);
+	TSharedRef<SWidget> CreateAudioPreviewWidget(const TSoftObjectPtr<UObject>* AudioAsset, TAttribute<EVisibility> Attribute);
 
 	TSharedRef<SWidget> CreateFragmentHighlightWidget();
 	void OnTextCommitted_FragmentActivationLimit(const FText& Text, ETextCommit::Type Arg);
@@ -123,12 +124,14 @@ protected:
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
 
+	bool				IsChildSafeInErrorState() const;
+	
 	FSlateColor BorderBackgroundColor_DirectedAtImage() const;
 	void OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	bool OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const;
 	FReply OnClicked_DirectedAtWidget();
 	const FSlateBrush* Image_DirectedAtWidget() const;
-	TSharedRef<SOverlay> CreateDirectedAtWidget();
+	TSharedRef<SWidget> CreateDirectedAtWidget();
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 
@@ -162,29 +165,31 @@ protected:
 	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
 	FText				ToolTipText_FragmentTimePadding() const;
 
-	FSlateColor BorderBackgroundColor_PortraitImage() const;
-	FText ToolTipText_PortraitWidget() const;
-	void OnSetNewSpeaker(const FAssetData& AssetData);
+	FSlateColor BorderBackgroundColor_CharacterImage() const;
+	FText ToolTipText_SpeakerWidget() const;
+	void OnSetNewSpeakerAsset(const FAssetData& AssetData);
+	void OnSetNewDirectedAtAsset(const FAssetData& AssetData);
 	
-	FReply OnClicked_PortraitWidget();
+	FReply OnClicked_SpeakerWidget(TSoftObjectPtr<UYapCharacter>* CharacterAsset, const UYapCharacter* Character);
 
-	FText Text_PortraitWidget() const;
-	bool OnAreAssetsAcceptableForDrop_PortraitWidget(TArrayView<FAssetData> AssetDatas) const;
-	void OnAssetsDropped_PortraitWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	FText Text_SpeakerWidget() const;
+	bool OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
+	void OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	
 	// ------------------------------------------
-	TSharedRef<SOverlay>	CreatePortraitWidget();
+	TSharedRef<SOverlay>	CreateSpeakerWidget();
 
 	EVisibility			Visibility_PortraitImage() const;
-	const FSlateBrush*	Image_PortraitImage() const;
+	const FSlateBrush*	Image_SpeakerImage() const;
 	EVisibility			Visibility_MissingPortraitWarning() const;
 	EVisibility			Visibility_CharacterSelect() const;
 	FString				ObjectPath_CharacterSelect() const;
 	void				OnObjectChanged_CharacterSelect(const FAssetData& InAssetData);
 
 	FText ToolTipText_MoodKeySelector() const;
+	FSlateColor ForegroundColor_MoodKeySelectorWidget() const;
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateMoodKeySelectorWidget();
+	TSharedRef<SWidget>	CreateMoodKeySelectorWidget();
 
 	EVisibility			Visibility_MoodKeySelector() const;
 	void				OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen);

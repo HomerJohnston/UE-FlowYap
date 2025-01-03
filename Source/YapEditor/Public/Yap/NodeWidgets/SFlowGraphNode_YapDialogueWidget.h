@@ -117,10 +117,10 @@ public:
 
 public:
 	void OnConditionsArrayChanged();
-	
+	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget);
+
 	// ------------------------------------------
 protected:
-	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget);
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
 	
 	ECheckBoxState		IsChecked_SkippableToggle() const;

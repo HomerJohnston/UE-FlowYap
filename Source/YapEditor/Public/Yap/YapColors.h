@@ -4,6 +4,7 @@
 #define PRESS 0.85
 #define SEMITRANS 0.95
 #define TRANS 0.70
+#define SEMIGLASS 0.45
 #define GLASS 0.20
 #define SUPERGLASS 0.05
 
@@ -17,6 +18,9 @@ inline FLinearColor Name##Pressed_SemiTrans = FLinearColor(PRESS * RR, PRESS * G
 inline FLinearColor Name##_Trans = FLinearColor(RR, GG, BB, TRANS);\
 inline FLinearColor Name##Hovered_Trans = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, TRANS * AA);\
 inline FLinearColor Name##Pressed_Trans = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, TRANS * AA);\
+inline FLinearColor Name##_SemiGlass = FLinearColor(RR, GG, BB, SEMIGLASS);\
+inline FLinearColor Name##Hovered_SemiGlass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, SEMIGLASS * AA);\
+inline FLinearColor Name##Pressed_SemiGlass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, SEMIGLASS * AA);\
 inline FLinearColor Name##_Glass = FLinearColor(RR, GG, BB, GLASS);\
 inline FLinearColor Name##Hovered_Glass = FLinearColor(HOVER * RR, HOVER * GG, HOVER * BB, GLASS * AA);\
 inline FLinearColor Name##Pressed_Glass = FLinearColor(PRESS * RR, PRESS * GG, PRESS * BB, GLASS * AA);\

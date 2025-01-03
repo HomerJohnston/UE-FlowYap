@@ -30,22 +30,10 @@ namespace YapEditor
 			.HAlign(HAlign_Center)
 			.VAlign(VAlign_Center)
 			[
-				SNew(SOverlay)
-				+ SOverlay::Slot()
-				.Padding(-3)
-				[
-					SNew(SBorder)
-					.Visibility(ActiveIndicatorAtt)
-					.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
-					.BorderBackgroundColor(YapColor::LightBlue_Trans)
-				]
-				+ SOverlay::Slot()
-				[
-					SNew(SImage)
-					.ColorAndOpacity(ColorAndOpacityAtt)
-					.DesiredSizeOverride(FVector2D(16, 16))
-					.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
-				]
+				SNew(SImage)
+				.ColorAndOpacity(ColorAndOpacityAtt)
+				.DesiredSizeOverride(FVector2D(16, 16))
+				.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
 			]
 		];
 	}

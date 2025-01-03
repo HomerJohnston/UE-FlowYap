@@ -529,7 +529,7 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 		if (Fragments.IsValidIndex(PreviousFragmentIndex))
 		{
 			const FYapFragment& PreviousFragment = GetFragmentByIndex(PreviousFragmentIndex);
-			NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetCharacterMutable());
+			NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
 			NewFragment.GetBitMutable().SetMoodKey(PreviousFragment.GetBit().GetMoodKey());
 		}
 	}
@@ -539,7 +539,7 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 
 		if (Fragments.IsValidIndex(NextFragmentIndex))
 		{
-			NewFragment.GetBitMutable().SetSpeaker(GetFragmentByIndex(NextFragmentIndex).GetBit().GetCharacterMutable());
+			NewFragment.GetBitMutable().SetSpeaker(GetFragmentByIndex(NextFragmentIndex).GetBit().GetSpeakerAsset());
 		}
 	}
 	
