@@ -64,6 +64,8 @@ protected:
 
 	bool UseChildSafeSettings() const;
 	bool bEditingChildSafeSettings = false;
+	bool HasAnyChildSafeData() const;
+	bool HasCompleteChildSafeData() const;
 
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
@@ -208,7 +210,7 @@ protected:
 
 	FText Text_EditedText(FText* Text) const;
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
-	FReply OnClicked_TextDisplayWidget(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor, void (FYapBit::*Func)(FText* TextToSet, const FText& NewText));
+	FReply OnClicked_TextDisplayWidget();
 
 	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;
 	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
