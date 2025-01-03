@@ -99,18 +99,18 @@ protected:
 	UPROPERTY(Transient)
 	FTimerHandle FragmentTimerHandle;
 
-	/** Which fragment is currently running? */
-	UPROPERTY(Transient)
-	TOptional<uint8> RunningFragmentIndex;
-
 #if WITH_EDITORONLY_DATA
 	/** When was the current running fragment started? */ 
-	UPROPERTY(Transient)
 	double FragmentStartedTime = -1;
 
 	/** When did the most recently ran fragment finish? */
-	UPROPERTY(Transient)
 	double FragmentEndedTime = -1;
+
+	/** Helper to make it easier for slate widgets to determine if their fragment is running. */
+	FYapFragment* RunningFragment = nullptr;
+
+	/** Helper to make it easier for slate widgets to know which fragments have finished running. */
+	TSet<FYapFragment*> FinishedFragments;
 #endif
 
 	static FName OutputPinName;
@@ -240,8 +240,10 @@ private:
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
 	
 public:
-	TOptional<uint8> GetRunningFragmentIndex() const { return RunningFragmentIndex; }
+	const FYapFragment* GetRunningFragment() const { return RunningFragment; }
 
+	const TSet<FYapFragment*> GetFinishedFragments() const { return FinishedFragments; }
+	
 	FString GetNodeDescription() const override;
 
 	const FGameplayTag& GetDialogueTag() const { return DialogueTag; }

@@ -137,8 +137,8 @@ protected:
 
 	EVisibility Visibility_DialogueEdit() const;
 	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
-	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;	
-	
+	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
+
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueWidget();
 
@@ -160,6 +160,8 @@ protected:
 	
 	// ---------------------------------------------------
 	TOptional<float>	FragmentTimePadding_Percent() const;
+	TOptional<float> FragmentTime_Percent() const;
+
 	float				Value_FragmentTimePadding() const;
 	void				OnValueChanged_FragmentTimePadding(float X);
 	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
@@ -204,8 +206,8 @@ protected:
 	EVisibility Visibility_TitleTextEdit() const;
 
 	FText Text_EditedText(FText* Text) const;
-	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, FText* EditedText);
-	FReply OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor);
+	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
+	FReply OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor, void (FYapBit::*Func)(FText* TextToSet, const FText& NewText));
 
 	FText ToolTipText_PreviewText(FText Label, const FText* MatureText, const FText* SafeText) const;
 	FSlateColor ColorAndOpacity_PreviewText(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;

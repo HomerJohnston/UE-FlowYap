@@ -87,11 +87,11 @@ protected:
 	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
-	double MinimumAutoTextTimeLength = 2.0;
+	double MinimumAutoTextTimeLength = 1.5;
 
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
-	double MinimumAutoAudioTimeLength = 1.0;
+	double MinimumAutoAudioTimeLength = 0.5;
 
 	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))

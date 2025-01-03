@@ -217,13 +217,9 @@ public:
 
 	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 
-	void SetTitleText(const FText& InText) { MatureTitleText = InText; }
+	void SetTitleText(FText* TextToSet, const FText& NewText);
 
-	void SetTitleTextSafe(const FText& InText) { SafeTitleText = InText; }
-	
-	void SetDialogueText(const FText& InText);
-
-	void SetDialogueTextSafe(const FText& InText);
+	void SetDialogueText(FText* TextToSet, const FText& NewText);
 	
 	void SetDialogueAudioAsset(UObject* NewAudio);
 	
@@ -242,7 +238,7 @@ public:
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 
 private:
-	void SetDialogueText_Internal(FText& Text, int32& WordCount, const FText& InText);
+	void SetDialogueText_Internal(FText* Text, const FText& InText);
 
 	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, double& CachedTime, UObject* NewAudio);
 

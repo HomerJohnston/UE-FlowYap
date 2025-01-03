@@ -90,6 +90,11 @@ void UFlowNode_YapDialogue::InitializeInstance()
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
+#if WITH_EDITOR
+	FinishedFragments.Empty();
+	RunningFragment = nullptr;
+#endif
+	
 	if (ActivationLimitsMet())
 	{
 		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
@@ -236,7 +241,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 		Fragment.IncrementActivations();
 
 #if WITH_EDITOR
-		RunningFragmentIndex = FragmentIndex;
+		RunningFragment = &Fragment;
 		FragmentStartedTime = GetWorld()->GetTimeSeconds();
 #endif
 
@@ -297,7 +302,8 @@ void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
 void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 {
 #if WITH_EDITOR
-	RunningFragmentIndex.Reset();
+	FinishedFragments.Add(RunningFragment);
+	RunningFragment = nullptr;
 #endif
 
 	if (GetIsPlayerPrompt())

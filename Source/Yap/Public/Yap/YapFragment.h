@@ -100,6 +100,7 @@ public:
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
 	int32 GetActivationCount() const { return ActivationCount; }
+	
 	int32 GetActivationLimit() const { return ActivationLimit; }
 
 	bool GetHasChildSafeData() const { return bHasChildSafeData; };
@@ -150,12 +151,9 @@ public:
 
 	TArray<FFlowPin> GetOutputPins() const;
 
-
 	FName GetPromptPinName() const { return GetPromptPin().PinName; }
-	
 
 	FName GetEndPinName() const { return GetEndPin().PinName; }
-
 
 	FName GetStartPinName() const { return GetStartPin().PinName; }
 

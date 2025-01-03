@@ -35,6 +35,7 @@
 #include "Yap/NodeWidgets/SMaturityCheckBox.h"
 #include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 #include "Yap/NodeWidgets/SSkippableCheckBox.h"
+#include "Yap/NodeWidgets/SYapTest.h"
 #include "Yap/Testing/SYapPropertyMenuAssetPicker.h"
 
 bool SFlowGraphNode_YapFragmentWidget::UseChildSafeSettings() const
@@ -657,10 +658,10 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 
 	if (IsChildSafeInErrorState())
 	{
-		return GetFragment().bIgnoreChildSafeErrors ? YapColor::LightBlue_SemiGlass : YapColor::OrangeRed;
+		return GetFragment().bIgnoreChildSafeErrors ? YapColor::LightBlue : YapColor::OrangeRed;
 	}
 	
-	return YapColor::LightBlue;
+	return YapColor::LightBlue_SemiGlass;
 }
 
 bool SFlowGraphNode_YapFragmentWidget::IsChildSafeInErrorState() const
@@ -1033,6 +1034,12 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EmptyTextIndicator(cons
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 {
+	FText* MatureText = &GetBit().MatureDialogueText;
+	FText* SafeText = &GetBit().SafeDialogueText;
+	FName TextEditorStyle = YapStyles.EditableTextBoxStyle_Dialogue;
+	FLinearColor TextEditorColor = YapColor::White;
+	void (FYapBit::*Function)(FText*, const FText&) = &FYapBit::SetDialogueText;
+	
 	TSharedRef<SWidget> Widget = SNew(SLevelOfDetailBranchNode)
 	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 	.HighDetail()
@@ -1043,7 +1050,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 			SNew(SButton)
 			.Cursor(EMouseCursor::Default)
 			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
-			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor, &GetBit().MatureDialogueText, &GetBit().SafeDialogueText, YapStyles.EditableTextBoxStyle_Dialogue, YapColor::White)
+			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor, MatureText, SafeText, TextEditorStyle, TextEditorColor, Function)
 			.ContentPadding(0)
 			[
 				SNew(SOverlay)
@@ -1062,9 +1069,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 					[
 						SNew(STextBlock)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PreviewText, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureDialogueText())
+						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_PreviewText, &GetBit().GetMatureDialogueText(), &GetBit().GetSafeDialogueText())
 						.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PreviewText, INVTEXT("Dialogue Text"), &GetBit().GetMatureDialogueText(), &GetBit().GetSafeDialogueText())
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_PreviewText, YapColor::White, &GetBit().GetMatureDialogueText(), &GetBit().GetMatureDialogueText())
+						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_PreviewText, YapColor::White, &GetBit().GetMatureDialogueText(), &GetBit().GetSafeDialogueText())
 					]
 				]
 				+ SOverlay::Slot()
@@ -1083,22 +1090,98 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueWidget()
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Bottom)
 		.HAlign(HAlign_Fill)
-		.Padding(0, 0, 0, 2)
+		.Padding(2, 0, 2, 2)
 		[
-			SNew(SBox)
-			.HeightOverride(2)
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.50)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SProgressBar)
-				.BorderPadding(0)
-				.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
-				.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
-				.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
-				.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
+				SNew(SBox)
+				.HeightOverride(4)
+				[
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent)
+					.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+					.BarFillType(EProgressBarFillType::RightToLeft)
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SBox)
+				.HeightOverride(8)
+				.WidthOverride(8)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+				[
+					SNew(SYapPopupTest)
+					.ButtonContent()
+					[
+						SNew(SImage)
+						.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+						.ColorAndOpacity(YapColor::Gray)
+					]
+					/*
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+					.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+					.BarFillType(EProgressBarFillType::FillFromCenterHorizontal)
+					*/
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.50)
+			.VAlign(VAlign_Center)
+			[
+				SNew(SBox)
+				.HeightOverride(4)
+				[
+					SNew(SProgressBar)
+					.BorderPadding(0)
+					.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+					.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+					.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+					.BarFillType(EProgressBarFillType::LeftToRight)
+				]
+				/*
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				.Padding(8, 0)
+				[
+					SNew(SBox)
+					.HeightOverride(2)
+					[
+						SNew(SProgressBar)
+						.Cursor(EMouseCursor::Default)
+						.BorderPadding(0)
+						.Percent(this, &SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent)
+						.Style(FYapEditorStyle::Get(), YapStyles.ProgressBarStyle_FragmentTimePadding)
+						.FillColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePadding)
+					]
+				]
+				*/
+
+				/*
+				+ SOverlay::Slot()
+				.Padding(0, -2)
+				[
+					SNew(SSlider)
+					.Cursor(EMouseCursor::Default)
+					.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding)
+					.OnValueChanged(this, &SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding)
+					.Style(FYapEditorStyle::Get(), YapStyles.SliderStyle_FragmentTimePadding)
+					.SliderHandleColor(YapColor::Gray)
+					.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
+				]
+				*/
 			]
 		]
 		+ SOverlay::Slot()
-		.VAlign(VAlign_Bottom)
+		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Right)
 		.Padding(2)
 		[
@@ -1238,14 +1321,14 @@ void SFlowGraphNode_YapFragmentWidget::OnConditionsUpdated()
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
-	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float MaxPaddedSetting = UYapEditorSettings::Get()->GetPaddingTimeSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
 	if (GEditor->PlayWorld)
 	{
-		const TOptional<uint8>& RunningIndex = GetDialogueNode()->RunningFragmentIndex;
+		const FYapFragment* RunningFragment = GetDialogueNode()->GetRunningFragment();
 		
-		if (RunningIndex == GetFragment().IndexInDialogue) // TODO IndexInDialogue isn't being updated maybe when I add fragments from the details pane?
+		if (RunningFragment == &GetFragment())
 		{
 			if (GetDialogueNode()->FragmentStartedTime < GetDialogueNode()->FragmentEndedTime)
 			{
@@ -1257,7 +1340,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 				return FragmentPadding / MaxPaddedSetting;
 			}
 		}
-		else if (!RunningIndex.IsSet() || RunningIndex.GetValue() < GetFragment().IndexInDialogue)
+		else if (RunningFragment == nullptr || !GetDialogueNode()->GetFinishedFragments().Contains(&GetFragment()))
 		{
 			return FragmentPadding / MaxPaddedSetting;
 		}
@@ -1266,6 +1349,39 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 	}
 
 	return FragmentPadding / MaxPaddedSetting;		
+}
+
+TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
+{
+	const float MaxTimeSetting = UYapEditorSettings::Get()->GetDialogueTimeSliderMax();
+
+	const float FragmentTime = GetFragment().GetBit().GetTime();
+
+	if (GEditor->PlayWorld)
+	{
+		const FYapFragment* RunningFragment = GetDialogueNode()->GetRunningFragment();
+		
+		if (RunningFragment == &GetFragment())
+		{
+			if (GetDialogueNode()->FragmentStartedTime < GetDialogueNode()->FragmentEndedTime)
+			{
+				double ElapsedPaddingTime = GEditor->PlayWorld->GetTimeSeconds() - GetDialogueNode()->FragmentEndedTime;
+				return (1 - (ElapsedPaddingTime / FragmentTime)) * (FragmentTime / MaxTimeSetting);
+			}
+			else
+			{
+				return FragmentTime / MaxTimeSetting;
+			}
+		}
+		else if (RunningFragment == nullptr || !GetDialogueNode()->GetFinishedFragments().Contains(&GetFragment()))
+		{
+			return FragmentTime / MaxTimeSetting;
+		}
+
+		return 0.0;
+	}
+
+	return FragmentTime / MaxTimeSetting;		
 }
 
 float SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding() const
@@ -1302,9 +1418,9 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePa
 	
 	if (GEditor->PlayWorld)
 	{
-		const TOptional<uint8>& RunningIndex = GetDialogueNode()->RunningFragmentIndex;
+		const FYapFragment* RunningFragment = GetDialogueNode()->GetRunningFragment();
 
-		if (RunningIndex == GetFragment().IndexInDialogue)
+		if (RunningFragment == &GetFragment())
 		{
 			return YapColor::White_Trans;
 		}
@@ -1672,12 +1788,18 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodKeySelectorWid
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextWidget()
 {
+	FText* MatureText = &GetBit().MatureTitleText;
+	FText* SafeText = &GetBit().SafeTitleText;
+	FName TextEditorStyle = YapStyles.EditableTextBoxStyle_TitleText;
+	FLinearColor TextEditorColor = YapColor::YellowGray;
+	void (FYapBit::*Function)(FText*, const FText&) = &FYapBit::SetTitleText;
+
 	TitleTextEditButtonWidget = SNew(SButton)
 	.Cursor(EMouseCursor::Default)
 	.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_TitleText)
 	.ToolTipText(INVTEXT("Title text"))
 	.ButtonStyle(FYapEditorStyle::Get(),YapStyles.ButtonStyle_ActivationLimit)
-	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor, &GetBit().MatureTitleText, &GetBit().SafeTitleText, YapStyles.EditableTextBoxStyle_TitleText, YapColor::YellowGray)
+	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor, MatureText, SafeText, TextEditorStyle, TextEditorColor, Function)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
@@ -1726,27 +1848,27 @@ FText SFlowGraphNode_YapFragmentWidget::Text_EditedText(FText* Text) const
 	return *Text;
 }
 
-void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, FText* EditedText)
+void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet)
 {
 	FYapTransactions::BeginModify(LOCTEXT("Yap Dialogue Node", "Text Changed"), GetDialogueNode());
 
 	if (CommitType != ETextCommit::OnCleared)
 	{
-		*EditedText = NewValue;
+		(GetBit().*Func)(TextToSet, NewValue);
 	}
 
 	FYapTransactions::EndModify();
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor)
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor, void (FYapBit::*Func)(FText* TextToSet, const FText& NewText))
 {
 	if (bTextEditorExpanded)
 	{
 		return FReply::Handled();
 	}
 		
-	TSharedRef<IEditableTextProperty> EditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(*MatureText));
-	TSharedRef<IEditableTextProperty> EditableTextPropertySafe = MakeShareable(new FYapEditableTextPropertyHandle(*SafeText));
+	TSharedRef<IEditableTextProperty> MatureEditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(*MatureText));
+	TSharedRef<IEditableTextProperty> SafeEditableTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(*SafeText));
 
 	float TotalPortraitWidgetSize = UYapEditorSettings::Get()->GetPortraitSize() + 8;
 	float FullHeight = TotalPortraitWidgetSize - 4;
@@ -1755,45 +1877,41 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_ExpandTextEditor(FText* Matur
 	ExpandedTextEditorWidget_StartOffset = TotalPortraitWidgetSize + 5;
 	ExpandedTextEditorWidget_Offset = ExpandedTextEditorWidget_StartOffset;
 	ExpandedTextEditorWidget_OffsetAlpha = 0.0;
-	
+
 	ExpandedTextEditorWidget = SNew(SBox)
 	.Padding(ExpandedTextEditorWidget_Offset, 0, 0, 0)
 	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.Padding(0, 0, 0, 0)
+		.AutoHeight()
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.Padding(0, 0, 0, 0)
-			.AutoHeight()
+			SNew(SBox)
+			.MinDesiredHeight_Lambda( [this, HalfHeight, FullHeight] () { return UseChildSafeSettings() ? HalfHeight : FullHeight; } )
 			[
-				SNew(SBox)
-				.MinDesiredHeight_Lambda( [this, HalfHeight, FullHeight] () { return UseChildSafeSettings() ? HalfHeight : FullHeight; } )
-				[
-					SNew(SYapTextPropertyEditableTextBox, EditableTextProperty)
-					.Style(FYapEditorStyle::Get(), TextStyle)
-					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, MatureText)
-					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, MatureText)
-					//.Font(FontInfo)
-					.ForegroundColor(BaseColor)
-					.Cursor(EMouseCursor::Default)
-				]
+				SNew(SYapTextPropertyEditableTextBox, MatureEditableTextProperty)
+				.Style(FYapEditorStyle::Get(), TextStyle)
+				.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, MatureText)
+				.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, Func, MatureText)
+				//.Font(FontInfo)
+				.ForegroundColor(BaseColor)
+				.Cursor(EMouseCursor::Default)
 			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 4, 0, 0)
-			.AutoHeight()
+		]
+		+ SVerticalBox::Slot()
+		.Padding(0, 4, 0, 0)
+		.AutoHeight()
+		[
+			SNew(SBox)
+			.MinDesiredHeight(HalfHeight)
 			[
-				SNew(SBox)
-				.MinDesiredHeight(HalfHeight)
-				[
-					SNew(SYapTextPropertyEditableTextBox, EditableTextPropertySafe)
-					.Style(FYapEditorStyle::Get(), TextStyle)
-					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, SafeText)
-					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, SafeText)
-					.ForegroundColor(BaseColor * YapColor::LightBlue)
-					.Cursor(EMouseCursor::Default)
-					.Visibility_Lambda( [this] () { return UseChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
-				]
+				SNew(SYapTextPropertyEditableTextBox, SafeEditableTextProperty)
+				.Style(FYapEditorStyle::Get(), TextStyle)
+				.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, SafeText)
+				.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, Func, SafeText)
+				.ForegroundColor(BaseColor * YapColor::LightBlue)
+				.Cursor(EMouseCursor::Default)
+				.Visibility_Lambda( [this] () { return UseChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
 			]
 		]
 	];
@@ -2385,7 +2503,7 @@ bool SFlowGraphNode_YapFragmentWidget::IsFragmentFocused() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_RowHighlight() const
 {
-	if (GetDialogueNode()->GetRunningFragmentIndex() == FragmentIndex)
+	if (GetDialogueNode()->GetRunningFragment() == &GetFragment())
 	{
 		return EVisibility::HitTestInvisible;
 	}
@@ -2405,7 +2523,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_RowHighlight() const
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_RowHighlight() const
 {
-	if (GetDialogueNode()->GetRunningFragmentIndex() == FragmentIndex)
+	if (GetDialogueNode()->GetRunningFragment() == &GetFragment())
 	{
 		return YapColor::White_Glass;
 	}

@@ -15,7 +15,9 @@ struct FYapBrushes
 	FName Icon_DialogueExpand;
 	FName Icon_DownArrow;
 	FName Icon_Edit;
-	FName Icon_LocalLimit;
+
+	FName Icon_LocalLimit; 	// Test 2
+
 	FName Icon_MoodKeyMissing;
 	FName Icon_Speaker;
 	FName Icon_Tag;

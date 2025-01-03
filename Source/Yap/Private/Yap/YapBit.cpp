@@ -187,17 +187,17 @@ void FYapBit::SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt)
 	DirectedAtAsset = InDirectedAt;
 	DirectedAt = nullptr;
 }
+
+void FYapBit::SetTitleText(FText* TextToSet, const FText& NewText)
+{
+	*TextToSet = NewText;
+}
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueText(const FText& NewText)
+void FYapBit::SetDialogueText(FText* TextToSet, const FText& NewText)
 {
-	SetDialogueText_Internal(MatureDialogueText, CachedWordCount, NewText);
-}
-
-void FYapBit::SetDialogueTextSafe(const FText& NewText)
-{
-	SetDialogueText_Internal(SafeDialogueText, CachedWordCountSafe, NewText);
+	SetDialogueText_Internal(TextToSet, NewText);
 }
 
 #endif
@@ -217,18 +217,25 @@ void FYapBit::SetDialogueAudioAssetSafe(UObject* NewAudio)
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueText_Internal(FText& Text, int32& WordCount, const FText& NewText)
+void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 {
-	Text = NewText;
+	*TextToSet = NewText;
+
+	int32 WordCount = -1;
 
 	if (UYapProjectSettings::Get()->CacheFragmentWordCount())
 	{
 		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
 		WordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(NewText);
 	}
+
+	if (TextToSet == &MatureDialogueText)
+	{
+		CachedWordCount = WordCount;
+	}
 	else
 	{
-		WordCount = -1;
+		CachedWordCountSafe = WordCount;
 	}
 }
 #endif

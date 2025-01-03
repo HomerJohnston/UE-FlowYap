@@ -190,7 +190,8 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 // ------------------------------------------------------------------------------------------------
 FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 {
-	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
+	const float GraphGridSize = 16;
+	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + GraphGridSize * UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -607,9 +608,10 @@ FText SFlowGraphNode_YapDialogueWidget::Text_NodeHeader() const
 }
 
 // ------------------------------------------------------------------------------------------------
+// TODO UNUSED?
 EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(uint8 f) const
 {
-	if (FlashFragmentIndex == f || (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f && GetFlowYapDialogueNode()->FragmentStartedTime > GetFlowYapDialogueNode()->FragmentEndedTime))
+	if (FlashFragmentIndex == f /*|| (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f && GetFlowYapDialogueNode()->FragmentStartedTime > GetFlowYapDialogueNode()->FragmentEndedTime)*/ /* TODO */ )
 	{
 		return EVisibility::HitTestInvisible;
 	}
@@ -618,9 +620,10 @@ EVisibility SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_Visibility(ui
 }
 
 // ------------------------------------------------------------------------------------------------
+// TODO UNUSED?
 FSlateColor SFlowGraphNode_YapDialogueWidget::FragmentRowHighlight_BorderBackgroundColor(uint8 f) const
 {
-	if (GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f)
+	if ( /*GetFlowYapDialogueNode()->GetRunningFragmentIndex() == f*/ false)
 	{
 		return YapColor::White_Glass;
 	}
