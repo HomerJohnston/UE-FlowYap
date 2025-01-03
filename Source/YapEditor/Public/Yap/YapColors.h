@@ -2,7 +2,7 @@
 
 #define HOVER 1.15
 #define PRESS 0.85
-#define SEMITRANS 0.95
+#define SEMITRANS 0.90
 #define TRANS 0.70
 #define SEMIGLASS 0.45
 #define GLASS 0.20

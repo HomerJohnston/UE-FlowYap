@@ -69,8 +69,9 @@ struct FYapStyles
 	FName ButtonStyle_HeaderButton;
 	FName ButtonStyle_SequencingSelector;
 	FName ButtonStyle_DialogueSettings;
+	FName ButtonStyle_AudioPreview;
 
-	FName ButtonStyle_DialogueExpander;
+	FName ButtonStyle_DialogueCornerFoldout;
 
 	FName CheckBoxStyle_Skippable;
 	

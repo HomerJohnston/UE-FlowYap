@@ -63,14 +63,15 @@ protected:
 	float ExpandedTextEditorWidget_OffsetAlpha = 0.f;
 
 	bool UseChildSafeSettings() const;
+	bool bEditingChildSafeSettings = false;
 
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
 	TSharedPtr<SWidget> CentreDialogueWidget;
 	TSharedPtr<SWidget> CenterSettingsWidget;
-	FReply OnClicked_DialogueSettingsButton();
-	TSharedPtr<SWidget> CreateCentreDialogueWidget();
+	FReply OnClicked_DialogueCornerButton();
+	TSharedPtr<SWidget> CreateCentreTextDisplayWidget();
 	TSharedPtr<SWidget> CreateCenterSettingsWidget();
 
 	bool bTextEditorExpanded = false;
@@ -140,11 +141,11 @@ protected:
 	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateDialogueWidget();
+	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 
 	FVector2D			DialogueScrollBar_Thickness() const;
 	FOptionalSize		Dialogue_MaxDesiredHeight() const;
-	FText				Text_PreviewText(const FText* MatureText, const FText* SafeText) const;
+	FText				Text_TextDisplayWidget(const FText* MatureText, const FText* SafeText) const;
 	
 	EVisibility			Visibility_DialogueBackground() const;
 	FSlateColor			BorderBackgroundColor_Dialogue() const;
@@ -207,13 +208,13 @@ protected:
 
 	FText Text_EditedText(FText* Text) const;
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
-	FReply OnClicked_ExpandTextEditor(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor, void (FYapBit::*Func)(FText* TextToSet, const FText& NewText));
+	FReply OnClicked_TextDisplayWidget(FText* MatureText, FText* SafeText, FName TextStyle, FLinearColor BaseColor, void (FYapBit::*Func)(FText* TextToSet, const FText& NewText));
 
-	FText ToolTipText_PreviewText(FText Label, const FText* MatureText, const FText* SafeText) const;
-	FSlateColor ColorAndOpacity_PreviewText(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
+	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;
+	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
 	
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateTitleTextWidget();
+	TSharedRef<SWidget> CreateTitleTextDisplayWidget();
 
 	EVisibility			Visibility_TitleText() const;
 

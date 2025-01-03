@@ -192,12 +192,12 @@ void FYapEditorStyle::Initialize()
 		.SetNormal(CORE_BOX_BRUSH("Icons.Toolbar.Settings", YAP_COMMON_MARGIN, YapColor::DarkGray))
 	);
 
-	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueExpander, FButtonStyle::GetDefault(),
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueCornerFoldout, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
-		.SetNormalForeground(YapColor::Gray_Trans)
-		.SetHoveredForeground(YapColor::Gray_SemiGlass)
+		.SetNormalForeground(YapColor::Gray_SemiGlass)
+		.SetHoveredForeground(YapColor::Gray_SemiTrans)
 		.SetPressedForeground(YapColor::DarkGray)
 		.SetPressedPadding(FMargin(0))
 	);
@@ -243,6 +243,17 @@ void FYapEditorStyle::Initialize()
 		.SetPressed(Box_SolidLightGray_Deburred)	
 		.SetNormalPadding(FMargin(0, 0, 0, 0))
 		.SetPressedPadding(FMargin(0, 1, 0, -1))
+	);
+	
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_AudioPreview, FButtonStyle::GetDefault(),
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
+		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
+		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))	
+		.SetNormalPadding(FMargin(0, 0, 0, 0))
+		.SetPressedPadding(FMargin(0, 1, 0, -1))
+		.SetNormalForeground(YapColor::Gray_SemiGlass)
+		.SetHoveredForeground(YapColor::Gray_SemiTrans)
+		.SetPressedForeground(YapColor::DarkGray)
 	);
 	
 	YAP_DEFINE_STYLE(FScrollBarStyle, ScrollBarStyle_DialogueBox, FCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("ScrollBar"),
