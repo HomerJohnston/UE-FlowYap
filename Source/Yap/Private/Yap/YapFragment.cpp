@@ -122,7 +122,7 @@ void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHan
 			continue;
 		}
 		
-		if (DialogueNode->GetIsPlayerPrompt())
+		if (DialogueNode->IsPlayerPrompt())
 		{
 			MetaString = DialogueNode->GetDialogueTag().ToString();
 		}
@@ -133,7 +133,7 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 {
 	TArray<FFlowPin> OutPins;
 	
-	if (Owner.IsValid() && Owner->GetIsPlayerPrompt())
+	if (Owner.IsValid() && Owner->IsPlayerPrompt())
 	{
 		OutPins.Add(PromptPin);
 	}

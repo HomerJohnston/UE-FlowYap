@@ -1,12 +1,12 @@
 #pragma once
 
-#define HOVER 1.15
-#define PRESS 0.85
-#define SEMITRANS 0.90
-#define TRANS 0.70
-#define SEMIGLASS 0.45
-#define GLASS 0.20
-#define SUPERGLASS 0.05
+#define HOVER		1.20
+#define PRESS		0.80
+#define SEMITRANS	0.90
+#define TRANS		0.70
+#define SEMIGLASS	0.45
+#define GLASS		0.20
+#define SUPERGLASS	0.05
 
 #define DECLARE_COLOR_TRAN(Name, RR, GG, BB, AA)\
 inline FLinearColor Name = FLinearColor(RR, GG, BB, AA);\
@@ -59,6 +59,7 @@ namespace YapColor
 	DECLARE_COLOR(DeepGreen,		0.015, 0.040, 0.020);
 
 	DECLARE_COLOR(LightBlue,		0.340, 0.420, 1.000);
+	DECLARE_COLOR(BrightBlue,		0.000, 0.350, 0.750);
 	DECLARE_COLOR(Blue,				0.040, 0.060, 0.950);
 	DECLARE_COLOR(DimBlue,			0.030, 0.040, 0.350);
 	DECLARE_COLOR(DarkBlue,			0.010, 0.010, 0.100);

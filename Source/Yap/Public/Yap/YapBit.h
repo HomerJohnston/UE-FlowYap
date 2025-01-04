@@ -229,11 +229,11 @@ public:
 
 	bool GetUseProjectDefaultTimeSettings() const { return bUseProjectDefaultTimeSettings; }
 	
-	void SetUseProjectDefaultSettings(bool NewValue) { bUseProjectDefaultTimeSettings = NewValue; }
+	void SetUseProjectDefaultSettings() { bUseProjectDefaultTimeSettings = true; }
 	
 	EYapTimeMode GetBitTimeMode() const { return TimeMode; }
 
-	void SetBitTimeMode(EYapTimeMode NewValue) { TimeMode = NewValue; }
+	void SetBitTimeMode(EYapTimeMode NewValue) { bUseProjectDefaultTimeSettings = false; TimeMode = NewValue; }
 	
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 

@@ -4,6 +4,7 @@
 
 #include "GameplayTagsEditorModule.h"
 #include "GameplayTagsManager.h"
+#include "ILiveCodingModule.h"
 #include "Yap/YapColors.h"
 #include "ImageUtils.h"
 #include "Yap/YapEditorSettings.h"
@@ -16,6 +17,9 @@
 #define LOCTEXT_NAMESPACE "FlowYap"
 
 FCheckBoxStyles UYapEditorSubsystem::CheckBoxStyles;
+
+bool UYapEditorSubsystem::bLiveCodingInProgress = true;
+TArray<TWeakObjectPtr<UObject>> UYapEditorSubsystem::OpenedAssets = {};
 
 void UYapEditorSubsystem::UpdateMoodKeyIconsMap()
 {
@@ -126,6 +130,13 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	FSlateApplication::Get().RegisterInputPreProcessor(InputTracker);
 
 	SetupGameplayTagFiltering();
+	
+#if WITH_LIVE_CODING
+	if (ILiveCodingModule* LiveCoding = FModuleManager::LoadModulePtr<ILiveCodingModule>(LIVE_CODING_MODULE_NAME))
+	{
+		OnPatchCompleteHandle = LiveCoding->GetOnPatchCompleteDelegate().AddUObject(this, &UYapEditorSubsystem::OnPatchComplete);
+	}
+#endif
 }
 
 void UYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
@@ -191,6 +202,81 @@ bool UYapEditorSubsystem::IsMoodKeyProperty(TSharedPtr<IPropertyHandle> Property
 	}
 		
 	return false;
+}
+
+void UYapEditorSubsystem::UpdateLiveCodingState(bool bNewState)
+{
+	if (bNewState == bLiveCodingInProgress)
+	{
+		return;
+	}
+
+	bLiveCodingInProgress = bNewState;
+
+	UAssetEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+
+	if (bLiveCodingInProgress)
+	{
+		TArray<UObject*> OpenedAssetsTemp = Subsystem->GetAllEditedAssets();
+
+		for (UObject* Obj : OpenedAssetsTemp)
+		{
+			OpenedAssets.Add(Obj);
+		}
+		
+		Subsystem->CloseAllAssetEditors();
+	}
+	else
+	{
+		GEditor->GetTimerManager()->SetTimerForNextTick(this, &UYapEditorSubsystem::ReOpenAssets);
+	}
+}
+
+void UYapEditorSubsystem::ReOpenAssets()
+{
+	UAssetEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+
+	if (IsValid(Subsystem))
+	{
+		for (TWeakObjectPtr<UObject> Asset : OpenedAssets)
+		{
+			if (Asset.IsValid())
+			{
+				Subsystem->OpenEditorForAsset(Asset.Get());
+			}
+		}
+	}
+
+	OpenedAssets.Empty();
+}
+
+void UYapEditorSubsystem::Tick(float DeltaTime)
+{
+#if WITH_LIVE_CODING
+	if (ILiveCodingModule* LiveCoding = FModuleManager::LoadModulePtr<ILiveCodingModule>(LIVE_CODING_MODULE_NAME))
+	{
+		if (LiveCoding->IsCompiling())
+		{
+			UpdateLiveCodingState(true);
+		}
+		else
+		{
+			UpdateLiveCodingState(false);
+		}
+	}
+#endif
+}
+
+TStatId UYapEditorSubsystem::UYapEditorSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UYapEditorSubsystem, STATGROUP_Tickables);
+}
+
+void UYapEditorSubsystem::OnPatchComplete()
+{
+	ReOpenAssets();
+	
+	bLiveCodingInProgress = false;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -115,9 +115,9 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	}
 }
 
-bool UYapProjectSettings::GetHideTitleTextOnNPCDialogueNodes() const
+bool UYapProjectSettings::GetShowTitleTextOnTalkNodes() const
 {
-	return bHideTitleTextOnNPCDialogueNodes;
+	return bShowTitleTextOnTalkNodes;
 }
 #endif
 

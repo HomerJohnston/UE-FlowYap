@@ -101,7 +101,7 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 		return;
 	}
 
-	if (GetIsPlayerPrompt())
+	if (IsPlayerPrompt())
 	{
 		BroadcastPrompts();
 	}
@@ -113,7 +113,7 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 
 void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 {
-	if (GetIsPlayerPrompt())
+	if (IsPlayerPrompt())
 	{
 		TriggerOutput("Bypass", true, EFlowPinActivationType::PassThrough);
 	}
@@ -126,6 +126,11 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
 {
 	Bit->OnCharacterLoadComplete(CharacterAsset, Character);
+}
+
+bool UFlowNode_YapDialogue::UsesTitleText() const
+{
+	return IsPlayerPrompt() || UYapProjectSettings::Get()->GetShowTitleTextOnTalkNodes();
 }
 
 bool UFlowNode_YapDialogue::GetSkippable() const
@@ -306,7 +311,7 @@ void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 	RunningFragment = nullptr;
 #endif
 
-	if (GetIsPlayerPrompt())
+	if (IsPlayerPrompt())
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
 
@@ -441,7 +446,7 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
 	TArray<FFlowPin> ContextOutputPins = Super::GetContextOutputs();
 
-	if (!GetIsPlayerPrompt())
+	if (!IsPlayerPrompt())
 	{
 		ContextOutputPins.Add(OutputPinName);
 	}
@@ -460,7 +465,7 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 			ContextOutputPins.Add(Fragment.GetStartPin());
 		}
 
-		if (GetIsPlayerPrompt())
+		if (IsPlayerPrompt())
 		{
 			ContextOutputPins.Add(Fragment.GetPromptPin());
 		}

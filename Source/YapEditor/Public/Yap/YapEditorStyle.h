@@ -51,6 +51,8 @@ struct FYapBrushes
 	FName Box_SolidBlack;
 	FName Box_SolidBlack_Deburred;
 	FName Box_SolidBlack_Rounded;
+
+	FName CheckBox_Test;
 	
 	FName Panel_Deburred;
 	FName Panel_Rounded;
@@ -70,6 +72,7 @@ struct FYapStyles
 	FName ButtonStyle_SequencingSelector;
 	FName ButtonStyle_DialogueSettings;
 	FName ButtonStyle_AudioPreview;
+	FName ButtonStyle_TimeSetting;
 
 	FName ButtonStyle_DialogueCornerFoldout;
 

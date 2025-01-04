@@ -55,11 +55,11 @@ protected:
 	EYapTimeMode DefaultTimeModeSetting;
 
 	/** Controls how missing audio fields are handled.
-	 * - OK: Missing audio falls back to using text time.
-	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow.
-	 * - Error: Missing audio will not package. */ // TODO make it not package
+	 * - OK: Missing audio falls back to using text time without issue.
+	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow Graph, and warning logs on play.
+	 * - Error: Missing audio will not pass package validation. */ // TODO make it not package
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapErrorLevel MissingAudioErrorLevel;
+	EYapErrorLevel MissingAudioBehavior;
 	
 	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -126,9 +126,10 @@ protected:
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath MoodKeyIconPath;
-	
+
+	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bHideTitleTextOnNPCDialogueNodes = true;
+	bool bShowTitleTextOnTalkNodes = false;
 
 	/** Turn off to hide the quick pin-enabling buttons, useful if you want smaller graph nodes, requires graph refresh */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -173,7 +174,7 @@ public:
 	TSoftClassPtr<UObject>  GetConversationBrokerClass() const { return ConversationBrokerClass; }
 
 public:
-	bool GetHideTitleTextOnNPCDialogueNodes() const;
+	bool GetShowTitleTextOnTalkNodes() const;
 
 	int32 GetTextWordsPerMinute() const;
 
@@ -191,7 +192,7 @@ public:
 	
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
-	EYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioErrorLevel; }
+	EYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioBehavior; }
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 

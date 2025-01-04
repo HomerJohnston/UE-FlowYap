@@ -26,7 +26,7 @@ struct FCheckBoxStyles
 };
 
 UCLASS()
-class UYapEditorSubsystem : public UEditorSubsystem
+class UYapEditorSubsystem : public UEditorSubsystem, public FTickableEditorObject
 {
 	GENERATED_BODY()
 	
@@ -69,4 +69,21 @@ public:
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 
 	bool IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const;
+
+public:
+	static bool bLiveCodingInProgress;
+
+	static TArray<TWeakObjectPtr<UObject>> OpenedAssets;
+
+	void UpdateLiveCodingState(bool bNewState);
+	
+	void ReOpenAssets();
+
+	void Tick(float DeltaTime) override;
+
+	TStatId GetStatId() const override;
+	
+	void OnPatchComplete();
+	
+	FDelegateHandle OnPatchCompleteHandle;
 };

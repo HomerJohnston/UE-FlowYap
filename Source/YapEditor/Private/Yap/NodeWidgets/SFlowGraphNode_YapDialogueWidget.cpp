@@ -3,6 +3,7 @@
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #include "FlowEditorStyle.h"
+#include "ILiveCodingModule.h"
 #include "NodeFactory.h"
 #include "PropertyCustomizationHelpers.h"
 #include "SGraphPanel.h"
@@ -67,7 +68,7 @@ void SFlowGraphNode_YapDialogueWidget::Construct(const FArguments& InArgs, UFlow
 	PreConstruct(InArgs, InNode);
 	
 	SFlowGraphNode::Construct(InArgs, InNode);
-
+	
 	PostConstruct(InArgs, InNode);
 }
 
@@ -111,7 +112,14 @@ void SFlowGraphNode_YapDialogueWidget::PreConstruct(const FArguments& InArgs, UF
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::PostConstruct(const FArguments& InArgs, UFlowGraphNode* InNode)
 {
-
+#if WITH_LIVE_CODING
+	if (ILiveCodingModule* LiveCoding = FModuleManager::LoadModulePtr<ILiveCodingModule>(LIVE_CODING_MODULE_NAME))
+	{
+		
+		//LiveCoding->GetOnPatchCompleteDelegate().AddSPLambda(this, [this] () { UpdateGraphNode(); });
+	}
+//	SetVisibility(TAttribute<EVisibility>::CreateLambda([](){ return UYapEditorSubsystem::bCanRenderSlate ? EVisibility::Visible : EVisibility::Collapsed; }));
+#endif
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -597,7 +605,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 // ------------------------------------------------------------------------------------------------
 FText SFlowGraphNode_YapDialogueWidget::Text_NodeHeader() const
 {
-	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	if (GetFlowYapDialogueNode()->IsPlayerPrompt())
 	{
 		return INVTEXT("PLAYER PROMPT");
 	}
@@ -821,7 +829,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 // ------------------------------------------------------------------------------------------------
 EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_FragmentSequencingButton() const
 {
-	if (GetFlowYapDialogueNode()->GetIsPlayerPrompt())
+	if (GetFlowYapDialogueNode()->IsPlayerPrompt())
 	{
 		return EVisibility::Hidden; // Should be Collapsed but that destroys the parent widget layout for some reason
 	}

@@ -122,7 +122,10 @@ protected:
 
 public:
 	/** Is this dialogue a Talk node or a Player Prompt node? */
-	bool GetIsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; }
+	bool IsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; }
+
+	/** Does this node use title text? */ // TODO 
+	bool UsesTitleText() const;
 
 	/** How many times has this dialogue node successfully ran? */
 	int32 GetNodeActivationCount() const { return NodeActivationCount; }

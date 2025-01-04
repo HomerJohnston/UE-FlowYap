@@ -5,6 +5,7 @@
 #include "Yap/YapColors.h"
 //#include "Yap/YapFragment.h"
 
+enum class EYapTimeMode : uint8;
 class UYapCharacter;
 struct FYapBit;
 class SYapConditionsScrollBox;
@@ -57,7 +58,7 @@ protected:
 	uint64 LastBitReplacementCacheFrame = 0;
 	FYapBitReplacement* CachedBitReplacement = nullptr;
 
-	bool bShowSettings = false;
+	bool bShowAudioSettings = false;
 	float ExpandedTextEditorWidget_StartOffset = 0.f;
 	float ExpandedTextEditorWidget_Offset = 0.f;
 	float ExpandedTextEditorWidget_OffsetAlpha = 0.f;
@@ -142,6 +143,7 @@ protected:
 	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
 	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
 
+	TSharedRef<SWidget> BuildTimeSettingsWidget();
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 
@@ -171,7 +173,6 @@ protected:
 	FText				ToolTipText_FragmentTimePadding() const;
 
 	FSlateColor BorderBackgroundColor_CharacterImage() const;
-	FText ToolTipText_SpeakerWidget() const;
 	void OnSetNewSpeakerAsset(const FAssetData& AssetData);
 	void OnSetNewDirectedAtAsset(const FAssetData& AssetData);
 	
@@ -227,27 +228,18 @@ protected:
 	void				OnTagChanged_FragmentTag(FGameplayTag GameplayTag);
 
 	// ------------------------------------------
-	TSharedRef<SBox>	CreateBottomRowWidget();
 
-	ECheckBoxState		IsChecked_UseProjectDefaultTimeSettingsButton() const;
-	void				OnCheckStateChanged_UseProjectDefaultTimeSettingsButton(ECheckBoxState CheckBoxState);
+	FReply				OnClicked_UseProjectDefaultTimeSettingsButton();
+	FReply				OnClicked_UseAudioTimeButton();
+	FReply				OnClicked_UseTextTimeButton();
+	FReply				OnClicked_UseManuallyEnteredTimeButton();
 	
-	bool				IsEnabled_UseManuallyEnteredTimeButton() const;
-	ECheckBoxState		IsChecked_UseManuallyEnteredTimeButton() const;
-	void				OnCheckStateChanged_UseManuallyEnteredTimeButton(ECheckBoxState CheckBoxState);
+	TOptional<double>	Value_ManualTimeEntryBox() const;
+	void				OnValueCommitted_ManualTimeEntryBox(double NewValue, ETextCommit::Type CommitType);
 
-	bool				IsEnabled_UseTextTimeButton() const;
-	ECheckBoxState		IsChecked_UseTextTimeButton() const;
-	void				OnCheckStateChanged_UseTextTimeButton(ECheckBoxState CheckBoxState);
+	FSlateColor			ButtonColorAndOpacity_UseProjectDefaultTimeSettingsButton() const;
+	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 	
-	bool				IsEnabled_UseAudioTimeButton() const;
-	ECheckBoxState		IsChecked_UseAudioTimeButton() const;
-	void				OnCheckStateChanged_UseAudioTimeButton(ECheckBoxState CheckBoxState);
-
-	bool				IsEnabled_TimeEntryBox() const;
-	TOptional<double>	Value_TimeEntryBox() const;
-	void				OnValueCommitted_TimeEntryBox(double NewValue, ETextCommit::Type CommitType);
-
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateAudioAssetWidget(TAttribute<EVisibility> VisibilityAtt, TAttribute<FString> ObjectPathAtt, TDelegate<void(const FAssetData&)> OnObjectChangedAtt);
 

@@ -5,7 +5,7 @@
 UENUM()
 enum class EYapErrorLevel : uint8
 {
-	OK,
-	Warning,
-	Error,
+	OK		UMETA(DisplayName = "Use Text Time"),
+	Warning	UMETA(DisplayName = "Use Text Time (Warning)"),
+	Error	UMETA(DisplayName = "Prevent Packaging"),
 };

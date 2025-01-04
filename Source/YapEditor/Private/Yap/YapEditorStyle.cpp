@@ -34,9 +34,33 @@ const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME))
 
 #define YAP_DEFINE_STYLE(TYPE, STYLENAME, TEMPLATE, MODS)\
 YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
-TYPE& STYLENAME = *const_cast<TYPE*>(static_cast<const TYPE*>(GetWidgetStyleInternal(YAP_QUOTE(TYPE), YAP_QUOTE(STYLENAME), &TEMPLATE, true)));\
-Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE) MODS)
+Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE));\
+TYPE& STYLENAME = const_cast<TYPE&>(GetWidgetStyle<TYPE>(YAP_QUOTE(STYLENAME)));\
+STYLENAME MODS;
 
+/*
+#define YAP_SET_BRUSH(TYPE, BRUSH, MARGIN, COLOR)\ 
+.Set##TYPE(FSlateBrush(BRUSH), FMargin(MARGIN), COLOR)
+YAP_SET_BRUSH(Normal, ButtonHoverHintBrush, (4.0 / 16.0), YapColor::White);
+*/
+
+/*	
+#define YAP_SET_FOREGROUND(TYPE, COLOR)\
+	.Set##TYPE##Foreground(COLOR)
+*/
+
+/*
+#define YAP_SETUP_BUTTON_PARAMS(BRUSH, MARGIN, NORMAL_COLOR, HOVERED_COLOR, PRESSED_COLOR, DISABLED_COLOR, FOREGROUND_NORMAL_COLOR, FOREGROUND_HOVERED_COLOR, FOREGROUND_PRESSED_COLOR, FOREGROUND_DISABLED_COLOR)\
+YAP_SET_BRUSH(Normal, BRUSH, FMargin(MARGIN), NORMAL_COLOR))\
+YAP_SET_BRUSH(Hovered(BRUSH, FMargin(MARGIN), HOVERED_COLOR))\
+YAP_SET_BRUSH(Pressed(BRUSH, FMargin(MARGIN), PRESSED_COLOR))\
+YAP_SET_BRUSH(Disabled(BRUSH, FMargin(MARGIN), DISABLED_COLOR))\
+YAP_SET_FOREGROUND(Normal, FOREGROUND_NORMAL_COLOR)\
+YAP_SET_FOREGROUND(Hovered, FOREGROUND_HOVERED_COLOR)\
+YAP_SET_FOREGROUND(Pressed, FOREGROUND_PRESSED_COLOR)\
+YAP_SET_FOREGROUND(Disabled, FOREGROUND_DISABLED_COLOR)
+*/
+	
 FYapEditorStyle::FYapEditorStyle()
 	: FSlateStyleSet("YapEditor")
 {
@@ -73,7 +97,7 @@ FYapEditorStyle::~FYapEditorStyle()
 #if WITH_LIVE_CODING
 void FYapEditorStyle::OnPatchComplete()
 {
-#if 0
+#if 1
 	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
 	Initialize();
 	FSlateStyleRegistry::RegisterSlateStyle(*this);
@@ -86,14 +110,21 @@ void FYapEditorStyle::OnPatchComplete()
 //#define YAP_COMMON_BRUSH_HOVERED "Common/Button/simple_sharp_hovered"
 #define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
 #define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
+#define YAP_COMMON_CHECKBOXSTYLE FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox")
 
 void FYapEditorStyle::Initialize()
 {
+	// ============================================================================================
+	// FONTS
+	// ============================================================================================
 	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	10); // TODO font settings in project editor settings
 	YAP_DEFINE_FONT(Font_TitleText,			"Italic",	10);
 	YAP_DEFINE_FONT(Font_NodeHeader,		"Bold",		15);
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	
+	// ============================================================================================
+	// BRUSHES
+	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Baby,						"Icon_Baby", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
@@ -141,12 +172,22 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Black);
 	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
+
+	YAP_DEFINE_BRUSH(FSlateImageBrush,	CheckBox_Test,					"Box_SolidWhite_Deburred", ".png",				FVector2f(8, 8), YapColor::Error);
+
+	// ============================================================================================
+	// SLIDER STYLES
+	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FSliderStyle, SliderStyle_FragmentTimePadding, FSliderStyle::GetDefault(),
 		.SetBarThickness(0.f)
 		.SetNormalThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::Gray))
 		.SetHoveredThumbImage(IMAGE_BRUSH("ProgressBar_Fill", CoreStyleConstants::Icon8x8, YapColor::LightGray))
 	);
+	
+	// ============================================================================================
+	// BUTTON STYLES
+	// ============================================================================================
 
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HeaderButton, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))
@@ -201,42 +242,17 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::DarkGray)
 		.SetPressedPadding(FMargin(0))
 	);
-	
-	YAP_DEFINE_STYLE(FCheckBoxStyle, CheckBoxStyle_Skippable, FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox"),
-		.SetCheckBoxType(ESlateCheckBoxType::ToggleButton)
-		.SetCheckedImage(CheckBoxStyle_Skippable.UncheckedImage)
-		.SetCheckedHoveredImage(CheckBoxStyle_Skippable.UncheckedHoveredImage)
-		.SetCheckedPressedImage(CheckBoxStyle_Skippable.UncheckedPressedImage)
-		.SetUndeterminedImage(CheckBoxStyle_Skippable.UncheckedImage)
-		.SetUndeterminedHoveredImage(CheckBoxStyle_Skippable.UncheckedHoveredImage)
-		.SetUndeterminedPressedImage(CheckBoxStyle_Skippable.UncheckedPressedImage)
+
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSetting, FButtonStyle::GetDefault(),
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::LightGray))
+		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::White))
+		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))
+		.SetNormalForeground(YapColor::DimWhite)
+		.SetHoveredForeground(YapColor::White)
+		.SetPressedForeground(YapColor::LightGray)
+		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
 
-	/*
-#define YAP_SET_BRUSH(TYPE, BRUSH, MARGIN, COLOR)\ 
-	.Set##TYPE(FSlateBrush(BRUSH), FMargin(MARGIN), COLOR)
-	YAP_SET_BRUSH(Normal, ButtonHoverHintBrush, (4.0 / 16.0), YapColor::White);
-*/
-
-
-/*	
-#define YAP_SET_FOREGROUND(TYPE, COLOR)\
-	.Set##TYPE##Foreground(COLOR)
-*/
-
-	/*
-#define YAP_SETUP_BUTTON_PARAMS(BRUSH, MARGIN, NORMAL_COLOR, HOVERED_COLOR, PRESSED_COLOR, DISABLED_COLOR, FOREGROUND_NORMAL_COLOR, FOREGROUND_HOVERED_COLOR, FOREGROUND_PRESSED_COLOR, FOREGROUND_DISABLED_COLOR)\
-	YAP_SET_BRUSH(Normal, BRUSH, FMargin(MARGIN), NORMAL_COLOR))\
-	YAP_SET_BRUSH(Hovered(BRUSH, FMargin(MARGIN), HOVERED_COLOR))\
-	YAP_SET_BRUSH(Pressed(BRUSH, FMargin(MARGIN), PRESSED_COLOR))\
-	YAP_SET_BRUSH(Disabled(BRUSH, FMargin(MARGIN), DISABLED_COLOR))\
-	YAP_SET_FOREGROUND(Normal, FOREGROUND_NORMAL_COLOR)\
-	YAP_SET_FOREGROUND(Hovered, FOREGROUND_HOVERED_COLOR)\
-	YAP_SET_FOREGROUND(Pressed, FOREGROUND_PRESSED_COLOR)\
-	YAP_SET_FOREGROUND(Disabled, FOREGROUND_DISABLED_COLOR)
-*/
-	
-	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_ConditionWidget, FButtonStyle::GetDefault(),
 		.SetNormal(Box_SolidLightGray_Deburred)
 		.SetHovered(Box_SolidWhite_Deburred)
@@ -256,6 +272,24 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::DarkGray)
 	);
 	
+	// ============================================================================================
+	// CHECKBOX STYLES
+	// ============================================================================================
+	
+	YAP_DEFINE_STYLE(FCheckBoxStyle, CheckBoxStyle_Skippable, YAP_COMMON_CHECKBOXSTYLE,
+		.SetCheckBoxType(ESlateCheckBoxType::ToggleButton)
+		.SetCheckedImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedImage)
+		.SetCheckedHoveredImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedHoveredImage)
+		.SetCheckedPressedImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedPressedImage)
+		.SetUndeterminedImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedImage)
+		.SetUndeterminedHoveredImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedHoveredImage)
+		.SetUndeterminedPressedImage(YAP_COMMON_CHECKBOXSTYLE.UncheckedPressedImage)
+	);
+		
+	// ============================================================================================
+	// SCROLLBAR STYLES
+	// ============================================================================================
+	
 	YAP_DEFINE_STYLE(FScrollBarStyle, ScrollBarStyle_DialogueBox, FCoreStyle::Get().GetWidgetStyle<FScrollBarStyle>("ScrollBar"),
 		.SetThickness(2)
 		.SetHorizontalBackgroundImage(Box_SolidBlack)
@@ -264,7 +298,11 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredThumbImage(Box_SolidWhite)
 		.SetNormalThumbImage(Box_SolidLightGray)
 	);
-
+		
+	// ============================================================================================
+	// TEXT BLOCK STYLES
+	// ============================================================================================
+	
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_DialogueText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
 		.SetFont(Font_DialogueText)
 		.SetColorAndOpacity(FSlateColor::UseForeground())
@@ -284,7 +322,11 @@ void FYapEditorStyle::Initialize()
 		.SetFont(Font_NodeSequencing)
 		.SetColorAndOpacity(FSlateColor::UseForeground())
 	);
-
+	
+	// ============================================================================================
+	// EDITABLE TEXT BLOCK STYLES
+	// ============================================================================================
+	
 	YAP_DEFINE_STYLE(FEditableTextBoxStyle, EditableTextBoxStyle_Dialogue, FEditableTextBoxStyle::GetDefault(),
 		.SetScrollBarStyle(ScrollBarStyle_DialogueBox) // This doesn't do dick, thanks Epic
 		.SetTextStyle(TextBlockStyle_DialogueText)
@@ -310,6 +352,10 @@ void FYapEditorStyle::Initialize()
 		//.SetBackgroundImageReadOnly(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
 		.SetBackgroundColor(FStyleColors::Recessed)
 	);
+		
+	// ============================================================================================
+	// PROGRESS BAR STYLES
+	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FProgressBarStyle, ProgressBarStyle_FragmentTimePadding, FProgressBarStyle::GetDefault(),
 		.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
@@ -317,8 +363,3 @@ void FYapEditorStyle::Initialize()
 		.SetEnableFillAnimation(false)
 	);
 }
-
-#undef YAP_QUOTE
-#undef YAP_DEFINE_FONT
-#undef YAP_DEFINE_BRUSH
-#undef YAP_DEFINE_STYLE

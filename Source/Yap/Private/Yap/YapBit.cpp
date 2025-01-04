@@ -86,19 +86,19 @@ double FYapBit::GetTime() const
 
 	switch (ActualTimeMode)
 	{
-	case EYapTimeMode::ManualTime:
+		case EYapTimeMode::ManualTime:
 		{
 			return ManualTime;
 		}
-	case EYapTimeMode::AudioTime:
+		case EYapTimeMode::AudioTime:
 		{
 			return CachedAudioTime;
 		}
-	case EYapTimeMode::TextTime:
+		case EYapTimeMode::TextTime:
 		{
 			return GetTextTime();
 		}
-	default:
+		default:
 		{
 			return -1.0;
 		}

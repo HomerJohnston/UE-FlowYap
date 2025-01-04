@@ -2,10 +2,10 @@
 
 DECLARE_DELEGATE(FOnOpened)
 
-class SYapPopupTest : public SMenuAnchor
+class SYapTimeSettingsPopup : public SMenuAnchor
 {
 public:
-	SLATE_BEGIN_ARGS(SYapPopupTest)
+	SLATE_BEGIN_ARGS(SYapTimeSettingsPopup)
 		: _Content()
 		{}
 
