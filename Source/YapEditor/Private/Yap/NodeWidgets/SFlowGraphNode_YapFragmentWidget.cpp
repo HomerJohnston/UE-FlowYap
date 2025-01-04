@@ -9,6 +9,7 @@
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
 #include "Slate/DeferredCleanupSlateBrush.h"
+#include "Tracks/MovieSceneAudioTrack.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Input/SSlider.h"
 #include "Widgets/Layout/SPopup.h"
@@ -234,6 +235,15 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 {	
 	Owner = InOwner;
 	FragmentIndex = InFragmentIndex;
+
+	TimeModeButtonColors =
+	{
+		{ EYapTimeMode::None, YapColor::Orange },
+		{ EYapTimeMode::Default, YapColor::Green },
+		{ EYapTimeMode::AudioTime, YapColor::LightBlue },
+		{ EYapTimeMode::TextTime, YapColor::BrightBlue },
+		{ EYapTimeMode::ManualTime, YapColor::DimBlue },
+	};
 	
 	ChildSlot
 	[
@@ -1147,15 +1157,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
 						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
 						.ContentPadding(FMargin(4, 3))
 						.ToolTipText(LOCTEXT("UseProjectDefaultTimeSettings_Tooltip", "Use time settings from project settings"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_UseProjectDefaultTimeSettingsButton)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseProjectDefaultTimeSettingsButton)
-						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, YapColor::White)
+						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::Default)
+						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, TimeModeButtonColors[EYapTimeMode::Default])
+						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, YapColor::White)
 						.HAlign(HAlign_Center)
 						[
 							SNew(SImage)
 							.DesiredSizeOverride(FVector2D(16, 16))
-							.ColorAndOpacity(FSlateColor::UseForeground())
 							.Image(FAppStyle::GetBrush("ProjectSettings.TabIcon"))
+							.ColorAndOpacity(FSlateColor::UseForeground())
 						]
 					]
 					+ SHorizontalBox::Slot()
@@ -1190,8 +1200,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
 						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
 						.ContentPadding(FMargin(4, 3))
 						.ToolTipText(LOCTEXT("UseTimeFromAudio_Tooltip", "Use a time read from the audio asset"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_UseAudioTimeButton)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, YapColor::Yellow)
+						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::AudioTime)
+						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, TimeModeButtonColors[EYapTimeMode::AudioTime])
 						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, YapColor::White)
 						.HAlign(HAlign_Center)
 						[
@@ -1233,8 +1243,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
 						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
 						.ContentPadding(FMargin(4, 3))
 						.ToolTipText(LOCTEXT("UseTimeFromText_Tooltip", "Use a time calculated from text length"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_UseTextTimeButton)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, YapColor::Orange)
+						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::TextTime)
+						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, TimeModeButtonColors[EYapTimeMode::TextTime])
 						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, YapColor::White)
 						.HAlign(HAlign_Center)
 						[
@@ -1276,8 +1286,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
 						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
 						.ContentPadding(FMargin(4, 3))
 						.ToolTipText(LOCTEXT("UseEnteredTime_Tooltip", "Use a manually entered time"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_UseManuallyEnteredTimeButton)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, YapColor::OrangeRed)
+						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::ManualTime)
+						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, TimeModeButtonColors[EYapTimeMode::ManualTime])
 						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, YapColor::White)
 						.HAlign(HAlign_Center)
 						[
@@ -1327,6 +1337,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
 			]
 		]
 	];
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton() const
+{
+	EYapTimeMode TimeMode = GetBit().TimeMode;
+
+	if (TimeMode == EYapTimeMode::Default)
+	{
+		return YapColor::DimGray;
+	}
+	
+	return TimeModeButtonColors[GetBit().TimeMode];
 }
 
 // ================================================================================================
@@ -1421,13 +1443,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
 				[
 					SNew(SYapTimeSettingsPopup)
-					.ButtonContent()
-					[
-						SNew(SImage)
-						.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
-						//.Image(FAppStyle::GetBrush("Icons.Toolbar.Settings"))
-						.ColorAndOpacity(YapColor::Gray)
-					]
+					.ButtonColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
 					.MenuContent()
 					[
 						BuildTimeSettingsWidget()
@@ -2288,37 +2304,19 @@ void SFlowGraphNode_YapFragmentWidget::OnTagChanged_FragmentTag(FGameplayTag Gam
 	Owner->RequestUpdateGraphNode();
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_UseProjectDefaultTimeSettingsButton()
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton(EYapTimeMode TimeMode)
 {
-	FYapTransactions::BeginModify(LOCTEXT("NodeUseProjectDefaultTimeSettings", "Use Project Default Time Settings Changed"), GetDialogueNode());
-	GetBit().SetUseProjectDefaultSettings();
-	FYapTransactions::EndModify();
+	FYapTransactions::BeginModify(INVTEXT("Fragment Time Mode Changed"), GetDialogueNode());
 
-	return FReply::Handled();
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_UseAudioTimeButton()
-{
-	FYapTransactions::BeginModify(LOCTEXT("Fragment", "Fragment Time Mode Changed"), GetDialogueNode());
-	GetBit().SetBitTimeMode(EYapTimeMode::AudioTime);
-	FYapTransactions::EndModify();
-
-	return FReply::Handled();
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_UseTextTimeButton()
-{
-	FYapTransactions::BeginModify(LOCTEXT("Fragment", "Fragment Time Mode Changed"), GetDialogueNode());
-	GetBit().SetBitTimeMode(EYapTimeMode::TextTime);
-	FYapTransactions::EndModify();
-
-	return FReply::Handled();
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_UseManuallyEnteredTimeButton()
-{
-	FYapTransactions::BeginModify(LOCTEXT("Fragment", "Fragment Time Mode Changed"), GetDialogueNode());
-	GetBit().SetBitTimeMode(EYapTimeMode::ManualTime);
+	if (GetBit().TimeMode == TimeMode)
+	{
+		GetBit().SetBitTimeMode(EYapTimeMode::None);
+	}
+	else
+	{
+		GetBit().SetBitTimeMode(TimeMode);
+	}
+	
 	FYapTransactions::EndModify();
 
 	return FReply::Handled();
@@ -2349,18 +2347,18 @@ void SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox(doubl
 	FYapTransactions::EndModify();
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseProjectDefaultTimeSettingsButton() const
-{
-	return GetBit().GetUseProjectDefaultTimeSettings() ? YapColor::BrightBlue : YapColor::DarkGray;
-}
-
 FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const
 {
+	if (GetBit().TimeMode == TimeMode)
+	{
+		// Exact setting match
+		return ColorTint;
+	}
+	
 	if (GetBit().GetTimeMode() == TimeMode)
 	{
-		bool bFromDefaults = GetBit().GetUseProjectDefaultTimeSettings();
-
-		return bFromDefaults ? ColorTint.Desaturate(0.50) : ColorTint;
+		// Implicit match through project defaults
+		return ColorTint.Desaturate(0.50);
 	}
 	
 	return YapColor::DimGray;

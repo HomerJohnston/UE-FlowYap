@@ -20,7 +20,8 @@ public:
 		SLATE_ARGUMENT( EVerticalAlignment, VAlign )
 		
 		SLATE_EVENT( FOnIsOpenChanged, OnMenuOpenChanged )
-		
+
+		SLATE_ATTRIBUTE( FSlateColor, ButtonColor )		
 
 	SLATE_END_ARGS()
 

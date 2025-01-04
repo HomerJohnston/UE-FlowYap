@@ -63,11 +63,7 @@ protected:
 	/**  */
 	UPROPERTY()
 	FGameplayTag MoodKey;
-	
-	/**  */
-	UPROPERTY()
-	bool bUseProjectDefaultTimeSettings = true;
-	
+		
 	/**  */
 	UPROPERTY()
 	EYapTimeMode TimeMode = EYapTimeMode::AudioTime;
@@ -227,13 +223,9 @@ public:
 	
 	void SetMoodKey(const FGameplayTag& NewValue) { MoodKey = NewValue; };
 
-	bool GetUseProjectDefaultTimeSettings() const { return bUseProjectDefaultTimeSettings; }
-	
-	void SetUseProjectDefaultSettings() { bUseProjectDefaultTimeSettings = true; }
-	
 	EYapTimeMode GetBitTimeMode() const { return TimeMode; }
 
-	void SetBitTimeMode(EYapTimeMode NewValue) { bUseProjectDefaultTimeSettings = false; TimeMode = NewValue; }
+	void SetBitTimeMode(EYapTimeMode NewValue) { TimeMode = NewValue; }
 	
 	void SetManualTime(double NewValue) { ManualTime = NewValue; }
 

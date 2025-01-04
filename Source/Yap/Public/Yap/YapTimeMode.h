@@ -5,6 +5,8 @@
 UENUM()
 enum class EYapTimeMode : uint8
 {
+	/** Use project default setting */
+	Default UMETA(Hidden),
 	/** Dialogue can only be progressed by the game returning the dialogue handle to the FlowYapSubsystem */
 	None,
 	/** Dialogue will automatically progress after an automatically determined time, determined by the selected audio asset */

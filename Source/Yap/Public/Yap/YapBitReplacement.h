@@ -52,10 +52,6 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<bool> bUseProjectDefaultTimeSettings = true;
-
-	/**  */
-	UPROPERTY(EditAnywhere)
 	TOptional<EYapTimeMode> TimeMode = EYapTimeMode::AudioTime;
 
 	/**  */
@@ -99,7 +95,6 @@ inline FYapBitReplacement::FYapBitReplacement()
 	SafeDialogueAudioAsset.Reset();
 	
 	MoodKey.Reset();
-	bUseProjectDefaultTimeSettings.Reset();
 	TimeMode.Reset();
 	Skippable.Reset();
 

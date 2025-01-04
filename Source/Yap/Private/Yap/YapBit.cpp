@@ -68,16 +68,14 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 
 EYapTimeMode FYapBit::GetTimeMode() const
 {
-	return bUseProjectDefaultTimeSettings ? UYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;
+	return TimeMode == EYapTimeMode::Default ? UYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;
 }
 
 double FYapBit::GetTime() const
 {
 	// TODO clamp minimums from project settings
 	
-	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
-	
-	EYapTimeMode ActualTimeMode = bUseProjectDefaultTimeSettings ? ProjectSettings->GetDefaultTimeModeSetting() : TimeMode;
+	EYapTimeMode ActualTimeMode = GetTimeMode();
 
 	if (ActualTimeMode == EYapTimeMode::AudioTime && (!HasDialogueAudioAsset() || CachedAudioTime <= 0))
 	{
@@ -161,7 +159,6 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(MatureDialogueAudioAsset);
 	FLOWYAP_REPLACE(SafeDialogueAudioAsset);
 	FLOWYAP_REPLACE(MoodKey);
-	FLOWYAP_REPLACE(bUseProjectDefaultTimeSettings);
 	FLOWYAP_REPLACE(TimeMode);
 	FLOWYAP_REPLACE(ManualTime);
 	FLOWYAP_REPLACE(CachedWordCount);

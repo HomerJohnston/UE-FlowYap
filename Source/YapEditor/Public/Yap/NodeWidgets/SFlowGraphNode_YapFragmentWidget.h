@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
 #include "Yap/YapColors.h"
+#include "Yap/YapTimeMode.h"
 //#include "Yap/YapFragment.h"
 
 enum class EYapTimeMode : uint8;
@@ -33,6 +34,10 @@ enum class EYapFragmentControlsDirection : uint8
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
+	// ------------------------------------------
+	// SETTINGS
+	TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
+	
 	// ------------------------------------------
 	// STATE
 protected:
@@ -144,6 +149,7 @@ protected:
 	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
 
 	TSharedRef<SWidget> BuildTimeSettingsWidget();
+	FSlateColor ButtonColor_TimeSettingButton() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 
@@ -229,15 +235,10 @@ protected:
 
 	// ------------------------------------------
 
-	FReply				OnClicked_UseProjectDefaultTimeSettingsButton();
-	FReply				OnClicked_UseAudioTimeButton();
-	FReply				OnClicked_UseTextTimeButton();
-	FReply				OnClicked_UseManuallyEnteredTimeButton();
-	
+	FReply				OnClicked_SetTimeModeButton(EYapTimeMode TimeMode);
+
 	TOptional<double>	Value_ManualTimeEntryBox() const;
 	void				OnValueCommitted_ManualTimeEntryBox(double NewValue, ETextCommit::Type CommitType);
-
-	FSlateColor			ButtonColorAndOpacity_UseProjectDefaultTimeSettingsButton() const;
 	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 	
 	// ------------------------------------------
