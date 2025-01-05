@@ -106,6 +106,7 @@ void FYapEditorStyle::OnPatchComplete()
 #endif
 
 #define YAP_COMMON_BRUSH "Common/ButtonHoverHint"
+
 //#define YAP_COMMON_BRUSH "Common/Button/simple_sharp_normal"
 //#define YAP_COMMON_BRUSH_HOVERED "Common/Button/simple_sharp_hovered"
 #define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
@@ -114,6 +115,8 @@ void FYapEditorStyle::OnPatchComplete()
 
 void FYapEditorStyle::Initialize()
 {
+	const FSlateBrush& FilledCircle = *FAppStyle::GetBrush("Icons.FilledCircle");
+	
 	// ============================================================================================
 	// FONTS
 	// ============================================================================================
@@ -241,12 +244,22 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredForeground(YapColor::Gray_SemiTrans)
 		.SetPressedForeground(YapColor::DarkGray)
 		.SetPressedPadding(FMargin(0))
-	);
+		);
 
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSetting, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::LightGray))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::White))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))
+		.SetNormalForeground(YapColor::DimWhite)
+		.SetHoveredForeground(YapColor::White)
+		.SetPressedForeground(YapColor::LightGray)
+		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
+	);
+
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSettingOpener, FButtonStyle::GetDefault(),
+		.SetNormal(FilledCircle)
+		.SetHovered(FilledCircle)
+		.SetPressed(FilledCircle)
 		.SetNormalForeground(YapColor::DimWhite)
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)

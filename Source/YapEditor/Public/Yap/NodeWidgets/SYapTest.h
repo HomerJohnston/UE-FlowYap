@@ -34,4 +34,6 @@ public:
 	TWeakPtr<SWidget> ContentWidgetPtr;
 	
 	SHorizontalBox::FSlot* ButtonContentSlot;
+
+	virtual void SetMenuContent(TSharedRef<SWidget> InMenuContent) override;
 };

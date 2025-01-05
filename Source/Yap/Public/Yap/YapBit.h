@@ -66,7 +66,7 @@ protected:
 		
 	/**  */
 	UPROPERTY()
-	EYapTimeMode TimeMode = EYapTimeMode::AudioTime;
+	EYapTimeMode TimeMode = EYapTimeMode::Default;
 
 	/**  */
 	UPROPERTY()

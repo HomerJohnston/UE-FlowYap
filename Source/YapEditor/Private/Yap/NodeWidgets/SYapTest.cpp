@@ -1,6 +1,5 @@
 ﻿#include "Yap/NodeWidgets/SYapTest.h"
 
-#include "Widgets/SCanvas.h"
 #include "Yap/YapEditorStyle.h"
 
 void SYapTimeSettingsPopup::Construct(const FArguments& InArgs)
@@ -8,18 +7,23 @@ void SYapTimeSettingsPopup::Construct(const FArguments& InArgs)
 	ContentWidgetPtr = InArgs._MenuContent.Widget;
 
 	SMenuAnchor::Construct(SMenuAnchor::FArguments()
-	.OnMenuOpenChanged(InArgs._OnMenuOpenChanged)
-	.MenuContent(InArgs._MenuContent.Widget)
 	.Placement(MenuPlacement_CenteredAboveAnchor)
-	.Content()
+	.Method(EPopupMethod::UseCurrentWindow)
+	.IsCollapsedByParent(true)
+	.OnMenuOpenChanged(InArgs._OnMenuOpenChanged)
+	//.MenuContent(InArgs._MenuContent.Widget)
 	[
 		SNew(SButton)
 		.Cursor(EMouseCursor::Default)
-		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSettingOpener)
 		.OnClicked(this, &SYapTimeSettingsPopup::OnClicked_Button)
-		.ForegroundColor(YapColor::Green)
 		.ButtonColorAndOpacity(InArgs._ButtonColor)
+		[
+			InArgs._ButtonContent.Widget
+		]
 	]);
+
+	SetMenuContent(InArgs._MenuContent.Widget);
 }
 
 FReply SYapTimeSettingsPopup::OnClicked_Button()
@@ -34,7 +38,17 @@ FReply SYapTimeSettingsPopup::OnClicked_Button()
 
 		ButtonReply.SetUserFocus(MenuContent.ToSharedRef(), EFocusCause::SetDirectly);
 	}
-	
+
 	return ButtonReply;
+}
+
+void SYapTimeSettingsPopup::SetMenuContent(TSharedRef<SWidget> InMenuContent)
+{
+	WrappedContent = MenuContent =
+		SNew(SBox)
+		.Padding(8)
+		[
+			InMenuContent
+		];
 }
 

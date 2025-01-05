@@ -73,6 +73,8 @@ struct FYapStyles
 	FName ButtonStyle_DialogueSettings;
 	FName ButtonStyle_AudioPreview;
 	FName ButtonStyle_TimeSetting;
+	
+	FName ButtonStyle_TimeSettingOpener;
 
 	FName ButtonStyle_DialogueCornerFoldout;
 

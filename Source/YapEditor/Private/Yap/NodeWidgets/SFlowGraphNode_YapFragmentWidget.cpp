@@ -238,11 +238,11 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 
 	TimeModeButtonColors =
 	{
-		{ EYapTimeMode::None, YapColor::Orange },
+		{ EYapTimeMode::None, YapColor::OrangeRed },
 		{ EYapTimeMode::Default, YapColor::Green },
 		{ EYapTimeMode::AudioTime, YapColor::LightBlue },
-		{ EYapTimeMode::TextTime, YapColor::BrightBlue },
-		{ EYapTimeMode::ManualTime, YapColor::DimBlue },
+		{ EYapTimeMode::TextTime, YapColor::LightYellow },
+		{ EYapTimeMode::ManualTime, YapColor::LightRed },
 	};
 	
 	ChildSlot
@@ -712,8 +712,6 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsCheckBox() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
-
 	if (!UseChildSafeSettings())
 	{
 		return YapColor::DarkGray;
@@ -1124,217 +1122,254 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EmptyTextIndicator(cons
 	return Text->IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildTimeSettingsWidget()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 {
-	return SNew(SBorder)
-	.Padding(1, 1, 1, 1)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
-	.BorderBackgroundColor(YapColor::DimGray)
+	return SNew(SHorizontalBox)
+	+ SHorizontalBox::Slot()
+	.Padding(8, 8, 8, 8)
 	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.Padding(8, 8, 8, 8)
+		SNew(SBox)
+		.WidthOverride(80)
+		.VAlign(VAlign_Fill)
 		[
-			SNew(SBox)
-			.WidthOverride(80)
-			.VAlign(VAlign_Fill)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.Padding(0, 0, 0, 2)
+			.AutoHeight()
 			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot()
-				.Padding(0, 0, 0, 2)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 8, 0)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 8, 0)
+					// =============================
+					// USE PROJECT DEFAULTS BUTTON
+					// =============================
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+					.ContentPadding(FMargin(4, 3))
+					.ToolTipText(LOCTEXT("UseProjectDefaultTimeSettings_Tooltip", "Use time settings from project settings"))
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::Default)
+					.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, TimeModeButtonColors[EYapTimeMode::Default])
+					.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, YapColor::White)
+					.HAlign(HAlign_Center)
 					[
-						// =============================
-						// USE PROJECT DEFAULTS BUTTON
-						// =============================
-						SNew(SButton)
-						.Cursor(EMouseCursor::Default)
-						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
-						.ContentPadding(FMargin(4, 3))
-						.ToolTipText(LOCTEXT("UseProjectDefaultTimeSettings_Tooltip", "Use time settings from project settings"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::Default)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, TimeModeButtonColors[EYapTimeMode::Default])
-						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::Default, YapColor::White)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.Image(FAppStyle::GetBrush("ProjectSettings.TabIcon"))
-							.ColorAndOpacity(FSlateColor::UseForeground())
-						]
-					]
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0)
-					.VAlign(VAlign_Center)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<double>)
-						.IsEnabled(false)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_ManualTimeEntryBox)
-						.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FAppStyle::GetBrush("ProjectSettings.TabIcon"))
+						.ColorAndOpacity(FSlateColor::UseForeground())
 					]
 				]
-				+ SVerticalBox::Slot()
-				.Padding(0, 2, 0, 0)
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0)
+				.VAlign(VAlign_Center)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 8, 0)
+					SNew(SSpacer)
+					/*
+					// -----------------------------
+					// TIME DISPLAY
+					// -----------------------------
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled(false)
+					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+					.Justification(ETextJustify::Center)
+					.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_ManualTimeEntryBox)
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+					*/
+				]
+			]
+			+ SVerticalBox::Slot()
+			.Padding(0, 2, 0, 2)
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 8, 0)
+				[
+					// =============================
+					// USE AUDIO TIME BUTTON
+					// =============================
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+					.ContentPadding(FMargin(4, 3))
+					.ToolTipText(LOCTEXT("UseTimeFromAudio_Tooltip", "Use a time read from the audio asset"))
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::AudioTime)
+					.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, TimeModeButtonColors[EYapTimeMode::AudioTime])
+					.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, YapColor::White)
+					.HAlign(HAlign_Center)
 					[
-						// =============================
-						// USE AUDIO TIME BUTTON
-						// =============================
-						SNew(SButton)
-						.Cursor(EMouseCursor::Default)
-						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
-						.ContentPadding(FMargin(4, 3))
-						.ToolTipText(LOCTEXT("UseTimeFromAudio_Tooltip", "Use a time read from the audio asset"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::AudioTime)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, TimeModeButtonColors[EYapTimeMode::AudioTime])
-						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::AudioTime, YapColor::White)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_AudioTime))
-							.ColorAndOpacity(FSlateColor::UseForeground())
-						]
-					]
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0)
-					.VAlign(VAlign_Center)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<double>)
-						.IsEnabled(false)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value_Lambda( [this] () { return GetBit().GetAudioTime(); } )
-						.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_AudioTime))
+						.ColorAndOpacity(FSlateColor::UseForeground())
 					]
 				]
-				+ SVerticalBox::Slot()
-				.Padding(0, 2, 0, 2)
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0)
+				.VAlign(VAlign_Center)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 8, 0)
+					// -----------------------------
+					// TIME DISPLAY
+					// -----------------------------
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled(false)
+					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+					.Justification(ETextJustify::Center)
+					.Value_Lambda( [this] () { return GetBit().GetAudioTime(); } )
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+				]
+			]
+			+ SVerticalBox::Slot()
+			.Padding(0, 2, 0, 2)
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 8, 0)
+				[
+					// =============================
+					// USE TEXT TIME BUTTON
+					// =============================
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+					.ContentPadding(FMargin(4, 3))
+					.ToolTipText(LOCTEXT("UseTimeFromText_Tooltip", "Use a time calculated from text length"))
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::TextTime)
+					.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, TimeModeButtonColors[EYapTimeMode::TextTime])
+					.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, YapColor::White)
+					.HAlign(HAlign_Center)
 					[
-						// =============================
-						// USE TEXT TIME BUTTON
-						// =============================
-						SNew(SButton)
-						.Cursor(EMouseCursor::Default)
-						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
-						.ContentPadding(FMargin(4, 3))
-						.ToolTipText(LOCTEXT("UseTimeFromText_Tooltip", "Use a time calculated from text length"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::TextTime)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, TimeModeButtonColors[EYapTimeMode::TextTime])
-						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::TextTime, YapColor::White)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_TextTime))
-							.ColorAndOpacity(FSlateColor::UseForeground())
-						]
-					]
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0)
-					.VAlign(VAlign_Center)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<double>)
-						.IsEnabled(false)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value_Lambda( [this] () { return GetBit().GetTextTime(); } )
-						.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_TextTime))
+						.ColorAndOpacity(FSlateColor::UseForeground())
 					]
 				]
-				+ SVerticalBox::Slot()
-				.Padding(0, 2, 0, 2)
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0)
+				.VAlign(VAlign_Center)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					.Padding(0, 0, 8, 0)
+					// -----------------------------
+					// TIME DISPLAY
+					// -----------------------------
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled(false)
+					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+					.Justification(ETextJustify::Center)
+					.Value_Lambda( [this] () { return GetBit().GetTextTime(); } )
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+				]
+			]
+			+ SVerticalBox::Slot()
+			.Padding(0, 2, 0, 2)
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 8, 0)
+				[
+					// =============================
+					// USE MANUAL TIME ENTRY BUTTON
+					// =============================
+					SNew(SButton)
+					.Cursor(EMouseCursor::Default)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+					.ContentPadding(FMargin(4, 3))
+					.ToolTipText(LOCTEXT("UseEnteredTime_Tooltip", "Use a manually entered time"))
+					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::ManualTime)
+					.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, TimeModeButtonColors[EYapTimeMode::ManualTime])
+					.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, YapColor::White)
+					.HAlign(HAlign_Center)
 					[
-						// =============================
-						// USE MANUAL TIME ENTRY BUTTON
-						// =============================
-						SNew(SButton)
-						.Cursor(EMouseCursor::Default)
-						.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
-						.ContentPadding(FMargin(4, 3))
-						.ToolTipText(LOCTEXT("UseEnteredTime_Tooltip", "Use a manually entered time"))
-						.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton, EYapTimeMode::ManualTime)
-						.ButtonColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, TimeModeButtonColors[EYapTimeMode::ManualTime])
-						.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode, EYapTimeMode::ManualTime, YapColor::White)
-						.HAlign(HAlign_Center)
-						[
-							SNew(SImage)
-							.DesiredSizeOverride(FVector2D(16, 16))
-							.ColorAndOpacity(FSlateColor::UseForeground())
-							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Timer))
-						]
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(16, 16))
+						.ColorAndOpacity(FSlateColor::UseForeground())
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Timer))
 					]
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0)
-					.VAlign(VAlign_Center)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<double>)
-						.IsEnabled(true)
-						.Delta(0.1)
-						.MinValue(0.0)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value_Lambda( [this] () { return GetBit().GetManualTime(); } )
-						.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
-					]
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0)
+				.VAlign(VAlign_Center)
+				[
+					// -----------------------------
+					// TIME DISPLAY
+					// -----------------------------
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled_Lambda( [this] () { return GetBit().TimeMode == EYapTimeMode::ManualTime; } )
+					.Delta(0.1)
+					.MinValue(0.0)
+					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+					.Justification(ETextJustify::Center)
+					.Value_Lambda( [this] () { return GetBit().GetManualTime(); } )
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
+				]
+			]
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(0, 2, 0, 2)
+			[
+				SNew(SSeparator)
+				.Thickness(1)
+			]
+			+ SVerticalBox::Slot()
+			.Padding(0, 2, 0, 0)
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding(0, 0, 2, 0)
+				[
+					SNew(STextBlock)
+					.Text(INVTEXT("Time:"))
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(1.0)
+				.Padding(2, 0, 0, 0)
+				[
+					// -----------------------------
+					// TIME DISPLAY
+					// -----------------------------
+					SNew(SNumericEntryBox<double>)
+					.IsEnabled(false)
+					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+					.Justification(ETextJustify::Center)
+					.Value(this, &SFlowGraphNode_YapFragmentWidget::Value_ManualTimeEntryBox)
+					.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTimeEntryBox)
 				]
 			]
 		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0)
+	]
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(0)
+	[
+		SNew(SSeparator)
+		.Orientation(Orient_Vertical)
+		.Thickness(1)
+	]
+	+ SHorizontalBox::Slot()
+	.AutoWidth()
+	.Padding(8, 8, 8, 8)
+	[
+		SNew(SBox)
+		.WidthOverride(80)
+		.VAlign(VAlign_Fill)
 		[
-			SNew(SSeparator)
-			.Orientation(Orient_Vertical)
-			.Thickness(1)
-		]
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(8, 8, 8, 8)
-		[
-			SNew(SBox)
-			.WidthOverride(80)
-			.VAlign(VAlign_Fill)
-			[
-				SNew(STextBlock)
-				.Text(INVTEXT("TEST"))
-			]
+			SNew(STextBlock)
+			.Text(INVTEXT("TEST"))
 		]
 	];
 }
@@ -1438,15 +1473,16 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 			.AutoWidth()
 			[
 				SNew(SBox)
-				.HeightOverride(8)
-				.WidthOverride(8)
+				.HeightOverride(12)
+				.WidthOverride(12)
+				.Padding(2)
 				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding)
 				[
 					SNew(SYapTimeSettingsPopup)
 					.ButtonColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
 					.MenuContent()
 					[
-						BuildTimeSettingsWidget()
+						CreateTimeSettingsWidget()
 					]
 				]
 			]

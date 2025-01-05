@@ -148,7 +148,7 @@ protected:
 	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
 	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
 
-	TSharedRef<SWidget> BuildTimeSettingsWidget();
+	TSharedRef<SWidget> CreateTimeSettingsWidget();
 	FSlateColor ButtonColor_TimeSettingButton() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
