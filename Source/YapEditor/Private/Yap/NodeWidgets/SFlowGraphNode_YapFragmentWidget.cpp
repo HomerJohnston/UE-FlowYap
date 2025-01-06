@@ -51,7 +51,7 @@ bool SFlowGraphNode_YapFragmentWidget::ContainsChildSafeSettings() const
 
 bool SFlowGraphNode_YapFragmentWidget::HasAnyChildSafeData() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
+	const FYapBit& Bit = GetBit();
 
 	bool bHasSafeDialogueText = !Bit.SafeDialogueText.IsEmpty();
 	bool bHasSafeTitleText = !Bit.SafeTitleText.IsEmpty();
@@ -62,7 +62,7 @@ bool SFlowGraphNode_YapFragmentWidget::HasAnyChildSafeData() const
 
 bool SFlowGraphNode_YapFragmentWidget::HasCompleteChildSafeData() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
+	const FYapBit& Bit = GetBit();
 
 	if (!HasAnyChildSafeData())
 	{
@@ -182,7 +182,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCenterSettingsWidget
 				TAttribute<FString>::CreateLambda
 				([this] ()
 				{
-					return GetFragment().GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData())->GetPathName();
+					return GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData())->GetPathName();
 				}),
 				TDelegate<void(const FAssetData&)>::CreateLambda
 				([this] (const FAssetData& InAssetData)
@@ -230,7 +230,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCenterSettingsWidget
 				TAttribute<FString>::CreateLambda
 				([this] ()
 				{
-					return GetFragment().GetBit().GetDialogueAudioAssetSafe<UObject>()->GetPathName();
+					return GetBit().GetDialogueAudioAssetSafe<UObject>()->GetPathName();
 				}),
 				TDelegate<void(const FAssetData&)>::CreateLambda
 				([this] (const FAssetData& InAssetData)
@@ -561,7 +561,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() con
 
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_SkippableToggle() const
 {
-	switch (GetFragment().GetBit().GetSkippable())
+	switch (GetBit().GetSkippable(DisplayingChildSafeData()))
 	{
 		case EYapDialogueSkippable::Default:
 		{
@@ -585,7 +585,7 @@ ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_SkippableToggle() con
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_SkippableToggleIcon() const
 {
-	EYapDialogueSkippable SkippableSetting = GetFragment().GetBit().GetSkippable();
+	EYapDialogueSkippable SkippableSetting = GetBit().GetSkippable(DisplayingChildSafeData());
 	
 	if (SkippableSetting == EYapDialogueSkippable::NotSkippable)
 	{
@@ -603,7 +603,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_SkippableToggleIco
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_SkippableToggleIconOff() const
 {
-	switch (GetFragment().GetBit().GetSkippable())
+	switch (GetBit().GetSkippable(DisplayingChildSafeData()))
 	{
 		case EYapDialogueSkippable::Default:
 		{
@@ -750,7 +750,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
+	const FYapBit& Bit = GetBit();
 
 	FLinearColor Color;
 	
@@ -840,7 +840,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget()
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	const FSlateBrush& PortraitBrush = GetFragment().GetBit().GetDirectedAtPortraitBrush();
+	const FSlateBrush& PortraitBrush = GetBit().GetDirectedAtPortraitBrush();
 
 	if (PortraitBrush.GetResourceObject())
 	{
@@ -1709,7 +1709,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
 	const float MaxTimeSetting = UYapEditorSettings::Get()->GetDialogueTimeSliderMax();
 
-	const TOptional<float> FragmentTimeIn = GetFragment().GetBit().GetTime();
+	const TOptional<float> FragmentTimeIn = GetBit().GetTime();
 
 	if (!FragmentTimeIn.IsSet())
 	{
@@ -1800,7 +1800,7 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_FragmentTimePadding() const
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterImage() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
+	const FYapBit& Bit = GetBit();
 
 	FLinearColor Color;
 	
@@ -1862,7 +1862,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SpeakerWidget(TSoftObjectPtr<
 
 FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
 {
-	const FYapBit& Bit = GetFragment().GetBit();
+	const FYapBit& Bit = GetBit();
 	
 	if (Bit.GetSpeakerAsset().IsNull())
 	{
@@ -2050,7 +2050,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush& PortraitBrush = GetFragment().GetBit().GetSpeakerPortraitBrush();
+	const FSlateBrush& PortraitBrush = GetBit().GetSpeakerPortraitBrush();
 
 	if (PortraitBrush.GetResourceObject())
 	{
@@ -2064,7 +2064,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush& Brush = GetFragment().GetBit().GetSpeakerPortraitBrush();
+	const FSlateBrush& Brush = GetBit().GetSpeakerPortraitBrush();
 	
 	return (Brush.GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
@@ -2103,7 +2103,7 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_CharacterSelect(const FAs
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector() const
 {
-	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetBit().GetMoodKey());
+	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetBit().GetMoodKey());
 
 	if (TagNode.IsValid())
 	{
@@ -2650,7 +2650,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioButton() const
 		return EVisibility::Collapsed;
 	}
 
-	const UObject* AudioAsset = GetFragment().GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData());
+	const UObject* AudioAsset = GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData());
 
 	return IsValid(AudioAsset) ? EVisibility::Visible : EVisibility::Collapsed;
 }
@@ -3136,7 +3136,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 			SNew(SBorder)
 			.Visibility_Lambda([this, MoodKey]()
 			{
-				if (GetFragment().GetBit().GetMoodKey() == MoodKey)
+				if (GetBit().GetMoodKey() == MoodKey)
 				{
 					return EVisibility::Visible;
 				}

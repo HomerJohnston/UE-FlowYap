@@ -182,7 +182,7 @@ public:
 	FGameplayTag GetMoodKey() const { return MoodKey; }
 
 	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
-	EYapDialogueSkippable GetSkippable() const;
+	EYapDialogueSkippable GetSkippable(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
 	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;

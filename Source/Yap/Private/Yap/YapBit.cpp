@@ -98,9 +98,11 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 }
 #endif
 
-EYapDialogueSkippable FYapBit::GetSkippable() const
+EYapDialogueSkippable FYapBit::GetSkippable(EYapMaturitySetting MaturitySetting) const
 {
-	if (GetTime().IsSet())
+	ResolveMaturitySetting(MaturitySetting);
+
+	if (GetTime(MaturitySetting).IsSet())
 	{
 		return Skippable;
 	}
@@ -110,14 +112,14 @@ EYapDialogueSkippable FYapBit::GetSkippable() const
 
 EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 {
+	ResolveMaturitySetting(MaturitySetting);
+
 	EYapTimeMode EffectiveTimeMode = TimeMode;
 
 	if (EffectiveTimeMode == EYapTimeMode::Default)
 	{
 		EffectiveTimeMode = UYapProjectSettings::Get()->GetDefaultTimeModeSetting();
 	}
-
-	ResolveMaturitySetting(MaturitySetting);
 
 	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueAudioAsset : SafeDialogueAudioAsset;
 	const TOptional<float>& AudioTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
@@ -132,6 +134,8 @@ EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 
 TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 {
+	ResolveMaturitySetting(MaturitySetting);
+
 	// TODO clamp minimums from project settings
 	
 	EYapTimeMode EffectiveTimeMode = GetTimeMode(MaturitySetting);
