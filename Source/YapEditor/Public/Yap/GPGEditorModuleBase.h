@@ -1,4 +1,5 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 // This is a drop-in header to assist with basic module definition, customization registration/deregistration, etc.
 // It is intended to be copy/pasted in any module that wishes to use it.

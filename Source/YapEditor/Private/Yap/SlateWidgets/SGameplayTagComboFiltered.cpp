@@ -1,4 +1,5 @@
-// Copyright Epic Games, Inc. All Rights Reserved
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
 #include "Yap/SlateWidgets/SGameplayTagComboFiltered.h"
 
@@ -7,6 +8,7 @@
 #include "ScopedTransaction.h"
 #include "Editor.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Yap/YapColors.h"
 #include "Yap/YapUtil.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/NodeWidgets/GameplayTagFilteredEditorUtilities.h"

@@ -1,4 +1,7 @@
-﻿#include "Yap/YapConversationBrokerBase.h"
+﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
+#include "Yap/YapConversationBrokerBase.h"
 
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
@@ -15,7 +18,7 @@ void UYapConversationBrokerBase::K2_OnConversationEnds_Implementation(const FGam
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-void UYapConversationBrokerBase::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
+void UYapConversationBrokerBase::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
@@ -35,12 +38,12 @@ void UYapConversationBrokerBase::K2_OnPromptOptionsAllAdded_Implementation(const
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
-bool UYapConversationBrokerBase::K2_UseMatureDialogue_Implementation()
+EYapMaturitySetting UYapConversationBrokerBase::K2_UseMatureDialogue_Implementation()
 {
 #if WITH_EDITOR
 	if (!bWarnedAboutMatureDialogue)
 	{
-		if (!UYapProjectSettings::Get()->GetSuppressMatureWarning())
+		if (!UYapProjectSettings::GetSuppressMatureWarning())
 		{
 			UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s\nDefaulting to use mature language; child-safe language will never be displayed.\nYou can suppress this warning in project settings."), *FString(__func__));
 		}
@@ -48,5 +51,5 @@ bool UYapConversationBrokerBase::K2_UseMatureDialogue_Implementation()
 		bWarnedAboutMatureDialogue = true;
 	}
 #endif
-	return true;
+	return UYapProjectSettings::GetDefaultMaturitySetting();
 }

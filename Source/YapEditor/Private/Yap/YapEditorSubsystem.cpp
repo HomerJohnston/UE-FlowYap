@@ -1,4 +1,5 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #include "Yap/YapEditorSubsystem.h"
 
@@ -7,6 +8,8 @@
 #include "ILiveCodingModule.h"
 #include "Yap/YapColors.h"
 #include "ImageUtils.h"
+#include "UnrealEdGlobals.h"
+#include "Editor/UnrealEdEngine.h"
 #include "Yap/YapEditorSettings.h"
 #include "Yap/YapEngineUtils.h"
 #include "Yap/YapInputTracker.h"
@@ -125,9 +128,12 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Tmp.UndeterminedHoveredImage.TintColor = YapColor::Gray;
 	Tmp.UndeterminedPressedImage.TintColor = YapColor::Gray;
 
-	InputTracker = MakeShared<FYapInputTracker>(this);
-
-	FSlateApplication::Get().RegisterInputPreProcessor(InputTracker);
+	if (IsValid(GUnrealEd))
+	{
+		InputTracker = MakeShared<FYapInputTracker>(this);
+		auto& SlateApp = FSlateApplication::Get();
+		SlateApp.RegisterInputPreProcessor(InputTracker);
+	}
 
 	SetupGameplayTagFiltering();
 	
@@ -153,8 +159,11 @@ void UYapEditorSubsystem::Deinitialize()
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
 	ProjectSettings->OnMoodTagsChanged.RemoveAll(this);
 
-	FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
-
+	if (IsValid(GUnrealEd))
+	{
+		FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
+	}
+	
 	Super::Deinitialize();
 }
 

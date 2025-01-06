@@ -1,6 +1,7 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 #include "Yap/YapTransactions.h"
 
@@ -13,7 +14,7 @@ void FYapTransactions::BeginModify(FText TransactionText, UObject* Object)
 	{
 		UTransBuffer* TransBuffer = CastChecked<UTransBuffer>(GEditor->Trans);
 		if (TransBuffer != nullptr)
-			TransBuffer->Begin(*FString("FlowYap"), TransactionText);
+			TransBuffer->Begin(*FString("Yap"), TransactionText);
 	}
 	
 	if (IsValid(Object))

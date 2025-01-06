@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+
 #pragma once
 
 #include "Nodes/FlowNode_YapDialogue.h"
@@ -62,15 +65,23 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<double> ManualTime = 0;
+	TOptional<float> ManualTime = 0;
 
 	/**  */
 	UPROPERTY(VisibleAnywhere)
-	TOptional<int32> CachedWordCount = 0;
+	TOptional<int32> CachedMatureWordCount = 0;
 
 	/**  */
 	UPROPERTY(VisibleAnywhere)
-	TOptional<double> CachedAudioTime = 0;
+	TOptional<int32> CachedSafeWordCount = 0;
+	
+	/**  */
+	UPROPERTY(VisibleAnywhere)
+	TOptional<float> CachedMatureAudioTime = 0;
+
+	/**  */
+	UPROPERTY(VisibleAnywhere)
+	TOptional<float> CachedSafeAudioTime = 0;
 };
 
 inline FYapBitReplacement::FYapBitReplacement()
@@ -99,6 +110,10 @@ inline FYapBitReplacement::FYapBitReplacement()
 	Skippable.Reset();
 
 	ManualTime.Reset();
-	CachedWordCount.Reset();
-	CachedAudioTime.Reset();
+
+	CachedMatureWordCount.Reset();
+	CachedSafeWordCount.Reset();
+	
+	CachedMatureAudioTime.Reset();
+	CachedSafeAudioTime.Reset();
 }

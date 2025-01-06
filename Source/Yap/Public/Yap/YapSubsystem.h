@@ -1,9 +1,12 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
 #pragma once
 #include "GameplayTagContainer.h"
 #include "YapCharacterComponent.h"
 #include "YapConversationBrokerBase.h"
+#include "Enums/YapMaturitySetting.h"
 #include "Yap/YapBitReplacement.h"
-#include "Yap/Enums/YapDialogueSkippable.h"
 
 #include "YapSubsystem.generated.h"
 
@@ -15,6 +18,7 @@ class IYapConversationListener;
 struct FYapBit;
 class UYapTextCalculator;
 class UYapCharacterComponent;
+enum class EYapMaturitySetting : uint8;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFlowYapConversationEvent, FName, ConversationName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFlowYapDialogueEvent, FName, ConversationName, const FYapBit&, DialogueInfo);
@@ -79,10 +83,30 @@ public:
 	// ------------------------------------------
 	// STATE
 protected:
+	static TWeakObjectPtr<UWorld> World;
+
+public:
+	static const TWeakObjectPtr<UWorld> GetStaticWorld()
+	{
+		return World;
+	}
+
+	static UYapSubsystem* Get()
+	{
+		if (World.IsValid())
+		{
+			return World->GetSubsystem<UYapSubsystem>();
+		}
+
+		return nullptr;
+	}
+	
+protected:
 	// TODO I should have a queue system???... otherwise I'll have odd race conditions on multiple conversation requests
 	//UPROPERTY(Transient)
 	//TArray<FName> ConversationQueue;
 
+	
 	/**  */
 	UPROPERTY(Transient)
 	FYapActiveConversation ActiveConversation;
@@ -108,7 +132,7 @@ protected:
 
 	/**  */
 	UPROPERTY(Transient)
-	UClass* DialogueAudioAssetClass;
+	TArray<UClass*> DialogueAudioAssetClasses;
 
 	/**  */
 	UPROPERTY(Transient)
@@ -139,11 +163,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
 
-	UFUNCTION(BlueprintCallable)
-	bool IsUsingChildSafeData();
+	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
+	EYapMaturitySetting K2_GetMaturitySetting() { return GetMaturitySetting(); };
+
+	static UYapConversationBrokerBase* GetConversationBroker();
+	
+	static EYapMaturitySetting GetMaturitySetting();
 	
 	// ------------------------------------------
-	// FLOW YAP API - These are called by Yap classes
+	// YAP API - These are called by Yap classes
 public:
 	/**  */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
@@ -252,22 +280,5 @@ protected:
 		UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
 
 		return R{};
-	}
-};
-
-class YAP_API FYap
-{
-public:
-	static TWeakObjectPtr<UWorld> World;
-
-public:
-	static bool IsUsingChildSafeData()
-	{
-		if (!World.IsValid())
-		{
-			return false; 
-		}
-		
-		return World->GetSubsystem<UYapSubsystem>()->IsUsingChildSafeData(); 
 	}
 };

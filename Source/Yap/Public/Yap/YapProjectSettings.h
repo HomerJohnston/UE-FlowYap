@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
 #pragma once
 
 #include "YapAudioTimeCacher.h"
@@ -7,8 +10,9 @@
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
+enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
-enum class EYapErrorLevel : uint8;
+enum class EYapMissingAudioBehavior : uint8;
 
 enum class EYap_TagFilter : uint8
 {
@@ -39,7 +43,7 @@ protected:
 
 	/** What type of class to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UObject> DialogueAssetClass;
+	TArray<TSoftClassPtr<UObject>> DialogueAssetClasses;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
@@ -59,7 +63,7 @@ protected:
 	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow Graph, and warning logs on play.
 	 * - Error: Missing audio will not pass package validation. */ // TODO make it not package
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapErrorLevel MissingAudioBehavior;
+	EYapMissingAudioBehavior MissingAudioBehavior;
 	
 	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -99,12 +103,17 @@ protected:
 
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
-	
-	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
+
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Tags")
 	FGameplayTag DefaultMoodTag;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Tags")
 	bool bSuppressMatureWarning = false;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	EYapMaturitySetting DefaultMaturitySetting;
 	
 #if WITH_EDITORONLY_DATA
 public:
@@ -137,6 +146,10 @@ protected:
 	
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
+
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	FString DefaultTextNamespace = "Yap";
 #endif
 
 	// ------------------------------------------
@@ -153,13 +166,12 @@ public:
 	FString GetPortraitIconPath(FGameplayTag Key) const;
 
 	FGameplayTagContainer GetMoodTags() const;
-
-
+	
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
-	bool GetSuppressMatureWarning() const { return bSuppressMatureWarning; }
+	static bool GetSuppressMatureWarning() { return Get()->bSuppressMatureWarning; }
 #endif
 
 public:
@@ -169,10 +181,12 @@ public:
 
 	bool GetDialogueSkippableByDefault() const { return bDefaultSkippableSetting; }
 	
-	TSoftClassPtr<UObject> GetDialogueAssetClass() const { return DialogueAssetClass; }
+	const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() const { return DialogueAssetClasses; }
 	
-	TSoftClassPtr<UObject>  GetConversationBrokerClass() const { return ConversationBrokerClass; }
+	static TSoftClassPtr<UObject> GetConversationBrokerClass() { return Get()->ConversationBrokerClass; }
 
+	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
+	
 public:
 	bool GetShowTitleTextOnTalkNodes() const;
 
@@ -192,7 +206,7 @@ public:
 	
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
-	EYapErrorLevel GetMissingAudioErrorLevel() const { return MissingAudioBehavior; }
+	EYapMissingAudioBehavior GetMissingAudioBehavior() const { return MissingAudioBehavior; }
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 

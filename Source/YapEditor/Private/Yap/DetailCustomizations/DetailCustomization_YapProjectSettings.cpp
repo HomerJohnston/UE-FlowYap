@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
 #include "Yap/DetailCustomizations/DetailCustomization_YapProjectSettings.h"
 
 #include "DetailCategoryBuilder.h"
@@ -5,7 +8,6 @@
 #include "DetailWidgetRow.h"
 #include "GameplayTagsEditorModule.h"
 #include "SGameplayTagCombo.h"
-#include "SGameplayTagContainerCombo.h"
 #include "SGameplayTagPicker.h"
 #include "Yap/YapTransactions.h"
 #include "Yap/YapProjectSettings.h"

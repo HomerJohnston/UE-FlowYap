@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+
 #include "Yap/YapBit.h"
 
 #include "Framework/Notifications/NotificationManager.h"
@@ -6,6 +9,7 @@
 #include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
+#include "Yap/YapSubsystem.h"
 #include "Yap/YapTextCalculator.h"
 
 // --------------------------------------------------------------------------------------------
@@ -15,35 +19,63 @@ FYapBit::FYapBit()
 {
 }
 
-const UYapCharacter* FYapBit::GetSpeaker() const
+const UYapCharacter* FYapBit::GetSpeaker(EYapWarnings Warnings) const
 {
-	return GetCharacterAsset_Internal(SpeakerAsset, Speaker);
+	return GetCharacterAsset_Internal(SpeakerAsset, Speaker, Warnings);
 }
 
 const UYapCharacter* FYapBit::GetDirectedAt() const
 {
-	return GetCharacterAsset_Internal(DirectedAtAsset, DirectedAt);
+	return GetCharacterAsset_Internal(DirectedAtAsset, DirectedAt, EYapWarnings::Ignore); // We ignore warnings for directed-at assets; they're always allowed to be normally unset
 }
 
-const FText& FYapBit::GetSpokenText(bool bUseChildSafeText) const
+const FText& FYapBit::GetDialogueText(EYapMaturitySetting MaturitySetting) const
 {
-	if (!bUseChildSafeText)
+	ResolveMaturitySetting(MaturitySetting);
+	check(MaturitySetting != EYapMaturitySetting::Unspecified);
+
+	if (MaturitySetting == EYapMaturitySetting::Mature || SafeDialogueText.IsEmpty())
 	{
-		return GetMatureDialogueText();
+		return MatureDialogueText;
 	}
 
-	if (GetSafeDialogueText().IsEmpty())
+	return SafeDialogueText;
+}
+
+const FText& FYapBit::GetTitleText(EYapMaturitySetting MaturitySetting) const
+{
+	ResolveMaturitySetting(MaturitySetting);
+	check(MaturitySetting != EYapMaturitySetting::Unspecified);
+	
+	if (MaturitySetting == EYapMaturitySetting::Mature || SafeTitleText.IsEmpty())
 	{
-		return GetMatureDialogueText();
+		return MatureTitleText;
 	}
 
-	return GetSafeDialogueText();
+	return SafeTitleText;
+}
+
+void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
+{
+	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	{
+		if (IsValid(UYapSubsystem::Get()))
+		{
+			MaturitySetting = UYapSubsystem::GetMaturitySetting();
+		}
+		else
+		{
+			MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+		}	
+	}
+
+	check(MaturitySetting != EYapMaturitySetting::Unspecified);
 }
 
 #if WITH_EDITOR
 const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
-	const UYapCharacter* Char = GetSpeaker();
+	const UYapCharacter* Char = GetSpeaker(EYapWarnings::Ignore);
 
 	if (IsValid(Char))
 	{
@@ -66,23 +98,45 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 }
 #endif
 
-EYapTimeMode FYapBit::GetTimeMode() const
+EYapDialogueSkippable FYapBit::GetSkippable() const
 {
-	return TimeMode == EYapTimeMode::Default ? UYapProjectSettings::Get()->GetDefaultTimeModeSetting() : TimeMode;
+	if (GetTime().IsSet())
+	{
+		return Skippable;
+	}
+
+	return EYapDialogueSkippable::Skippable;
 }
 
-double FYapBit::GetTime() const
+EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
+{
+	EYapTimeMode EffectiveTimeMode = TimeMode;
+
+	if (EffectiveTimeMode == EYapTimeMode::Default)
+	{
+		EffectiveTimeMode = UYapProjectSettings::Get()->GetDefaultTimeModeSetting();
+	}
+
+	ResolveMaturitySetting(MaturitySetting);
+
+	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueAudioAsset : SafeDialogueAudioAsset;
+	const TOptional<float>& AudioTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
+	
+	if (EffectiveTimeMode == EYapTimeMode::AudioTime && (AudioAsset.IsNull() || !AudioTime.IsSet()))
+	{
+		EffectiveTimeMode = EYapTimeMode::TextTime;
+	}
+
+	return EffectiveTimeMode;
+}
+
+TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 {
 	// TODO clamp minimums from project settings
 	
-	EYapTimeMode ActualTimeMode = GetTimeMode();
+	EYapTimeMode EffectiveTimeMode = GetTimeMode(MaturitySetting);
 
-	if (ActualTimeMode == EYapTimeMode::AudioTime && (!HasDialogueAudioAsset() || CachedAudioTime <= 0))
-	{
-		ActualTimeMode = EYapTimeMode::TextTime;
-	}
-
-	switch (ActualTimeMode)
+	switch (EffectiveTimeMode)
 	{
 		case EYapTimeMode::ManualTime:
 		{
@@ -90,7 +144,7 @@ double FYapBit::GetTime() const
 		}
 		case EYapTimeMode::AudioTime:
 		{
-			return CachedAudioTime;
+			return GetAudioTime();
 		}
 		case EYapTimeMode::TextTime:
 		{
@@ -98,7 +152,7 @@ double FYapBit::GetTime() const
 		}
 		default:
 		{
-			return -1.0;
+			return TOptional<float>();
 		}
 	}
 }
@@ -130,7 +184,7 @@ void FYapBit::OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAs
 // --------------------------------------------------------------------------------------------
 // Protected
 
-double FYapBit::GetTextTime() const
+float FYapBit::GetTextTime() const
 {
 	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
 
@@ -138,9 +192,23 @@ double FYapBit::GetTextTime() const
 	double SecondsPerWord = 60.0 / (double)TWPM;
 			
 	double Min = ProjectSettings->GetMinimumAutoTextTimeLength();
-	return FMath::Max(CachedWordCount * SecondsPerWord, Min);
+	return FMath::Max(CachedMatureWordCount * SecondsPerWord, Min);
 }
 
+TOptional<float> FYapBit::GetAudioTime() const
+{
+	EYapMaturitySetting MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+	
+	TOptional<float> CachedTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
+	TSoftObjectPtr<UObject> Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueAudioAsset : SafeDialogueAudioAsset;
+
+	if (Asset.IsNull() || !CachedTime.IsSet())
+	{
+		return TOptional<float>();
+	}
+
+	return CachedTime;
+}
 
 // --------------------------------------------------------------------------------------------
 // Public
@@ -161,8 +229,10 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(MoodKey);
 	FLOWYAP_REPLACE(TimeMode);
 	FLOWYAP_REPLACE(ManualTime);
-	FLOWYAP_REPLACE(CachedWordCount);
-	FLOWYAP_REPLACE(CachedAudioTime);
+	FLOWYAP_REPLACE(CachedMatureWordCount);
+	FLOWYAP_REPLACE(CachedSafeWordCount);
+	FLOWYAP_REPLACE(CachedMatureAudioTime);
+	FLOWYAP_REPLACE(CachedSafeAudioTime);
 
 #undef FLOWYAP_REPLACE
 	
@@ -202,14 +272,14 @@ void FYapBit::SetDialogueText(FText* TextToSet, const FText& NewText)
 #if WITH_EDITOR
 void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(MatureDialogueAudioAsset, CachedAudioTime, NewAudio);
+	SetDialogueAudioAsset_Internal(MatureDialogueAudioAsset, CachedMatureAudioTime, NewAudio);
 }
 #endif
 
 #if WITH_EDITOR
 void FYapBit::SetDialogueAudioAssetSafe(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(SafeDialogueAudioAsset, CachedAudioTimeSafe, NewAudio);
+	SetDialogueAudioAsset_Internal(SafeDialogueAudioAsset, CachedSafeAudioTime, NewAudio);
 }
 #endif
 
@@ -228,17 +298,17 @@ void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 
 	if (TextToSet == &MatureDialogueText)
 	{
-		CachedWordCount = WordCount;
+		CachedMatureWordCount = WordCount;
 	}
 	else
 	{
-		CachedWordCountSafe = WordCount;
+		CachedSafeWordCount = WordCount;
 	}
 }
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, double& CachedTime, UObject* NewAudio)
+void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime, UObject* NewAudio)
 {
 	AudioAsset = NewAudio;
 
@@ -247,14 +317,14 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 	if (AudioTimeCacheClass == nullptr)
 	{
 		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
-		CachedTime = -1.0;
+		CachedTime.Reset();
 		return;
 	}
 	
 	if (AudioTimeCacheClass == nullptr)
 	{
 		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
-		CachedTime = -1.0;
+		CachedTime.Reset();
 		return;
 	}
 
@@ -264,7 +334,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 }
 #endif
 
-const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr) const
+const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings) const
 {
 	if (IsValid(CharacterPtr))
 	{
@@ -274,7 +344,7 @@ const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapChar
 	if (CharacterAsset.IsNull())
 	{
 #if WITH_EDITOR
-		if (IsValid(GEditor->PlayWorld))
+		if (IsValid(GEditor->PlayWorld) && Warnings >= EYapWarnings::Show)
 		{
 			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
 		}

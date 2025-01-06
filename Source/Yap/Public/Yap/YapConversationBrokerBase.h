@@ -1,9 +1,13 @@
-﻿#pragma once
+﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
+#pragma once
 
 #include "Yap/IYapConversationListener.h"
 
 #include "YapConversationBrokerBase.generated.h"
 
+enum class EYapMaturitySetting : uint8;
 class UYapCharacter;
 struct FYapDialogueHandle;
 struct FYapPromptHandle;
@@ -18,6 +22,7 @@ class UYapConversationBrokerBase : public UObject
 public:
 	bool ImplementsGetWorld() const override { return true; }
 
+protected:
 	bool bWarnedAboutMatureDialogue = false;
 #endif
 	
@@ -32,7 +37,7 @@ protected:
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
-	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
+	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
@@ -48,7 +53,7 @@ protected:
 
 	/** Use this to read your game's settings and determine if mature language is permitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent)
-	bool K2_UseMatureDialogue();
+	EYapMaturitySetting K2_UseMatureDialogue();
 	
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
@@ -64,7 +69,7 @@ public:
 	};
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, double DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
+	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
 	{
 		K2_OnDialogueBegins(Conversation, DialogueHandle, Speaker, MoodKey, DialogueText, DialogueTime, DialogueAudioAsset, DirectedAt);
 	}
@@ -88,10 +93,12 @@ public:
 	}
 	
 	/** Use this to read your game's settings and determine if mature language is permitted. Do NOT call Super when overriding. */
-	virtual bool UseMatureDialogue()
+	virtual EYapMaturitySetting UseMatureDialogue()
 	{
 		return K2_UseMatureDialogue();
 	}
+
+	
 };
 
 // NOTES:

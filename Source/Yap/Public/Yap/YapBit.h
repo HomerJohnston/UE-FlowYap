@@ -1,10 +1,13 @@
-// Copyright Ghost Pepper Games Inc., all rights reserved.
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
 
 #include "YapLog.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
+#include "Enums/YapMaturitySetting.h"
+#include "Enums/YapWarnings.h"
 #include "Yap/Enums/YapDialogueSkippable.h"
 
 #include "YapBit.generated.h"
@@ -76,22 +79,20 @@ protected:
 	// SERIALIZED STATE FROM EDITOR
 protected:
 	UPROPERTY()
-	double ManualTime = 0;
+	float ManualTime = 0;
 	
 	UPROPERTY()
-	int32 CachedWordCount = 0;
+	int32 CachedMatureWordCount = 0;
 	
 	UPROPERTY()
-	int32 CachedWordCountSafe = 0;
+	int32 CachedSafeWordCount = 0;
 	
 	UPROPERTY()
-	double CachedAudioTime = 0;
+	TOptional<float> CachedMatureAudioTime;
 	
 	UPROPERTY()
-	double CachedAudioTimeSafe = 0;
+	TOptional<float> CachedSafeAudioTime;
 
-	UPROPERTY()
-	double CachedSafeAudioTime = 0;
 	
 	// --------------------------------------------------------------------------------------------
 	// STATE
@@ -115,27 +116,27 @@ public:
 	
 	const TSoftObjectPtr<UYapCharacter> GetDirectedAtAsset() const { return DirectedAtAsset; }
 
-	const UYapCharacter* GetSpeaker() const;
+	const UYapCharacter* GetSpeaker(EYapWarnings Warnings = EYapWarnings::Show) const;
 
 	const UYapCharacter* GetDirectedAt() const;
-	
-	const FText& GetMatureTitleText() const { return MatureTitleText; }
-	
-	const FText& GetSafeTitleText() const { return SafeTitleText; }
 
-	const FText& GetMatureDialogueText() const { return MatureDialogueText; }
-	
-	const FText& GetSafeDialogueText() const { return SafeDialogueText; }
-	
-	/**  */
-	const FText& GetSpokenText(bool bUseChildSafeText) const;
+	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
+	const FText& GetDialogueText(EYapMaturitySetting/* = EYapMaturitySetting::Unspecified*/) const;
+
+	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
+	const FText& GetTitleText(EYapMaturitySetting/* = EYapMaturitySetting::Unspecified*/) const;
 
 	template<class T>
 	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureDialogueAudioAsset->GetPathName()); }
 
 	template<class T>
-	const T* GetDialogueAudioAsset() const
+	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeDialogueAudioAsset->GetPathName()); }
+	
+	template<class T>
+	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const
 	{
+		ResolveMaturitySetting(MaturitySetting);
+		
 		if (MatureDialogueAudioAsset.IsValid())
 		{
 			return MatureDialogueAudioAsset.Get();
@@ -150,6 +151,9 @@ public:
 
 		return nullptr;
 	}
+	
+	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
+	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 	
 	template<class T>
 	const T* GetDialogueAudioAssetSafe() const
@@ -178,29 +182,24 @@ public:
 	FGameplayTag GetMoodKey() const { return MoodKey; }
 
 	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
-	EYapDialogueSkippable GetSkippable() const { return Skippable; }
+	EYapDialogueSkippable GetSkippable() const;
 
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
-	EYapTimeMode GetTimeMode() const;
+	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	double GetTime() const;
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 	
 	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 	
 	void OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
 
 protected:
-	double GetManualTime() const { return ManualTime; }
+	TOptional<float> GetManualTime() const { return ManualTime; }
 
-	double GetTextTime() const;
+	float GetTextTime() const;
 
-	double GetAudioTime() const { return CachedAudioTime; }
-
-public:
-	bool HasDialogueAudioAsset() const { return !MatureDialogueAudioAsset.IsNull(); }
-	
-	bool HasDialogueAudioAssetSafe() const { return !SafeDialogueAudioAsset.IsNull(); }
+	TOptional<float> GetAudioTime() const;
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
@@ -227,13 +226,13 @@ public:
 
 	void SetBitTimeMode(EYapTimeMode NewValue) { TimeMode = NewValue; }
 	
-	void SetManualTime(double NewValue) { ManualTime = NewValue; }
+	void SetManualTime(float NewValue) { ManualTime = NewValue; }
 
 private:
 	void SetDialogueText_Internal(FText* Text, const FText& InText);
 
-	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, double& CachedTime, UObject* NewAudio);
+	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime, UObject* NewAudio);
 
-	const UYapCharacter* GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr) const;
+	const UYapCharacter* GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings = EYapWarnings::Show) const;
 #endif
 };

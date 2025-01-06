@@ -1,6 +1,10 @@
-﻿#include "Yap/NodeWidgets/SYapConditionDetailsViewWidget.h"
+﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+
+#include "Yap/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
+#include "Yap/YapColors.h"
 #include "Yap/YapEditorStyle.h"
 #include "Yap/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"

@@ -1,4 +1,7 @@
-﻿#include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
+﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+
+#include "Yap/NodeWidgets/SYapConditionsScrollBox.h"
 
 #include "Yap/YapColors.h"
 #include "Yap/YapCondition.h"

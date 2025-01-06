@@ -1,11 +1,12 @@
-#pragma once
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
-#include "YapErrorLevel.generated.h"
+#pragma once
 
 UENUM()
 enum class EYapErrorLevel : uint8
 {
-	OK		UMETA(DisplayName = "Use Text Time"),
-	Warning	UMETA(DisplayName = "Use Text Time (Warning)"),
-	Error	UMETA(DisplayName = "Prevent Packaging"),
+	OK,
+	Warning,
+	Error,
 };

@@ -1,4 +1,5 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
 #include "Yap/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
@@ -256,6 +257,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	TSharedPtr<SCheckBox> SkippableCheckBox;
 	
 	TSharedRef<SWidget> Widget = SNew(SBox)
+	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
 	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
 	[
 		SNew(SHorizontalBox)

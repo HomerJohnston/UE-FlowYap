@@ -1,30 +1,33 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
-#include "Yap/YapColors.h"
 #include "Yap/YapTimeMode.h"
-//#include "Yap/YapFragment.h"
+#include "Yap/Enums/YapMaturitySetting.h"
 
-enum class EYapTimeMode : uint8;
 class UYapCharacter;
-struct FYapBit;
 class SYapConditionsScrollBox;
-struct FFlowPin;
 class UYapCondition;
-struct FYapFragment;
 class SObjectPropertyEntryBox;
 class SMultiLineEditableText;
 class SFlowGraphNode_YapDialogueWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
-struct FYapBitReplacement;
-
 class SMultiLineEditableTextBox;
 
+struct FYapBit;
+struct FFlowPin;
+struct FYapBitReplacement;
+struct FYapFragment;
 struct FGameplayTag;
 
+enum class EYapTimeMode : uint8;
+enum class EYapMissingAudioBehavior : uint8;
 enum class EYapErrorLevel : uint8;
+enum class EYapMaturitySetting : uint8;
 
 enum class EYapFragmentControlsDirection : uint8
 {
@@ -68,11 +71,13 @@ protected:
 	float ExpandedTextEditorWidget_Offset = 0.f;
 	float ExpandedTextEditorWidget_OffsetAlpha = 0.f;
 
-	bool UseChildSafeSettings() const;
 	bool bEditingChildSafeSettings = false;
+	bool ContainsChildSafeSettings() const;
 	bool HasAnyChildSafeData() const;
 	bool HasCompleteChildSafeData() const;
-
+	
+	EYapMaturitySetting DisplayingChildSafeData() const { return bEditingChildSafeSettings ? EYapMaturitySetting::ChildSafe : EYapMaturitySetting::Mature; }
+	
 	TSharedPtr<SBox> CentreBox;
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
@@ -90,7 +95,6 @@ protected:
 	TSharedPtr<SButton> DialogueEditButtonWidget;
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
-	TSharedPtr<SWidget> WTF;
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
 	
@@ -106,7 +110,6 @@ public:
 	// ------------------------------------------
 	// WIDGETS
 protected:
-	EVisibility Visibility_UpperFragmentBar() const;
 	int32 GetFragmentActivationCount() const;
 	int32 GetFragmentActivationLimit() const;
 	EVisibility Visibility_FragmentControlsWidget() const;
@@ -132,8 +135,6 @@ protected:
 	ECheckBoxState		IsChecked_MaturitySettings() const;
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
-
-	bool				IsChildSafeInErrorState() const;
 	
 	FSlateColor BorderBackgroundColor_DirectedAtImage() const;
 	void OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
@@ -145,8 +146,13 @@ protected:
 	TSharedRef<SWidget> CreateFragmentWidget();
 
 	EVisibility Visibility_DialogueEdit() const;
-	TSharedRef<SWidget> CreateTextEditButtonWidget(TAttribute<EVisibility> InVisibility);
 	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
+	TOptional<float> Value_TimeSetting_Default() const;
+	TOptional<float> Value_TimeSetting_AudioTime() const;
+	TOptional<float> Value_TimeSetting_TextTime() const;
+	TOptional<float> Value_TimeSetting_ManualTime() const;
+
+	TSharedRef<SWidget>	MakeTimeSettingRow(EYapTimeMode TimeMode);
 
 	TSharedRef<SWidget> CreateTimeSettingsWidget();
 	FSlateColor ButtonColor_TimeSettingButton() const;
@@ -163,12 +169,6 @@ protected:
 	// ------------------------------------------
 
 	FText				FragmentTagPreview_Text() const;
-
-	// ---------------------------------------------------
-	EVisibility			Visibility_ConditionWidgets() const;
-
-	void				OnConditionsUpdated();
-	
 	// ---------------------------------------------------
 	TOptional<float>	FragmentTimePadding_Percent() const;
 	TOptional<float> FragmentTime_Percent() const;
@@ -213,8 +213,6 @@ protected:
 
 	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
 
-	EVisibility Visibility_TitleTextEdit() const;
-
 	FText Text_EditedText(FText* Text) const;
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
 	FReply OnClicked_TextDisplayWidget();
@@ -237,10 +235,11 @@ protected:
 
 	FReply				OnClicked_SetTimeModeButton(EYapTimeMode TimeMode);
 
-	TOptional<double>	Value_ManualTimeEntryBox() const;
-	void				OnValueCommitted_ManualTimeEntryBox(double NewValue, ETextCommit::Type CommitType);
+	void				OnValueCommitted_ManualTimeEntryBox(float NewValue, ETextCommit::Type CommitType);
 	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
-	
+	FSlateColor			ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
+
+	bool OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateAudioAssetWidget(TAttribute<EVisibility> VisibilityAtt, TAttribute<FString> ObjectPathAtt, TDelegate<void(const FAssetData&)> OnObjectChangedAtt);
 
@@ -251,6 +250,8 @@ protected:
 	FSlateColor			ColorAndOpacity_AudioAssetErrorState() const;
 	EYapErrorLevel	AudioAssetErrorLevel() const;
 
+	EYapErrorLevel AudioAssetErrorLevel2(const TSoftObjectPtr<UObject>& Asset) const;
+	
 	EVisibility			Visibility_AudioButton() const;
 
 	// ------------------------------------------
@@ -264,10 +265,16 @@ protected:
 	
 	FYapFragment& GetFragment();
 
+	FYapFragment& GetFragmentMutable() const;
+
 	const FYapBit& GetBit() const;
 	
 	FYapBit& GetBit();
-	
+
+	const FYapBit& GetBitConst();
+
+	FYapBit& GetBitMutable() const;
+
 	bool IsFragmentFocused() const;
 
 	EVisibility			Visibility_RowHighlight() const;

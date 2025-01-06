@@ -1,4 +1,6 @@
-// Copyright Ghost Pepper Games Inc.
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
 // This file is formatted to be viewable on tabs, 4-space tabs. If you use another setting, sorry!
 
 #include "Yap/YapEditorStyle.h"

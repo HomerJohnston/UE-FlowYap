@@ -1,3 +1,6 @@
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
+
 #pragma once
 #include "YapBit.h"
 #include "GameplayTagContainer.h"
@@ -8,17 +11,6 @@
 class UYapCondition;
 class UFlowNode_YapDialogue;
 struct FFlowPin;
-
-UENUM()
-enum class EFlowYapFragmentPause : uint8
-{
-	None,
-	Small,
-	Medium,
-	Large,
-	Custom
-};
-
 
 USTRUCT(BlueprintType)
 struct YAP_API FYapFragment

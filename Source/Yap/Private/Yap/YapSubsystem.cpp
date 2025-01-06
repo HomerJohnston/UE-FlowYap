@@ -1,4 +1,5 @@
-
+// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 // ================================================================================================
 
@@ -16,7 +17,7 @@
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
-TWeakObjectPtr<UWorld> FYap::World = nullptr;
+TWeakObjectPtr<UWorld> UYapSubsystem::World = nullptr;
 
 FYapActiveConversation::FYapActiveConversation()
 {
@@ -96,12 +97,34 @@ UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& Chara
 	return nullptr;
 }
 
-bool UYapSubsystem::IsUsingChildSafeData()
+UYapConversationBrokerBase* UYapSubsystem::GetConversationBroker()
 {
-	// TODO - this is a bug source:
-	// This will return the FIRST VALID RESULT ONLY - if there is a conversation broker, it will use that - if there is a conversation listener, IT WILL USE THE FIRST REGISTERED ONE
-	// I should split out the functionality for this so that users can register multiple listeners without breaking anything
-	return ExecuteBrokerListenerFuncs<&UYapConversationBrokerBase::UseMatureDialogue, &IYapConversationListener::Execute_K2_UseMatureDialogue, bool>();
+	UYapConversationBrokerBase* Broker = Get()->ConversationBroker;
+
+#if WITH_EDITOR
+	ensureMsgf(IsValid(Broker), TEXT("Conversation Broker is invalid. Did you create one and assign it in project settings? Docs: https://github.com/HomerJohnston/UE-FlowYap/wiki/Conversation-Broker"));
+#endif
+	
+	return Broker;		
+}
+
+EYapMaturitySetting UYapSubsystem::GetMaturitySetting()
+{
+	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetMaturitySetting(); this should not happen, returning default project setting.")))
+	{
+		return UYapProjectSettings::GetDefaultMaturitySetting(); 
+	}
+	
+	UYapConversationBrokerBase* Broker = GetConversationBroker();
+
+	if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetMaturitySetting(); returning default project setting.")))
+	{
+		return Broker->UseMatureDialogue();
+	}
+	else
+	{
+		return UYapProjectSettings::GetDefaultMaturitySetting();
+	}
 }
 
 void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode)
@@ -164,8 +187,10 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
+	EYapMaturitySetting MaturitySetting = GetMaturitySetting();
+	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
-		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetMatureDialogueText(), Bit.GetMatureTitleText());
+		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
@@ -192,15 +217,25 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex, bSkippable);
 
-	if (Fragment.GetHasChildSafeData())
+	EYapMaturitySetting MaturitySetting = GetMaturitySetting();
+
+	TOptional<float> Time = Bit.GetTime();
+
+	float EffectiveTime;
+
+
+	if (Time.IsSet())
 	{
-		
+		EffectiveTime = Time.GetValue();
+	}
+	else
+	{
+		EffectiveTime = UYapProjectSettings::Get()->GetMinimumFragmentTime();
+		UE_LOG(LogYap, Error, TEXT("Fragment failed to return a valid time! Dialogue: %s"), *Bit.GetDialogueText(MaturitySetting).ToString());
 	}
 	
-	bool bUseChildSafe = IsUsingChildSafeData();
-	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetSpokenText(bUseChildSafe), Bit.GetTime(), Bit.GetDialogueAudioAsset<UObject>(), Bit.GetDirectedAt());
+		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting), Bit.GetDirectedAt());
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -248,25 +283,32 @@ void UYapSubsystem::UnregisterCharacterComponent(UYapCharacterComponent* YapChar
 
 void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	FYap::World = Cast<UWorld>(GetOuter());
-	
+	World = Cast<UWorld>(GetOuter());
+
+	// TODO async load these
 	ActiveConversation.OnConversationStarts.BindUObject(this, &UYapSubsystem::OnConversationStarts_Internal);
 	ActiveConversation.OnConversationEnds.BindUObject(this, &UYapSubsystem::OnConversationEnds_Internal);
 
 	// TODO handle null unset values
 	TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator().LoadSynchronous();
-	DialogueAudioAssetClass = UYapProjectSettings::Get()->GetDialogueAssetClass().LoadSynchronous();
-	ConversationBrokerClass = UYapProjectSettings::Get()->GetConversationBrokerClass().LoadSynchronous();
+	ConversationBrokerClass = UYapProjectSettings::GetConversationBrokerClass().LoadSynchronous();
 
 	if (ConversationBrokerClass)
 	{
 		ConversationBroker = NewObject<UYapConversationBrokerBase>(this, ConversationBrokerClass);
 	}
+
+	TArray<TSoftClassPtr<UObject>> DialogueAudioAssetClassesSoft = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+
+	for (const TSoftClassPtr<UObject>& Class : DialogueAudioAssetClassesSoft)
+	{
+		DialogueAudioAssetClasses.Add(Class.LoadSynchronous());
+	}
 }
 
 void UYapSubsystem::Deinitialize()
 {
-	FYap::World = nullptr;
+	World = nullptr;
 }
 
 

@@ -1,4 +1,5 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
+// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #define LOCTEXT_NAMESPACE "FlowYap"
 #include "Yap/YapProjectSettings.h"
@@ -7,6 +8,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapTextCalculator.h"
+#include "Yap/Enums/YapMaturitySetting.h"
 
 #if WITH_EDITOR
 FName UYapProjectSettings::CategoryName = FName("Yap");
@@ -37,8 +39,6 @@ UYapProjectSettings::UYapProjectSettings()
 
 	bDefaultSkippableSetting = true;
 
-	DialogueAssetClass = nullptr;
-	
 	AudioTimeCacherClass = nullptr; // You *must* create your own class and set it to calculate audio time!
 
 	TextCalculatorClass = UYapTextCalculator::StaticClass();
@@ -47,6 +47,8 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	FragmentPaddingSliderMax = 5.0;
 
+	DefaultMaturitySetting = EYapMaturitySetting::ChildSafe;
+	
 #if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
 #endif
