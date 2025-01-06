@@ -160,7 +160,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCenterSettingsWidget
 		.AutoHeight()
 		[
 			SNew(STextBlock)
-			.Text(INVTEXT("Mature text:"))
+			.Text(INVTEXT("Mature audio:"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 		]
 	+ SVerticalBox::Slot()
@@ -207,7 +207,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCenterSettingsWidget
 		[
 			SNew(STextBlock)
 			.Visibility_Lambda( [this] () { return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
-			.Text(INVTEXT("Child-safe text:"))
+			.Text(INVTEXT("Child-safe audio:"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
 		]
 	+ SVerticalBox::Slot()
