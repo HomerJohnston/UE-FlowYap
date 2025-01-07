@@ -12,7 +12,7 @@
 // ----------------------------------------------
 void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 {
-	check(InArgs._Dialogue);
+	check(InArgs._Dialogue.IsValid());
 	check(InArgs._ConditionIndex != INDEX_NONE)
 	
 	Dialogue = InArgs._Dialogue;

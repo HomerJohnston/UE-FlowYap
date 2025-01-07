@@ -23,7 +23,7 @@ public:
 		_FragmentIndex(INDEX_NONE),
 		_ConditionIndex(INDEX_NONE)
 		{}
-		SLATE_ARGUMENT(UFlowNode_YapDialogue*, Dialogue)
+		SLATE_ARGUMENT(TWeakObjectPtr<UFlowNode_YapDialogue>, Dialogue)
 		SLATE_ARGUMENT(int32, FragmentIndex)
 		SLATE_ARGUMENT(int32, ConditionIndex)
 		SLATE_EVENT(FOnClickedDeleteCondition, OnClickedDelete)

@@ -43,11 +43,11 @@ struct FYapBitReplacement
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<TSoftObjectPtr<UObject>> MatureDialogueAudioAsset;
+	TOptional<TSoftObjectPtr<UObject>> MatureAudioAsset;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<TSoftObjectPtr<UObject>> SafeDialogueAudioAsset;
+	TOptional<TSoftObjectPtr<UObject>> SafeAudioAsset;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -102,8 +102,8 @@ inline FYapBitReplacement::FYapBitReplacement()
 	SafeDialogueText = FText::GetEmpty();
 	SafeDialogueText.Reset();
 	
-	MatureDialogueAudioAsset.Reset();
-	SafeDialogueAudioAsset.Reset();
+	MatureAudioAsset.Reset();
+	SafeAudioAsset.Reset();
 	
 	MoodKey.Reset();
 	TimeMode.Reset();

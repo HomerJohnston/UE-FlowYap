@@ -55,7 +55,7 @@ bool SFlowGraphNode_YapFragmentWidget::HasAnyChildSafeData() const
 
 	bool bHasSafeDialogueText = !Bit.SafeDialogueText.IsEmpty();
 	bool bHasSafeTitleText = !Bit.SafeTitleText.IsEmpty();
-	bool bHasSafeAudio = !Bit.SafeDialogueAudioAsset.IsNull();
+	bool bHasSafeAudio = !Bit.SafeAudioAsset.IsNull();
 
 	return (bHasSafeDialogueText || bHasSafeTitleText || bHasSafeAudio);
 }
@@ -72,7 +72,7 @@ bool SFlowGraphNode_YapFragmentWidget::HasCompleteChildSafeData() const
 	// For all three elements, if the mature text is set, then the safe text must also be set
 	bool bDialogueTextOK = Bit.MatureDialogueText.IsEmpty() ? true : !Bit.SafeDialogueText.IsEmpty();
 	bool bTitleTextOK = Bit.MatureTitleText.IsEmpty() ? true : !Bit.SafeTitleText.IsEmpty(); 
-	bool bAudioAssetOK = Bit.MatureDialogueAudioAsset.IsNull() ? true : !Bit.SafeDialogueAudioAsset.IsNull();
+	bool bAudioAssetOK = Bit.MatureAudioAsset.IsNull() ? true : !Bit.SafeAudioAsset.IsNull();
 
 	return bDialogueTextOK && bTitleTextOK && bAudioAssetOK;
 }
@@ -99,6 +99,8 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueCornerButton()
 			CentreDialogueWidget = CreateCentreTextDisplayWidget();
 		}
 		CentreBox->SetContent(CentreDialogueWidget.ToSharedRef());
+
+		CenterSettingsWidget = nullptr; // TODO should i get rid of this?
 	}
 
 	return FReply::Handled();
@@ -129,16 +131,15 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWid
 	.VAlign(VAlign_Top)
 	.Padding(0, 0, 0, 0)
 	[
-		SNew(SButton)
+		SAssignNew(TextExpanderButton, SButton)
 		.Cursor(EMouseCursor::Default)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_DialogueCornerFoldout)
 		.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DialogueCornerButton)
 		.ContentPadding(0)
-		//.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState)
 		[
 			SNew(SImage)
 			.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_SettingsExpander))
-			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState/*FSlateColor::UseForeground()*/)
+			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioSettingsButton)
 		]
 	]
 	+ SOverlay::Slot()
@@ -146,7 +147,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWid
 	.HAlign(HAlign_Right)
 	.Padding(-1)
 	[
-		CreateAudioPreviewWidget(&GetBit().MatureDialogueAudioAsset, TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioButton))
+		CreateAudioPreviewWidget(&GetBit().MatureAudioAsset, TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioButton))
 	];
 }
 
@@ -172,83 +173,41 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCenterSettingsWidget
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
 		[
-			CreateAudioAssetWidget
-			(
-				TAttribute<EVisibility>::CreateLambda
-				([this] ()
-				{
-					return EVisibility::Visible;
-				}),
-				TAttribute<FString>::CreateLambda
-				([this] ()
-				{
-					return GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData())->GetPathName();
-				}),
-				TDelegate<void(const FAssetData&)>::CreateLambda
-				([this] (const FAssetData& InAssetData)
-				{
-					FYapTransactions::BeginModify(INVTEXT("Setting audio asset"), GetDialogueNode());
-
-					GetFragment().GetBitMutable().SetDialogueAudioAsset(InAssetData.GetAsset());
-
-					FYapTransactions::EndModify();
-				})
-			)
+			CreateAudioAssetWidget(GetBit().MatureAudioAsset)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.VAlign(VAlign_Center)
 		[
-			CreateAudioPreviewWidget(&GetBit().SafeDialogueAudioAsset, EVisibility::Visible)
+			CreateAudioPreviewWidget(&GetBit().MatureAudioAsset, EVisibility::Visible)
 		]
 	]
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			SNew(STextBlock)
-			.Visibility_Lambda( [this] () { return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
-			.Text(INVTEXT("Child-safe audio:"))
-			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-		]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		SNew(STextBlock)
+		.Visibility_Lambda( [this] () { return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
+		.Text(INVTEXT("Child-safe audio:"))
+		.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+	]
 	+ SVerticalBox::Slot()
 	.VAlign(VAlign_Top)
 	.HAlign(HAlign_Fill)
 	.AutoHeight()
-		.Padding(0, 1, 0, 1)
+	.Padding(0, 0, 0, 1)
 	[
 		SNew(SHorizontalBox)
+		.Visibility_Lambda( [this] () { return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed; })
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
 		[
-			CreateAudioAssetWidget
-			(
-				TAttribute<EVisibility>::CreateLambda
-				([this] ()
-				{
-					return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed;
-				}),
-				TAttribute<FString>::CreateLambda
-				([this] ()
-				{
-					return GetBit().GetDialogueAudioAssetSafe<UObject>()->GetPathName();
-				}),
-				TDelegate<void(const FAssetData&)>::CreateLambda
-				([this] (const FAssetData& InAssetData)
-				{
-					FYapTransactions::BeginModify(INVTEXT("Setting audio asset"), GetDialogueNode());
-					
-					GetFragment().GetBitMutable().SetDialogueAudioAssetSafe(InAssetData.GetAsset());
-
-					FYapTransactions::EndModify();
-				}
-				)
-			)
+			CreateAudioAssetWidget(GetBit().SafeAudioAsset)
 		]
 		+ SHorizontalBox::Slot()
 		.AutoWidth()
 		.VAlign(VAlign_Center)
 		[
-			CreateAudioPreviewWidget(&GetBit().SafeDialogueAudioAsset, TAttribute<EVisibility>::CreateLambda
+			CreateAudioPreviewWidget(&GetBit().SafeAudioAsset, TAttribute<EVisibility>::CreateLambda
 				([this] ()
 				{
 					return ContainsChildSafeSettings() ? EVisibility::Visible : EVisibility::Collapsed;
@@ -416,7 +375,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 
 bool SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton() const
 {
-	const UObject* AudioAsset = GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData());
+	const UObject* AudioAsset = GetBit().GetMatureAudioAsset<UObject>(DisplayingChildSafeData());
 	
 	return IsValid(AudioAsset);
 }
@@ -1944,11 +1903,11 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_SpeakerWidget(const FDrag
 
 		if (bEditingChildSafeSettings)
 		{
-			GetBit().SetDialogueAudioAssetSafe(Object);
+			GetBit().SetSafeDialogueAudioAsset(Object);
 		}
 		else
 		{
-			GetBit().SetDialogueAudioAsset(Object);
+			GetBit().SetMatureDialogueAudioAsset(Object);
 		}
 
 		FYapTransactions::EndModify();	
@@ -2469,12 +2428,14 @@ bool SFlowGraphNode_YapFragmentWidget::OnShouldFilterAsset_AudioAssetWidget(cons
 // AUDIO ASSET WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(TAttribute<EVisibility> VisibilityAtt, TAttribute<FString> ObjectPathAtt, TDelegate<void(const FAssetData&)> OnObjectChangedAtt)
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset)
 {
-	UClass* DialogueAssetClass = nullptr; // Note: if I use nullptr then SObjectPropertyEntryBox throws a shitfit
+	EYapMaturitySetting Type = (&Asset == &GetBit().SafeAudioAsset) ? EYapMaturitySetting::ChildSafe : EYapMaturitySetting::Mature; 
+	
+	UClass* DialogueAssetClass = nullptr;
 	
 	const TArray<TSoftClassPtr<UObject>>& DialogueAssetClassPtrs = UYapProjectSettings::Get()->GetDialogueAssetClasses();
-
+	
 	bool bFoundAssetClass = false;
 	for (const TSoftClassPtr<UObject>& Ptr : DialogueAssetClassPtrs)
 	{
@@ -2490,7 +2451,33 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(TAt
 		}
 	}
 
+	if (DialogueAssetClass == nullptr)
+	{
+		DialogueAssetClass = UObject::StaticClass(); // Note: if I use nullptr then SObjectPropertyEntryBox throws a shitfit
+	}
+	
 	bool bSingleDialogueAssetClass = bFoundAssetClass && DialogueAssetClassPtrs.Num() == 1;
+
+	TDelegate<void(const FAssetData&)> OnObjectChangedDelegate;
+
+	if (Type == EYapMaturitySetting::Mature)
+	{
+		OnObjectChangedDelegate = TDelegate<void(const FAssetData&)>::CreateLambda( [this] (const FAssetData& InAssetData)
+		{
+			FYapTransactions::BeginModify(INVTEXT("Setting audio asset"), GetDialogueNode());
+			GetFragment().GetBitMutable().SetMatureDialogueAudioAsset(InAssetData.GetAsset());
+			FYapTransactions::EndModify();
+		});
+	}
+	else
+	{
+		OnObjectChangedDelegate = TDelegate<void(const FAssetData&)>::CreateLambda( [this] (const FAssetData& InAssetData)
+		{
+			FYapTransactions::BeginModify(INVTEXT("Setting audio asset"), GetDialogueNode());
+			GetFragment().GetBitMutable().SetSafeDialogueAudioAsset(InAssetData.GetAsset());
+			FYapTransactions::EndModify();
+		});
+	}
 	
 	TSharedRef<SObjectPropertyEntryBox> AudioAssetProperty = SNew(SObjectPropertyEntryBox)
 		.IsEnabled(bFoundAssetClass)
@@ -2500,12 +2487,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(TAt
 		.DisplayThumbnail(false)
 		.OnShouldFilterAsset(this, &SFlowGraphNode_YapFragmentWidget::OnShouldFilterAsset_AudioAssetWidget)
 		.EnableContentPicker(true)
-		.ObjectPath(ObjectPathAtt)
-		.OnObjectChanged(OnObjectChangedAtt)
+		.ObjectPath_Lambda( [&Asset] () { return Asset->GetPathName(); })
+		.OnObjectChanged(OnObjectChangedDelegate)
 		.ToolTipText(LOCTEXT("DialogueAudioAsset_Tooltip", "Select an audio asset."));
-	
+
 	TSharedRef<SWidget> Widget = SNew(SOverlay)
-	.Visibility(VisibilityAtt)
+	//.Visibility_Lambda()
 	+ SOverlay::Slot()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Fill)
@@ -2518,8 +2505,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(TAt
 	[
 		SNew(SImage)
 		.Image(FAppStyle::GetBrush("MarqueeSelection"))
-		.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState)
-		.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState)
+		.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState, &Asset)
+		.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState, &Asset)
 	];
 	
 	return Widget;
@@ -2532,7 +2519,7 @@ FText SFlowGraphNode_YapFragmentWidget::ObjectPathText_AudioAsset() const
 
 FString SFlowGraphNode_YapFragmentWidget::ObjectPath_AudioAsset() const
 {
-	const UObject* Asset = GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData());
+	const UObject* Asset = GetBit().GetMatureAudioAsset<UObject>(DisplayingChildSafeData());
 
 	if (!Asset) { return ""; }
 
@@ -2543,14 +2530,14 @@ void SFlowGraphNode_YapFragmentWidget::OnObjectChanged_AudioAsset(const FAssetDa
 {
 	FYapTransactions::BeginModify(LOCTEXT("NodeAudioAssetChanged", "Audio Asset Changed"), GetDialogueNode());
 
-	GetBit().SetDialogueAudioAsset(InAssetData.GetAsset());
+	GetBit().SetMatureDialogueAudioAsset(InAssetData.GetAsset());
 
 	FYapTransactions::EndModify();
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const
 {
-	if (AudioAssetErrorLevel() > EYapErrorLevel::OK)
+	if (GetAudioAssetErrorLevel(*Asset) > EYapErrorLevel::OK)
 	{
 		return EVisibility::HitTestInvisible;
 	}
@@ -2558,44 +2545,87 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState() 
 	return EVisibility::Hidden;
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioSettingsButton() const
 {
-	switch (AudioAssetErrorLevel())
+	FLinearColor Color;
+
+	switch (GetFragmentAudioErrorLevel())
 	{
-	case EYapErrorLevel::OK:
+		case EYapErrorLevel::OK:
 		{
-			return FSlateColor::UseForeground();
+			Color = YapColor::DarkGray;
+			break;
 		}
-	case EYapErrorLevel::Warning:
+		case EYapErrorLevel::Warning:
 		{
-			return YapColor::Orange;
+			Color = YapColor::Orange;
+			break;
 		}
-	case EYapErrorLevel::Error:
+		case EYapErrorLevel::Error:
 		{
-			return YapColor::Red;
+			Color = YapColor::Red;
+			break;
 		}
 	}
-
-	return YapColor::Black;
+	
+	if (!TextExpanderButton->IsHovered())
+	{
+		Color *= YapColor::LightGray;
+	}
+	else if (TextExpanderButton->IsPressed())
+	{
+		Color *= YapColor::LightGray;
+	}
+	
+	return Color;
 }
 
 // TODO handle child safe settings somehow
-EYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel() const
+EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetFragmentAudioErrorLevel() const
 {
-	const TSoftObjectPtr<UObject>& MatureAsset = GetBit().GetDialogueAudioAsset_SoftPtr<UObject>();
+	const TSoftObjectPtr<UObject>& MatureAsset = GetBit().GetMatureDialogueAudioAsset_SoftPtr<UObject>();
 	const TSoftObjectPtr<UObject>& SafeAsset = GetBit().GetSafeDialogueAudioAsset_SoftPtr<UObject>();
 
-	EYapErrorLevel ErrorLevel = AudioAssetErrorLevel2(MatureAsset);
+	EYapErrorLevel ErrorLevel = GetAudioAssetErrorLevel(MatureAsset);
 
 	if (ErrorLevel < EYapErrorLevel::Error && ContainsChildSafeSettings())
 	{
-		ErrorLevel = FMath::Max(ErrorLevel, AudioAssetErrorLevel2(SafeAsset));
+		// See if the other audio asset raises the error level any further
+		ErrorLevel = FMath::Max(ErrorLevel, GetAudioAssetErrorLevel(SafeAsset));
 	}
 
 	return ErrorLevel;
 }
 
-EYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel2(const TSoftObjectPtr<UObject>& Asset) const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const
+{
+	FLinearColor Color;
+
+	EYapErrorLevel ErrorLevel = GetAudioAssetErrorLevel(*Asset);
+
+	switch (ErrorLevel)
+	{
+		case EYapErrorLevel::OK:
+		{
+			Color = YapColor::DarkGray;
+			break;
+		}
+		case EYapErrorLevel::Warning:
+		{
+			Color = YapColor::Orange;
+			break;
+		}
+		case EYapErrorLevel::Error:
+		{
+			Color = YapColor::Red;
+			break;
+		}
+	}
+	
+	return Color;
+}
+
+EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const
 {
 	EYapMissingAudioBehavior MissingAudioBehavior = UYapProjectSettings::Get()->GetMissingAudioBehavior();
 
@@ -2604,7 +2634,26 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::AudioAssetErrorLevel2(const TSo
 	{
 		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::Get()->GetDialogueAssetClasses();
 
-		if (AllowedAssetClasses.ContainsByPredicate( [&Asset] (const TSoftClassPtr<UObject>& Class) { return Asset->GetClass()->IsChildOf(Class.LoadSynchronous()); } )) // TODO async loading??
+		/*
+		if (AllowedAssetClasses.ContainsByPredicate(&Test))
+		{
+			return EYapErrorLevel::OK;
+		}
+		*/
+		if (AllowedAssetClasses.ContainsByPredicate( [Asset] (const TSoftClassPtr<UObject>& Class)
+		{
+			return Asset.LoadSynchronous()->IsA(Class.LoadSynchronous());
+
+			/*
+			if (Asset.IsNull())
+			{
+				return false;
+			}
+			
+			return Asset->GetClass()->IsChildOf(Class.LoadSynchronous());
+			*/
+			
+		} )) // TODO async loading??
 		{
 			return EYapErrorLevel::OK;
 		}
@@ -2650,7 +2699,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioButton() const
 		return EVisibility::Collapsed;
 	}
 
-	const UObject* AudioAsset = GetBit().GetAudioAsset<UObject>(DisplayingChildSafeData());
+	const UObject* AudioAsset = GetBit().GetMatureAudioAsset<UObject>(DisplayingChildSafeData());
 
 	return IsValid(AudioAsset) ? EVisibility::Visible : EVisibility::Collapsed;
 }
@@ -2669,6 +2718,7 @@ UFlowNode_YapDialogue* SFlowGraphNode_YapFragmentWidget::GetDialogueNode()
 	return const_cast<UFlowNode_YapDialogue*>(const_cast<const SFlowGraphNode_YapFragmentWidget*>(this)->GetDialogueNode());
 }
 
+// TODO oh my god can I reduce this cruft at all
 const FYapFragment& SFlowGraphNode_YapFragmentWidget::GetFragment() const
 {
 	return GetDialogueNode()->GetFragmentByIndex(FragmentIndex);

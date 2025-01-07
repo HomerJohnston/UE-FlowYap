@@ -81,7 +81,13 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateAddConditionButton()
 // ------------------------------------------------------------------------------------------------
 FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 {
-	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode);
+	if (!DialogueNode.IsValid())
+	{
+		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
+		return FReply::Handled();
+	}
+	
+	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode.Get());
 
 	DestroyConditionDetailsWidget();
 
@@ -180,7 +186,13 @@ FReply SYapConditionsScrollBox::OnClicked_ConditionButton(int32 ConditionIndex)
 // ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex)
 {
-	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode);
+	if (!DialogueNode.IsValid())
+	{
+		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
+		return;
+	}
+	
+	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode.Get());
 
 	ConditionsArray->RemoveAt(ConditionIndex);
 
@@ -203,6 +215,12 @@ void SYapConditionsScrollBox::OnSet_NewConditionClass(int ConditionIndex)
 // ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::BuildConditionDetailsViewWidget(int32 ConditionIndex)
 {
+	if (!DialogueNode.IsValid())
+	{
+		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
+		return;
+	}
+	
 	TSharedPtr<SYapConditionDetailsViewWidget> NewWidget = SNew(SYapConditionDetailsViewWidget)
 		.Dialogue(DialogueNode)
 		.FragmentIndex(FragmentIndex)

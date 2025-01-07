@@ -116,11 +116,6 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 		}
 	}
 }
-
-bool UYapProjectSettings::GetShowTitleTextOnTalkNodes() const
-{
-	return bShowTitleTextOnTalkNodes;
-}
 #endif
 
 int32 UYapProjectSettings::GetTextWordsPerMinute() const

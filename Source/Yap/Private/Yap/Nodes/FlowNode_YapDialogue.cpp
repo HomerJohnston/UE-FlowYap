@@ -632,6 +632,11 @@ void UFlowNode_YapDialogue::ToggleNodeType()
 	}
 
 	DialogueNodeType = static_cast<EYapDialogueNodeType>(AsInt);
+
+	if (UYapProjectSettings::GetShowTitleTextOnTalkNodes())
+	{
+		
+	}
 }
 #endif
 

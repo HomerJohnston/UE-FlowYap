@@ -34,7 +34,7 @@ public:
 	// ------------------------------------------
 	// SLATE INPUTS
 private:
-	UFlowNode_YapDialogue* DialogueNode = nullptr;
+	TWeakObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
 	int32 FragmentIndex = INDEX_NONE;
 	FOnConditionsArrayChanged OnConditionsArrayChanged;
 	FOnConditionDetailsViewBuilt OnConditionDetailsViewBuilt;

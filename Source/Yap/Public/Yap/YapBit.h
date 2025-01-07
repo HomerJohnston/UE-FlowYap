@@ -57,11 +57,11 @@ protected:
 	
 	/**  */
 	UPROPERTY()
-	TSoftObjectPtr<UObject> MatureDialogueAudioAsset;
+	TSoftObjectPtr<UObject> MatureAudioAsset;
 
 	/**  */
 	UPROPERTY()
-	TSoftObjectPtr<UObject> SafeDialogueAudioAsset;
+	TSoftObjectPtr<UObject> SafeAudioAsset;
 
 	/**  */
 	UPROPERTY()
@@ -104,10 +104,10 @@ protected:
 	mutable TObjectPtr<UYapCharacter> DirectedAt;
 
 	UPROPERTY(Transient)
-	mutable TObjectPtr<UObject> DialogueAudio;
+	mutable TObjectPtr<UObject> MatureAudio;
 	
 	UPROPERTY(Transient)
-	mutable TObjectPtr<UObject> DialogueAudioSafe;
+	mutable TObjectPtr<UObject> SafeAudio;
 
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
@@ -127,26 +127,26 @@ public:
 	const FText& GetTitleText(EYapMaturitySetting/* = EYapMaturitySetting::Unspecified*/) const;
 
 	template<class T>
-	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureDialogueAudioAsset->GetPathName()); }
+	const TSoftObjectPtr<T> GetMatureDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureAudioAsset->GetPathName()); }
 
 	template<class T>
-	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeDialogueAudioAsset->GetPathName()); }
+	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeAudioAsset->GetPathName()); }
 	
 	template<class T>
-	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const
+	const T* GetMatureAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const
 	{
 		ResolveMaturitySetting(MaturitySetting);
 		
-		if (MatureDialogueAudioAsset.IsValid())
+		if (MatureAudioAsset.IsValid())
 		{
-			return MatureDialogueAudioAsset.Get();
+			return MatureAudioAsset.Get();
 		}
 
-		if (MatureDialogueAudioAsset.IsPending())
+		if (MatureAudioAsset.IsPending())
 		{
 			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return MatureDialogueAudioAsset.LoadSynchronous();
+			return MatureAudioAsset.LoadSynchronous();
 		}
 
 		return nullptr;
@@ -156,18 +156,18 @@ public:
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 	
 	template<class T>
-	const T* GetDialogueAudioAssetSafe() const
+	const T* GetSafeAudioAsset() const
 	{
-		if (SafeDialogueAudioAsset.IsValid())
+		if (SafeAudioAsset.IsValid())
 		{
-			return SafeDialogueAudioAsset.Get();
+			return SafeAudioAsset.Get();
 		}
 
-		if (SafeDialogueAudioAsset.IsPending())
+		if (SafeAudioAsset.IsPending())
 		{
 			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return SafeDialogueAudioAsset.LoadSynchronous();
+			return SafeAudioAsset.LoadSynchronous();
 		}
 
 		return nullptr;
@@ -177,7 +177,7 @@ public:
 
 	const FSlateBrush& GetDirectedAtPortraitBrush() const;
 
-	bool HasAudioAsset() { return !MatureDialogueAudioAsset.IsNull(); }
+	bool HasAudioAsset() { return !MatureAudioAsset.IsNull(); }
 
 	FGameplayTag GetMoodKey() const { return MoodKey; }
 
@@ -216,9 +216,9 @@ public:
 
 	void SetDialogueText(FText* TextToSet, const FText& NewText);
 	
-	void SetDialogueAudioAsset(UObject* NewAudio);
+	void SetMatureDialogueAudioAsset(UObject* NewAudio);
 	
-	void SetDialogueAudioAssetSafe(UObject* NewAudio);
+	void SetSafeDialogueAudioAsset(UObject* NewAudio);
 	
 	void SetMoodKey(const FGameplayTag& NewValue) { MoodKey = NewValue; };
 

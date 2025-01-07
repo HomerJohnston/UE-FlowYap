@@ -95,6 +95,7 @@ protected:
 	TSharedPtr<SButton> DialogueEditButtonWidget;
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
+	TSharedPtr<SButton> TextExpanderButton;
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
 	
@@ -241,16 +242,18 @@ protected:
 
 	bool OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateAudioAssetWidget(TAttribute<EVisibility> VisibilityAtt, TAttribute<FString> ObjectPathAtt, TDelegate<void(const FAssetData&)> OnObjectChangedAtt);
+	TSharedRef<SWidget> CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset);
 
 	FText				ObjectPathText_AudioAsset() const;
 	FString				ObjectPath_AudioAsset() const;
 	void				OnObjectChanged_AudioAsset(const FAssetData& InAssetData);
-	EVisibility			Visibility_AudioAssetErrorState() const;
-	FSlateColor			ColorAndOpacity_AudioAssetErrorState() const;
-	EYapErrorLevel	AudioAssetErrorLevel() const;
+	EVisibility			Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
 
-	EYapErrorLevel AudioAssetErrorLevel2(const TSoftObjectPtr<UObject>& Asset) const;
+	FSlateColor			ColorAndOpacity_AudioSettingsButton() const;
+	EYapErrorLevel		GetFragmentAudioErrorLevel() const;
+
+	FSlateColor			ColorAndOpacity_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
+	EYapErrorLevel		GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const;
 	
 	EVisibility			Visibility_AudioButton() const;
 

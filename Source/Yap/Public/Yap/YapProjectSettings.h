@@ -20,6 +20,9 @@ enum class EYap_TagFilter : uint8
 	Prompts,
 };
 
+#define YAP_BGETTER(VAR) static bool Get##VAR() { return Get()-> b##VAR; }
+#define YAP_GETTER(TYPE, VAR) static TYPE Get##VAR() { return Get()-> VAR; }
+
 UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class YAP_API UYapProjectSettings : public UDeveloperSettings
 {
@@ -40,11 +43,11 @@ protected:
 	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UObject> ConversationBrokerClass;
-
+	
 	/** What type of class to use for dialogue assets (sounds). */
-	UPROPERTY(Config, EditAnywhere, Category = "Core")
+	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
 	TArray<TSoftClassPtr<UObject>> DialogueAssetClasses;
-
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
 	
@@ -181,15 +184,22 @@ public:
 
 	bool GetDialogueSkippableByDefault() const { return bDefaultSkippableSetting; }
 	
-	const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() const { return DialogueAssetClasses; }
-	
-	static TSoftClassPtr<UObject> GetConversationBrokerClass() { return Get()->ConversationBrokerClass; }
-
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
 	
 public:
-	bool GetShowTitleTextOnTalkNodes() const;
 
+	YAP_BGETTER(ShowTitleTextOnTalkNodes);
+
+	YAP_GETTER(const TSoftClassPtr<UObject>&, ConversationBrokerClass)
+	
+	YAP_GETTER(const TArray<TSoftClassPtr<UObject>>&, DialogueAssetClasses)
+	/*
+	bool GetShowTitleTextOnTalkNodes() const
+	{
+		return bShowTitleTextOnTalkNodes;
+	};
+*/
+	
 	int32 GetTextWordsPerMinute() const;
 
 	double GetMinimumAutoTextTimeLength() const;

@@ -121,7 +121,7 @@ EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 		EffectiveTimeMode = UYapProjectSettings::Get()->GetDefaultTimeModeSetting();
 	}
 
-	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueAudioAsset : SafeDialogueAudioAsset;
+	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
 	const TOptional<float>& AudioTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
 	
 	if (EffectiveTimeMode == EYapTimeMode::AudioTime && (AudioAsset.IsNull() || !AudioTime.IsSet()))
@@ -204,7 +204,7 @@ TOptional<float> FYapBit::GetAudioTime() const
 	EYapMaturitySetting MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
 	
 	TOptional<float> CachedTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
-	TSoftObjectPtr<UObject> Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueAudioAsset : SafeDialogueAudioAsset;
+	TSoftObjectPtr<UObject> Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
 
 	if (Asset.IsNull() || !CachedTime.IsSet())
 	{
@@ -228,8 +228,8 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(MatureDialogueText);
 	FLOWYAP_REPLACE(SafeTitleText);
 	FLOWYAP_REPLACE(SafeDialogueText);
-	FLOWYAP_REPLACE(MatureDialogueAudioAsset);
-	FLOWYAP_REPLACE(SafeDialogueAudioAsset);
+	FLOWYAP_REPLACE(MatureAudioAsset);
+	FLOWYAP_REPLACE(SafeAudioAsset);
 	FLOWYAP_REPLACE(MoodKey);
 	FLOWYAP_REPLACE(TimeMode);
 	FLOWYAP_REPLACE(ManualTime);
@@ -274,16 +274,16 @@ void FYapBit::SetDialogueText(FText* TextToSet, const FText& NewText)
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueAudioAsset(UObject* NewAudio)
+void FYapBit::SetMatureDialogueAudioAsset(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(MatureDialogueAudioAsset, CachedMatureAudioTime, NewAudio);
+	SetDialogueAudioAsset_Internal(MatureAudioAsset, CachedMatureAudioTime, NewAudio);
 }
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueAudioAssetSafe(UObject* NewAudio)
+void FYapBit::SetSafeDialogueAudioAsset(UObject* NewAudio)
 {
-	SetDialogueAudioAsset_Internal(SafeDialogueAudioAsset, CachedSafeAudioTime, NewAudio);
+	SetDialogueAudioAsset_Internal(SafeAudioAsset, CachedSafeAudioTime, NewAudio);
 }
 #endif
 
