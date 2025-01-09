@@ -9,7 +9,7 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapSubsystem.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 FName UFlowNode_YapDialogue::OutputPinName = FName("Out");
 FName UFlowNode_YapDialogue::BypassPinName = FName("Bypass");

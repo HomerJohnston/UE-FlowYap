@@ -3,7 +3,7 @@
 
 #include "Yap/YapModule.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 void FYapModule::StartupModule()
 {

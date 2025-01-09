@@ -10,7 +10,7 @@
 
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 #undef LOCTEXT_NAMESPACE
 FYapFragment::FYapFragment()

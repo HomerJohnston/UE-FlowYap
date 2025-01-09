@@ -188,8 +188,10 @@ public:
 	
 public:
 
+#if WITH_EDITOR
 	YAP_BGETTER(ShowTitleTextOnTalkNodes);
-
+#endif
+	
 	YAP_GETTER(const TSoftClassPtr<UObject>&, ConversationBrokerClass)
 	
 	YAP_GETTER(const TArray<TSoftClassPtr<UObject>>&, DialogueAssetClasses)

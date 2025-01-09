@@ -7,7 +7,7 @@
 
 #include "Engine/Texture2D.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 UYapCharacter::UYapCharacter()
 {

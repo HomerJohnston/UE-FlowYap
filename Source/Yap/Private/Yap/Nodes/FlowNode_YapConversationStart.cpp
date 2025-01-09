@@ -9,7 +9,7 @@
 #include "Yap/Nodes/FlowNode_YapConversationEnd.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 UFlowNode_YapConversationStart::UFlowNode_YapConversationStart()
 {

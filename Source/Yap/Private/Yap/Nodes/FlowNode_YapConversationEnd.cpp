@@ -5,7 +5,7 @@
 
 #include "Yap/YapSubsystem.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 UFlowNode_YapConversationEnd::UFlowNode_YapConversationEnd()
 {

@@ -5,7 +5,7 @@
 
 #include "Interfaces/IPluginManager.h"
 
-#define LOCTEXT_NAMESPACE "FlowYap"
+#define LOCTEXT_NAMESPACE "Yap"
 
 FString FYapEngineUtils::GetFlowYapPluginDir()
 {

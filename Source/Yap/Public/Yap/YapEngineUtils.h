@@ -3,6 +3,7 @@
 
 #pragma once
 
+// TODO this thing needs to die
 struct YAP_API FYapEngineUtils
 {	
 	static FString GetFlowYapPluginDir();
