@@ -81,7 +81,7 @@ public:
 	void SomeDoStuffFunction()
 	{
 		{
-			//FYapScopedTransaction T(TEXT("Test"), INVTEXT("Info"), nullptr, EYapDialogueEvent::Event1, true);
+			//FYapScopedTransaction T(TEXT("Test"), LOCTEXT("TODO", "Info"), nullptr, EYapDialogueEvent::Event1, true);
 
 			// Blah blah
 

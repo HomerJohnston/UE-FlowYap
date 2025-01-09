@@ -42,15 +42,15 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 		}
 	});
 	
-	IDetailCategoryBuilder& HelpCategory = DetailBuilder.EditCategory("YapCharacter");
+	IDetailCategoryBuilder& CharacterCategory = DetailBuilder.EditCategory("YapCharacter");
 	
-	auto fuckyouunreal = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
+	auto PortraitsProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
 
-	fuckyouunreal->MarkHiddenByCustomization();
+	PortraitsProperty->MarkHiddenByCustomization();
 
-	HelpCategory.AddProperty(fuckyouunreal);
+	CharacterCategory.AddProperty(PortraitsProperty);
 	
-	HelpCategory.AddCustomRow(INVTEXT("Test"))
+	CharacterCategory.AddCustomRow(LOCTEXT("MoodKeys", "Mood Keys"))
 	[
 		SNew(SBox)
 		.Padding(0, 8)
@@ -71,12 +71,12 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 
 FText FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton() const
 {
-	return INVTEXT("Refresh Portrait List");
+	return LOCTEXT("RefreshPortraitList", "Refresh Portrait List");
 }
 
 FText FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton() const
 {
-	return INVTEXT("Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries.");
+	return LOCTEXT("RefreshMoodKeys_ToolTIp", "Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries.");
 }
 
 FReply FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton()

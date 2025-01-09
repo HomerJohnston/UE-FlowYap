@@ -12,6 +12,8 @@ class UYapCharacter;
 struct FYapDialogueHandle;
 struct FYapPromptHandle;
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 /** Optional base class for brokering Yap to your game. Create a child class of this and the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
 UCLASS(Abstract)
 class UYapConversationBrokerBase : public UObject
@@ -104,8 +106,9 @@ public:
 // NOTES:
 //
 // This class does NOT implement IYapConversationListenerInterface because it's very annoying that Unreal refuses to let you convert interface events to functions,
-// but you can convert BIE/BNE's to functions. This class includes identical functions as IYapConversationListenerInterface.
-//
-// Templates are used in the Yap Subsystem to call the same functions on either a conversation broker or a IYapConversationListenerInterface implementer.
+// but you can convert BIE/BNE's to functions. This class includes identical functions as IYapConversationListenerInterface. Templates are used in the Yap Subsystem
+// to call the same functions on either a conversation broker or a IYapConversationListenerInterface implementer.
 //
 // The BNE's above pass many individual args instead of a struct to make it easier to refer to individual args inside of a blueprint graph.
+
+#undef LOCTEXT_NAMESPACE

@@ -9,6 +9,8 @@
 
 struct FYapPromptHandle;
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 /**
  * 
  */
@@ -18,3 +20,5 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 };
+
+#undef LOCTEXT_NAMESPACE

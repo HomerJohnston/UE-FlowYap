@@ -5,6 +5,8 @@
 
 #include "Yap/YapSubsystem.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 void UYapCharacterComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -18,3 +20,5 @@ void UYapCharacterComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 	Super::EndPlay(EndPlayReason);
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -17,6 +17,8 @@
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 TWeakObjectPtr<UWorld> UYapSubsystem::World = nullptr;
 
 FYapActiveConversation::FYapActiveConversation()
@@ -328,3 +330,5 @@ bool UYapSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
 {
 	return WorldType == EWorldType::GamePreview || WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -1,14 +1,14 @@
 // Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
-#define LOCTEXT_NAMESPACE "Yap"
 #include "Yap/YapProjectSettings.h"
 
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
-#include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapTextCalculator.h"
 #include "Yap/Enums/YapMaturitySetting.h"
+
+#define LOCTEXT_NAMESPACE "Yap"
 
 #if WITH_EDITOR
 FName UYapProjectSettings::CategoryName = FName("Yap");

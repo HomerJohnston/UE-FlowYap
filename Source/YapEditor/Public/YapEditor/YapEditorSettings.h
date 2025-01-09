@@ -52,7 +52,7 @@ public:
 public:
 	virtual FName GetCategoryName() const override { return FName("Yap"); }
 
-	virtual FText GetSectionText() const override { return INVTEXT("Graph Settings"); }
+	virtual FText GetSectionText() const override { return LOCTEXT("GraphSettings", "Graph Settings"); }
 };
 
 #undef LOCTEXT_NAMESPACE

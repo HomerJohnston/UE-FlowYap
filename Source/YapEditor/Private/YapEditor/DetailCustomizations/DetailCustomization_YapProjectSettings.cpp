@@ -21,7 +21,7 @@ FText FDetailCustomization_YapProjectSettings::GetMoodTags() const
 
 	if (!ParentTag.IsValid())
 	{
-		return INVTEXT("<None>");
+		return LOCTEXT("None_Label", "<None>");
 	}
 	
 	FGameplayTagContainer MoodTags = ProjectSettings->GetMoodTags();
@@ -83,11 +83,11 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 
 			if (Property == DialogueTagsParentProperty)
 			{
-				Category.AddCustomRow(INVTEXT("TODO Test"))
+				Category.AddCustomRow(LOCTEXT("DialogueTags_Header", "Dialogue Tags"))
 				.NameContent()
 				[
 					SNew(STextBlock)
-					.Text(INVTEXT("Dialogue Tags"))
+					.Text(LOCTEXT("DialogueTags", "Dialogue Tags"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
@@ -95,9 +95,9 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					SNew(SButton)
 					.VAlign(VAlign_Center)
 					.HAlign(HAlign_Center)
-					.ToolTipText(INVTEXT("Open tags manager"))
-					.Text(INVTEXT("Edit Dialogue Tags"))
-					.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, INVTEXT("Dialogue Tags"), ProjectSettings->DialogueTagsParent.ToString())
+					.ToolTipText(LOCTEXT("OpenTagsManager", "Open tags manager"))
+					.Text(LOCTEXT("EditDialogueTags", "Edit dialogue tags"))
+					.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, LOCTEXT("DialogueTags", "Dialogue Tags"), ProjectSettings->DialogueTagsParent.ToString())
 				];
 
 				continue;
@@ -109,11 +109,11 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 
 				FString DefaultMoodTagsToolTip = "Sets the following tags:\n" + FString::Join(DefaultMoodTags, TEXT("\n"));
 				
-				Category.AddCustomRow(INVTEXT("TODO Test"))
+				Category.AddCustomRow(LOCTEXT("MoodTags_Header", "Mood Tags"))
 				.NameContent()
 				[
 					SNew(STextBlock)
-					.Text(INVTEXT("Mood Tags"))
+					.Text(LOCTEXT("MoodTags", "Mood tags"))
 					.Font(IDetailLayoutBuilder::GetDetailFont())
 				]
 				.ValueContent()
@@ -143,7 +143,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					[
 						SNew(SButton)
 						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags)
-						.Text(INVTEXT("Reset to defaults..."))
+						.Text(LOCTEXT("ResetMoodTags_Button", "Reset to defaults..."))
 						.ToolTipText(FText::FromString(DefaultMoodTagsToolTip))
 					]
 					+ SVerticalBox::Slot()
@@ -152,8 +152,8 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					[
 						SNew(SButton)
 						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags)
-						.Text(INVTEXT("Delete all..."))
-						.ToolTipText(INVTEXT("Attempts to delete all tags"))
+						.Text(LOCTEXT("DeleteMoodTags_Button", "Delete all..."))
+						.ToolTipText(LOCTEXT("DeleteMoodTags_ToolTip", "Attempts to delete all tags"))
 					]
 					+ SVerticalBox::Slot()
 					.AutoHeight()
@@ -162,9 +162,9 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 						SNew(SButton)
 						.VAlign(VAlign_Center)
 						.HAlign(HAlign_Center)
-						.ToolTipText(INVTEXT("Open tags manager"))
-						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, INVTEXT("Mood Tags"), ProjectSettings->MoodTagsParent.ToString())
-						.Text(INVTEXT("Edit Mood Tags"))
+						.ToolTipText(LOCTEXT("OpenTagsManager_ToolTip", "Open tags manager"))
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, LOCTEXT("MoodTags", "Mood Tags"), ProjectSettings->MoodTagsParent.ToString())
+						.Text(LOCTEXT("EditMoodTags", "Edit mood tags"))
 					]
 				];
 
@@ -176,14 +176,14 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags() const
 {
-	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, INVTEXT("Are you sure?")) )
+	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("AreYouSure_Prompt", "Are you sure?")) )
 	{
 		return FReply::Handled();
 	}
 	
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
 	
-	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), ProjectSettings);
+	FYapTransactions::BeginModify(LOCTEXT("ResetMoodTags", "Reset mood tags"), ProjectSettings);
 
 	FString DefaultTagParent = "Yap.Mood";
 	
@@ -224,14 +224,14 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags() const
 {
-	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, INVTEXT("Are you sure?")) )
+	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("AreYouSure_Question", "Are you sure?")) )
 	{
 		return FReply::Handled();
 	}
 	
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
 
-	FYapTransactions::BeginModify(INVTEXT("YapProjectSettings"), ProjectSettings);
+	FYapTransactions::BeginModify(LOCTEXT("DeleteMoodTags", "Delete mood tags"), ProjectSettings);
 
 	for (FGameplayTag ExistingTag : ProjectSettings->GetMoodTags())// DefaultTags.CreateIterator(); It; ++It)
 	{

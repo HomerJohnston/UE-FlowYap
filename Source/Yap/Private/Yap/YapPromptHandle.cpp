@@ -6,6 +6,8 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Yap/YapSubsystem.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 FYapPromptHandle::FYapPromptHandle()
 {
 	DialogueNode = nullptr;
@@ -32,3 +34,4 @@ void FYapPromptHandle::RunPrompt(UObject* WorldContextObject)
 	Subsystem->RunPrompt(*this);
 }
 
+#undef LOCTEXT_NAMESPACE

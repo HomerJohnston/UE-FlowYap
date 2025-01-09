@@ -7,6 +7,8 @@
 
 struct FPropertyChangedEvent;
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 UCLASS(Blueprintable, Abstract, DefaultToInstanced, EditInlineNew)
 class YAP_API UYapCondition : public UObject
 {
@@ -40,3 +42,5 @@ public:
 	TMulticastDelegate<void(FPropertyChangedEvent&)> OnPropertyChanged;
 #endif
 };
+
+#undef LOCTEXT_NAMESPACE

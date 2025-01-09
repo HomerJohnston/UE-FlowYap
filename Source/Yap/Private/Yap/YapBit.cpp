@@ -12,6 +12,8 @@
 #include "Yap/YapSubsystem.h"
 #include "Yap/YapTextCalculator.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 // --------------------------------------------------------------------------------------------
 // PUBLIC API
 
@@ -369,10 +371,10 @@ const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapChar
 		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
 
 #if WITH_EDITOR
-		FNotificationInfo NotificationInfo(FText::Format(INVTEXT("Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())));
+		FNotificationInfo NotificationInfo(FText::Format(LOCTEXT("SyncLoadingWarning_Title", "Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())));
 		NotificationInfo.ExpireDuration = 5.0f;
 		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-		NotificationInfo.SubText = FText::Format(INVTEXT("Loading: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
+		NotificationInfo.SubText = FText::Format(LOCTEXT("SyncLoadingWarning_Description", "Loading asset: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
 		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
 #endif
 	}
@@ -380,3 +382,5 @@ const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapChar
 	// We get what we get. Nullptr in editor until the separate preload system finishes async loading it; sync loaded asset in play.
 	return CharacterPtr;
 }
+
+#undef LOCTEXT_NAMESPACE

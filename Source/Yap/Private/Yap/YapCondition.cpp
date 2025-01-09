@@ -3,6 +3,8 @@
 
 #include "Yap/YapCondition.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 bool UYapCondition::EvaluateCondition_Implementation() const
 {
 	return true;
@@ -26,3 +28,5 @@ void UYapCondition::PostEditChangeProperty(struct FPropertyChangedEvent& Propert
 	OnPropertyChanged.Broadcast(PropertyChangedEvent);
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

@@ -74,7 +74,7 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 					.ContentPadding(FMargin(4, 2, 4, 2))
 					.ForegroundColor(YapColor::White)
 					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
-					.ToolTipText(INVTEXT("Delete this condition"))
+					.ToolTipText(LOCTEXT("DeleteCondition", "Delete condition"))
 					.OnClicked(this, &SYapConditionDetailsViewWidget::OnClicked_Delete)
 					[
 						SNew(SImage)
@@ -149,7 +149,7 @@ void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* 
 		return;
 	}
 
-	FYapTransactions::BeginModify(INVTEXT("Change Condition"), Dialogue.Get());
+	FYapTransactions::BeginModify(LOCTEXT("ChangeConditionType", "Change Condition type"), Dialogue.Get());
 
 	if (FragmentIndex != INDEX_NONE)
 	{

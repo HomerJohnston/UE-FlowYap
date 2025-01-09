@@ -16,7 +16,7 @@ FText SActivationCounterWidget::NumeratorText() const
 FText SActivationCounterWidget::DenominatorText() const
 {
 	int32 Value = ActivationLimit.Get();
-	return Value > 0 ? FText::AsNumber(Value) : INVTEXT("\x221E");
+	return Value > 0 ? FText::AsNumber(Value) : LOCTEXT("InfinitySymbol", "\x221E");
 }
 
 FSlateColor SActivationCounterWidget::NumeratorColor() const
@@ -80,8 +80,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 				.ColorAndOpacity(this, &SActivationCounterWidget::NumeratorColor)
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", FontHeight))
 				.Justification(ETextJustify::Center)
-				.ToolTip(nullptr)
-				//.ToolTipText(INVTEXT("Activation count"))
+				.ToolTip(nullptr) // Don't show a tooltip, it's distracting
 			]
 			+ SVerticalBox::Slot()
 			.AutoHeight()
@@ -108,8 +107,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 				.Justification(ETextJustify::Center)
 				.OnTextCommitted(OnTextCommitted)
 				.OnIsTypedCharValid(FOnIsTypedCharValid::CreateLambda([Numbers](const TCHAR InCh) { return Numbers.Contains(InCh); }))
-				.ToolTip(nullptr)
-				//.ToolTipText(INVTEXT("Activation limit, use 0 for infinite"))
+				.ToolTip(nullptr) // Don't show a tooltip, it's distracting
 				.SelectAllTextWhenFocused(true)
 				.TextShapingMethod(ETextShapingMethod::KerningOnly)
 				.TextFlowDirection(ETextFlowDirection::LeftToRight)

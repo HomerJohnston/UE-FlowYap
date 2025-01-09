@@ -23,7 +23,7 @@ namespace YapEditor
 		.Type(ESlateCheckBoxType::ToggleButton)
 		.Padding(FMargin(0, 0))
 		.CheckBoxContentUsesAutoWidth(true)
-		.ToolTipText(INVTEXT("Toggle whether this can be skipped by the player. Hold CTRL while clicking to use default."))
+		.ToolTipText(LOCTEXT("SkippableCheckBox_ToolTip", "Toggle whether this can be skipped by the player, hold CTRL while clicking to use default"))
 		.IsChecked(IsCheckedAtt)
 		.OnCheckStateChanged(OnCheckStateChangedEvt)
 		.Content()

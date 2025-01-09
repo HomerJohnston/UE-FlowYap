@@ -199,7 +199,6 @@ protected:
 	EVisibility			Visibility_MissingPortraitWarning() const;
 	EVisibility			Visibility_CharacterSelect() const;
 	FString				ObjectPath_CharacterSelect() const;
-	void				OnObjectChanged_CharacterSelect(const FAssetData& InAssetData);
 
 	FText ToolTipText_MoodKeySelector() const;
 	FSlateColor ForegroundColor_MoodKeySelectorWidget() const;

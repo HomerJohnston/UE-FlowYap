@@ -8,6 +8,8 @@
 #include "Yap/YapSubsystem.h"
 #include "Yap/YapUtil.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 UFlowNode_YapReplaceFragment::UFlowNode_YapReplaceFragment()
 {
 #if WITH_EDITOR
@@ -50,10 +52,10 @@ FText UFlowNode_YapReplaceFragment::GetNodeTitle() const
 {
 	if (IsTemplate())
 	{
-		return INVTEXT("Replace Fragment");
+		return LOCTEXT("ReplaceFragment", "Replace Fragment");
 	}
 
-	return INVTEXT("Replace Fragment");
+	return LOCTEXT("ReplaceFragment", "Replace Fragment"); // TODO enhancements
 }
 
 void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const
@@ -78,3 +80,5 @@ void UFlowNode_YapReplaceFragment::OnGetCategoriesMetaFromPropertyHandle(TShared
 	}
 }
 #endif
+
+#undef LOCTEXT_NAMESPACE

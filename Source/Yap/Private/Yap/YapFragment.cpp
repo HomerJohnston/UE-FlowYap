@@ -12,7 +12,6 @@
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-#undef LOCTEXT_NAMESPACE
 FYapFragment::FYapFragment()
 {
 	Guid = FGuid::NewGuid();
@@ -156,5 +155,6 @@ void FYapFragment::InvalidateFragmentTag()
 {
 	FragmentTag = FGameplayTag::EmptyTag;
 }
-
 #endif
+
+#undef LOCTEXT_NAMESPACE

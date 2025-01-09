@@ -6,6 +6,10 @@
 #include "Yap/YapLog.h"
 #include "Yap/YapProjectSettings.h"
 
+class UYapCharacter;
+
+#define LOCTEXT_NAMESPACE "Yap"
+
 void IYapConversationListener::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
@@ -51,3 +55,5 @@ EYapMaturitySetting IYapConversationListener::K2_UseMatureDialogue_Implementatio
 #endif
 	return UYapProjectSettings::GetDefaultMaturitySetting();
 }
+
+#undef LOCTEXT_NAMESPACE

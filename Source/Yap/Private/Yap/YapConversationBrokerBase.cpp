@@ -8,6 +8,8 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 void UYapConversationBrokerBase::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
@@ -53,3 +55,5 @@ EYapMaturitySetting UYapConversationBrokerBase::K2_UseMatureDialogue_Implementat
 #endif
 	return UYapProjectSettings::GetDefaultMaturitySetting();
 }
+
+#undef LOCTEXT_NAMESPACE

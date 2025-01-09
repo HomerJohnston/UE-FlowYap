@@ -7,6 +7,8 @@
 
 #include "YapCharacterComponent.generated.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 UCLASS(meta=(BlueprintSpawnableComponent))
 class YAP_API UYapCharacterComponent : public UActorComponent
 {
@@ -23,3 +25,5 @@ public:
 
 	const FGameplayTag& GetCharacterTag() { return Identity; }
 };
+
+#undef LOCTEXT_NAMESPACE

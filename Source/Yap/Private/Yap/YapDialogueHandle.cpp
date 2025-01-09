@@ -3,9 +3,13 @@
 
 #include "Yap/YapDialogueHandle.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 FYapDialogueHandle::FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable)
 {
 	DialogueNode = InDialogueNode;
 	FragmentIndex = InFragmentIndex;
 	bSkippable = bInSkippable;
 }
+
+#undef LOCTEXT_NAMESPACE

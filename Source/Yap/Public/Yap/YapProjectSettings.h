@@ -14,6 +14,8 @@ enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
 enum class EYapMissingAudioBehavior : uint8;
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 enum class EYap_TagFilter : uint8
 {
 	Conditions,
@@ -164,7 +166,7 @@ public:
 	
 	virtual FName GetCategoryName() const override { return CategoryName; }
 
-	virtual FText GetSectionText() const override { return INVTEXT("Settings"); }
+	virtual FText GetSectionText() const override { return LOCTEXT("Settings", "Settings"); }
 
 	FString GetPortraitIconPath(FGameplayTag Key) const;
 
@@ -241,3 +243,5 @@ protected:
 
 	#endif
 };
+
+#undef LOCTEXT_NAMESPACE

@@ -66,7 +66,7 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateAddConditionButton()
 	.Cursor(EMouseCursor::Default)
 	.HAlign(HAlign_Center)
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-	.ToolTipText(INVTEXT("Add Condition"))
+	.ToolTipText(LOCTEXT("AddCondition_ToolTip", "Add Condition"))
 	.OnClicked(this, &SYapConditionsScrollBox::OnClicked_AddConditionButton)
 	.ContentPadding(0)
 	[
@@ -89,7 +89,7 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 		return FReply::Handled();
 	}
 	
-	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode.Get());
+	FYapTransactions::BeginModify(LOCTEXT("AddCondition", "Add condition"), DialogueNode.Get());
 
 	DestroyConditionDetailsWidget();
 
@@ -114,7 +114,7 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateConditionButton(int32 Conditi
 	.HAlign(HAlign_Center)
 	.ForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, ConditionIndex)
 	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
-	.ToolTipText(INVTEXT("Prerequisite for this to run."))
+	.ToolTipText(LOCTEXT("PrerequisitesForDialogue_ToolTip", "Prerequisite for this to run"))
 	.OnClicked(this, &SYapConditionsScrollBox::OnClicked_ConditionButton, ConditionIndex)
 	[
 		SNew(STextBlock)
@@ -144,7 +144,7 @@ FSlateColor SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(int32
 {
 	UYapCondition* Condition = GetCondition(ConditionIndex);
 	
-	return IsValid(Condition) ? Condition->GetColor() : YapColor::DeepOrangeRed;
+	return IsValid(Condition) ? Condition->GetColor() : YapColor::Red;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex
 		return;
 	}
 	
-	FYapTransactions::BeginModify(INVTEXT("Add new Yap Condition"), DialogueNode.Get());
+	FYapTransactions::BeginModify(LOCTEXT("DeleteYapCondition", "Delete condition"), DialogueNode.Get());
 
 	ConditionsArray->RemoveAt(ConditionIndex);
 
@@ -219,7 +219,6 @@ void SYapConditionsScrollBox::BuildConditionDetailsViewWidget(int32 ConditionInd
 {
 	if (!DialogueNode.IsValid())
 	{
-		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
 		return;
 	}
 	

@@ -5,6 +5,8 @@
 
 #include "Yap/YapProjectSettings.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 int32 UYapTextCalculator::CalculateWordCount(const FText& Text)
 {
 	FString TextAsString = Text.ToString();
@@ -60,3 +62,5 @@ double UYapTextCalculator::CalculateTextTime(int16 WordCount)
 
 	return FMath::Max(WordCount * SecondsPerWord, Min);
 }
+
+#undef LOCTEXT_NAMESPACE

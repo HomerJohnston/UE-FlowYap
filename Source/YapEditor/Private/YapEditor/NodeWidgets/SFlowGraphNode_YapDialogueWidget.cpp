@@ -158,7 +158,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff(
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg)
 {
-	FYapTransactions::BeginModify(LOCTEXT("Dialogue", "Change Dialogue Activation Limit"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("ChangeActivationLimit", "Change activation limit"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->SetNodeActivationLimit(FCString::Atoi(*Text.ToString()));
 
@@ -179,7 +179,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 		return;
 	}
 	
-	FYapTransactions::BeginModify(LOCTEXT("Fragment", "Change Fragment Tag"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("ChangeFragmentTag", "Change fragment tag"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->DialogueTag = GameplayTag;
 
@@ -208,7 +208,7 @@ FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth() const
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::OnClick_NewConditionButton(int32 FragmentIndex)
 {
-	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Add New Condition"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("AddCondition", "Add condition"), GetFlowYapDialogueNodeMutable());
 
 	if (FragmentIndex == INDEX_NONE)
 	{
@@ -360,7 +360,7 @@ ECheckBoxState SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle() con
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
 {
-	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Toggle Skippable"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("ToggleSkippable", "Toggle skippable"), GetFlowYapDialogueNodeMutable());
 
 	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
 	{
@@ -383,11 +383,11 @@ FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_SkippableToggleIco
 {
 	if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::NotSkippable)
 	{
-		return YapColor::Red;
+		return YapColor::LightYellow;
 	}
 	else if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::Skippable)
 	{
-		return YapColor::Green;
+		return YapColor::LightGreen;
 	}
 	else
 	{
@@ -663,7 +663,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_FragmentSeparator() con
 // ------------------------------------------------------------------------------------------------
 FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator(uint8 Index)
 {
-	FYapTransactions::BeginModify(LOCTEXT("DialogueAddFragment", "Add Fragment"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("AddFragment", "Add fragment"), GetFlowYapDialogueNodeMutable());
 
 	GetFlowYapDialogueNodeMutable()->AddFragment(Index);
 
@@ -838,7 +838,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSequencingButton()
 	{
 		//FYapScopedTransaction(LOCTEXT("ChangeDialogueNodeSequencing", "Change dialogue node sequencing mode"), FlowGraphNode_YapDialogue, YapEditor::Events::DialogueNode::Test, true);
 	
-		FYapTransactions::BeginModify(LOCTEXT("DialogueNodeChangeSequencing", "Change dialogue node sequencing setting"), GetFlowYapDialogueNodeMutable());
+		FYapTransactions::BeginModify(LOCTEXT("ChangeSequencingSetting", "Change sequencing setting"), GetFlowYapDialogueNodeMutable());
 
 		GetFlowYapDialogueNodeMutable()->CycleFragmentSequencingMode();
 
@@ -957,7 +957,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton
 // ------------------------------------------------------------------------------------------------
 FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 {
-	FYapTransactions::BeginModify(LOCTEXT("DialogueAddFragment", "Add Fragment"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("AddFragment", "Add fragment"), GetFlowYapDialogueNodeMutable());
 	
 	GetFlowYapDialogueNodeMutable()->AddFragment();
 
@@ -979,7 +979,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_AddonsSeparator() const
 // ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::OnClick_DeleteConditionButton(int32 FragmentIndex, int32 ConditionIndex)
 {
-	FYapTransactions::BeginModify(LOCTEXT("YapDialogue", "Delete Condition"), GetFlowYapDialogueNodeMutable());
+	FYapTransactions::BeginModify(LOCTEXT("DeleteCondition", "Delete condition"), GetFlowYapDialogueNodeMutable());
 
 	if (FragmentIndex == INDEX_NONE)
 	{
