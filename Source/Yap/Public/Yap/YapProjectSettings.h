@@ -12,7 +12,7 @@
 
 enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
-enum class EYapMissingAudioBehavior : uint8;
+enum class EYapMissingAudioErrorLevel : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -67,8 +67,8 @@ protected:
 	 * - OK: Missing audio falls back to using text time without issue.
 	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow Graph, and warning logs on play.
 	 * - Error: Missing audio will not pass package validation. */ // TODO make it not package
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapMissingAudioBehavior MissingAudioBehavior;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
+	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
 	
 	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -184,7 +184,7 @@ public:
 	
 	const EYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
 
-	bool GetDialogueSkippableByDefault() const { return bDefaultSkippableSetting; }
+	static bool GetDialogueSkippableByDefault() { return Get()->bDefaultSkippableSetting; }
 	
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
 	
@@ -220,7 +220,7 @@ public:
 	
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
-	EYapMissingAudioBehavior GetMissingAudioBehavior() const { return MissingAudioBehavior; }
+	EYapMissingAudioErrorLevel GetMissingAudioBehavior() const { return MissingAudioErrorLevel; }
 
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 

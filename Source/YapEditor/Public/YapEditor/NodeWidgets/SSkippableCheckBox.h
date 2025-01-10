@@ -3,19 +3,42 @@
 
 #pragma once
 
-#include "Widgets/SCompoundWidget.h"
+#include "Widgets/Input/SCheckBox.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-namespace YapEditor
+DECLARE_DELEGATE_OneParam( FOnCheckStateChanged, ECheckBoxState );
+
+enum class EYapDialogueSkippable : uint8;
+
+/** Simple wrapper for checkbox, for reuse in multiple places. */
+class YAPEDITOR_API SYapSkippableCheckBox : public SCheckBox
 {
-	TSharedRef<SCheckBox> CreateSkippableCheckBox
-	(
-		const TAttribute<ECheckBoxState>& IsCheckedAtt,
-		const FOnCheckStateChanged& OnCheckStateChangedEvt,
-		const TAttribute<FSlateColor>& ColorAndOpacityAtt,
-		const TAttribute<EVisibility>& VisibilityOffIconAtt
-	);
-}
+	SLATE_BEGIN_ARGS( SYapSkippableCheckBox ) :
+		_OnCheckStateChanged()
+	{}
+
+		/**  */
+		SLATE_ATTRIBUTE( bool, IsSkippable )
+		
+		/**  */
+		SLATE_ATTRIBUTE( EYapDialogueSkippable, SkippableSetting )
+			
+		/**  */
+		SLATE_EVENT( FOnCheckStateChanged, OnCheckStateChanged )
+			
+	SLATE_END_ARGS()
+
+	void Construct( const FArguments& InArgs );
+
+	TAttribute<bool> IsSkippable;
+	TAttribute<EYapDialogueSkippable> SkippableSetting;
+	
+	FSlateColor ColorAndOpacity_SkipIcon() const;
+	FSlateColor ColorAndOpacity_NoEntryIcon() const;
+	EVisibility Visibility_NoSkipIcon() const;
+
+	ECheckBoxState SkippableIsChecked() const;
+};
 
 #undef LOCTEXT_NAMESPACE

@@ -318,13 +318,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.WidthOverride(20)
 			.HAlign(HAlign_Center)
 			[
-				YapEditor::CreateSkippableCheckBox
-				(
-					TAttribute<ECheckBoxState>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle),
-					FOnCheckStateChanged::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle),
-					TAttribute<FSlateColor>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_SkippableToggleIcon),
-					TAttribute<EVisibility>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff)
-				)
+				SNew(SYapSkippableCheckBox)
+				.IsSkippable_Lambda( [this] () { return GetFlowYapDialogueNode()->GetSkippable(); } )
+				.SkippableSetting_Lambda( [this] () { return GetFlowYapDialogueNode()->Skippable; })
+				.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle)
 			]
 		]
 	];

@@ -1,42 +1,47 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
-#include "YapEditor/NodeWidgets/SYapTest.h"
+#include "YapEditor/NodeWidgets/SYapButtonPopup.h"
 
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-void SYapTimeSettingsPopup::Construct(const FArguments& InArgs)
+void SYapButtonPopup::Construct(const FArguments& InArgs)
 {
-	ContentWidgetPtr = InArgs._MenuContent.Widget;
-
 	ButtonColor = InArgs._ButtonColor;
+
+	MenuContentGetter = InArgs._PopupContentGetter;
 	
 	SMenuAnchor::Construct(SMenuAnchor::FArguments()
-	.Placement(MenuPlacement_CenteredAboveAnchor)
+	.Placement(InArgs._PopupPlacement)
 	.Method(EPopupMethod::UseCurrentWindow)
 	.IsCollapsedByParent(true)
-	.OnMenuOpenChanged(InArgs._OnMenuOpenChanged)
+	.OnMenuOpenChanged(InArgs._OnPopupOpenChanged)
 	[
 		SAssignNew(Button, SButton)
 		.Cursor(EMouseCursor::Default)
 		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSettingOpener)
-		.OnClicked(this, &SYapTimeSettingsPopup::OnClicked_Button)
-		.ForegroundColor(this, &SYapTimeSettingsPopup::ButtonColorAndOpacity)
+		.OnClicked(this, &SYapButtonPopup::OnClicked_Button)
+		.ForegroundColor(this, &SYapButtonPopup::ButtonColorAndOpacity)
 		.ContentPadding(0)
 		[
 			InArgs._ButtonContent.Widget
 		]
 	]);
-
-	SetMenuContent(InArgs._MenuContent.Widget);
 }
 
-FReply SYapTimeSettingsPopup::OnClicked_Button()
+FReply SYapButtonPopup::OnClicked_Button()
 {
 	FReply ButtonReply = FReply::Handled();
+
+	if (!MenuContentGetter.IsBound())
+	{
+		return ButtonReply;
+	}
+	
+	SetMenuContent(MenuContentGetter.Execute());
 	
 	SetIsOpen(ShouldOpenDueToClick(), false);
 	
@@ -50,7 +55,7 @@ FReply SYapTimeSettingsPopup::OnClicked_Button()
 	return ButtonReply;
 }
 
-void SYapTimeSettingsPopup::SetMenuContent(TSharedRef<SWidget> InMenuContent)
+void SYapButtonPopup::SetMenuContent(TSharedRef<SWidget> InMenuContent)
 {
 	WrappedContent = MenuContent =
 		SNew(SBox)
@@ -60,7 +65,7 @@ void SYapTimeSettingsPopup::SetMenuContent(TSharedRef<SWidget> InMenuContent)
 		];
 }
 
-FSlateColor SYapTimeSettingsPopup::ButtonColorAndOpacity() const
+FSlateColor SYapButtonPopup::ButtonColorAndOpacity() const
 {
 	FLinearColor Col = ButtonColor.Get();
 

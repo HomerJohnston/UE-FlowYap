@@ -164,11 +164,11 @@ public:
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
 
 	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
-	EYapMaturitySetting K2_GetMaturitySetting() { return GetMaturitySetting(); };
+	EYapMaturitySetting K2_GetMaturitySetting() { return GetGameMaturitySetting(); };
 
 	static UYapConversationBrokerBase* GetConversationBroker();
 	
-	static EYapMaturitySetting GetMaturitySetting();
+	static EYapMaturitySetting GetGameMaturitySetting();
 	
 	// ------------------------------------------
 	// YAP API - These are called by Yap classes
@@ -193,7 +193,7 @@ protected:
 	void OnFinishedBroadcastingPrompts();
 	
 	/**  */
-	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
+	void BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
 	/**  */
 	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin

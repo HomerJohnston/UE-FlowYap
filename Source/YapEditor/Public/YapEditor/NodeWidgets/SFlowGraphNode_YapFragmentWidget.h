@@ -8,6 +8,7 @@
 #include "Yap/YapTimeMode.h"
 #include "Yap/Enums/YapMaturitySetting.h"
 
+enum class EYapDialogueSkippable : uint8;
 class UYapCharacter;
 class SYapConditionsScrollBox;
 class UYapCondition;
@@ -25,7 +26,7 @@ struct FYapFragment;
 struct FGameplayTag;
 
 enum class EYapTimeMode : uint8;
-enum class EYapMissingAudioBehavior : uint8;
+enum class EYapMissingAudioErrorLevel : uint8;
 enum class EYapErrorLevel : uint8;
 enum class EYapMaturitySetting : uint8;
 
@@ -97,6 +98,8 @@ protected:
 	TSharedPtr<SButton> DialogueEditButtonWidget;
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
+	TSharedPtr<SBox> SpeakerSelectionContainer;
+	
 	TSharedPtr<SButton> TextExpanderButton;
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
@@ -130,9 +133,6 @@ protected:
 	TSharedRef<SWidget> CreateUpperFragmentBar();
 	EVisibility Visibility_FragmentTagWidget() const;
 	
-	ECheckBoxState IsChecked_SkippableToggle() const;
-	FSlateColor ColorAndOpacity_SkippableToggleIcon() const;
-	EVisibility Visibility_SkippableToggleIconOff() const;
 	void OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
 
 	ECheckBoxState		IsChecked_MaturitySettings() const;
@@ -181,11 +181,11 @@ protected:
 	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
 	FText				ToolTipText_FragmentTimePadding() const;
 
-	FSlateColor BorderBackgroundColor_CharacterImage() const;
+	FLinearColor BorderBackgroundColor_CharacterImage() const;
 	void OnSetNewSpeakerAsset(const FAssetData& AssetData);
 	void OnSetNewDirectedAtAsset(const FAssetData& AssetData);
 	
-	FReply OnClicked_SpeakerWidget(TSoftObjectPtr<UYapCharacter>* CharacterAsset, const UYapCharacter* Character);
+	TSharedRef<SWidget> PopupContentGetter_SpeakerWidget(TSoftObjectPtr<UYapCharacter>* CharacterAsset, const UYapCharacter* Character);
 
 	FText Text_SpeakerWidget() const;
 	bool OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
@@ -247,7 +247,6 @@ protected:
 
 	FText				ObjectPathText_AudioAsset() const;
 	FString				ObjectPath_AudioAsset() const;
-	void				OnObjectChanged_AudioAsset(const FAssetData& InAssetData);
 	EVisibility			Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
 
 	FSlateColor			ColorAndOpacity_AudioSettingsButton() const;

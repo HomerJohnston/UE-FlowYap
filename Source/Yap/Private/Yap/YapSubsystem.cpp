@@ -5,9 +5,7 @@
 
 #include "Yap/YapSubsystem.h"
 
-#include "GameplayTagsManager.h"
 #include "Logging/StructuredLog.h"
-#include "Yap/YapCharacter.h"
 #include "Yap/YapConversationBrokerBase.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
@@ -44,7 +42,7 @@ bool FYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const 
 	FlowAsset = InOwningAsset;
 	Conversation = InConversation;
 
-	OnConversationStarts.ExecuteIfBound(Conversation);
+	(void)OnConversationStarts.ExecuteIfBound(Conversation);
 	
 	return true;
 }
@@ -53,7 +51,7 @@ bool FYapActiveConversation::EndConversation()
 {
 	if (Conversation != FGameplayTag::EmptyTag)
 	{
-		OnConversationEnds.ExecuteIfBound(Conversation);
+		(void)OnConversationEnds.ExecuteIfBound(Conversation);
 
 		FlowAsset = nullptr;
 		Conversation = FGameplayTag::EmptyTag;
@@ -110,16 +108,16 @@ UYapConversationBrokerBase* UYapSubsystem::GetConversationBroker()
 	return Broker;		
 }
 
-EYapMaturitySetting UYapSubsystem::GetMaturitySetting()
+EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 {
-	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetMaturitySetting(); this should not happen, returning default project setting.")))
+	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetGameMaturitySetting(); this should not happen! Returning default project setting.")))
 	{
 		return UYapProjectSettings::GetDefaultMaturitySetting(); 
 	}
 	
 	UYapConversationBrokerBase* Broker = GetConversationBroker();
 
-	if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetMaturitySetting(); returning default project setting.")))
+	if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetGameMaturitySetting(); returning default project setting.")))
 	{
 		return Broker->UseMatureDialogue();
 	}
@@ -189,7 +187,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
-	EYapMaturitySetting MaturitySetting = GetMaturitySetting();
+	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
 		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
@@ -203,23 +201,23 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 		(ConversationName);
 }
 
-void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
+void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex)
 {
-	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
+	const FYapFragment& Fragment = DialogueNode->GetFragmentByIndex(FragmentIndex);
 	const FYapBit& Bit = Fragment.GetBit();
 
 	FGameplayTag ConversationName;
 
-	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
+	if (ActiveConversation.FlowAsset == DialogueNode->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation;
 	}
 
-	bool bSkippable = (Bit.GetSkippable() == EYapDialogueSkippable::Default) ? Dialogue->GetSkippable() : Bit.GetSkippable() == EYapDialogueSkippable::Skippable;
+	bool bSkippable = Bit.GetSkippable(DialogueNode);
 
-	FYapDialogueHandle DialogueHandle(Dialogue, FragmentIndex, bSkippable);
+	FYapDialogueHandle DialogueHandle(DialogueNode, FragmentIndex, bSkippable);
 
-	EYapMaturitySetting MaturitySetting = GetMaturitySetting();
+	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
 	TOptional<float> Time = Bit.GetTime();
 
@@ -237,7 +235,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	}
 	
 	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), EffectiveTime, Bit.GetMatureAudioAsset<UObject>(MaturitySetting), Bit.GetDirectedAt());
+		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting), Bit.GetDirectedAt());
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)

@@ -93,6 +93,14 @@ protected:
 	UPROPERTY()
 	TOptional<float> CachedSafeAudioTime;
 
+	/** Indicates whether child-safe data is available in this bit or not */
+	UPROPERTY()
+	bool bChildSafeDataAvailable = false;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere)
+	bool bIgnoreChildSafeErrors = false;
+#endif
 	
 	// --------------------------------------------------------------------------------------------
 	// STATE
@@ -108,7 +116,7 @@ protected:
 	
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UObject> SafeAudio;
-
+	
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
 public:
@@ -133,46 +141,11 @@ public:
 	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeAudioAsset->GetPathName()); }
 	
 	template<class T>
-	const T* GetMatureAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const
-	{
-		ResolveMaturitySetting(MaturitySetting);
-		
-		if (MatureAudioAsset.IsValid())
-		{
-			return MatureAudioAsset.Get();
-		}
+	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
-		if (MatureAudioAsset.IsPending())
-		{
-			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
-			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return MatureAudioAsset.LoadSynchronous();
-		}
-
-		return nullptr;
-	}
-	
 	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 	
-	template<class T>
-	const T* GetSafeAudioAsset() const
-	{
-		if (SafeAudioAsset.IsValid())
-		{
-			return SafeAudioAsset.Get();
-		}
-
-		if (SafeAudioAsset.IsPending())
-		{
-			// TODO the main reason why I am doing this is because Epic's stupid property editor slate widget SObjectPropertyEntryBox can't display unloaded soft object ptr paths, it just displays "None"!
-			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. This should ONLY happen during editor time!"))
-			return SafeAudioAsset.LoadSynchronous();
-		}
-
-		return nullptr;
-	}
-
 	const FSlateBrush& GetSpeakerPortraitBrush() const;
 
 	const FSlateBrush& GetDirectedAtPortraitBrush() const;
@@ -182,8 +155,10 @@ public:
 	FGameplayTag GetMoodKey() const { return MoodKey; }
 
 	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
-	EYapDialogueSkippable GetSkippable(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+	bool GetSkippable(const UFlowNode_YapDialogue* Owner) const;
 
+	EYapDialogueSkippable GetSkippableSetting() const { return Skippable; }
+	
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
 	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 	
@@ -193,6 +168,8 @@ public:
 	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 	
 	void OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
+
+	bool GetHasChildSafeData() const { return bChildSafeDataAvailable; };
 
 protected:
 	TOptional<float> GetManualTime() const { return ManualTime; }
@@ -236,3 +213,57 @@ private:
 	const UYapCharacter* GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings = EYapWarnings::Show) const;
 #endif
 };
+
+template <class T>
+const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
+{
+	ResolveMaturitySetting(MaturitySetting);
+
+	const TSoftObjectPtr<UObject>& PreferredAsset = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudioAsset : SafeAudioAsset;
+	const TSoftObjectPtr<UObject>& SecondaryAsset = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudioAsset : MatureAudioAsset;
+
+	if (PreferredAsset.IsNull() && SecondaryAsset.IsNull())
+	{
+		return nullptr;
+	}
+		
+	TObjectPtr<UObject>& PreferredAudio = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudio : SafeAudio; 
+	TObjectPtr<UObject>& SecondaryAudio = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudio : MatureAudio; 
+
+	if (PreferredAsset.IsValid())
+	{
+		return PreferredAsset.Get();
+	}
+
+	if (!PreferredAsset.IsNull())
+	{
+#if WITH_EDITOR
+		if (GEditor->PlayWorld)
+		{
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
+		}
+#endif
+		PreferredAudio = PreferredAsset.LoadSynchronous();
+		return  PreferredAudio;
+	}
+
+	// Don't allow falling back to child-safe data if it is 
+	if (MaturitySetting == EYapMaturitySetting::Mature && !bChildSafeDataAvailable)
+	{
+		return nullptr;
+	}
+	
+	if (SecondaryAsset.IsValid())
+	{
+		return SecondaryAsset.Get();
+	}
+
+#if WITH_EDITOR
+	if (GEditor->PlayWorld)
+	{
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
+	}
+#endif
+	SecondaryAudio = SecondaryAsset.LoadSynchronous();
+	return SecondaryAudio;
+}

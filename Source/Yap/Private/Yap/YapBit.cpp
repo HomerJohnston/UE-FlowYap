@@ -63,15 +63,14 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 	{
 		if (IsValid(UYapSubsystem::Get()))
 		{
-			MaturitySetting = UYapSubsystem::GetMaturitySetting();
+			MaturitySetting = UYapSubsystem::GetGameMaturitySetting();
 		}
 		else
 		{
+			UE_LOG(LogYap, Error, TEXT("UYapSubsystem was invalid in FYapBit::ResolveMaturitySetting. This should not happen! Please contact plugin author. Using project default maturity settings."));
 			MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
 		}	
 	}
-
-	check(MaturitySetting != EYapMaturitySetting::Unspecified);
 }
 
 #if WITH_EDITOR
@@ -100,16 +99,24 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 }
 #endif
 
-EYapDialogueSkippable FYapBit::GetSkippable(EYapMaturitySetting MaturitySetting) const
+bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 {
-	ResolveMaturitySetting(MaturitySetting);
-
-	if (GetTime(MaturitySetting).IsSet())
+	// If no time mode is set, we MUST be skippable no matter what
+	if (TimeMode == EYapTimeMode::None)
 	{
-		return Skippable;
+		return true;
 	}
 
-	return EYapDialogueSkippable::Skippable;
+	// If skippable setting is default, we MUST slave to the owner's setting
+	if (Skippable == EYapDialogueSkippable::Default)
+	{
+		if (IsValid(Owner))
+		{
+			return Owner->GetSkippable();
+		}
+	}
+
+	return Skippable == EYapDialogueSkippable::Skippable;
 }
 
 EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const

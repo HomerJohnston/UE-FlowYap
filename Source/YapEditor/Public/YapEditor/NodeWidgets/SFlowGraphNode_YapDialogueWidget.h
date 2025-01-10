@@ -126,8 +126,10 @@ public:
 	// ------------------------------------------
 protected:
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
-	
+
+public:
 	ECheckBoxState		IsChecked_SkippableToggle() const;
+public:
 	void				OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_SkippableToggleIcon() const;
 
