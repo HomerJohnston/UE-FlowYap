@@ -13,6 +13,8 @@ void SYapButtonPopup::Construct(const FArguments& InArgs)
 	ButtonColor = InArgs._ButtonColor;
 
 	MenuContentGetter = InArgs._PopupContentGetter;
+
+	OnClicked = InArgs._OnClicked;
 	
 	SMenuAnchor::Construct(SMenuAnchor::FArguments()
 	.Placement(InArgs._PopupPlacement)
@@ -22,7 +24,7 @@ void SYapButtonPopup::Construct(const FArguments& InArgs)
 	[
 		SAssignNew(Button, SButton)
 		.Cursor(EMouseCursor::Default)
-		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSettingOpener)
+		.ButtonStyle((InArgs._ButtonStyle) ? InArgs._ButtonStyle : &FYapEditorStyle::Get().GetWidgetStyle<FButtonStyle>(YapStyles.ButtonStyle_TimeSettingOpener))
 		.OnClicked(this, &SYapButtonPopup::OnClicked_Button)
 		.ForegroundColor(this, &SYapButtonPopup::ButtonColorAndOpacity)
 		.ContentPadding(0)
@@ -35,6 +37,16 @@ void SYapButtonPopup::Construct(const FArguments& InArgs)
 FReply SYapButtonPopup::OnClicked_Button()
 {
 	FReply ButtonReply = FReply::Handled();
+
+	if (OnClicked.IsBound())
+	{
+		FReply OnClickedReply = OnClicked.Execute();
+
+		if (OnClickedReply.IsEventHandled())
+		{
+			return ButtonReply;
+		}
+	}
 
 	if (!MenuContentGetter.IsBound())
 	{

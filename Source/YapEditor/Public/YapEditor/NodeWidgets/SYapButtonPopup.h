@@ -4,6 +4,7 @@
 #pragma once
 
 #define LOCTEXT_NAMESPACE "YapEditor"
+#include "YapEditor/YapEditorStyle.h"
 
 DECLARE_DELEGATE(FOnOpened)
 DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, FMenuContentGetter)
@@ -12,6 +13,7 @@ class SYapButtonPopup : public SMenuAnchor
 {
 public:
 	SLATE_BEGIN_ARGS(SYapButtonPopup)
+	
 	{}
 		SLATE_NAMED_SLOT( FArguments, ButtonContent )
 
@@ -20,12 +22,16 @@ public:
 		SLATE_ARGUMENT( EVerticalAlignment, VAlign )
 		
 		SLATE_EVENT( FOnIsOpenChanged, OnPopupOpenChanged )
+		
+		SLATE_EVENT( FOnClicked, OnClicked ) // return ***UNHANDLED*** to let the button popup appear
 
 		SLATE_ATTRIBUTE( FLinearColor, ButtonColor )		
 
 		SLATE_ARGUMENT( FMenuContentGetter, PopupContentGetter )
 
 		SLATE_ARGUMENT( EMenuPlacement, PopupPlacement )
+
+		SLATE_STYLE_ARGUMENT( FButtonStyle, ButtonStyle )
 		
 	SLATE_END_ARGS()
 
@@ -44,6 +50,8 @@ public:
 	SHorizontalBox::FSlot* ButtonContentSlot;
 
 	TSharedPtr<SButton> Button;
+	
+	FOnClicked OnClicked;
 
 	FMenuContentGetter MenuContentGetter;
 	

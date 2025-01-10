@@ -143,6 +143,7 @@ protected:
 	void OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	bool OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const;
 	FReply OnClicked_DirectedAtWidget();
+	TSharedRef<SWidget> PopupContentGetter_DirectedAtWidget();
 	const FSlateBrush* Image_DirectedAtWidget() const;
 	TSharedRef<SWidget> CreateDirectedAtWidget();
 	// ------------------------------------------

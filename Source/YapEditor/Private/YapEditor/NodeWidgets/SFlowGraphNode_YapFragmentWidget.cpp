@@ -685,22 +685,47 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget()
 
 		return FReply::Handled();
 	}
-	
-	TSharedPtr<SWidget> Widget = SNew(SBorder)
-		.Padding(1, 1, 1, 1) // No idea why but the details view already has a 4 pixel transparent area on top
-		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
-		.BorderBackgroundColor(YapColor::DimGray)
+
+	return FReply::Unhandled();
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget()
+{
+	return SNew(SBorder)
+	.Padding(1, 1, 1, 1)
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
+	.BorderBackgroundColor(YapColor::DimGray)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(6, 0, 6, 0)
+		[
+			SNew(SBox)
+			.WidthOverride(15) // Rotated widgets are laid out per their original transform, use negative padding and a width override for rotated text
+			.Padding(-80) 
+			.VAlign(VAlign_Center)
+			.HAlign(HAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("DirectedAt_PopupLabel", "DIRECTED AT"))
+				.RenderTransformPivot(FVector2D(0.5, 0.5))
+				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
+			]
+		]
+		
+		+ SHorizontalBox::Slot()
 		[
 			SNew(SYapPropertyMenuAssetPicker)
 			.AllowedClasses({UYapCharacter::StaticClass()})
 			.AllowClear(true)
 			.InitialObject(GetBit().GetDirectedAt())
 			.OnSet(this, &SFlowGraphNode_YapFragmentWidget::OnSetNewDirectedAtAsset)
-		];
-
-	Owner->AddOverlayWidget(DirectedAtWidget, Widget);
-	
-	return FReply::Handled();
+		]
+	];
 }
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
@@ -720,13 +745,14 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() co
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 {
 	int32 PortraitSize = UYapEditorSettings::Get()->GetPortraitSize() / 3;
-
+	
 	return SNew(SBorder)
+	.Cursor(EMouseCursor::Default)
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Center)
 	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Panel_Rounded))
 	.BorderBackgroundColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage)
-	.Padding(0, 0, 0, 0)
+	.Padding(2)
 	[
 		SNew(SBox)
 		.WidthOverride(PortraitSize + 2)
@@ -741,16 +767,16 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 				.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_DirectedAtWidget)
 				.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_DirectedAtWidget)
 				[
-					SAssignNew(DirectedAtWidget, SButton)
-					.Cursor(EMouseCursor::Default)
-					.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-					//.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_PortraitWidget)
-					.ContentPadding(0)
+					SNew(SYapButtonPopup)
+					.PopupPlacement(MenuPlacement_BelowAnchor)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget)
+					.PopupContentGetter(FMenuContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget))
+					.ButtonStyle(FAppStyle::Get(), "HoverHintOnly")
+					.ButtonContent()
 					[
 						SNew(SImage)
 						.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-						.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget)	
+						.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget)
 					]
 				]
 			]
@@ -1725,18 +1751,39 @@ void SFlowGraphNode_YapFragmentWidget::OnSetNewDirectedAtAsset(const FAssetData&
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_SpeakerWidget(TSoftObjectPtr<UYapCharacter>* CharacterAsset, const UYapCharacter* Character)
 {
 	return SNew(SBorder)
-	.Padding(1, 1, 1, 1) // No idea why but the details view already has a 4 pixel transparent area on top
+	.Padding(1, 1, 1, 1)
 	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
 	.BorderBackgroundColor(YapColor::DimGray)
 	[
-		SNew(SYapPropertyMenuAssetPicker)
-		.AllowedClasses({UYapCharacter::StaticClass()})
-		.AllowClear(true)
-		.InitialObject(Character)
-		.OnSet(this, &SFlowGraphNode_YapFragmentWidget::OnSetNewSpeakerAsset)
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(6, 0, 6, 0)
+		[
+			SNew(SBox)
+			.WidthOverride(15) // Rotated widgets are laid out per their original transform, use negative padding and a width override for rotated text
+			.Padding(-80) 
+			.VAlign(VAlign_Center)
+			.HAlign(HAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("Speaker_PopupLabel", "SPEAKER"))
+				.RenderTransformPivot(FVector2D(0.5, 0.5))
+				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
+			]
+		]
+		+ SHorizontalBox::Slot()
+		[
+			SNew(SYapPropertyMenuAssetPicker)
+			.AllowedClasses({UYapCharacter::StaticClass()})
+			.AllowClear(true)
+			.InitialObject(Character)
+			.OnSet(this, &SFlowGraphNode_YapFragmentWidget::OnSetNewSpeakerAsset)
+		]
 	];
-
-	//Owner->AddOverlayWidget(SpeakerWidget, Widget);
 }
 
 FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
