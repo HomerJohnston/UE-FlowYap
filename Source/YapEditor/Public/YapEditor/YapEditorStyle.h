@@ -12,6 +12,7 @@
 
 struct FYapBrushes
 {
+	// PNGs
 	FName Icon_AudioTime;
 	FName Icon_Baby;
 	FName Icon_CrossX;
@@ -20,7 +21,7 @@ struct FYapBrushes
 	FName Icon_DownArrow;
 	FName Icon_Edit;
 
-	FName Icon_LocalLimit; 	// Test 2
+	FName Icon_LocalLimit;
 
 	FName Icon_MoodKeyMissing;
 	FName Icon_Speaker;
@@ -65,6 +66,10 @@ struct FYapBrushes
 	FName Outline_White_Deburred;
 
 	FName Pin_OptionalOutput;
+
+	// SVGs
+	FName Icon_Chevron_Right;
+	FName Icon_Caret_Right;
 };
 
 struct FYapStyles

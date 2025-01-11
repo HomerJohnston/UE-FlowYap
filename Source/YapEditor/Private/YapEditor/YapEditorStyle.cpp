@@ -131,7 +131,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	
 	// ============================================================================================
-	// BRUSHES
+	// BRUSHES - PNGs
 	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Baby,						"Icon_Baby", ".png",					FVector2f(16, 16));
@@ -182,6 +182,12 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
 
 	YAP_DEFINE_BRUSH(FSlateImageBrush,	CheckBox_Test,					"Box_SolidWhite_Deburred", ".png",				FVector2f(8, 8), YapColor::Error);
+
+	// ============================================================================================
+	// BRUSHES - SVGs
+	// ============================================================================================
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Chevron_Right,		"Icon_Chevron_Right", ".svg",			FVector2f(16, 16), YapColor::White);
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Caret_Right,		"Icon_Caret_Right", ".svg",			FVector2f(16, 16), YapColor::White);
 
 	// ============================================================================================
 	// SLIDER STYLES

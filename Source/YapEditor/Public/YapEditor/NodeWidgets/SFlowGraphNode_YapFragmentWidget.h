@@ -191,6 +191,9 @@ protected:
 	FText Text_SpeakerWidget() const;
 	bool OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+
+	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
+	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreateSpeakerWidget();
@@ -218,6 +221,7 @@ protected:
 
 	FText Text_EditedText(FText* Text) const;
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
+	FReply OnClicked_CloseTextEditorButton();
 	FReply OnClicked_TextDisplayWidget();
 
 	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;

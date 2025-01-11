@@ -112,7 +112,13 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWid
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Fill)
 		[
-			CreateDialogueDisplayWidget()
+			SNew(SAssetDropTarget)
+			.bSupportsMultiDrop(false)
+			.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget)
+			.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget)
+			[
+				CreateDialogueDisplayWidget()
+			]
 		]
 		+ SVerticalBox::Slot()
 		.Padding(0, 4, 0, 0)
@@ -705,7 +711,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 		[
 			SNew(SBox)
 			.WidthOverride(15) // Rotated widgets are laid out per their original transform, use negative padding and a width override for rotated text
-			.Padding(-80) 
+			.Padding(-80)
 			.VAlign(VAlign_Center)
 			.HAlign(HAlign_Center)
 			[
@@ -713,7 +719,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 				.Text(LOCTEXT("DirectedAt_PopupLabel", "DIRECTED AT"))
 				.RenderTransformPivot(FVector2D(0.5, 0.5))
 				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
 			]
 		]
 		
@@ -1310,7 +1316,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget()
 			+ SVerticalBox::Slot()
 			.Padding(0, 2, 0, 0)
 			.AutoHeight()
-			.VAlign(VAlign_Center)
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
@@ -1772,7 +1777,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Speaker
 				.Text(LOCTEXT("Speaker_PopupLabel", "SPEAKER"))
 				.RenderTransformPivot(FVector2D(0.5, 0.5))
 				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -1840,12 +1845,7 @@ bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_SpeakerWidge
 	{
 		return true;
 	}
-
-	if (UYapProjectSettings::Get()->GetDialogueAssetClasses().Contains(Class))
-	{
-		return true;
-	}
-
+	
 	return false;
 }
 
@@ -1856,32 +1856,58 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_SpeakerWidget(const FDrag
 		return;
 	}
 
+	UYapCharacter* Character = Cast<UYapCharacter>(AssetDatas[0].GetAsset());
+	
+	FYapTransactions::BeginModify(LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNode());
+
+	GetBit().SetSpeaker(Character);
+
+	FYapTransactions::EndModify();
+}
+
+bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return false;
+	}
+
+	UClass* AssetClass = AssetDatas[0].GetClass();
+	
+	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+	
+	for (const TSoftClassPtr<UObject>& AllowableClass : AllowableClasses)
+	{
+		if (AssetClass->IsChildOf(AllowableClass.LoadSynchronous())) // TODO return false instead and request an async load
+		{
+			return true;
+		}
+	}  
+
+	return false;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
 	UObject* Object = AssetDatas[0].GetAsset();
 	
-	if (UYapCharacter* Character = Cast<UYapCharacter>(Object))
+	FYapTransactions::BeginModify(LOCTEXT("SetAudioAsset", "Set audio asset"), GetDialogueNode());
+
+	if (bEditingChildSafeSettings)
 	{
-		FYapTransactions::BeginModify(LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNode());
-
-		GetBit().SetSpeaker(Character);
-
-		FYapTransactions::EndModify();
+		GetBit().SetSafeDialogueAudioAsset(Object);
 	}
 	else
 	{
-		FYapTransactions::BeginModify(LOCTEXT("SetAudioAsset", "Set audio asset"), GetDialogueNode());
-
-		if (bEditingChildSafeSettings)
-		{
-			GetBit().SetSafeDialogueAudioAsset(Object);
-		}
-		else
-		{
-			GetBit().SetMatureDialogueAudioAsset(Object);
-		}
-
-		FYapTransactions::EndModify();	
+		GetBit().SetMatureDialogueAudioAsset(Object);
 	}
-	
+
+	FYapTransactions::EndModify();	
 }
 
 // ================================================================================================
@@ -2109,6 +2135,16 @@ void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText(const FText& N
 	FYapTransactions::EndModify();
 }
 
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_CloseTextEditorButton()
+{
+	// TODO move to a function
+	FragmentOverlay->RemoveSlot(ExpandedTextEditorWidget.ToSharedRef());
+	bTextEditorExpanded = false;
+	ExpandedTextEditorWidget = nullptr;
+
+	return FReply::Handled();
+}
+
 // TODO templates to reduce code fat
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 {
@@ -2132,6 +2168,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 	ExpandedTextEditorWidget_Offset = ExpandedTextEditorWidget_StartOffset;
 	ExpandedTextEditorWidget_OffsetAlpha = 0.0;
 
+	TSharedPtr<SYapTextPropertyEditableTextBox> TextEditor;
 	
 	ExpandedTextEditorWidget = SNew(SBox)
 	.Padding(ExpandedTextEditorWidget_Offset, 0, 0, 0)
@@ -2149,7 +2186,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 			[
 				SNew(SBox)
 				[
-					SNew(SYapTextPropertyEditableTextBox, MatureDialogueTextProperty)
+					SAssignNew(TextEditor, SYapTextPropertyEditableTextBox, MatureDialogueTextProperty)
 					.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &GetBit().MatureDialogueText)
 					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetDialogueText, &GetBit().MatureDialogueText)
@@ -2216,13 +2253,17 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 		[
 			SNew(SBox)
 			.WidthOverride(5)
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Center)
 			[
 				SNew(SButton)
 				.Cursor(EMouseCursor::Default)
 				.ButtonStyle(FCoreStyle::Get(), "HoverHintOnly")
-				.ContentPadding(0)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_CloseTextEditorButton)
+				.ContentPadding(-4)
 				[
-					SNew(SSpacer)
+					SNew(SImage)
+					.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Caret_Right))
 				]
 			]
 		]
@@ -2236,8 +2277,10 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 
 	bTextEditorExpanded = true;
 
-	Owner->SetNodeSelected();
+	FSlateApplication::Get().SetKeyboardFocus(TextEditor);
 	
+	Owner->SetNodeSelected();
+
 	return FReply::Handled();
 
 }
@@ -2777,6 +2820,7 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 
 	if (bTextEditorExpanded && !bOwnerSelected)
 	{
+		// TODO move to a function
 		FragmentOverlay->RemoveSlot(ExpandedTextEditorWidget.ToSharedRef());
 		bTextEditorExpanded = false;
 		ExpandedTextEditorWidget = nullptr;
