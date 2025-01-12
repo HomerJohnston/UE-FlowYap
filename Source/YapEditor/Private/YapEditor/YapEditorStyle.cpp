@@ -36,35 +36,12 @@ YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
 Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE));\
 TYPE& STYLENAME = const_cast<TYPE&>(GetWidgetStyle<TYPE>(YAP_QUOTE(STYLENAME)));\
 STYLENAME MODS;
-
+	
 /** Used to copy an existing UE brush into Yap style for easier use */
 #define YAP_REDEFINE_UE_BRUSH(TYPE, YAPNAME, UESTYLESET, UENAME, ...)\
 YapBrushes.YAPNAME = YAP_QUOTE(YAPNAME);\
-Set(YAP_QUOTE(YAPNAME), new TYPE(UESTYLESET::GetBrush(UENAME)->GetResourceName().ToString(), __VA_ARGS__));\
-const TYPE& YAPNAME = *static_cast<const TYPE*>(GetImageBrush(YAP_QUOTE(YAPNAME)))
-
-/*
-#define YAP_SET_BRUSH(TYPE, BRUSH, MARGIN, COLOR)\ 
-.Set##TYPE(FSlateBrush(BRUSH), FMargin(MARGIN), COLOR)
-YAP_SET_BRUSH(Normal, ButtonHoverHintBrush, (4.0 / 16.0), YapColor::White);
-*/
-
-/*	
-#define YAP_SET_FOREGROUND(TYPE, COLOR)\
-	.Set##TYPE##Foreground(COLOR)
-*/
-
-/*
-#define YAP_SETUP_BUTTON_PARAMS(BRUSH, MARGIN, NORMAL_COLOR, HOVERED_COLOR, PRESSED_COLOR, DISABLED_COLOR, FOREGROUND_NORMAL_COLOR, FOREGROUND_HOVERED_COLOR, FOREGROUND_PRESSED_COLOR, FOREGROUND_DISABLED_COLOR)\
-YAP_SET_BRUSH(Normal, BRUSH, FMargin(MARGIN), NORMAL_COLOR))\
-YAP_SET_BRUSH(Hovered(BRUSH, FMargin(MARGIN), HOVERED_COLOR))\
-YAP_SET_BRUSH(Pressed(BRUSH, FMargin(MARGIN), PRESSED_COLOR))\
-YAP_SET_BRUSH(Disabled(BRUSH, FMargin(MARGIN), DISABLED_COLOR))\
-YAP_SET_FOREGROUND(Normal, FOREGROUND_NORMAL_COLOR)\
-YAP_SET_FOREGROUND(Hovered, FOREGROUND_HOVERED_COLOR)\
-YAP_SET_FOREGROUND(Pressed, FOREGROUND_PRESSED_COLOR)\
-YAP_SET_FOREGROUND(Disabled, FOREGROUND_DISABLED_COLOR)
-*/
+const TYPE& YAPNAME = *(new TYPE(UESTYLESET::GetBrush(UENAME)->GetResourceName().ToString(), __VA_ARGS__));\
+Set(YAP_QUOTE(YAPNAME), const_cast<TYPE*>(&YAPNAME))
 	
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -113,9 +90,6 @@ void FYapEditorStyle::OnPatchComplete()
 #endif
 
 #define YAP_COMMON_BRUSH "Common/ButtonHoverHint"
-
-//#define YAP_COMMON_BRUSH "Common/Button/simple_sharp_normal"
-//#define YAP_COMMON_BRUSH_HOVERED "Common/Button/simple_sharp_hovered"
 #define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
 #define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
 #define YAP_COMMON_CHECKBOXSTYLE FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox")
@@ -123,10 +97,8 @@ void FYapEditorStyle::OnPatchComplete()
 void FYapEditorStyle::Initialize()
 {
 	YAP_REDEFINE_UE_BRUSH(FSlateImageBrush,			None,				FAppStyle,	"NoBorder",				FVector2f(16, 16));
-
-
-	//YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,	FAppStyle,	"Icons.FilledCircle",	FVector2f(16, 16));
-	//YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,		FAppStyle,	"Icons.Plus",			FVector2f(16, 16));
+	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,	FAppStyle,	"Icons.FilledCircle",	FVector2f(16, 16));
+	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,		FAppStyle,	"Icons.Plus",			FVector2f(16, 16));
 
 	
 	// ============================================================================================
@@ -339,7 +311,11 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredThumbImage(Box_SolidWhite)
 		.SetNormalThumbImage(Box_SolidLightGray)
 	);
+
+	YAP_DEFINE_STYLE(FScrollBoxStyle, ScrollBoxStyle_Test, FCoreStyle::Get().GetWidgetStyle<FScrollBoxStyle>("ScrollBox"),
 		
+	);
+	
 	// ============================================================================================
 	// TEXT BLOCK STYLES
 	// ============================================================================================

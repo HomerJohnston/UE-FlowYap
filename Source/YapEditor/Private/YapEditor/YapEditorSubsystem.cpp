@@ -10,7 +10,6 @@
 #include "ImageUtils.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
-#include "YapEditor/YapEditorSettings.h"
 #include "Yap/YapEngineUtils.h"
 #include "Yap/YapGlobals.h"
 #include "YapEditor/YapInputTracker.h"
@@ -23,22 +22,6 @@
 bool UYapEditorSubsystem::bLiveCodingInProgress = true;
 TArray<TWeakObjectPtr<UObject>> UYapEditorSubsystem::OpenedAssets = {};
 
-FVector2D UYapEditorSubsystem::GetCachedSize(TSubclassOf<UYapCondition> ConditionClass)
-{
-	FVector2D* Cache = CachedDetailsWidgetSizes.Find(ConditionClass);
-	
-	if (Cache)
-	{
-		return *Cache;
-	}
-
-	return FVector2D::ZeroVector;
-}
-
-void UYapEditorSubsystem::SetCachedSize(TSubclassOf<UYapCondition> ConditionClass, FVector2D Size)
-{
-	CachedDetailsWidgetSizes.Add(ConditionClass, Size);
-}
 
 void UYapEditorSubsystem::UpdateMoodKeyBrushes()
 {

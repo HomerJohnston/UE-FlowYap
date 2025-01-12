@@ -15,7 +15,6 @@
 #include "Widgets/Text/SInlineEditableTextBlock.h"
 #include "Yap/YapBit.h"
 #include "YapEditor/YapColors.h"
-#include "YapEditor/YapEditorSettings.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
 #include "YapEditor/YapInputTracker.h"
@@ -194,7 +193,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 {
 	const float GraphGridSize = 16;
-	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapEditorSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + GraphGridSize * UYapEditorSettings::Get()->GetDialogueWidthAdjustment());
+	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + GraphGridSize * UYapProjectSettings::Get()->GetDialogueWidthAdjustment());
 }
 
 // ------------------------------------------------------------------------------------------------

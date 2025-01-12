@@ -51,15 +51,6 @@ protected:
 
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
-	/** When you first open details widgets, they go through a ridiculous resizing process that takes about 4 frames.
-	 * What I do is cache it in here on tick, so that next time you open the widget, it doesn't do it again. */
-	TMap<TSubclassOf<UYapCondition>, FVector2D> CachedDetailsWidgetSizes; 
-
-public:
-	FVector2D GetCachedSize(TSubclassOf<UYapCondition> ConditionClass);
-
-	void SetCachedSize(TSubclassOf<UYapCondition> ConditionClass, FVector2D Size);
-	
 public:
 	void UpdateMoodKeyBrushes();
 	void BuildIcon(const FGameplayTag& MoodKey);

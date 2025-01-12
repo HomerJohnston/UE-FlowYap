@@ -106,6 +106,8 @@ struct FYapStyles
 	FName SliderStyle_FragmentTimePadding;
 	
 	FName ScrollBarStyle_DialogueBox;
+
+	FName ScrollBoxStyle_Test;
 	
 	FName TextBlockStyle_DialogueText;
 	FName TextBlockStyle_NodeHeader;
@@ -148,6 +150,10 @@ protected:
 	void Initialize();
 	void OnPatchComplete();
 	FDelegateHandle OnPatchCompleteHandle;
+
+private:
+	// DO NOT USE THIS FOR ANYTHING. It's a dumb macro placeholder.
+	FSlateImageBrush* TEMP;
 };
 
 #undef LOCTEXT_NAMESPACE

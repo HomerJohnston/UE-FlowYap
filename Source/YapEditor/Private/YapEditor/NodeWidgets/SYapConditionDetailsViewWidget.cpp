@@ -4,15 +4,17 @@
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
+#include "YapDeveloperSettings.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "YapEditor/YapEditorSettings.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/YapLogEditor.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
+
+TMap<TWeakObjectPtr<UClass>, float> SYapConditionDetailsViewWidget::CachedDetailsWidgetHeights;
 
 // ----------------------------------------------
 void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
@@ -45,75 +47,82 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	TSharedRef<IDetailsView> DetailsWidget = PropertyEditorModule.CreateDetailView(Args);
 	DetailsWidget->SetObject(GetCondition());
 
-	FVector2D CachedSize = UYapEditorSubsystem::Get()->GetCachedSize(GetCondition()->GetClass());
-
-	float MinDesiredWidth = GetCondition()->GetDetailsViewWidth();
-	float MinDesiredHeight =  GetCondition()->GetDetailsViewHeight();
+	float WidgetWidth = GetCondition()->GetDetailsViewWidth();
+	float WidgetHeight = GetCondition()->GetDetailsViewHeight();
 	
-	if (MinDesiredWidth == 0.0)
+	if (WidgetWidth <= 100.0)
 	{
-		MinDesiredWidth = CachedSize.X;
+		WidgetWidth = UYapDeveloperSettings::GetConditionDetailsWidth();
 	}
-
-	if (MinDesiredHeight == 0.0)
+	
+	if (WidgetHeight <= 100.0)
 	{
-		MinDesiredHeight = CachedSize.Y;
+		WidgetHeight = UYapDeveloperSettings::GetConditionDetailsHeight();
 	}
-
-	MinDesiredWidth = FMath::Min(MinDesiredWidth, UYapEditorSettings::GetMaxConditionDetailsWidth());
-	MinDesiredHeight = FMath::Min(MinDesiredHeight, UYapEditorSettings::GetMaxConditionDetailsHeight());
 
 	ChildSlot
 	[
 		SNew(SBox)
-		.MinDesiredWidth(MinDesiredWidth)
-		.MinDesiredHeight(MinDesiredHeight)
-		.MaxDesiredWidth(UYapEditorSettings::GetMaxConditionDetailsWidth())
-		.MaxDesiredHeight(UYapEditorSettings::GetMaxConditionDetailsHeight())
+		.WidthOverride(WidgetWidth)
+		.HeightOverride(WidgetHeight)
+		.Padding(0)
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(8, 8, 8, 2)
+			SNew(SBorder)
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
+			.BorderBackgroundColor(YapColor::DeepGray)
+			.Padding(4)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.Padding(0, 0, 2, 0)
-				.FillWidth(1.0)
+				SNew(SScrollBox)
+				.ScrollBarStyle(FYapEditorStyle::Get(), YapStyles.ScrollBarStyle_DialogueBox)
+				.ScrollBarPadding(FMargin(4,0,0,0))
+				+ SScrollBox::Slot()
+				.Padding(0)
 				[
-					SNew(SClassPropertyEntryBox)
-					.OnSetClass(this, &SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty)
-					.MetaClass(UYapCondition::StaticClass())
-					.SelectedClass(this, &SYapConditionDetailsViewWidget::SelectedClass_ConditionProperty)
-					.AllowAbstract(false)
-					.ShowTreeView(false)
-					.AllowNone(false)
-				]
-				+ SHorizontalBox::Slot()
-				.Padding(2, 1, 0, 1)
-				.AutoWidth()
-				[
-					SNew(SButton)
-					.ButtonColorAndOpacity(YapColor::DeepOrangeRed)
-					.ContentPadding(FMargin(4, 2, 4, 2))
-					.ForegroundColor(YapColor::White)
-					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
-					.ToolTipText(LOCTEXT("DeleteCondition", "Delete condition"))
-					.OnClicked(this, &SYapConditionDetailsViewWidget::OnClicked_Delete)
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0, 0, 0, 2)
 					[
-						SNew(SImage)
-						//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
-						.Image(FAppStyle::Get().GetBrush("Icons.Delete"))
-						.DesiredSizeOverride(FVector2D(16, 16))
-						.ColorAndOpacity(FSlateColor::UseStyle())
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						.Padding(0, 0, 2, 0)
+						.FillWidth(1.0)
+						[
+							SNew(SClassPropertyEntryBox)
+							.OnSetClass(this, &SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty)
+							.MetaClass(UYapCondition::StaticClass())
+							.SelectedClass(this, &SYapConditionDetailsViewWidget::SelectedClass_ConditionProperty)
+							.AllowAbstract(false)
+							.ShowTreeView(false)
+							.AllowNone(false)
+						]
+						+ SHorizontalBox::Slot()
+						.Padding(2, 1, 0, 1)
+						.AutoWidth()
+						[
+							SNew(SButton)
+							.ButtonColorAndOpacity(YapColor::DeepOrangeRed)
+							.ContentPadding(FMargin(4, 2, 4, 2))
+							.ForegroundColor(YapColor::White)
+							.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
+							.ToolTipText(LOCTEXT("DeleteCondition", "Delete condition"))
+							.OnClicked(this, &SYapConditionDetailsViewWidget::OnClicked_Delete)
+							[
+								SNew(SImage)
+								//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
+								.Image(FAppStyle::Get().GetBrush("Icons.Delete"))
+								.DesiredSizeOverride(FVector2D(16, 16))
+								.ColorAndOpacity(FSlateColor::UseStyle())
+							]
+						]
+					]
+					+ SVerticalBox::Slot()
+					.FillHeight(1.0)
+					.Padding(0, 0, 0, 0)
+					[
+						DetailsWidget
 					]
 				]
-			]
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0)
-			.Padding(8, 0, 8, 8)
-			[
-				DetailsWidget
 			]
 		]
 	];
@@ -212,8 +221,20 @@ void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* 
 
 void SYapConditionDetailsViewWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
-	UYapEditorSubsystem::Get()->SetCachedSize(ConditionClass.Get(), FVector2D(AllottedGeometry.Size.X, AllottedGeometry.Size.Y));
+	SetCachedHeight(ConditionClass.Get(), AllottedGeometry.Size.Y);
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 }
 
+
+float SYapConditionDetailsViewWidget::GetCachedHeight(TWeakObjectPtr<UClass> ConditionClass)
+{
+	float* Cache = CachedDetailsWidgetHeights.Find(ConditionClass);
+
+	return (Cache) ? *Cache : 0;
+}
+
+void SYapConditionDetailsViewWidget::SetCachedHeight(TWeakObjectPtr<UClass> ConditionClass, float Size)
+{
+	CachedDetailsWidgetHeights.Add(ConditionClass, Size);
+}
 #undef LOCTEXT_NAMESPACE

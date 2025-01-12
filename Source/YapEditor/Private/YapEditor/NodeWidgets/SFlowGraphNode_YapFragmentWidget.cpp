@@ -24,7 +24,6 @@
 #include "YapEditor/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "YapEditor/SlateWidgets/SGameplayTagComboFiltered.h"
 #include "Yap/YapBitReplacement.h"
-#include "YapEditor/YapEditorSettings.h"
 #include "YapEditor/YapInputTracker.h"
 #include "YapEditor/Helpers/SYapTextPropertyEditableTextBox.h"
 #include "YapEditor/Helpers/YapEditableTextPropertyHandle.h"
@@ -625,7 +624,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtIm
 		Color = YapColor::Transparent;		
 	}
 
-	float A = UYapEditorSettings::Get()->GetPortraitBorderAlpha();
+	float A = UYapProjectSettings::Get()->GetPortraitBorderAlpha();
 	
 	Color.R *= A;
 	Color.G *= A;
@@ -741,7 +740,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() co
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 {
-	int32 PortraitSize = UYapEditorSettings::Get()->GetPortraitSize() / 3;
+	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize() / 3;
 	
 	return SNew(SBorder)
 	.Cursor(EMouseCursor::Default)
@@ -1587,7 +1586,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
-	const float MaxPaddedSetting = UYapEditorSettings::Get()->GetPaddingTimeSliderMax();
+	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetPaddingTimeSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
 	if (GEditor->PlayWorld)
@@ -1619,7 +1618,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
-	const float MaxTimeSetting = UYapEditorSettings::Get()->GetDialogueTimeSliderMax();
+	const float MaxTimeSetting = UYapProjectSettings::Get()->GetDialogueTimeSliderMax();
 
 	const TOptional<float> FragmentTimeIn = GetBit().GetTime(DisplayingChildSafeData());
 
@@ -1725,7 +1724,7 @@ FLinearColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterIm
 		Color = YapColor::Gray_Glass;		
 	}
 
-	Color.A *= UYapEditorSettings::Get()->GetPortraitBorderAlpha();
+	Color.A *= UYapProjectSettings::Get()->GetPortraitBorderAlpha();
 
 	if (!GetDialogueNode()->IsPlayerPrompt())
 	{
@@ -1916,7 +1915,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget(const FDragDro
 
 TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 {
-	int32 PortraitSize = UYapEditorSettings::Get()->GetPortraitSize();
+	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize();
 	int32 PortraitBorder = 8;
 	
 	return SNew(SOverlay)
@@ -2163,7 +2162,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget()
 	TSharedRef<IEditableTextProperty> SafeDialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetBit().SafeDialogueText));
 	TSharedRef<IEditableTextProperty> SafeTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(GetBit().SafeTitleText));
 
-	float TotalPortraitWidgetSize = UYapEditorSettings::Get()->GetPortraitSize() + 8;
+	float TotalPortraitWidgetSize = UYapProjectSettings::Get()->GetPortraitSize() + 8;
 
 	ExpandedTextEditorWidget_StartOffset = TotalPortraitWidgetSize + 5;
 	ExpandedTextEditorWidget_Offset = ExpandedTextEditorWidget_StartOffset;

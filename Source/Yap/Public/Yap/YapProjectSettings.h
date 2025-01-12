@@ -119,7 +119,9 @@ protected:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
-	
+
+	// ============================================================================================
+	// EDITOR SETTINGS
 #if WITH_EDITORONLY_DATA
 public:
 	/** If set, enables nicer filtering of condition tags display */
@@ -137,6 +139,7 @@ public:
 	TMulticastDelegate<void()> OnMoodTagsChanged;
 	
 protected:
+	
 	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FDirectoryPath MoodKeyIconPath;
@@ -155,7 +158,29 @@ protected:
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FString DefaultTextNamespace = "Yap";
+
+	/** Adjusts the width of all dialogue nodes in graph grid units (16 px). */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = -6, ClampMax = +100, UIMin = -6, UIMax = 20, Delta = 1))
+	int32 DialogueWidthAdjustment = 0;
+
+	/** Controls how large the portrait widgets are in the graph. Sizes smaller than 64 will result in some odd slate snapping. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 64, ClampMax = 128, UIMin = 32, UIMax = 128, Multiple = 16))
+	int32 PortraitSize = 64;
+
+	/** Controls how bright the portrait borders are in the graph. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
+	float PortraitBorderAlpha = 1.0f;
+
+	/** Controls the length of the time progress line on the dialogue widget (left side, for time of the running dialogue). */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	float DialogueTimeSliderMax = 5.0f;
+	
+	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	float PaddingTimeSliderMax = 2.0f;
+	
 #endif
+	
 
 	// ------------------------------------------
 	// API
@@ -233,6 +258,18 @@ public:
 	const FString& GetMoodKeyIconPath() const;
 	
 #if WITH_EDITOR
+public:
+
+	int32 GetDialogueWidthAdjustment() const { return DialogueWidthAdjustment; };
+
+	int32 GetPortraitSize() const { return PortraitSize; }
+
+	float GetPortraitBorderAlpha() const { return PortraitBorderAlpha; }
+
+	float GetDialogueTimeSliderMax() const { return DialogueTimeSliderMax; }
+
+	float GetPaddingTimeSliderMax() const { return PaddingTimeSliderMax; }
+
 public:
 	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
 	
