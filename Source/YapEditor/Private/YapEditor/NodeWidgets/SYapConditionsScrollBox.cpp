@@ -8,6 +8,7 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "YapEditor/NodeWidgets/SYapButtonPopup.h"
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -49,11 +50,18 @@ void SYapConditionsScrollBox::RebuildConditionButtons()
 	
 	for (int32 i = 0; i < ConditionsArray->Num(); ++i)
 	{
-		CreateConditionButton(i);
+		TSharedRef<SWidget> Button = CreateConditionButton(i);
+		ConditionButtons.Add(Button);
+
+		ScrollBox->AddSlot()
+		.Padding(0, 0, 4, 0)
+		[
+			Button
+		];
 	}
 
 	ScrollBox->AddSlot()
-	.Padding(0, 0, 0, 0)
+	.Padding(0, 0, 4, 0)
 	[
 		CreateAddConditionButton()
 	];
@@ -62,7 +70,7 @@ void SYapConditionsScrollBox::RebuildConditionButtons()
 // ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SYapConditionsScrollBox::CreateAddConditionButton()
 {
-	return  SNew(SButton)
+	return SNew(SButton)
 	.Cursor(EMouseCursor::Default)
 	.HAlign(HAlign_Center)
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
@@ -91,7 +99,7 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 	
 	FYapTransactions::BeginModify(LOCTEXT("AddCondition", "Add condition"), DialogueNode.Get());
 
-	DestroyConditionDetailsWidget();
+	//DestroyConditionDetailsWidget();
 
 	ConditionsArray->Add(nullptr);
 
@@ -99,7 +107,8 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 	
 	(void)OnConditionsArrayChanged.ExecuteIfBound();
 
-	// The dialogue widget will be rebuilt fully by the dialogue widget (which needs to rebuild to check if Bypass pin enables/disables), no need to rebuild conditions again here
+	// The dialogue widget will be rebuilt fully by the dialogue widget (which needs to rebuild to check if Bypass pin enables/disables), no need to rebuild conditions again here.
+	// Leave this existing and ommented out for future reference.
 	// RebuildConditionButtons();
 	
 	return FReply::Handled();
@@ -108,39 +117,34 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 // ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SYapConditionsScrollBox::CreateConditionButton(int32 ConditionIndex)
 {
-	TSharedRef<SWidget> ConditionButton = SNew(SButton)
-	.ButtonColorAndOpacity(this, &SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, ConditionIndex)
-	.ContentPadding(FMargin(4, 2, 4, 0))
-	.HAlign(HAlign_Center)
-	.ForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, ConditionIndex)
-	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
-	.ToolTipText(LOCTEXT("PrerequisitesForDialogue_ToolTip", "Prerequisite for this to run"))
-	.OnClicked(this, &SYapConditionsScrollBox::OnClicked_ConditionButton, ConditionIndex)
-	[
-		SNew(STextBlock)
-		.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
-		.ColorAndOpacity(FSlateColor::UseForeground())
-		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-	];
-	
-	ConditionButtons.Add(ConditionButton);
-	
-	ScrollBox->AddSlot()
-	.Padding(0, 0, 4, 0)
-	[
-		SNew(SBox)
-		.Cursor(EMouseCursor::Default)
-		.MinDesiredWidth(24)
+	return SNew(SYapButtonPopup)
+		.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SYapConditionsScrollBox::PopupContentGetter, ConditionIndex))
+		.PopupPlacement(MenuPlacement_BelowAnchor)
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
+		.ButtonForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, ConditionIndex)
+		.ButtonBackgroundColor(this, &SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, ConditionIndex)
+		.ButtonContentPadding(FMargin(8, 2, 8, 0))
+		.ButtonContent()
 		[
-			ConditionButton
-		]
-	];
-	
-	return ConditionButton;
+			SNew(STextBlock)
+			.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
+			.ColorAndOpacity(FSlateColor::UseForeground())
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+		];
+}
+
+TSharedRef<SWidget> SYapConditionsScrollBox::PopupContentGetter(int32 ConditionIndex)
+{
+	return SNew(SYapConditionDetailsViewWidget)
+		.Dialogue(DialogueNode)
+		.FragmentIndex(FragmentIndex)
+		.ConditionIndex(ConditionIndex)
+		.OnClickedDelete(this, &SYapConditionsScrollBox::OnClicked_DeleteConditionButton)
+		.OnClickedNewClass(this, &SYapConditionsScrollBox::OnSet_NewConditionClass);
 }
 
 // ------------------------------------------------------------------------------------------------
-FSlateColor SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(int32 ConditionIndex) const
+FLinearColor SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(int32 ConditionIndex) const
 {
 	UYapCondition* Condition = GetCondition(ConditionIndex);
 	
@@ -148,7 +152,7 @@ FSlateColor SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton(int32
 }
 
 // ------------------------------------------------------------------------------------------------
-FSlateColor SYapConditionsScrollBox::ForegroundColor_ConditionButton(int32 ConditionIndex) const
+FLinearColor SYapConditionsScrollBox::ForegroundColor_ConditionButton(int32 ConditionIndex) const
 {
 	FSlateColor ButtonColor = ButtonColorAndOpacity_ConditionButton(ConditionIndex);
 	
@@ -171,21 +175,6 @@ FText SYapConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
 }
 
 // ------------------------------------------------------------------------------------------------
-FReply SYapConditionsScrollBox::OnClicked_ConditionButton(int32 ConditionIndex)
-{
-	if (EditedConditionWidget.IsValid() && EditedConditionWidget.Pin()->ConditionIndex == ConditionIndex)
-	{
-		DestroyConditionDetailsWidget();
-	}
-	else
-	{
-		BuildConditionDetailsViewWidget(ConditionIndex);
-	}
-
-	return FReply::Handled();
-}
-
-// ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex)
 {
 	if (!DialogueNode.IsValid())
@@ -200,8 +189,6 @@ void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex
 
 	FYapTransactions::EndModify();
 
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr, nullptr);
-
 	(void)OnConditionsArrayChanged.ExecuteIfBound();
 
 	// The dialogue widget will be rebuilt fully by the dialogue widget (which needs to rebuild to check if Bypass pin enables/disables), no need to rebuild conditions again here
@@ -211,32 +198,18 @@ void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex
 // ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::OnSet_NewConditionClass(int ConditionIndex)
 {
-	BuildConditionDetailsViewWidget(ConditionIndex);
+	RebuildConditionButtons();
+
+	TSharedPtr<SWidget> X = ConditionButtons[ConditionIndex];
+	TSharedPtr<SYapButtonPopup> Popup = StaticCastSharedPtr<SYapButtonPopup>(ConditionButtons[ConditionIndex]);
+
+	Popup->OnClicked_Button();
 }
 
-// ------------------------------------------------------------------------------------------------
-void SYapConditionsScrollBox::BuildConditionDetailsViewWidget(int32 ConditionIndex)
-{
-	if (!DialogueNode.IsValid())
-	{
-		return;
-	}
-	
-	TSharedPtr<SYapConditionDetailsViewWidget> NewWidget = SNew(SYapConditionDetailsViewWidget)
-		.Dialogue(DialogueNode)
-		.FragmentIndex(FragmentIndex)
-		.ConditionIndex(ConditionIndex)
-		.OnClickedDelete(this, &SYapConditionsScrollBox::OnClicked_DeleteConditionButton)
-		.OnClickedNewClass(this, &SYapConditionsScrollBox::OnSet_NewConditionClass);
-
-	EditedConditionWidget = NewWidget;
-
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(NewWidget, ConditionButtons[ConditionIndex]);
-}
 
 void SYapConditionsScrollBox::DestroyConditionDetailsWidget()
 {
-	(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr, nullptr);
+	//(void)OnConditionDetailsViewBuilt.ExecuteIfBound(nullptr, nullptr);
 }
 
 // ------------------------------------------------------------------------------------------------

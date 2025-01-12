@@ -37,7 +37,14 @@ protected:
 	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float PaddingTimeSliderMax = 2.0f;
-	
+
+	// TODO these should be user config, not default config?
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	float MaxConditionDetailsWidth = 400;
+
+	// TODO these should be user config, not default config?
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	float MaxConditionDetailsHeight = 400;
 public:
 	int32 GetDialogueWidthAdjustment() const { return DialogueWidthAdjustment; };
 
@@ -49,6 +56,9 @@ public:
 
 	float GetPaddingTimeSliderMax() const { return PaddingTimeSliderMax; }
 
+	static float GetMaxConditionDetailsWidth() { return Get()->MaxConditionDetailsWidth; }
+	
+	static float GetMaxConditionDetailsHeight() { return Get()->MaxConditionDetailsHeight; }
 public:
 	virtual FName GetCategoryName() const override { return FName("Yap"); }
 

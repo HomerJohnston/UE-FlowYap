@@ -760,6 +760,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 		[
 			SNew(SBox)
 			.Visibility(this, &SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton)
+			.HeightOverride(14)
+			.VAlign(VAlign_Center)
+			//.Padding(0, 0, 0, 2)
 			[
 				SNew(SButton)
 				.Cursor(EMouseCursor::Default)
@@ -773,7 +776,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 					.VAlign(VAlign_Center)
 					[
 						SNew(SImage)
-						.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
+						.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_PlusSign))
+						.DesiredSizeOverride(FVector2D(12, 12))
 						.ColorAndOpacity(YapColor::Noir)
 					]
 				]

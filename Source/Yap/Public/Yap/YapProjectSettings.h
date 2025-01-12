@@ -168,9 +168,9 @@ public:
 
 	virtual FText GetSectionText() const override { return LOCTEXT("Settings", "Settings"); }
 
-	FString GetPortraitIconPath(FGameplayTag Key) const;
+	FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension) const;
 
-	FGameplayTagContainer GetMoodTags() const;
+	static FGameplayTagContainer GetMoodTags();
 	
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
@@ -230,6 +230,8 @@ public:
 
 	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
 
+	const FString& GetMoodKeyIconPath() const;
+	
 #if WITH_EDITOR
 public:
 	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }

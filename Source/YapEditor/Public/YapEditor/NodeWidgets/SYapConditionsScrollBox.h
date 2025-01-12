@@ -64,20 +64,18 @@ protected:
 	TSharedRef<SWidget> CreateAddConditionButton();	
 	
 	FReply OnClicked_AddConditionButton();
-	
+
+	TSharedRef<SWidget> PopupContentGetter(int32 ConditionIndex);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateConditionButton(int32 ConditionIndex);
 	
-	FSlateColor ButtonColorAndOpacity_ConditionButton(int32 ConditionIndex) const;
-	FSlateColor ForegroundColor_ConditionButton(int32 ConditionIndex) const;
+	FLinearColor ButtonColorAndOpacity_ConditionButton(int32 ConditionIndex) const;
+	FLinearColor ForegroundColor_ConditionButton(int32 ConditionIndex) const;
 	FText Text_ConditionButton(int32 ConditionIndex) const;
-	FReply OnClicked_ConditionButton(int32 ConditionIndex);
 	void OnClicked_DeleteConditionButton(int ConditionIndex);
 	void OnSet_NewConditionClass(int ConditionIndex);
 	
 	// ------------------------------------------
-	
-	void BuildConditionDetailsViewWidget(int32 ConditionIndex);
 	
 public:
 	void DestroyConditionDetailsWidget();

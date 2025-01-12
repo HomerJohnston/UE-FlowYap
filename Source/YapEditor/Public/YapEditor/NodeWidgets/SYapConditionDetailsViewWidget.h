@@ -53,12 +53,15 @@ private:
 
 	TSharedPtr<IStructureDetailsView> StructDetailView;
 
+	TWeakPtr<IDetailsView> DetailsWidgetWeakPtr;
 	
 	FPropertyPath ConditionPropertyPath;
 	
 	FOnClickedDeleteCondition OnClickedDelete;
 
 	FOnSelectedNewConditionClass OnSelectedNewClass;
+
+	TSubclassOf<UYapCondition> ConditionClass;
 	
 public:
 	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
@@ -66,6 +69,8 @@ public:
 	int32 FragmentIndex = INDEX_NONE;
 
 	int32 ConditionIndex = INDEX_NONE;
+
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };
 
 #undef LOCTEXT_NAMESPACE

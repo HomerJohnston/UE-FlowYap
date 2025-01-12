@@ -5,6 +5,7 @@
 
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
+#include "Yap/YapGlobals.h"
 #include "Yap/YapTextCalculator.h"
 #include "Yap/Enums/YapMaturitySetting.h"
 
@@ -55,7 +56,7 @@ UYapProjectSettings::UYapProjectSettings()
 }
 
 #if WITH_EDITOR
-FString UYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
+FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension) const
 {
 	int32 Index;
 
@@ -67,21 +68,18 @@ FString UYapProjectSettings::GetPortraitIconPath(FGameplayTag Key) const
 	}
 	
 	if (MoodKeyIconPath.Path == "")
-	{
-		TSharedPtr<IPlugin> YapPlugin = IPluginManager::Get().FindPlugin(TEXT("Yap"));
-		TSharedPtr<IPlugin> FlowYapPlugin = IPluginManager::Get().FindPlugin(TEXT("FlowYap"));
+	{		
+		static FString ResourcesDir = Yap::GetPluginFolder();
 		
-		static FString PluginDir = IPluginManager::Get().FindPlugin(TEXT("Yap"))->GetBaseDir();
-		
-		return PluginDir / FString::Format(TEXT("Resources/DefaultMoodKeys/{0}.png"), { KeyString });
+		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodKeys/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
-	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.png"), { MoodKeyIconPath.Path, KeyString });
+	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { MoodKeyIconPath.Path, KeyString, FileExtension });
 }
 
-FGameplayTagContainer UYapProjectSettings::GetMoodTags() const
+FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 {
-	return UGameplayTagsManager::Get().RequestGameplayTagChildren(MoodTagsParent);
+	return UGameplayTagsManager::Get().RequestGameplayTagChildren(Get()->MoodTagsParent);
 }
 
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -139,6 +137,26 @@ double UYapProjectSettings::GetMinimumFragmentTime()
 }
 
 #if WITH_EDITOR
+const FString& UYapProjectSettings::GetMoodKeyIconPath() const
+{
+	static FString CachedPath;
+
+	// Recache the path if it was never calculated, or if the setting is set and the cached path is not equal to it
+	if (CachedPath.IsEmpty() || (!MoodKeyIconPath.Path.IsEmpty() && CachedPath != MoodKeyIconPath.Path))
+	{
+		if (MoodKeyIconPath.Path == "")
+		{
+			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodKeys");
+		}
+		else
+		{
+			CachedPath = FPaths::ProjectDir() / MoodKeyIconPath.Path;
+		}	
+	}
+	
+	return CachedPath;
+}
+
 void UYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter)
 {
 	TMap<UClass*, EYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);

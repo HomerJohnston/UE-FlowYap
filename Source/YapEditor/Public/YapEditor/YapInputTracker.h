@@ -11,7 +11,7 @@ class UYapEditorSubsystem;
 
 class FYapInputTracker : public IInputProcessor
 {
-	
+
 protected:
 	UYapEditorSubsystem* Owner;
 

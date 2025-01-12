@@ -12,7 +12,15 @@
 
 struct FYapBrushes
 {
-	// PNGs
+	FName None;
+	
+	// Existing UnrealEd Icons
+	FName Icon_FilledCircle;
+	FName Icon_Chevron_Right;
+	FName Icon_Caret_Right;
+	FName Icon_PlusSign;
+	
+	// New Icons
 	FName Icon_AudioTime;
 	FName Icon_Baby;
 	FName Icon_CrossX;
@@ -23,7 +31,8 @@ struct FYapBrushes
 
 	FName Icon_LocalLimit;
 
-	FName Icon_MoodKeyMissing;
+	FName Icon_MoodKey_Missing;
+	FName Icon_MoodKey_None;
 	FName Icon_Speaker;
 	FName Icon_Tag;
 	FName Icon_TextTime;
@@ -56,8 +65,6 @@ struct FYapBrushes
 	FName Box_SolidBlack;
 	FName Box_SolidBlack_Deburred;
 	FName Box_SolidBlack_Rounded;
-
-	FName CheckBox_Test;
 	
 	FName Panel_Deburred;
 	FName Panel_Rounded;
@@ -67,25 +74,27 @@ struct FYapBrushes
 
 	FName Pin_OptionalOutput;
 
-	// SVGs
-	FName Icon_Chevron_Right;
-	FName Icon_Caret_Right;
+	FName Test; // TODO remove this eventually. This is just a placeholder for testing syntax in the .cpp file.
 };
 
 struct FYapStyles
-{	
+{
+	// Existing Unreal Editor styles for style consistency
+	FName ButtonStyle_NoBorder;
+	FName ButtonStyle_HoverHintOnly;
+	FName ButtonStyle_SimpleButton;
+
+	// New button styles
 	FName ButtonStyle_ActivationLimit;
+	FName ButtonStyle_AudioPreview;
 	FName ButtonStyle_ConditionWidget;
 	FName ButtonStyle_FragmentControls;
 	FName ButtonStyle_HeaderButton;
-	FName ButtonStyle_SequencingSelector;
-	FName ButtonStyle_DialogueSettings;
-	FName ButtonStyle_AudioPreview;
-	FName ButtonStyle_TimeSetting;
-	
-	FName ButtonStyle_TimeSettingOpener;
-
 	FName ButtonStyle_DialogueCornerFoldout;
+	FName ButtonStyle_DialogueSettings;
+	FName ButtonStyle_SequencingSelector;
+	FName ButtonStyle_TimeSetting;
+	FName ButtonStyle_TimeSettingOpener;
 
 	FName CheckBoxStyle_Skippable;
 	

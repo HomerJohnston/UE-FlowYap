@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="glyphicons-humans"
+   viewBox="0 0 32 32"
+   version="1.1"
+   sodipodi:docname="Icon_Baby.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showguides="true"
+     inkscape:zoom="29.59375"
+     inkscape:cx="19.835269"
+     inkscape:cy="19.463569"
+     inkscape:window-width="5120"
+     inkscape:window-height="2089"
+     inkscape:window-x="1192"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="glyphicons-humans" />
+  <path
+     id="baby"
+     d="m 24.201259,24.478791 a 2.4595434,2.4595434 0 0 1 0,2.730561 l -2.46134,3.692011 a 2.4613402,2.4613402 0 1 1 -4.095818,-2.730562 l 1.551555,-2.326729 -1.27837,-1.917212 3.912398,-3.005468 z m -11.396915,1.365281 1.27837,-1.917212 -3.912398,-3.005468 -2.3715754,3.557399 a 2.4595434,2.4595434 0 0 0 0,2.730561 l 2.4613404,3.692011 a 2.4613402,2.4613402 0 0 0 4.095817,-2.730562 z M 27.54595,15.121378 21.749494,10.904771 a 5.4984739,5.4984739 0 0 0 -2.086072,-0.919397 6.6980573,6.6980573 0 0 1 -7.326942,0 5.4918529,5.4918529 0 0 0 -2.084866,0.919397 L 4.45405,15.121378 a 1.8454902,1.8454902 0 1 0 2.1705082,2.985336 L 11.07732,14.868956 v 3.591096 h 9.84536 v -3.59181 l 4.452762,3.238472 A 1.8454902,1.8454902 0 1 0 27.54595,15.121378 Z M 16,8.6146906 A 4.3073453,4.3073453 0 1 0 11.692654,4.3073453 4.3073453,4.3073453 0 0 0 16,8.6146906 Z"
+     style="stroke-width:1.23068;fill:#ffffff;fill-opacity:1" />
+</svg>

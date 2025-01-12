@@ -12,6 +12,7 @@
 #include "Editor/UnrealEdEngine.h"
 #include "YapEditor/YapEditorSettings.h"
 #include "Yap/YapEngineUtils.h"
+#include "Yap/YapGlobals.h"
 #include "YapEditor/YapInputTracker.h"
 #include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapEditorStyle.h"
@@ -19,19 +20,31 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-FCheckBoxStyles UYapEditorSubsystem::CheckBoxStyles;
-
 bool UYapEditorSubsystem::bLiveCodingInProgress = true;
 TArray<TWeakObjectPtr<UObject>> UYapEditorSubsystem::OpenedAssets = {};
 
-void UYapEditorSubsystem::UpdateMoodKeyIconsMap()
+FVector2D UYapEditorSubsystem::GetCachedSize(TSubclassOf<UYapCondition> ConditionClass)
 {
-	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
-
-	FGameplayTagContainer MoodKeys = ProjectSettings->GetMoodTags();
+	FVector2D* Cache = CachedDetailsWidgetSizes.Find(ConditionClass);
 	
-	MoodKeyIconTextures.Empty(MoodKeys.Num());
-	MoodKeyIconBrushes.Empty(MoodKeys.Num());
+	if (Cache)
+	{
+		return *Cache;
+	}
+
+	return FVector2D::ZeroVector;
+}
+
+void UYapEditorSubsystem::SetCachedSize(TSubclassOf<UYapCondition> ConditionClass, FVector2D Size)
+{
+	CachedDetailsWidgetSizes.Add(ConditionClass, Size);
+}
+
+void UYapEditorSubsystem::UpdateMoodKeyBrushes()
+{
+	FGameplayTagContainer MoodKeys = UYapProjectSettings::GetMoodTags();
+	
+	MoodKeyIconBrushes.Empty(MoodKeys.Num() + 1);
 
 	for (const FGameplayTag& MoodKey : MoodKeys)
 	{
@@ -45,31 +58,37 @@ void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodKey)
 {
 	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
 
-	FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
-	UTexture2D* MoodKeyIcon = FImageUtils::ImportFileAsTexture2D(IconPath);
+	//FString Dir = UYapProjectSettings::GetPortraitIconPath() FPaths::plu RootToContentDir("Icon_Caret_Right", L".svg");
+	//FSlateVectorImageBrush* TesTst = new FSlateVectorImageBrush(Dir, FVector2f(16, 16), YapColor::White);
 
-	if (!IsValid(MoodKeyIcon))
+	TSharedPtr<FSlateImageBrush> ImageBrush = nullptr;
+	
+	// Attempt to load SVG
+	FString IconPath = ProjectSettings->GetMoodKeyIconPath(MoodKey, "svg");
+	ImageBrush = MakeShared<FSlateVectorImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
+
+	if (!ImageBrush)
+	{
+		IconPath = ProjectSettings->GetMoodKeyIconPath(MoodKey, "png");
+		ImageBrush = MakeShared<FSlateImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
+	}
+	
+	// Found nothing
+	if (!ImageBrush)
 	{
 		return;
 	}
 
-	MoodKeyIconTextures.Add(MoodKey, MoodKeyIcon);
-
-	TSharedPtr<FSlateBrush> MoodKeyBrush = MakeShareable(new FSlateBrush);
-
-	MoodKeyBrush->SetResourceObject(MoodKeyIcon);
-	MoodKeyBrush->SetImageSize(FVector2D(16, 16));
-		
-	MoodKeyIconBrushes.Add(MoodKey, MoodKeyBrush);
+	MoodKeyIconBrushes.Add(MoodKey, ImageBrush);
 }
 
-UTexture2D* UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
+TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
 {
-	UTexture2D** Texture = MoodKeyIconTextures.Find(MoodKey);
+	TSharedPtr<FSlateImageBrush>* Brush = MoodKeyIconBrushes.Find(MoodKey);
 
-	if (Texture)
+	if (Brush)
 	{
-		return *Texture;
+		return *Brush;
 	}
 
 	return nullptr;
@@ -77,9 +96,9 @@ UTexture2D* UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
 
 const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 {
-	TSharedPtr<FSlateBrush>* Brush = MoodKeyIconBrushes.Find(Name);
+	TSharedPtr<FSlateImageBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
-	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKeyMissing);
+	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKey_Missing);
 }
 
 // TODO move these to my editor style
@@ -97,36 +116,9 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
 
-	ProjectSettings->OnMoodTagsChanged.AddUObject(this, &ThisClass::UpdateMoodKeyIconsMap);
+	ProjectSettings->OnMoodTagsChanged.AddUObject(this, &ThisClass::UpdateMoodKeyBrushes);
 
-	UpdateMoodKeyIconsMap();
-
-	// TODO move these into my style
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Red, Red);
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Green, Green);
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Blue, Blue);
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Orange, Orange);
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_White, White);
-	INITALIZE_CHECKBOX_STYLE(ToggleButtonCheckBox_Transparent, Transparent);
-
-	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt = CheckBoxStyles.ToggleButtonCheckBox_White;
-	CheckBoxStyles.ToggleButtonCheckBox_PlayerPrompt.Padding = FMargin(0);
-
-	CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");
-	FCheckBoxStyle& Tmp = CheckBoxStyles.ToggleButtonCheckBox_DialogueInterrupt;
-
-	Tmp.CheckedImage.TintColor = YapColor::LightGreen;
-	Tmp.CheckedHoveredImage.TintColor = YapColor::GreenHovered;
-	Tmp.CheckedPressedImage.TintColor = YapColor::GreenPressed;
-	Tmp.UncheckedImage.TintColor = YapColor::LightRed;
-	Tmp.UncheckedHoveredImage.TintColor = YapColor::RedHovered;
-	Tmp.UncheckedPressedImage.TintColor = YapColor::RedPressed;
-
-	Tmp.UndeterminedForeground = YapColor::Green;
-	Tmp.UndeterminedImage = Tmp.CheckedImage;
-	Tmp.UndeterminedImage.TintColor = YapColor::LightGray;
-	Tmp.UndeterminedHoveredImage.TintColor = YapColor::Gray;
-	Tmp.UndeterminedPressedImage.TintColor = YapColor::Gray;
+	UpdateMoodKeyBrushes();
 
 	if (IsValid(GUnrealEd))
 	{
@@ -163,13 +155,8 @@ void UYapEditorSubsystem::Deinitialize()
 	{
 		FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
 	}
-	
-	Super::Deinitialize();
-}
 
-const FCheckBoxStyles& UYapEditorSubsystem::GetCheckBoxStyles()
-{
-	return CheckBoxStyles;
+	Super::Deinitialize();
 }
 
 FYapInputTracker* UYapEditorSubsystem::GetInputTracker()

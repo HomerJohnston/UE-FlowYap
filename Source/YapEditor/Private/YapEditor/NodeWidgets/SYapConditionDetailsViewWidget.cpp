@@ -8,6 +8,9 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "YapEditor/YapEditorSettings.h"
+#include "YapEditor/YapEditorSubsystem.h"
+#include "YapEditor/YapLogEditor.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -38,15 +41,35 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	Args.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Automatic;
 	
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	TSharedPtr<IDetailsView> DetailsWidget = PropertyEditorModule.CreateDetailView(Args);
+
+	TSharedRef<IDetailsView> DetailsWidget = PropertyEditorModule.CreateDetailView(Args);
 	DetailsWidget->SetObject(GetCondition());
+
+	FVector2D CachedSize = UYapEditorSubsystem::Get()->GetCachedSize(GetCondition()->GetClass());
+
+	float MinDesiredWidth = GetCondition()->GetDetailsViewWidth();
+	float MinDesiredHeight =  GetCondition()->GetDetailsViewHeight();
 	
+	if (MinDesiredWidth == 0.0)
+	{
+		MinDesiredWidth = CachedSize.X;
+	}
+
+	if (MinDesiredHeight == 0.0)
+	{
+		MinDesiredHeight = CachedSize.Y;
+	}
+
+	MinDesiredWidth = FMath::Min(MinDesiredWidth, UYapEditorSettings::GetMaxConditionDetailsWidth());
+	MinDesiredHeight = FMath::Min(MinDesiredHeight, UYapEditorSettings::GetMaxConditionDetailsHeight());
+
 	ChildSlot
 	[
-		SNew(SBorder)
-		.Padding(1, 1, 1, 1) // No idea why but the details view already has a 4 pixel transparent area on top
-		.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
-		.BorderBackgroundColor(YapColor::DimGray)
+		SNew(SBox)
+		.MinDesiredWidth(MinDesiredWidth)
+		.MinDesiredHeight(MinDesiredHeight)
+		.MaxDesiredWidth(UYapEditorSettings::GetMaxConditionDetailsWidth())
+		.MaxDesiredHeight(UYapEditorSettings::GetMaxConditionDetailsHeight())
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
@@ -56,6 +79,7 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
 				.Padding(0, 0, 2, 0)
+				.FillWidth(1.0)
 				[
 					SNew(SClassPropertyEntryBox)
 					.OnSetClass(this, &SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty)
@@ -86,13 +110,16 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 				]
 			]
 			+ SVerticalBox::Slot()
-			.AutoHeight()
+			.FillHeight(1.0)
 			.Padding(8, 0, 8, 8)
 			[
-				DetailsWidget.ToSharedRef()
+				DetailsWidget
 			]
 		]
 	];
+	
+	DetailsWidgetWeakPtr = DetailsWidget;
+	ConditionClass = GetCondition()->GetClass();
 }
 
 // ----------------------------------------------
@@ -181,6 +208,12 @@ void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* 
 	FYapTransactions::EndModify();
 
 	OnSelectedNewClass.Execute(ConditionIndex);
+}
+
+void SYapConditionDetailsViewWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	UYapEditorSubsystem::Get()->SetCachedSize(ConditionClass.Get(), FVector2D(AllottedGeometry.Size.X, AllottedGeometry.Size.Y));
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 }
 
 #undef LOCTEXT_NAMESPACE

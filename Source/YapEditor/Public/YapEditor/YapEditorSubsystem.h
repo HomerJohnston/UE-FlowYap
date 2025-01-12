@@ -5,6 +5,7 @@
 
 #include "Textures/SlateIcon.h"
 #include "GameplayTagContainer.h"
+#include "Yap/YapCondition.h"
 
 #include "YapEditorSubsystem.generated.h"
 
@@ -17,10 +18,6 @@ struct FYapFragment;
 struct FCheckBoxStyles
 {
 	// Generic check boxes
-	FCheckBoxStyle ToggleButtonCheckBox_Red;
-	FCheckBoxStyle ToggleButtonCheckBox_Green;
-	FCheckBoxStyle ToggleButtonCheckBox_Blue;
-	FCheckBoxStyle ToggleButtonCheckBox_Orange;
 	FCheckBoxStyle ToggleButtonCheckBox_White;
 	FCheckBoxStyle ToggleButtonCheckBox_Transparent;
 
@@ -33,25 +30,41 @@ UCLASS()
 class UYapEditorSubsystem : public UEditorSubsystem, public FTickableEditorObject
 {
 	GENERATED_BODY()
+
+public:
+	static UYapEditorSubsystem* Get()
+	{
+		if (GEditor)
+		{
+			return GEditor->GetEditorSubsystem<UYapEditorSubsystem>();
+		}
+
+		return nullptr;
+	}
 	
 private:
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, UTexture2D*> MoodKeyIconTextures;
-	TMap<FGameplayTag, TSharedPtr<FSlateBrush>> MoodKeyIconBrushes;
+	TMap<FGameplayTag, TSharedPtr<FSlateImageBrush>> MoodKeyIconBrushes;
 
 protected:
-	static FCheckBoxStyles CheckBoxStyles;
-
 	// STATE
 	TSharedPtr<FYapInputTracker> InputTracker;
 
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
+	/** When you first open details widgets, they go through a ridiculous resizing process that takes about 4 frames.
+	 * What I do is cache it in here on tick, so that next time you open the widget, it doesn't do it again. */
+	TMap<TSubclassOf<UYapCondition>, FVector2D> CachedDetailsWidgetSizes; 
+
 public:
-	void UpdateMoodKeyIconsMap();
+	FVector2D GetCachedSize(TSubclassOf<UYapCondition> ConditionClass);
+
+	void SetCachedSize(TSubclassOf<UYapCondition> ConditionClass, FVector2D Size);
+	
+public:
+	void UpdateMoodKeyBrushes();
 	void BuildIcon(const FGameplayTag& MoodKey);
 
-	UTexture2D* GetMoodKeyIcon(FGameplayTag MoodKey);
+	TSharedPtr<FSlateImageBrush> GetMoodKeyIcon(FGameplayTag MoodKey);
 
 	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
 
@@ -62,8 +75,6 @@ public:
 	
 	void LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize = 16);
 	
-	static const FCheckBoxStyles& GetCheckBoxStyles();
-
 	FYapInputTracker* GetInputTracker();
 
 	TMap<TWeakPtr<FYapFragment>, TArray<FName>> FragmentPins;

@@ -24,21 +24,24 @@ FYapStyles YapStyles;
 YapFonts.NAME = DEFAULT_FONT(STYLE, SIZE);\
 FSlateFontInfo& NAME = YapFonts.NAME
 
+/** Define a new brush */
 #define YAP_DEFINE_BRUSH(TYPE, BRUSHNAME, FILENAME, EXTENSION, ...)\
 YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
 Set(YAP_QUOTE(BRUSHNAME), new TYPE(RootToContentDir(FILENAME, TEXT(EXTENSION)), __VA_ARGS__));\
 const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
 
-#define YAP_COPY_BRUSH(TYPE, BRUSHNAME, TEMPLATE, ...)\
-YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
-Set(YAP_QUOTE(BRUSHNAME), const_cast<FSlateBrush*>(TEMPLATE));\
-const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
-
+/** Define a new style */
 #define YAP_DEFINE_STYLE(TYPE, STYLENAME, TEMPLATE, MODS)\
 YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
 Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE));\
 TYPE& STYLENAME = const_cast<TYPE&>(GetWidgetStyle<TYPE>(YAP_QUOTE(STYLENAME)));\
 STYLENAME MODS;
+
+/** Used to copy an existing UE brush into Yap style for easier use */
+#define YAP_REDEFINE_UE_BRUSH(TYPE, YAPNAME, UESTYLESET, UENAME, ...)\
+YapBrushes.YAPNAME = YAP_QUOTE(YAPNAME);\
+Set(YAP_QUOTE(YAPNAME), new TYPE(UESTYLESET::GetBrush(UENAME)->GetResourceName().ToString(), __VA_ARGS__));\
+const TYPE& YAPNAME = *static_cast<const TYPE*>(GetImageBrush(YAP_QUOTE(YAPNAME)))
 
 /*
 #define YAP_SET_BRUSH(TYPE, BRUSH, MARGIN, COLOR)\ 
@@ -119,8 +122,12 @@ void FYapEditorStyle::OnPatchComplete()
 
 void FYapEditorStyle::Initialize()
 {
-	const FSlateBrush& FilledCircle = *FAppStyle::GetBrush("Icons.FilledCircle");
-	const FSlateBrush& NoBorder = *FAppStyle::GetBrush("NoBorder");
+	YAP_REDEFINE_UE_BRUSH(FSlateImageBrush,			None,				FAppStyle,	"NoBorder",				FVector2f(16, 16));
+
+
+	//YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,	FAppStyle,	"Icons.FilledCircle",	FVector2f(16, 16));
+	//YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,		FAppStyle,	"Icons.Plus",			FVector2f(16, 16));
+
 	
 	// ============================================================================================
 	// FONTS
@@ -133,62 +140,66 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	// BRUSHES - PNGs
 	// ============================================================================================
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Baby,						"Icon_Baby", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DialogueExpand,			"Icon_DialogueExpand", ".png",			FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_TextTime,					"DialogueNodeIcons/TextTime", ".png",	FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Timer,						"DialogueNodeIcons/Timer", ".png",		FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_LocalLimit,				"DialogueNodeIcons/LocalLimit", ".png",	FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Speaker,					"Icon_Audio", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Tag,						"Icon_Tag", ".png",						FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_MoodKeyMissing,			"Icon_MoodKey_Missing", ".png",			FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_SettingsExpander,			"Icon_SettingsExpander_12px", ".png",	FVector2f(12, 12));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	Icon_Circle_22px,				"Icon_Circle_22px", ".png",				FVector2f(22, 22));
-	
-	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
-	
-	YAP_DEFINE_BRUSH(FSlateBorderBrush, Border_Thick_RoundedSquare,		"Border_Thick_Rounded", ".png",			FMargin(8.0/16.0));
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Sharp,					"Panel_Sharp", ".png",					FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Deburred,					"Panel_Deburred", ".png",				FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Panel_Rounded,					"Panel_Rounded", ".png",				FMargin(4.0/8.0));
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0));
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidWhite_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0));
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidLightGray,				"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::LightGray);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidLightGray_Deburred,	"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidLightGray_Rounded,		"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Red);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Red);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidRed_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Red);
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Noir);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Noir);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidNoir_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Noir);
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Black);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Black);
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Box_SolidBlack_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Black);
-	
-	YAP_DEFINE_BRUSH(FSlateBoxBrush,	Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
-
-	YAP_DEFINE_BRUSH(FSlateImageBrush,	CheckBox_Test,					"Box_SolidWhite_Deburred", ".png",				FVector2f(8, 8), YapColor::Error);
-
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Baby,						"Icon_Baby", ".svg",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_DialogueExpand,			"Icon_DialogueExpand", ".png",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_TextTime,					"DialogueNodeIcons/TextTime", ".png",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Timer,						"DialogueNodeIcons/Timer", ".png",		FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_LocalLimit,				"DialogueNodeIcons/LocalLimit", ".png",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Speaker,					"Icon_Audio", ".png",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Tag,						"Icon_Tag", ".svg",						FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_MoodKey_Missing,			"Icon_MoodKey_Missing", ".svg",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_MoodKey_None,				"Icon_MoodKey_None", ".png",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_SettingsExpander,			"Icon_SettingsExpander_12px", ".png",	FVector2f(12, 12));
+	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Circle_22px,				"Icon_Circle_22px", ".png",				FVector2f(22, 22));
+		
+			
+	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
+			
+	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_Thick_RoundedSquare,		"Border_Thick_Rounded", ".png",			FMargin(8.0/16.0));
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Sharp,					"Panel_Sharp", ".png",					FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Deburred,					"Panel_Deburred", ".png",				FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Rounded,					"Panel_Rounded", ".png",				FMargin(4.0/8.0));
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0));
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0));
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray,				"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::LightGray);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray_Deburred,	"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray_Rounded,		"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidRed,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Red);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidRed_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Red);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidRed_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Red);
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidNoir,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Noir);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidNoir_Deburred,			"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Noir);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidNoir_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Noir);
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidBlack,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::Black);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidBlack_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::Black);
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidBlack_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Black);
+			
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
+		
 	// ============================================================================================
 	// BRUSHES - SVGs
 	// ============================================================================================
-	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Chevron_Right,		"Icon_Chevron_Right", ".svg",			FVector2f(16, 16), YapColor::White);
-	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Caret_Right,		"Icon_Caret_Right", ".svg",			FVector2f(16, 16), YapColor::White);
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Chevron_Right,				"Icon_Chevron_Right", ".svg",			FVector2f(16, 16), YapColor::White);
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Caret_Right,				"Icon_Caret_Right", ".svg",				FVector2f(16, 16), YapColor::White);
 
+	FString Dir = RootToContentDir("Icon_Caret_Right", L".svg");
+	FSlateVectorImageBrush* TesTst = new FSlateVectorImageBrush(Dir, FVector2f(16, 16), YapColor::White);
+
+	
 	// ============================================================================================
 	// SLIDER STYLES
 	// ============================================================================================
@@ -203,6 +214,11 @@ void FYapEditorStyle::Initialize()
 	// BUTTON STYLES
 	// ============================================================================================
 
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_NoBorder, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("NoBorder"), );
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HoverHintOnly, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"), );
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SimpleButton, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton"), );
+
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HeaderButton, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::White))
@@ -268,10 +284,10 @@ void FYapEditorStyle::Initialize()
 	);
 
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSettingOpener, FButtonStyle::GetDefault(),
-		.SetNormal(NoBorder)
-		.SetHovered(NoBorder)
-		.SetPressed(NoBorder)
-		.SetDisabled(NoBorder)
+		.SetNormal(None)
+		.SetHovered(None)
+		.SetPressed(None)
+		.SetDisabled(None)
 		.SetNormalForeground(YapColor::DimWhite)
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)

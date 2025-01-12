@@ -10,24 +10,28 @@
 
 void SYapButtonPopup::Construct(const FArguments& InArgs)
 {
-	ButtonColor = InArgs._ButtonColor;
+	ButtonForegroundColor = InArgs._ButtonForegroundColor;
 
-	MenuContentGetter = InArgs._PopupContentGetter;
+	ButtonBackgroundColor = InArgs._ButtonBackgroundColor;
+	
+	PopupContentGetter = InArgs._PopupContentGetter;
 
 	OnClicked = InArgs._OnClicked;
 	
 	SMenuAnchor::Construct(SMenuAnchor::FArguments()
 	.Placement(InArgs._PopupPlacement)
-	.Method(EPopupMethod::UseCurrentWindow)
+	.Method(EPopupMethod::CreateNewWindow)
 	.IsCollapsedByParent(true)
 	.OnMenuOpenChanged(InArgs._OnPopupOpenChanged)
+	//.ShouldDeferPaintingAfterWindowContent(false)
 	[
 		SAssignNew(Button, SButton)
 		.Cursor(EMouseCursor::Default)
 		.ButtonStyle((InArgs._ButtonStyle) ? InArgs._ButtonStyle : &FYapEditorStyle::Get().GetWidgetStyle<FButtonStyle>(YapStyles.ButtonStyle_TimeSettingOpener))
 		.OnClicked(this, &SYapButtonPopup::OnClicked_Button)
-		.ForegroundColor(this, &SYapButtonPopup::ButtonColorAndOpacity)
-		.ContentPadding(0)
+		.ForegroundColor(this, &SYapButtonPopup::ForegroundColor_Button)
+		.ButtonColorAndOpacity(this, &SYapButtonPopup::BackgroundColor_Button)
+		.ContentPadding(InArgs._ButtonContentPadding)
 		[
 			InArgs._ButtonContent.Widget
 		]
@@ -48,12 +52,12 @@ FReply SYapButtonPopup::OnClicked_Button()
 		}
 	}
 
-	if (!MenuContentGetter.IsBound())
+	if (!PopupContentGetter.IsBound())
 	{
 		return ButtonReply;
 	}
 	
-	SetMenuContent(MenuContentGetter.Execute());
+	SetMenuContent(PopupContentGetter.Execute());
 	
 	SetIsOpen(ShouldOpenDueToClick(), false);
 	
@@ -62,6 +66,7 @@ FReply SYapButtonPopup::OnClicked_Button()
 		(void)OnOpened.ExecuteIfBound();
 
 		ButtonReply.SetUserFocus(MenuContent.ToSharedRef(), EFocusCause::SetDirectly);
+		FSlateApplication::Get().SetKeyboardFocus(MenuContent);
 	}
 
 	return ButtonReply;
@@ -77,9 +82,9 @@ void SYapButtonPopup::SetMenuContent(TSharedRef<SWidget> InMenuContent)
 		];
 }
 
-FSlateColor SYapButtonPopup::ButtonColorAndOpacity() const
+FSlateColor SYapButtonPopup::ForegroundColor_Button() const
 {
-	FLinearColor Col = ButtonColor.Get();
+	FLinearColor Col = ButtonForegroundColor.Get();
 
 	if (!Button->IsHovered())
 	{
@@ -90,7 +95,38 @@ FSlateColor SYapButtonPopup::ButtonColorAndOpacity() const
 		Col *= YapColor::LightGray;
 	}
 
+	if (IsOpen())
+	{
+		Col *= 2.0;
+	}
+	
 	return Col;
+}
+
+FSlateColor SYapButtonPopup::BackgroundColor_Button() const
+{
+	FLinearColor Col = ButtonBackgroundColor.Get();
+
+	if (!Button->IsHovered())
+	{
+		Col *= YapColor::DimWhite;
+	}
+	else if (Button->IsPressed())
+	{
+		Col *= YapColor::DimWhite;
+	}
+
+	if (IsOpen())
+	{
+		Col *= 2.0;
+	}
+	
+	return Col;
+}
+
+void SYapButtonPopup::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SMenuAnchor::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 }
 
 #undef LOCTEXT_NAMESPACE

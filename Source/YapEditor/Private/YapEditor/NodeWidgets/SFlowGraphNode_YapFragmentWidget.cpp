@@ -112,13 +112,7 @@ TSharedPtr<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWid
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Fill)
 		[
-			SNew(SAssetDropTarget)
-			.bSupportsMultiDrop(false)
-			.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget)
-			.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget)
-			[
-				CreateDialogueDisplayWidget()
-			]
+			CreateDialogueDisplayWidget()
 		]
 		+ SVerticalBox::Slot()
 		.Padding(0, 4, 0, 0)
@@ -319,7 +313,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentShift, EYapFragmentControlsDirection::Up)
 			[
 				SNew(SImage)
-				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_UpArrow))
 				.Image(FAppStyle::Get().GetBrush("Icons.ChevronUp"))
 				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
@@ -341,7 +334,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			//.ButtonColorAndOpacity(YapColor::Red)
 			[
 				SNew(SImage)
-				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Delete))
 				.Image(FAppStyle::Get().GetBrush("Icons.Delete"))
 				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseStyle())
@@ -363,7 +355,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_FragmentShift, EYapFragmentControlsDirection::Down)
 			[
 				SNew(SImage)
-				//.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_DownArrow))
 				.Image(FAppStyle::Get().GetBrush("Icons.ChevronDown"))
 				.DesiredSizeOverride(FVector2D(16, 16))
 				.ColorAndOpacity(FSlateColor::UseForeground())
@@ -776,8 +767,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 					SNew(SYapButtonPopup)
 					.PopupPlacement(MenuPlacement_BelowAnchor)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget)
-					.PopupContentGetter(FMenuContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget))
-					.ButtonStyle(FAppStyle::Get(), "HoverHintOnly")
+					.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget))
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
+					.ButtonBackgroundColor(YapColor::Error)
+					.ButtonForegroundColor(YapColor::Yellow)
 					.ButtonContent()
 					[
 						SNew(SImage)
@@ -1380,47 +1373,53 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 		SNew(SOverlay)
 		+ SOverlay::Slot()
 		[
-			SNew(SButton)
-			.Cursor(EMouseCursor::Default)
-			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
-			.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget)
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
-			.ContentPadding(0)
+			SNew(SAssetDropTarget)
+			.bSupportsMultiDrop(false)
+			.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget)
+			.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget)
 			[
-				SNew(SOverlay)
-				+ SOverlay::Slot()
+				SNew(SButton)
+				.Cursor(EMouseCursor::Default)
+				.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ActivationLimit)
+				.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_TextDisplayWidget)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+				.ContentPadding(0)
 				[
-					SNew(SScrollBox)
-					.Orientation(Orient_Horizontal)
-					.ScrollBarVisibility(EVisibility::Collapsed)
-					.ConsumeMouseWheel(EConsumeMouseWheel::Always)
-					.AllowOverscroll(EAllowOverscroll::No)
-					.AnimateWheelScrolling(true)
-					+ SScrollBox::Slot()
-					.Padding(6)
-					.FillSize(1.0)
-					.VAlign(VAlign_Top)
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[
+						SNew(SScrollBox)
+						.Orientation(Orient_Horizontal)
+						.ScrollBarVisibility(EVisibility::Collapsed)
+						.ConsumeMouseWheel(EConsumeMouseWheel::Always)
+						.AllowOverscroll(EAllowOverscroll::No)
+						.AnimateWheelScrolling(true)
+						+ SScrollBox::Slot()
+						.Padding(6)
+						.FillSize(1.0)
+						.VAlign(VAlign_Top)
+						[
+							SNew(STextBlock)
+							.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
+							.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+							.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::White, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+						]
+					]
+					+ SOverlay::Slot()
+					.VAlign(VAlign_Center)
+					.VAlign(VAlign_Center)
 					[
 						SNew(STextBlock)
+						.Visibility_Lambda( [this] ()
+						{
+							const FText& Text = bEditingChildSafeSettings ? GetBit().SafeDialogueText : GetBit().MatureDialogueText;
+							return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
+						})
+						.Justification(ETextJustify::Center)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::White, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+						.Text_Lambda( [this] () { return bEditingChildSafeSettings ? LOCTEXT("ChildSafeDialogueText_None", "Child-Safe Dialogue Text (None)") : LOCTEXT("DialogueText_None", "Dialogue Text (None)"); } )
+						.ColorAndOpacity(YapColor::White_Glass)
 					]
-				]
-				+ SOverlay::Slot()
-				.VAlign(VAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(STextBlock)
-					.Visibility_Lambda( [this] ()
-					{
-						const FText& Text = bEditingChildSafeSettings ? GetBit().SafeDialogueText : GetBit().MatureDialogueText;
-						return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
-					})
-					.Justification(ETextJustify::Center)
-					.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-					.Text_Lambda( [this] () { return bEditingChildSafeSettings ? LOCTEXT("ChildSafeDialogueText_None", "Child-Safe Dialogue Text (None)") : LOCTEXT("DialogueText_None", "Dialogue Text (None)"); } )
-					.ColorAndOpacity(YapColor::White_Glass)
 				]
 			]
 		]
@@ -1459,16 +1458,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				[
 					SNew(SYapButtonPopup)
 					.PopupPlacement(MenuPlacement_CenteredAboveAnchor)
-					.ButtonColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
-					.PopupContentGetter(FMenuContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget))
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSettingOpener) // TODO button style needed
+					.ButtonForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
+					.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::CreateTimeSettingsWidget))
 					.ButtonContent()
 					[
 						SNew(SBox)
-						.Padding(3)
+						.Padding(2)
 						[
 							SNew(SImage)
-							//.DesiredSizeOverride(FVector2D(12, 12))
-							.Image(FAppStyle::GetBrush("Icons.FilledCircle"))
+							.DesiredSizeOverride(FVector2D(12, 12))
+							.Image(FYapEditorStyle::GetImageBrush("TestCircle"))// FAppStyle::GetBrush("Icons.FilledCircle"))
 							.ColorAndOpacity(FSlateColor::UseForeground())
 						]
 					]
@@ -1933,9 +1933,10 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 			.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_SpeakerWidget)
 			[
 				SNew(SYapButtonPopup)
-				.ButtonColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterImage)
+				.ButtonForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterImage)
 				.PopupPlacement(MenuPlacement_BelowAnchor)
-				.PopupContentGetter(FMenuContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_SpeakerWidget, &GetBit().SpeakerAsset, GetBit().GetSpeaker(EYapWarnings::Ignore)))
+				.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_SpeakerWidget, &GetBit().SpeakerAsset, GetBit().GetSpeaker(EYapWarnings::Ignore)))
+				.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly) 
 				.ButtonContent()
 				[
 					SNew(SBox)
@@ -3119,22 +3120,11 @@ FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidget(FGameplayTag MoodKey, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
-	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
-		
 	TSharedPtr<SHorizontalBox> HBox = SNew(SHorizontalBox);
 
 	TSharedPtr<SImage> PortraitIconImage;
 		
-	FString IconPath = ProjectSettings->GetPortraitIconPath(MoodKey);
-
-	// TODO this is dumb, cache FSlateIcons or FSlateBrushes in the subsystem instead?
-	UTexture2D* MoodKeyIcon = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
-	
-	FSlateBrush Brush;
-	Brush.ImageSize = FVector2D(24, 24);
-	Brush.SetResourceObject(MoodKeyIcon);
-	
-	TSharedRef<FDeferredCleanupSlateBrush> MoodKeyBrush = FDeferredCleanupSlateBrush::CreateBrush(Brush);
+	TSharedPtr<FSlateImageBrush> MoodKeyBrush = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
 	
 	if (MoodKey.IsValid())
 	{
@@ -3146,7 +3136,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 		[
 			SAssignNew(PortraitIconImage, SImage)
 			.ColorAndOpacity(FSlateColor::UseForeground())
-			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))
+			.Image(MoodKeyBrush.Get())
 		];
 	}
 
@@ -3191,7 +3181,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 		[
 			SAssignNew(PortraitIconImage, SImage)
 			.ColorAndOpacity(FSlateColor::UseForeground())
-			.Image(TAttribute<const FSlateBrush*>::Create(TAttribute<const FSlateBrush*>::FGetter::CreateLambda([MoodKeyBrush](){return MoodKeyBrush->GetSlateBrush();})))	
+			.Image(MoodKeyBrush.Get())
 		]
 	];
 }

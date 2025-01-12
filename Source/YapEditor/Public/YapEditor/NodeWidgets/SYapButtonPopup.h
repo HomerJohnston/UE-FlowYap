@@ -4,35 +4,47 @@
 #pragma once
 
 #define LOCTEXT_NAMESPACE "YapEditor"
-#include "YapEditor/YapEditorStyle.h"
+#include "YapEditor/YapColors.h"
 
 DECLARE_DELEGATE(FOnOpened)
-DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, FMenuContentGetter)
+DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, FPopupContentGetter)
 
 class SYapButtonPopup : public SMenuAnchor
 {
 public:
 	SLATE_BEGIN_ARGS(SYapButtonPopup)
-	
+	// TODO make a totally blank SYapButtonPopup safe to spawn - set up safe defaults & code
+		: _ButtonStyle(&FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"))
+		, _ButtonBackgroundColor(YapColor::Gray)
+		, _ButtonForegroundColor(YapColor::White)
+		, _ButtonContentPadding(FMargin(0))
+		, _HAlign(HAlign_Center)
+		, _VAlign(VAlign_Center)
 	{}
-		SLATE_NAMED_SLOT( FArguments, ButtonContent )
+		/** You must return ***UNHANDLED*** to let the button popup appear; if you return Handled, it assumes the click was already used up */
+		SLATE_EVENT( FOnClicked, OnClicked ) 
+
+		SLATE_EVENT( FOnIsOpenChanged, OnPopupOpenChanged )
+
+		/** Pass in a delegate that builds the popup, e.g. (FPopupContentGetter::Create...); this lets us avoid building this whole popup widget until we actually need it */
+		SLATE_ARGUMENT( FPopupContentGetter, PopupContentGetter )
+
+		SLATE_ARGUMENT( EMenuPlacement, PopupPlacement )
+
+		SLATE_STYLE_ARGUMENT( FButtonStyle, ButtonStyle )
+
+		SLATE_ATTRIBUTE( FLinearColor, ButtonBackgroundColor )		
+
+		SLATE_ATTRIBUTE( FLinearColor, ButtonForegroundColor )		
+
+		SLATE_ATTRIBUTE( FMargin, ButtonContentPadding )
 
 		SLATE_ARGUMENT( EHorizontalAlignment, HAlign )
 		
 		SLATE_ARGUMENT( EVerticalAlignment, VAlign )
 		
-		SLATE_EVENT( FOnIsOpenChanged, OnPopupOpenChanged )
-		
-		SLATE_EVENT( FOnClicked, OnClicked ) // return ***UNHANDLED*** to let the button popup appear
+		SLATE_NAMED_SLOT( FArguments, ButtonContent )
 
-		SLATE_ATTRIBUTE( FLinearColor, ButtonColor )		
-
-		SLATE_ARGUMENT( FMenuContentGetter, PopupContentGetter )
-
-		SLATE_ARGUMENT( EMenuPlacement, PopupPlacement )
-
-		SLATE_STYLE_ARGUMENT( FButtonStyle, ButtonStyle )
-		
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -43,21 +55,25 @@ public:
 	
 	TWeakPtr<SWidget> ContentWidgetPtr;
 
-	TAttribute<FLinearColor> ButtonColor;
+	TAttribute<FLinearColor> ButtonForegroundColor;
 
-	TAttribute<TSharedPtr<SWidget>> MenuContentAttribute;
-	
+	TAttribute<FLinearColor> ButtonBackgroundColor;
+
 	SHorizontalBox::FSlot* ButtonContentSlot;
 
 	TSharedPtr<SButton> Button;
 	
 	FOnClicked OnClicked;
 
-	FMenuContentGetter MenuContentGetter;
+	FPopupContentGetter PopupContentGetter;
 	
 	virtual void SetMenuContent(TSharedRef<SWidget> InMenuContent) override;
 
-	FSlateColor ButtonColorAndOpacity() const;
+	FSlateColor ForegroundColor_Button() const;
+
+	FSlateColor BackgroundColor_Button() const;
+
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 };
 
 #undef LOCTEXT_NAMESPACE
