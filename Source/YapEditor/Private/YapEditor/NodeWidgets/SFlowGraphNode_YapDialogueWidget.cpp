@@ -575,7 +575,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	{
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 0 : 13, 0, bFirstFragment ? 8 : 10)
+		.Padding(0, bFirstFragment ? 0 : 12, 0, bFirstFragment ? 8 : 10)
 		[
 			CreateFragmentSeparatorWidget(FragmentIndex)
 		];

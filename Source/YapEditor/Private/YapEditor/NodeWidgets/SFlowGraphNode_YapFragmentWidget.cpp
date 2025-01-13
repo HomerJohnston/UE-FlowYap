@@ -511,7 +511,7 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 			}
 			else
 			{
-				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("TurnOffChildSafeSettingsDialog_DataWarning", "Do you want to reset all child-safe data after turning this off?"), LOCTEXT("TurnOffChildSafeSettingsDialog_Title", "Turn Off Child-Safe Settings"));
+				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("AreYouSure_Prompt", "Fragment contains child-safe data; do you want to destroy all child-safe settings?"));
 
 				switch (ReturnType)
 				{
@@ -536,13 +536,6 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 						// Do nothing, just close the dialog
 					}
 				}
-				/*
-				FNotificationInfo NotificationInfo(LOCTEXT("DisableChildSafe_Warning", "Can't disable child-safe"));
-				NotificationInfo.ExpireDuration = 3.0f;
-				NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-				NotificationInfo.SubText = LOCTEXT("DisableChildSafe_Description", "Remove all child-safe data first.");
-				FSlateNotificationManager::Get().AddNotification(NotificationInfo);
-				*/
 			}
 		}
 	}
