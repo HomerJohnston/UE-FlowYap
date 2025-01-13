@@ -40,8 +40,6 @@ UYapProjectSettings::UYapProjectSettings()
 
 	bDefaultSkippableSetting = true;
 
-	AudioTimeCacherClass = nullptr; // You *must* create your own class and set it to calculate audio time!
-
 	TextCalculatorClass = UYapTextCalculator::StaticClass();
 
 	ConversationBrokerClass = nullptr; // You *must* create your own conversation handler class!

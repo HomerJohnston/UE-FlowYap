@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "YapAudioTimeCacher.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DeveloperSettings.h"
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
+class UYapBrokerBase;
 enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
 enum class EYapMissingAudioErrorLevel : uint8;
@@ -44,14 +44,11 @@ protected:
 	
 	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UObject> ConversationBrokerClass;
+	TSoftClassPtr<UYapBrokerBase> ConversationBrokerClass;
 	
 	/** What type of class to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
 	TArray<TSoftClassPtr<UObject>> DialogueAssetClasses;
-	
-	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacherClass;
 	
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
@@ -214,7 +211,7 @@ public:
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
 	
 public:
-	static const TSoftClassPtr<UObject>& GetConversationBrokerClass() { return Get()-> ConversationBrokerClass; }
+	static const TSoftClassPtr<UYapBrokerBase>& GetConversationBrokerClass() { return Get()-> ConversationBrokerClass; }
 	
 	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get()-> DialogueAssetClasses; }
 
@@ -243,8 +240,6 @@ public:
 	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
 	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculatorClass; }
-
-	TSoftClassPtr<UYapAudioTimeCacher> GetAudioTimeCacheClass() const { return AudioTimeCacherClass; }
 
 	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
 

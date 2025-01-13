@@ -87,7 +87,6 @@ protected:
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
 
-	TWeakObjectPtr<UYapBrokerBase> TempBroker;
 	// ------------------------------------------
 	// CONSTRUCTION
 public:

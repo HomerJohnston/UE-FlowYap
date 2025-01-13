@@ -335,25 +335,27 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 {
 	AudioAsset = NewAudio;
 
-	TSoftClassPtr<UYapAudioTimeCacher> AudioTimeCacheClass = UYapProjectSettings::Get()->GetAudioTimeCacheClass();
-
-	if (AudioTimeCacheClass == nullptr)
+	const TSoftClassPtr<UYapBrokerBase>& BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
+	
+	if (BrokerClass.IsNull())
 	{
-		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
+		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!")); // TODO I need to handle the issue where you assign audio assets and they don't get a time assigned!
 		CachedTime.Reset();
 		return;
 	}
 	
-	if (AudioTimeCacheClass == nullptr)
+	UYapBrokerBase* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBrokerBase>();
+
+	float NewCachedTime = BrokerCDO->GetDialogueAudioDuration(NewAudio);
+
+	if (NewCachedTime > 0)
 	{
-		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!"));
-		CachedTime.Reset();
-		return;
+		CachedTime = NewCachedTime;
 	}
-
-	UYapAudioTimeCacher* CacherCDO = AudioTimeCacheClass.LoadSynchronous()->GetDefaultObject<UYapAudioTimeCacher>();
-
-	CachedTime = CacherCDO->GetAudioLengthInSeconds(AudioAsset);
+	else
+	{
+		CachedTime.Reset();
+	}
 }
 #endif
 

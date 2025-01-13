@@ -275,26 +275,26 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 		return FReply::Handled();
 	}
 
-	TSoftClassPtr<UObject> BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
+	TSoftClassPtr<UYapBrokerBase> BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
 
 	// Create a temporary broker to play the sound
-	if (!TempBroker.IsValid() || TempBroker->GetClass() != BrokerClass)
+	if (BrokerClass.IsNull())
 	{
-		if (!BrokerClass.IsNull())
-		{
-			TempBroker = NewObject<UYapBrokerBase>(GetTransientPackage(), BrokerClass.LoadSynchronous());
-		}
+		
 	}
-	
-	if (TempBroker.IsValid())
+
+	UYapBrokerBase* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBrokerBase>();
+
+	if (IsValid(BrokerCDO))
 	{
-		if (TempBroker->ImplementsPreviewDialogueAudio())
+		if (BrokerCDO->ImplementsPreviewDialogueAudio())
 		{
-			bool bResult = TempBroker->PreviewDialogueAudio_Internal(Object->LoadSynchronous());
+			bool bResult = BrokerCDO->PreviewDialogueAudio_Internal(Object->LoadSynchronous());
 
 			if (!bResult)
 			{
-				
+				// TODO
+				check(false);
 			}
 		}
 		else
@@ -511,7 +511,7 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 			}
 			else
 			{
-				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("AreYouSure_Prompt", "Fragment contains child-safe data; do you want to destroy all child-safe settings?"));
+				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("TurnOffChildSafeSettingsDialog_DataWarning", "Do you want to reset all child-safe data after turning this off?"), LOCTEXT("TurnOffChildSafeSettingsDialog_Title", "Turn Off Child-Safe Settings"));
 
 				switch (ReturnType)
 				{
@@ -1104,12 +1104,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 				SNew(SNumericEntryBox<float>)
 				.IsEnabled(bHasCommittedDelegate)
 				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-				.Justification(ETextJustify::Center)
+				//.Justification(ETextJustify::Center)
 				.AllowSpin(bHasCommittedDelegate)
-				.Delta(0.01f)
+				.Delta(0.05f)
 				.MaxValue(99) // TODO project setting?
 				.MaxSliderValue(10) // TODO project setting?
-				.MaxFractionalDigits(2) // TODO project setting?
+				.MaxFractionalDigits(1) // TODO project setting?
 				.OnValueChanged(this, UpdatedFunction)
 				.MinValue(0)
 				.Value(this, ValueFunction, MaturitySetting)
@@ -1602,7 +1602,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildExpandedEditor(EYapMa
 		.HAlign(HAlign_Fill)
 		[
 			SNew(SBox)
-			.MinDesiredHeight(66) // This fits four lines of text in the dialogue node
+			.MinDesiredHeight(66) // This fits four lines of text in the dialogue editor
 			[
 				SNew(SYapTextPropertyEditableTextBox, DialogueTextProperty)
 				.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
@@ -1642,6 +1642,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildExpandedEditor(EYapMa
 			[
 				CreateAudioPreviewWidget(&AudioAsset, EVisibility::Visible)
 			]
+		]
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 8, 0, 0)
+		[
+			SNew(SSeparator)
+			.Orientation(Orient_Horizontal)
+			.Thickness(2)
 		]
 		+ SVerticalBox::Slot()
 		.Padding(0, 8, 2, 0)

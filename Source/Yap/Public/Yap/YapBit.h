@@ -116,7 +116,7 @@ protected:
 	
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UObject> SafeAudio;
-	
+
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
 public:
