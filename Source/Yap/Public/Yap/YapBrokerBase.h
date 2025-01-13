@@ -5,7 +5,7 @@
 
 #include "Yap/IYapConversationListener.h"
 
-#include "YapConversationBrokerBase.generated.h"
+#include "YapBrokerBase.generated.h"
 
 enum class EYapMaturitySetting : uint8;
 class UYapCharacter;
@@ -15,48 +15,56 @@ struct FYapPromptHandle;
 #define LOCTEXT_NAMESPACE "Yap"
 
 /** Optional base class for brokering Yap to your game. Create a child class of this and the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
-UCLASS(Abstract)
-class UYapConversationBrokerBase : public UObject
+UCLASS(Abstract, MinimalAPI)
+class UYapBrokerBase : public UObject
 {
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-public:
-	bool ImplementsGetWorld() const override { return true; }
-
 protected:
 	bool bWarnedAboutMatureDialogue = false;
 #endif
 	
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Conversation Begins")
 	void K2_OnConversationBegins(const FGameplayTag& Conversation);
 
 	/** Code to run when a conversation ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Conversation Ends")
 	void K2_OnConversationEnds(const FGameplayTag& Conversation);
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Begins")
 	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Ends")
 	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Option Added")
 	void K2_OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Options All Added")
 	void K2_OnPromptOptionsAllAdded(const FGameplayTag& Conversation);
 
 	/** Use this to read your game's settings and determine if mature language is permitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "Use Mature Dialogue")
 	EYapMaturitySetting K2_UseMatureDialogue();
-	
+
+#if WITH_EDITOR
+	/** Implement this to play audio assets from the graph editor. Cast to your project's audio type and play it. Do NOT call Parent when overriding. */
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "Play Dialogue Audio In Editor")
+	bool K2_PreviewDialogueAudio(const UObject* AudioAsset) const;
+
+	UFUNCTION(BlueprintNativeEvent, DisplayName = "Get Dialogue Audio Duration")
+	float K2_GetDialogueAudioDuration(const UObject* AudioAsset) const;
+#endif
+
+// ================================================================================================
+
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
 	virtual void OnConversationBegins(const FGameplayTag& Conversation)
@@ -71,9 +79,9 @@ public:
 	};
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt)
+	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* AudioAsset, const UYapCharacter* DirectedAt)
 	{
-		K2_OnDialogueBegins(Conversation, DialogueHandle, Speaker, MoodKey, DialogueText, DialogueTime, DialogueAudioAsset, DirectedAt);
+		K2_OnDialogueBegins(Conversation, DialogueHandle, Speaker, MoodKey, DialogueText, DialogueTime, AudioAsset, DirectedAt);
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
@@ -100,7 +108,22 @@ public:
 		return K2_UseMatureDialogue();
 	}
 
+#if WITH_EDITOR
+	YAP_API bool PreviewDialogueAudio_Internal(const UObject* AudioAsset) const;
 	
+	/** Implement this to play audio assets from the graph editor. Cast to your project's audio type and play it. Do NOT call Super when overriding. */
+	virtual bool PreviewDialogueAudio(const UObject* AudioAsset) const
+	{
+		return K2_PreviewDialogueAudio(AudioAsset);
+	}
+
+	YAP_API bool ImplementsPreviewDialogueAudio() const;
+	
+	YAP_API float GetDialogueAudioDuration(const UObject* AudioAsset) const
+	{
+		return K2_GetDialogueAudioDuration(AudioAsset);
+	}
+#endif
 };
 
 // NOTES:

@@ -38,7 +38,7 @@ void FYapTransactions::EndModify()
 
 // ================================================================================================
 
-FYapScopedTransaction::FYapScopedTransaction(const FText& TransactionText, UObject* Object)
+FYapScopedTransaction::FYapScopedTransaction(FName InEvent, const FText& TransactionText, UObject* Object)
 {
 	GEngine->BeginTransaction(TEXT("Yap"), TransactionText, Object);
 }

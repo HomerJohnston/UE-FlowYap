@@ -19,13 +19,14 @@ struct FYapBrushes
 	FName Icon_Chevron_Right;
 	FName Icon_Caret_Right;
 	FName Icon_PlusSign;
+	FName Icon_ProjectSettings_TabIcon;
 	
 	// New Icons
 	FName Icon_AudioTime;
 	FName Icon_Baby;
+	FName Icon_CornerDropdown_Right;
 	FName Icon_CrossX;
 	FName Icon_Delete;
-	FName Icon_DialogueExpand;
 	FName Icon_DownArrow;
 	FName Icon_Edit;
 
@@ -38,7 +39,6 @@ struct FYapBrushes
 	FName Icon_TextTime;
 	FName Icon_Timer;
 	FName Icon_UpArrow;
-	FName Icon_SettingsExpander;
 	FName Icon_Circle_22px;
 	
 	FName Border_DeburredSquare;
@@ -93,6 +93,7 @@ struct FYapStyles
 	FName ButtonStyle_DialogueCornerFoldout;
 	FName ButtonStyle_DialogueSettings;
 	FName ButtonStyle_SequencingSelector;
+	FName ButtonStyle_SpeakerPopup;
 	FName ButtonStyle_TimeSetting;
 	FName ButtonStyle_TimeSettingOpener;
 
@@ -120,6 +121,7 @@ struct FYapFonts
 	FSlateFontInfo Font_DialogueText;
 	FSlateFontInfo Font_TitleText;
 	FSlateFontInfo Font_NodeHeader;	
+	FSlateFontInfo Font_SectionHeader;	
 	FSlateFontInfo Font_NodeSequencing;	
 };
 

@@ -118,19 +118,19 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 TSharedRef<SWidget> SYapConditionsScrollBox::CreateConditionButton(int32 ConditionIndex)
 {
 	return SNew(SYapButtonPopup)
-		.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SYapConditionsScrollBox::PopupContentGetter, ConditionIndex))
-		.PopupPlacement(MenuPlacement_BelowAnchor)
-		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
-		.ButtonForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, ConditionIndex)
-		.ButtonBackgroundColor(this, &SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, ConditionIndex)
-		.ButtonContentPadding(FMargin(8, 2, 8, 0))
-		.ButtonContent()
-		[
-			SNew(STextBlock)
-			.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
-			.ColorAndOpacity(FSlateColor::UseForeground())
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-		];
+	.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SYapConditionsScrollBox::PopupContentGetter, ConditionIndex))
+	.PopupPlacement(MenuPlacement_BelowAnchor)
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_ConditionWidget)
+	.ButtonForegroundColor(this, &SYapConditionsScrollBox::ForegroundColor_ConditionButton, ConditionIndex)
+	.ButtonBackgroundColor(this, &SYapConditionsScrollBox::ButtonColorAndOpacity_ConditionButton, ConditionIndex)
+	.ButtonContentPadding(FMargin(8, 2, 8, 0))
+	.ButtonContent()
+	[
+		SNew(STextBlock)
+		.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
+		.ColorAndOpacity(FSlateColor::UseForeground())
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+	];
 }
 
 TSharedRef<SWidget> SYapConditionsScrollBox::PopupContentGetter(int32 ConditionIndex)

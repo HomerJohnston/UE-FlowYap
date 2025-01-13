@@ -10,11 +10,8 @@
 #include "YapEditor/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "YapEditor/YapEditorSubsystem.h"
-#include "YapEditor/YapLogEditor.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
-
-TMap<TWeakObjectPtr<UClass>, float> SYapConditionDetailsViewWidget::CachedDetailsWidgetHeights;
 
 // ----------------------------------------------
 void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
@@ -28,12 +25,6 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	OnClickedDelete = InArgs._OnClickedDelete;
 	OnSelectedNewClass = InArgs._OnClickedNewClass;
 	
-	//ConditionsArrayProperty = InArgs._ConditionsArray;
-	
-	//TArray<UYapCondition*>* ConditionsArray = ConditionsArrayProperty->ContainerPtrToValuePtr<TArray<UYapCondition*>>(InArgs._ConditionsContainer);
-
-	//ConditionWeakPtr = (*ConditionsArray)[ConditionIndex];
-	
 	FDetailsViewArgs Args;
 	Args.bHideSelectionTip = true;
 	Args.bLockable = false;
@@ -45,10 +36,20 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 	TSharedRef<IDetailsView> DetailsWidget = PropertyEditorModule.CreateDetailView(Args);
-	DetailsWidget->SetObject(GetCondition());
+	DetailsWidgetWeakPtr = DetailsWidget;
 
-	float WidgetWidth = GetCondition()->GetDetailsViewWidth();
-	float WidgetHeight = GetCondition()->GetDetailsViewHeight();
+	UYapCondition* Condition = GetCondition();
+
+	DetailsWidget->SetObject(Condition);
+
+	float WidgetWidth = 0;
+	float WidgetHeight = 0;
+
+	if (IsValid(Condition))
+	{
+		WidgetWidth = Condition->GetDetailsViewWidth();
+		WidgetHeight = Condition->GetDetailsViewHeight();
+	}
 	
 	if (WidgetWidth <= 100.0)
 	{
@@ -126,9 +127,6 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 			]
 		]
 	];
-	
-	DetailsWidgetWeakPtr = DetailsWidget;
-	ConditionClass = GetCondition()->GetClass();
 }
 
 // ----------------------------------------------
@@ -219,22 +217,4 @@ void SYapConditionDetailsViewWidget::OnSetClass_ConditionProperty(const UClass* 
 	OnSelectedNewClass.Execute(ConditionIndex);
 }
 
-void SYapConditionDetailsViewWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
-{
-	SetCachedHeight(ConditionClass.Get(), AllottedGeometry.Size.Y);
-	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
-}
-
-
-float SYapConditionDetailsViewWidget::GetCachedHeight(TWeakObjectPtr<UClass> ConditionClass)
-{
-	float* Cache = CachedDetailsWidgetHeights.Find(ConditionClass);
-
-	return (Cache) ? *Cache : 0;
-}
-
-void SYapConditionDetailsViewWidget::SetCachedHeight(TWeakObjectPtr<UClass> ConditionClass, float Size)
-{
-	CachedDetailsWidgetHeights.Add(ConditionClass, Size);
-}
 #undef LOCTEXT_NAMESPACE

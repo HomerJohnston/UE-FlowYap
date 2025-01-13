@@ -29,7 +29,7 @@ class FYapScopedTransaction
 	TWeakObjectPtr<UFlowGraphNode_YapBase> PrimaryObject;
 	
 public:
-	FYapScopedTransaction(const FText& TransactionText, UObject* Object);
+	FYapScopedTransaction(FName InEvent, const FText& TransactionText, UObject* Object);
 
 	~FYapScopedTransaction();
 };

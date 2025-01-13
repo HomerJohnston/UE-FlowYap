@@ -24,16 +24,15 @@ void UFlowNode_YapConversationStart::InitializeInstance()
 
 	TArray<UFlowNode*> ConnectedNodes;
 
-	// TODO find conversation ends and make sure no unconnected ends?
-
 	IterateDownstreamNodes(this, ConnectedNodes);
 }
 
 void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes)
 {
 	// TODO determine if I need to do this
+
 	/*
-	for (UFlowNode* ConnectedNode : DownstreamNode->GetConnectedNodes())
+	for (UFlowNode* ConnectedNode : DownstreamNode->GatherConnectedNodes())
 	{
 		if (ConnectedNode && !ConnectedNodes.Contains(ConnectedNode))
 		{
@@ -43,7 +42,7 @@ void UFlowNode_YapConversationStart::IterateDownstreamNodes(UFlowNode* Downstrea
 			
 			if (DialogueNode)
 			{
-				//DialogueNode->SetConversationName(ConversationName);
+				DialogueNode->SetConversationName(ConversationName);
 			}
 			
 			if (UFlowNode_YapConversationEnd* ConversationEnd = Cast<UFlowNode_YapConversationEnd>(ConnectedNode))

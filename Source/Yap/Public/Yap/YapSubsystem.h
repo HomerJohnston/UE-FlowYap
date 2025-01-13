@@ -4,13 +4,13 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "YapCharacterComponent.h"
-#include "YapConversationBrokerBase.h"
+#include "YapBrokerBase.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Yap/YapBitReplacement.h"
 
 #include "YapSubsystem.generated.h"
 
-class UYapConversationBrokerBase;
+class UYapBrokerBase;
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
@@ -37,7 +37,7 @@ public:
 	UFlowAsset* FlowAsset;
 
 	UPROPERTY(Transient)
-	FGameplayTag Conversation;
+	TOptional<FGameplayTag> Conversation;
 
 public:
 	TDelegate<void(const FGameplayTag&)> OnConversationStarts;
@@ -49,9 +49,9 @@ public:
 
 	bool EndConversation();
 
-	bool IsConversationInProgress() const { return Conversation != FGameplayTag::EmptyTag; };
+	bool IsConversationInProgress() const { return Conversation.IsSet(); };
 
-	const FGameplayTag& GetCurrentConversationName() const { return Conversation; }
+	const FGameplayTag& GetCurrentConversationName() const { return Conversation.Get(FGameplayTag::EmptyTag); }
 };
 
 // ================================================================================================
@@ -116,7 +116,7 @@ protected:
 	TArray<UObject*> Listeners;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UYapConversationBrokerBase> ConversationBroker;
+	TObjectPtr<UYapBrokerBase> ConversationBroker;
 	
 	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
 	UPROPERTY(Transient)
@@ -166,7 +166,7 @@ public:
 	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
 	EYapMaturitySetting K2_GetMaturitySetting() { return GetGameMaturitySetting(); };
 
-	static UYapConversationBrokerBase* GetConversationBroker();
+	static UYapBrokerBase* GetConversationBroker();
 	
 	static EYapMaturitySetting GetGameMaturitySetting();
 	

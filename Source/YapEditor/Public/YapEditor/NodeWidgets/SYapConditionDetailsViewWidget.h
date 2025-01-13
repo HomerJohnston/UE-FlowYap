@@ -60,8 +60,6 @@ private:
 	FOnClickedDeleteCondition OnClickedDelete;
 
 	FOnSelectedNewConditionClass OnSelectedNewClass;
-
-	TWeakObjectPtr<UClass> ConditionClass;
 	
 public:
 	TWeakObjectPtr<UFlowNode_YapDialogue> Dialogue;
@@ -69,18 +67,6 @@ public:
 	int32 FragmentIndex = INDEX_NONE;
 
 	int32 ConditionIndex = INDEX_NONE;
-
-	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
-
-	/** When you first open details widgets, they go through a ridiculous resizing process that takes about 4 frames.
-	 * What I do is cache it in here on tick, so that next time you open the widget, it doesn't do it again. */
-	static TMap<TWeakObjectPtr<UClass>, float> CachedDetailsWidgetHeights; 
-
-public:
-	static float GetCachedHeight(TWeakObjectPtr<UClass> ConditionClass);
-
-	static void SetCachedHeight(TWeakObjectPtr<UClass> ConditionClass, float);
-	
 };
 
 #undef LOCTEXT_NAMESPACE

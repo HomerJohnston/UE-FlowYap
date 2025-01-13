@@ -6,7 +6,7 @@
 #include "Yap/YapSubsystem.h"
 
 #include "Logging/StructuredLog.h"
-#include "Yap/YapConversationBrokerBase.h"
+#include "Yap/YapBrokerBase.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
 #include "Yap/IYapConversationListener.h"
@@ -27,34 +27,28 @@ FYapActiveConversation::FYapActiveConversation()
 
 bool FYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
 {
-	if (Conversation != FGameplayTag::EmptyTag)
+	if (Conversation.IsSet())
 	{
-		UE_LOGFMT(LogYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.ToString());
+		UE_LOGFMT(LogYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.GetValue().ToString());
 		return false;
 	}
 	
-	if (InConversation == FGameplayTag::EmptyTag)
-	{
-		UE_LOG(LogYap, Error, TEXT("Tried to start conversation named NONE! Did you forgot to name the Start Conversation node? Ignoring start request."));
-		return false;
-	}
-
 	FlowAsset = InOwningAsset;
 	Conversation = InConversation;
 
-	(void)OnConversationStarts.ExecuteIfBound(Conversation);
+	(void)OnConversationStarts.ExecuteIfBound(Conversation.GetValue());
 	
 	return true;
 }
 
 bool FYapActiveConversation::EndConversation()
 {
-	if (Conversation != FGameplayTag::EmptyTag)
+	if (Conversation.IsSet())
 	{
-		(void)OnConversationEnds.ExecuteIfBound(Conversation);
+		(void)OnConversationEnds.ExecuteIfBound(Conversation.GetValue());
 
 		FlowAsset = nullptr;
-		Conversation = FGameplayTag::EmptyTag;
+		Conversation.Reset();
 
 		return true;
 	}
@@ -97,9 +91,9 @@ UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& Chara
 	return nullptr;
 }
 
-UYapConversationBrokerBase* UYapSubsystem::GetConversationBroker()
+UYapBrokerBase* UYapSubsystem::GetConversationBroker()
 {
-	UYapConversationBrokerBase* Broker = Get()->ConversationBroker;
+	UYapBrokerBase* Broker = Get()->ConversationBroker;
 
 #if WITH_EDITOR
 	ensureMsgf(IsValid(Broker), TEXT("Conversation Broker is invalid. Did you create one and assign it in project settings? Docs: https://github.com/HomerJohnston/UE-FlowYap/wiki/Conversation-Broker"));
@@ -115,7 +109,7 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 		return UYapProjectSettings::GetDefaultMaturitySetting(); 
 	}
 	
-	UYapConversationBrokerBase* Broker = GetConversationBroker();
+	UYapBrokerBase* Broker = GetConversationBroker();
 
 	if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetGameMaturitySetting(); returning default project setting.")))
 	{
@@ -182,22 +176,22 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Conversation;
+		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 	
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
 		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
-	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation : FGameplayTag::EmptyTag;
+	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
 
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnPromptOptionsAllAdded, &IYapConversationListener::Execute_K2_OnPromptOptionsAllAdded>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnPromptOptionsAllAdded, &IYapConversationListener::Execute_K2_OnPromptOptionsAllAdded>
 		(ConversationName);
 }
 
@@ -210,7 +204,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 
 	if (ActiveConversation.FlowAsset == DialogueNode->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Conversation;
+		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
 	bool bSkippable = Bit.GetSkippable(DialogueNode);
@@ -222,8 +216,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 	TOptional<float> Time = Bit.GetTime();
 
 	float EffectiveTime;
-
-
+	
 	if (Time.IsSet())
 	{
 		EffectiveTime = Time.GetValue();
@@ -234,7 +227,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 		UE_LOG(LogYap, Error, TEXT("Fragment failed to return a valid time! Dialogue: %s"), *Bit.GetDialogueText(MaturitySetting).ToString());
 	}
 	
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
 		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting), Bit.GetDirectedAt());
 }
 
@@ -244,12 +237,12 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 
 	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Conversation;
+		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
 	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex, false);
 
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnDialogueEnds, &IYapConversationListener::Execute_K2_OnDialogueEnds>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnDialogueEnds, &IYapConversationListener::Execute_K2_OnDialogueEnds>
 		(ConversationName, DialogueHandle);
 }
 
@@ -295,7 +288,7 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	if (ConversationBrokerClass)
 	{
-		ConversationBroker = NewObject<UYapConversationBrokerBase>(this, ConversationBrokerClass);
+		ConversationBroker = NewObject<UYapBrokerBase>(this, ConversationBrokerClass);
 	}
 
 	TArray<TSoftClassPtr<UObject>> DialogueAudioAssetClassesSoft = UYapProjectSettings::Get()->GetDialogueAssetClasses();
@@ -314,13 +307,13 @@ void UYapSubsystem::Deinitialize()
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationBegins, &IYapConversationListener::Execute_K2_OnConversationBegins>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnConversationBegins, &IYapConversationListener::Execute_K2_OnConversationBegins>
 		(ConversationName);
 }
 
 void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapConversationBrokerBase::OnConversationEnds, &IYapConversationListener::Execute_K2_OnConversationEnds>
+	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnConversationEnds, &IYapConversationListener::Execute_K2_OnConversationEnds>
 		(ConversationName);
 }
 

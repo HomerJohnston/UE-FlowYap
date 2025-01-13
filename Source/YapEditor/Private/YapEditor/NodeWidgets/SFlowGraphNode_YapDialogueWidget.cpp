@@ -463,7 +463,7 @@ FText SFlowGraphNode_YapDialogueWidget::Text_FragmentSequencingButton() const
 FReply SFlowGraphNode_YapDialogueWidget::OnClicked_TogglePlayerPrompt()
 {
 	{
-		FYapScopedTransaction T(LOCTEXT("TogglePlayerPrompt", "Toggle Player Prompt"), GetFlowYapDialogueNodeMutable());
+		FYapScopedTransaction T("TODO", LOCTEXT("TogglePlayerPrompt", "Toggle Player Prompt"), GetFlowYapDialogueNodeMutable());
 
 		GetFlowYapDialogueNodeMutable()->ToggleNodeType();
 		GetFlowYapDialogueNodeMutable()->ForceReconstruction();
@@ -575,7 +575,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentBoxes()
 	{
 		FragmentBoxes->AddSlot()
 		.AutoHeight()
-		.Padding(0, bFirstFragment ? 0 : 13, 0, bFirstFragment ? 8 : 10)
+		.Padding(0, bFirstFragment ? 0 : 12, 0, bFirstFragment ? 8 : 10)
 		[
 			CreateFragmentSeparatorWidget(FragmentIndex)
 		];
@@ -936,19 +936,6 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton
 	if (GEditor->PlayWorld)
 	{
 		return EVisibility::Hidden;
-	}
-
-	if (!GetIsSelected())
-	{
-		return EVisibility::Visible; 
-	}
-	
-	for (int i = 0; i < FragmentWidgets.Num(); ++i)
-	{
-		if (FragmentWidgets[i]->IsBeingEdited())
-		{
-			return EVisibility::Hidden;
-		}
 	}
 
 	return EVisibility::Visible;
