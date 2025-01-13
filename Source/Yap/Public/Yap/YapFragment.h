@@ -139,6 +139,10 @@ public:
 
 	FName GetStartPinName() const { return GetStartPin().PinName; }
 
+	void ResetEndPin() { bShowOnEndPin = false; }
+
+	void ResetStartPin() { bShowOnStartPin = false; }
+	
 	void InvalidateFragmentTag();
 
 	// TODO implement this

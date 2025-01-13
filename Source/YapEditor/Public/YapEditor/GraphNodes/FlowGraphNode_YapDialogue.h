@@ -17,14 +17,11 @@ struct FYapFragment;
 UCLASS()
 class UFlowGraphNode_YapDialogue : public UFlowGraphNode_YapBase
 {
+	// TODO should this just be a friend class of my dialogue node class?
 	GENERATED_BODY()
 
 public:
 	UFlowGraphNode_YapDialogue();
-
-protected:
-	// Fragment GUID, array of pin names for this fragment - basically only used for fragment deletion
-	TMap<FGuid, TArray<FName>> FragmentPins;
 	
 public:	
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
@@ -36,6 +33,9 @@ public:
 	FLinearColor GetNodeBodyTintColor() const override;
 
 	FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
+
+public:
+	void PreSave(FObjectPreSaveContext SaveContext) override;
 };
 
 #undef LOCTEXT_NAMESPACE

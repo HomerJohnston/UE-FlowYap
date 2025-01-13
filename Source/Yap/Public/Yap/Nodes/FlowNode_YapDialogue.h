@@ -209,11 +209,12 @@ protected:
 	const FYapFragment& GetFragmentByIndex(uint8 Index) const;
 
 #if WITH_EDITOR
+public:
+	TArray<FYapFragment>& GetFragmentsMutable();
+
 private:
-	
 	FYapFragment& GetFragmentByIndexMutable(uint8 Index);
 	
-	TArray<FYapFragment>& GetFragmentsMutable();
 	
 	void RemoveFragment(int32 Index);
 

@@ -128,6 +128,9 @@ protected:
 	TSharedRef<SWidget> PopupContentGetter_DirectedAtWidget();
 	const FSlateBrush* Image_DirectedAtWidget() const;
 	TSharedRef<SWidget> CreateDirectedAtWidget();
+	
+	bool OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const;
+	void OnAssetsDropped_ChildSafeButton(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateFragmentWidget();
 

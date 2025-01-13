@@ -511,7 +511,7 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 			}
 			else
 			{
-				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("AreYouSure_Prompt", "Fragment contains child-safe data; do you want to destroy all child-safe settings?"));
+				EAppReturnType::Type ReturnType = FMessageDialog::Open(EAppMsgType::YesNoCancel, LOCTEXT("TurnOffChildSafeSettingsDialog_DataWarning", "Node contains child-safe data: do you want to reset it? Press 'Yes' to remove child-safe data, or 'No' to leave it hidden."), LOCTEXT("TurnOffChildSafeSettingsDialog_Title", "Turn Off Child-Safe Settings"));
 
 				switch (ReturnType)
 				{
@@ -536,6 +536,13 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 						// Do nothing, just close the dialog
 					}
 				}
+				/*
+				FNotificationInfo NotificationInfo(LOCTEXT("DisableChildSafe_Warning", "Can't disable child-safe"));
+				NotificationInfo.ExpireDuration = 3.0f;
+				NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
+				NotificationInfo.SubText = LOCTEXT("DisableChildSafe_Description", "Remove all child-safe data first.");
+				FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+				*/
 			}
 		}
 	}
@@ -736,6 +743,27 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 	];
 }
 
+bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const
+{
+	return OnAreAssetsAcceptableForDrop_TextWidget(AssetDatas);
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_ChildSafeButton(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
+	UObject* Object = AssetDatas[0].GetAsset();
+	
+	FYapTransactions::BeginModify(LOCTEXT("SetAudioAsset", "Set audio asset"), GetDialogueNode());
+
+	GetBit().SetSafeDialogueAudioAsset(Object);
+
+	FYapTransactions::EndModify();	
+}
+
 // ================================================================================================
 // FRAGMENT WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -778,27 +806,33 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 						.WidthOverride(22)
 						.HeightOverride(22)
 						[
-							SNew(SCheckBox)
-							.Cursor(EMouseCursor::Default)
-							.Style(FYapEditorStyle::Get(), YapStyles.CheckBoxStyle_Skippable)
-							.Type(ESlateCheckBoxType::ToggleButton)
-							.Padding(FMargin(0, 0))
-							.CheckBoxContentUsesAutoWidth(true)
-							.ToolTip(nullptr) // Don't show a tooltip, it's distracting
-							.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings)
-							.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings)
-							.Content()
+							SNew(SAssetDropTarget)
+							.bSupportsMultiDrop(false)
+							.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_ChildSafeButton)
+							.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_ChildSafeButton)
 							[
-								SNew(SBox)
-								.WidthOverride(20)
-								.HeightOverride(20)
-								.HAlign(HAlign_Center)
-								.VAlign(VAlign_Center)
+								SNew(SCheckBox)
+								.Cursor(EMouseCursor::Default)
+								.Style(FYapEditorStyle::Get(), YapStyles.CheckBoxStyle_Skippable)
+								.Type(ESlateCheckBoxType::ToggleButton)
+								.Padding(FMargin(0, 0))
+								.CheckBoxContentUsesAutoWidth(true)
+								.ToolTip(nullptr) // Don't show a tooltip, it's distracting
+								.IsChecked(this, &SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings)
+								.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings)
+								.Content()
 								[
-									SNew(SImage)
-									.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsCheckBox)
-									.DesiredSizeOverride(FVector2D(16, 16))
-									.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
+									SNew(SBox)
+									.WidthOverride(20)
+									.HeightOverride(20)
+									.HAlign(HAlign_Center)
+									.VAlign(VAlign_Center)
+									[
+										SNew(SImage)
+										.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsCheckBox)
+										.DesiredSizeOverride(FVector2D(16, 16))
+										.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
+									]
 								]
 							]
 						]
