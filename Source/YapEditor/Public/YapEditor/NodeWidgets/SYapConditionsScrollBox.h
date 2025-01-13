@@ -74,7 +74,7 @@ protected:
 	FText Text_ConditionButton(int32 ConditionIndex) const;
 	void OnClicked_DeleteConditionButton(int ConditionIndex);
 	void OnSet_NewConditionClass(int ConditionIndex);
-	
+	FReply OnClicked_AddConditionButton(int ConditionIndex);
 	// ------------------------------------------
 	
 public:
@@ -90,5 +90,7 @@ protected:
 public:
 	const TSharedPtr<SWidget> GetConditionButton(int32 ConditionIndex) const { return ConditionButtons[ConditionIndex]; };
 };
+
+
 
 #undef LOCTEXT_NAMESPACE

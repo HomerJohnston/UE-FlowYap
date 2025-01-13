@@ -27,7 +27,7 @@ public:
 		SLATE_EVENT( FOnIsOpenChanged, OnPopupOpenChanged )
 
 		/** Pass in a delegate that builds the popup, e.g. (FPopupContentGetter::Create...); this lets us avoid building this whole popup widget until we actually need it */
-		SLATE_ARGUMENT( FPopupContentGetter, PopupContentGetter )
+		SLATE_ARGUMENT( FPopupContentGetter, PopupContentGetter ) // TODO is there a way for me to take in a delegate arg the same way that a SLATE_EVENT allows?
 
 		SLATE_ARGUMENT( EMenuPlacement, PopupPlacement )
 

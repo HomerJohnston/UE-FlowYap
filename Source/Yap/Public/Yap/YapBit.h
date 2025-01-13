@@ -95,7 +95,7 @@ protected:
 
 	/** Indicates whether child-safe data is available in this bit or not */
 	UPROPERTY()
-	bool bChildSafeDataAvailable = false;
+	bool bNeedsChildSafeData = false;
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditAnywhere)
@@ -169,14 +169,14 @@ public:
 	
 	void OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
 
-	bool GetHasChildSafeData() const { return bChildSafeDataAvailable; };
+	bool NeedsChildSafeData() const { return bNeedsChildSafeData; };
 
 protected:
 	TOptional<float> GetManualTime() const { return ManualTime; }
 
-	float GetTextTime() const;
+	float GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
-	TOptional<float> GetAudioTime() const;
+	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
@@ -248,7 +248,7 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 	}
 
 	// Don't allow falling back to child-safe data if it is 
-	if (MaturitySetting == EYapMaturitySetting::Mature && !bChildSafeDataAvailable)
+	if (MaturitySetting == EYapMaturitySetting::Mature && !bNeedsChildSafeData)
 	{
 		return nullptr;
 	}

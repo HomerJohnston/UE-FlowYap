@@ -131,7 +131,7 @@ void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr
 
 bool UFlowNode_YapDialogue::UsesTitleText() const
 {
-	return IsPlayerPrompt() || UYapProjectSettings::Get()->GetShowTitleTextOnTalkNodes();
+	return IsPlayerPrompt() || UYapProjectSettings::GetShowTitleTextOnTalkNodes();
 }
 
 bool UFlowNode_YapDialogue::GetSkippable() const
@@ -632,11 +632,6 @@ void UFlowNode_YapDialogue::ToggleNodeType()
 	}
 
 	DialogueNodeType = static_cast<EYapDialogueNodeType>(AsInt);
-
-	if (UYapProjectSettings::GetShowTitleTextOnTalkNodes())
-	{
-		
-	}
 }
 #endif
 

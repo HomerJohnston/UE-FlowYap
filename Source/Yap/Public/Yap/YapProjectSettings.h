@@ -214,20 +214,13 @@ public:
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
 	
 public:
+	static const TSoftClassPtr<UObject>& GetConversationBrokerClass() { return Get()-> ConversationBrokerClass; }
+	
+	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get()-> DialogueAssetClasses; }
 
-#if WITH_EDITOR
-	YAP_BGETTER(ShowTitleTextOnTalkNodes);
-#endif
-	
-	YAP_GETTER(const TSoftClassPtr<UObject>&, ConversationBrokerClass)
-	
-	YAP_GETTER(const TArray<TSoftClassPtr<UObject>>&, DialogueAssetClasses)
-	/*
-	bool GetShowTitleTextOnTalkNodes() const
-	{
-		return bShowTitleTextOnTalkNodes;
-	};
-*/
+	static bool GetShowTitleTextOnTalkNodes() { return Get()->bShowTitleTextOnTalkNodes; }
+
+	// TODO convert everything to static getters
 	
 	int32 GetTextWordsPerMinute() const;
 

@@ -224,7 +224,7 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags() const
 {
-	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("AreYouSure_Question", "Are you sure?")) )
+	if ( EAppReturnType::Yes != FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("AreYouSure_Prompt", "Are you sure?")) )
 	{
 		return FReply::Handled();
 	}

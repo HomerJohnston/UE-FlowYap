@@ -91,14 +91,15 @@ void FYapEditorStyle::OnPatchComplete()
 
 #define YAP_COMMON_BRUSH "Common/ButtonHoverHint"
 #define YAP_COMMON_MARGIN FMargin(4.0 / 16.0)
-#define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1)
+#define YAP_COMMON_PRESSED_PADDING FMargin(0, 1, 0, -1) // Push down by one pixel
 #define YAP_COMMON_CHECKBOXSTYLE FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox")
 
 void FYapEditorStyle::Initialize()
 {
-	YAP_REDEFINE_UE_BRUSH(FSlateImageBrush,			None,				FAppStyle,	"NoBorder",				FVector2f(16, 16));
-	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,	FAppStyle,	"Icons.FilledCircle",	FVector2f(16, 16));
-	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,		FAppStyle,	"Icons.Plus",			FVector2f(16, 16));
+	YAP_REDEFINE_UE_BRUSH(FSlateImageBrush,			None,							FAppStyle,	"NoBorder",					FVector2f(16, 16), YapColor::Transparent);
+	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,				FAppStyle,	"Icons.FilledCircle",		FVector2f(16, 16));
+	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,					FAppStyle,	"Icons.Plus",				FVector2f(16, 16));
+	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_ProjectSettings_TabIcon,	FAppStyle,	"ProjectSettings.TabIcon",	FVector2f(16, 16));
 
 	
 	// ============================================================================================
@@ -107,15 +108,16 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	10); // TODO font settings in project editor settings
 	YAP_DEFINE_FONT(Font_TitleText,			"Italic",	10);
 	YAP_DEFINE_FONT(Font_NodeHeader,		"Bold",		15);
+	YAP_DEFINE_FONT(Font_SectionHeader,		"Bold",		12);
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
-	
+
 	// ============================================================================================
 	// BRUSHES - PNGs
 	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Baby,						"Icon_Baby", ".svg",					FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_MoodKey_Missing,			"Icon_MoodKey_Missing", ".svg",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_DialogueExpand,			"Icon_DialogueExpand", ".png",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_TextTime,					"DialogueNodeIcons/TextTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Timer,						"DialogueNodeIcons/Timer", ".png",		FVector2f(16, 16));
@@ -123,12 +125,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Speaker,					"Icon_Audio", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Tag,						"Icon_Tag", ".svg",						FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_MoodKey_Missing,			"Icon_MoodKey_Missing", ".svg",			FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_MoodKey_None,				"Icon_MoodKey_None", ".png",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_CornerDropdown_Right,		"Icon_CornerDropdown_Right", ".svg",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_SettingsExpander,			"Icon_SettingsExpander_12px", ".png",	FVector2f(12, 12));
-	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Circle_22px,				"Icon_Circle_22px", ".png",				FVector2f(22, 22));
-		
 			
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
@@ -167,10 +165,6 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Chevron_Right,				"Icon_Chevron_Right", ".svg",			FVector2f(16, 16), YapColor::White);
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Caret_Right,				"Icon_Caret_Right", ".svg",				FVector2f(16, 16), YapColor::White);
-
-	FString Dir = RootToContentDir("Icon_Caret_Right", L".svg");
-	FSlateVectorImageBrush* TesTst = new FSlateVectorImageBrush(Dir, FVector2f(16, 16), YapColor::White);
-
 	
 	// ============================================================================================
 	// SLIDER STYLES
@@ -231,10 +225,6 @@ void FYapEditorStyle::Initialize()
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
 
-	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueSettings, FButtonStyle::GetDefault(),
-		.SetNormal(CORE_BOX_BRUSH("Icons.Toolbar.Settings", YAP_COMMON_MARGIN, YapColor::DarkGray))
-	);
-
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueCornerFoldout, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
@@ -244,7 +234,17 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::DarkGray)
 		.SetPressedPadding(FMargin(0))
 		);
-
+	
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SpeakerPopup, FButtonStyle::GetDefault(),
+		.SetNormal(None)
+		.SetHovered(None)
+		.SetPressed(None)
+		.SetNormalForeground(YapColor::DimWhite)
+		.SetHoveredForeground(YapColor::White)
+		.SetPressedForeground(YapColor::LightGray)
+		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
+	);
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSetting, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::LightGray))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::White))
@@ -263,7 +263,7 @@ void FYapEditorStyle::Initialize()
 		.SetNormalForeground(YapColor::DimWhite)
 		.SetHoveredForeground(YapColor::White)
 		.SetPressedForeground(YapColor::LightGray)
-		.SetPressedPadding(FMargin(0))
+		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
 
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_ConditionWidget, FButtonStyle::GetDefault(),
@@ -277,7 +277,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_AudioPreview, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
-		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))	
+		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetNormalPadding(FMargin(0, 0, 0, 0))
 		.SetPressedPadding(FMargin(0, 1, 0, -1))
 		.SetNormalForeground(YapColor::Gray_SemiGlass)
@@ -312,10 +312,6 @@ void FYapEditorStyle::Initialize()
 		.SetNormalThumbImage(Box_SolidLightGray)
 	);
 
-	YAP_DEFINE_STYLE(FScrollBoxStyle, ScrollBoxStyle_Test, FCoreStyle::Get().GetWidgetStyle<FScrollBoxStyle>("ScrollBox"),
-		
-	);
-	
 	// ============================================================================================
 	// TEXT BLOCK STYLES
 	// ============================================================================================
@@ -375,8 +371,10 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FProgressBarStyle, ProgressBarStyle_FragmentTimePadding, FProgressBarStyle::GetDefault(),
-		.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
-		.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))
+		//.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
+		.SetBackgroundImage(None)
+		//.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))
+		.SetFillImage(Box_SolidWhite)
 		.SetEnableFillAnimation(false)
 	);
 }

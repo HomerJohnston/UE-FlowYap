@@ -197,20 +197,30 @@ void FYapBit::OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAs
 // --------------------------------------------------------------------------------------------
 // Protected
 
-float FYapBit::GetTextTime() const
+float FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting) const
 {
-	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
+	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	{
+		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+	}
 
-	int32 TWPM = ProjectSettings->GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
+	int32 TWPM = UYapProjectSettings::Get()->GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
+
+	int32 WordCount = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureWordCount : CachedSafeWordCount;
+
 	double SecondsPerWord = 60.0 / (double)TWPM;
-			
-	double Min = ProjectSettings->GetMinimumAutoTextTimeLength();
-	return FMath::Max(CachedMatureWordCount * SecondsPerWord, Min);
+	
+	double Min = UYapProjectSettings::Get()->GetMinimumAutoTextTimeLength();
+	
+	return FMath::Max(WordCount * SecondsPerWord, Min);
 }
 
-TOptional<float> FYapBit::GetAudioTime() const
+TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting) const
 {
-	EYapMaturitySetting MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	{
+		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+	}
 	
 	TOptional<float> CachedTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
 	TSoftObjectPtr<UObject> Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
