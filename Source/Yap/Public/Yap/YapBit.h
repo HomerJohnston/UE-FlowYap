@@ -191,7 +191,7 @@ public:
 
 	void SetTitleText(FText* TextToSet, const FText& NewText);
 
-	void SetDialogueText(FText* TextToSet, const FText& NewText);
+	void SetTextData(FText* TextToSet, const FText& NewText);
 	
 	void SetMatureDialogueAudioAsset(UObject* NewAudio);
 	

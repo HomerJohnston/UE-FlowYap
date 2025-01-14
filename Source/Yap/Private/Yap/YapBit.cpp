@@ -286,7 +286,7 @@ void FYapBit::SetTitleText(FText* TextToSet, const FText& NewText)
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetDialogueText(FText* TextToSet, const FText& NewText)
+void FYapBit::SetTextData(FText* TextToSet, const FText& NewText)
 {
 	SetDialogueText_Internal(TextToSet, NewText);
 }

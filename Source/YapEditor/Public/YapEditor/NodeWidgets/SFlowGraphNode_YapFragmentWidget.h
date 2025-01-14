@@ -143,7 +143,6 @@ protected:
 
 	TSharedRef<SWidget>	MakeTimeSettingRow(EYapTimeMode TimeMode, EYapMaturitySetting MaturitySetting);
 
-	TSharedRef<SWidget> PopupContentGetter_TimeSettings();
 	FSlateColor ButtonColor_TimeSettingButton() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
@@ -156,9 +155,11 @@ protected:
 	FSlateColor			BorderBackgroundColor_Dialogue() const;
 
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
-	
-	TSharedRef<SWidget> BuildExpandedEditor(const FText& Title, EYapMaturitySetting MaturitySetting, float Width);
 
+	TSharedRef<SWidget> BuildDialogueEditors_ExpandedEditor(float Width);
+	TSharedRef<SWidget> BuildTimeSettings_ExpandedEditor(float Width);
+	TSharedRef<SWidget> BuildPaddingSettings_ExpandedEditor(float Width);
+	
 	// ------------------------------------------
 
 	FText				FragmentTagPreview_Text() const;
