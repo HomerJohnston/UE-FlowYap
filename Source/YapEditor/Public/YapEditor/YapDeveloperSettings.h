@@ -22,6 +22,8 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 600.0, UIMin = 0.0, UIMax = 600.0, Delta = 10))
 	float ConditionDetailsHeight = 400;
 
+	//UPROPERTY(Config, EditAnywhere, Category = "Other")
+	//UTexture2D* CharacterAsset
 public:
 	static float GetConditionDetailsWidth() { return Get()->ConditionDetailsWidth; }
 	

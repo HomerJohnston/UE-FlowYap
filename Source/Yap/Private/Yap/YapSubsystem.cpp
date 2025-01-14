@@ -22,7 +22,7 @@ TWeakObjectPtr<UWorld> UYapSubsystem::World = nullptr;
 FYapActiveConversation::FYapActiveConversation()
 {
 	FlowAsset = nullptr;
-	Conversation = FGameplayTag::EmptyTag;
+	Conversation.Reset();
 }
 
 bool FYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)

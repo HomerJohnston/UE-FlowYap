@@ -6,6 +6,7 @@
 #include "YapEditor/AssetFactory_YapCharacter.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
+#include "YapEditor/YapCharacterThumbnailRenderer.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/DetailCustomizations/DetailCustomization_YapProjectSettings.h"
 #include "YapEditor/DetailCustomizations/DetailCustomization_YapCharacter.h"
@@ -19,10 +20,25 @@ void FYapEditorModule::StartupModule()
 	
 	AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FlowYapCharacter()));
 	
-	DetailCustomizations.Add({UYapProjectSettings::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapProjectSettings::MakeInstance)});
-	DetailCustomizations.Add({UYapCharacter::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapCharacter::MakeInstance)});
+	DetailCustomizations.Append
+		({
+			{ UYapProjectSettings::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapProjectSettings::MakeInstance) }
+		});
+
+	DetailCustomizations.Append
+		({
+			{ UYapCharacter::StaticClass(), FOnGetDetailCustomizationInstance::CreateStatic(&FDetailCustomization_YapCharacter::MakeInstance) }
+		});
 	
-	//PropertyCustomizations.Add(*FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance));
+	ClassThumbnailRenderers.Append
+		({
+			{ UYapCharacter::StaticClass(), UYapCharacterThumbnailRenderer::StaticClass() }
+		});
+	
+	PropertyCustomizations.Append
+	({
+		//{ *FFlowYapFragment::StaticStruct(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPropertyCustomization_FlowYapFragment::MakeInstance) }
+	});
 	
 	StartupModuleBase();
 

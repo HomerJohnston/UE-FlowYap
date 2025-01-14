@@ -123,6 +123,7 @@ struct FYapFonts
 	FSlateFontInfo Font_NodeHeader;	
 	FSlateFontInfo Font_SectionHeader;	
 	FSlateFontInfo Font_NodeSequencing;	
+	FSlateFontInfo Font_CharacterAssetThumbnail;	
 };
 
 extern FYapFonts YapFonts;

@@ -32,7 +32,7 @@ public:
 	// ==========================================
 	// SETTINGS
 protected:
-	UPROPERTY(Instanced, meta = (Yap_ReconstructNodeOnChange))
+	UPROPERTY(Instanced)
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
 	UPROPERTY(meta = (ShowOnlyInnerProperties))
@@ -49,10 +49,10 @@ protected:
 	UPROPERTY()
 	float PaddingToNextFragment = -1;
 	
-	UPROPERTY(EditAnywhere, meta = (Yap_ReconstructNodeOnChange))
+	UPROPERTY()
 	bool bShowOnStartPin = false;
 
-	UPROPERTY(EditAnywhere, meta = (Yap_ReconstructNodeOnChange))
+	UPROPERTY()
 	bool bShowOnEndPin = false;
 	
 	// ==========================================
@@ -62,10 +62,10 @@ protected:
 	FGuid Guid = FGuid(0, 0, 0, 0);
 	
 	// TODO should this be serialized or transient
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Transient)
 	uint8 IndexInDialogue = 0; 
 
-	UPROPERTY(BlueprintReadOnly, Transient)
+	UPROPERTY(Transient)
 	int32 ActivationCount = 0;
 
 	UPROPERTY()

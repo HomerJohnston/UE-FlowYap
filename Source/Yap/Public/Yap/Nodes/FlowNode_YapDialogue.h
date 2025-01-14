@@ -82,7 +82,7 @@ protected:
 	FGameplayTag DialogueTag;
 
 	/** Conditions which must be met for this dialogue to run. All conditions must pass (AND, not OR evaluation). If any conditions fail, Bypass output is triggered. */
-	UPROPERTY(Instanced, BlueprintReadOnly, meta = (Yap_ReconstructNodeOnChange, Yap_ConditionProperty))
+	UPROPERTY(Instanced, BlueprintReadOnly)
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 
 	/** Actual dialogue contents. */

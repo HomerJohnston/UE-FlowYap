@@ -4,7 +4,7 @@
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
-#include "YapDeveloperSettings.h"
+#include "YapEditor/YapDeveloperSettings.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"

@@ -10,8 +10,13 @@
 #include "AssetToolsModule.h"
 #include "AssetTypeCategories.h"
 
+class UObject;
+class UThumbnailRenderer;
 class IAssetTypeActions;
 class IAssetTools;
+
+using UAssetClass = TSubclassOf<UObject>;
+using UThumbnailClass = TSubclassOf<UThumbnailRenderer>;
 
 class FGPGEditorModuleBase
 {
@@ -23,7 +28,7 @@ protected:
 	TArray<TSharedRef<IAssetTypeActions>> AssetTypeActions;
 	TArray<TPair<TSubclassOf<UObject>, const FOnGetDetailCustomizationInstance>> DetailCustomizations;
 	TArray<TPair<const UScriptStruct&, const FOnGetPropertyTypeCustomizationInstance>> PropertyCustomizations;
-	
+	TArray<TPair<UAssetClass, UThumbnailClass>> ClassThumbnailRenderers;
 	/* Example, this code would be in StartupModule():
 	// --------
 	AssetCategory = { "Yap", LOCTEXT("Yap", "Yap") };
@@ -66,13 +71,24 @@ protected:
 		RegisterAssetTypeActions();
 		RegisterDetailCustomizations();
 		RegisterPropertyCustomizations();
+		RegisterThumbnailRenderers();
+		
+		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
+		{
+			PropertyEditorModule->NotifyCustomizationModuleChanged();
+		}
 	}
 	
 	void ShutdownModuleBase()
 	{
 		UnregisterAssetTypeActions();
-		UnregisterCustomizations();
+		UnregisterDetailCustomizations();
+		UnregisterPropertyCustomizations();
+		UnregisterThumbnailRenderers();		
 	}
+	
+	// ========================================== 
+	// REGISTRATION OF CATEGORY
 	
 private:
 	// ------------------------------------------
@@ -86,6 +102,9 @@ private:
 
 		return EAssetTypeCategories::None;
 	}
+
+	// ========================================== 
+	// REGISTRATION OF TYPES
 	
 private:
 	// ------------------------------------------
@@ -100,6 +119,12 @@ private:
 				RegisterAssetTypeAction(AssetTools, Action);
 			}
 		}
+	}
+	
+	void RegisterAssetTypeAction(IAssetTools& AssetTools, const TSharedRef<IAssetTypeActions> Action)
+	{
+		AssetTools.RegisterAssetTypeActions(Action);
+		RegisteredAssetTypeActions.Add(Action);
 	}
 
 	// ------------------------------------------
@@ -116,6 +141,20 @@ private:
 		}
 	}
 
+	void RegisterCustomClassLayout(const TSubclassOf<UObject> Class, const FOnGetDetailCustomizationInstance DetailLayout)
+	{
+		if (!Class)
+		{
+			return;
+		}
+
+		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
+		{
+			PropertyEditorModule->RegisterCustomClassLayout(Class->GetFName(), DetailLayout);
+			RegisteredCustomClassLayouts.Add(Class->GetFName());
+		}
+	}
+	
 	// ------------------------------------------
 	void RegisterPropertyCustomizations()
 	{
@@ -130,30 +169,6 @@ private:
 		}
 	}
 
-private:
-	// ------------------------------------------
-	void RegisterAssetTypeAction(IAssetTools& AssetTools, const TSharedRef<IAssetTypeActions> Action)
-	{
-		AssetTools.RegisterAssetTypeActions(Action);
-		RegisteredAssetTypeActions.Add(Action);
-	}
-
-	// ------------------------------------------
-	void RegisterCustomClassLayout(const TSubclassOf<UObject> Class, const FOnGetDetailCustomizationInstance DetailLayout)
-	{
-		if (!Class)
-		{
-			return;
-		}
-
-		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
-		{
-			PropertyEditorModule->RegisterCustomClassLayout(Class->GetFName(), DetailLayout);
-			RegisteredCustomClassLayouts.Add(Class->GetFName());
-		}
-	}
-
-	// ------------------------------------------
 	void RegisterCustomStructLayout(const UScriptStruct& Struct, const FOnGetPropertyTypeCustomizationInstance DetailLayout)
 	{
 		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
@@ -163,6 +178,20 @@ private:
 		}
 	}
 
+	// ------------------------------------------
+	void RegisterThumbnailRenderers()
+	{
+		UThumbnailManager& ThumbnailManager = UThumbnailManager::Get();
+
+		for (TPair<UAssetClass, UThumbnailClass>& Pair : ClassThumbnailRenderers)
+		{
+			ThumbnailManager.RegisterCustomRenderer(Pair.Key, Pair.Value);
+		}
+	}
+	
+	// ========================================== 
+	// DE-REGISTRATION OF TYPES
+	
 private:
 	// ------------------------------------------
 	void UnregisterAssetTypeActions()
@@ -181,9 +210,8 @@ private:
 	}
 
 	// ------------------------------------------
-	void UnregisterCustomizations()
+	void UnregisterDetailCustomizations()
 	{
-		// unregister details customizations
 		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
 		{
 			for (auto It = RegisteredCustomClassLayouts.CreateConstIterator(); It; ++It)
@@ -193,7 +221,14 @@ private:
 					PropertyEditorModule->UnregisterCustomClassLayout(*It);
 				}
 			}
-
+		}
+	}
+	
+	// ------------------------------------------
+	void UnregisterPropertyCustomizations()
+	{
+		if (FPropertyEditorModule* PropertyEditorModule = FModuleManager::GetModulePtr<FPropertyEditorModule>("PropertyEditor"))
+		{
 			for (auto It = RegisteredCustomStructLayouts.CreateConstIterator(); It; ++It)
 			{
 				if (It->IsValid())
@@ -201,8 +236,20 @@ private:
 					PropertyEditorModule->UnregisterCustomPropertyTypeLayout(*It);
 				}
 			}
+		}
+	}
+	
+	// ------------------------------------------
+	void UnregisterThumbnailRenderers()
+	{
+		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		{
+			UThumbnailManager& ThumbnailManager = UThumbnailManager::Get();
 
-			PropertyEditorModule->NotifyCustomizationModuleChanged();
+			for (TPair<UAssetClass, UThumbnailClass>& Pair : ClassThumbnailRenderers)
+			{
+				ThumbnailManager.RegisterCustomRenderer(Pair.Key, Pair.Value);
+			}
 		}
 	}
 };

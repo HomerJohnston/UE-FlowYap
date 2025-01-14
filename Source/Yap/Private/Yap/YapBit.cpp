@@ -34,8 +34,9 @@ const UYapCharacter* FYapBit::GetDirectedAt() const
 const FText& FYapBit::GetDialogueText(EYapMaturitySetting MaturitySetting) const
 {
 	ResolveMaturitySetting(MaturitySetting);
-	check(MaturitySetting != EYapMaturitySetting::Unspecified);
 
+	check(MaturitySetting != EYapMaturitySetting::Unspecified);
+	
 	if (MaturitySetting == EYapMaturitySetting::Mature || SafeDialogueText.IsEmpty())
 	{
 		return MatureDialogueText;
