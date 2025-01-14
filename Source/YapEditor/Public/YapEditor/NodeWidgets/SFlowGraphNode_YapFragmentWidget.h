@@ -157,7 +157,7 @@ protected:
 
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
 	
-	TSharedRef<SWidget> BuildExpandedEditor(EYapMaturitySetting MaturitySetting);
+	TSharedRef<SWidget> BuildExpandedEditor(EYapMaturitySetting MaturitySetting, float Width);
 
 	// ------------------------------------------
 

@@ -14,7 +14,7 @@ struct FYapPromptHandle;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-/** Optional base class for brokering Yap to your game. Create a child class of this and the functions to create conversation panels and/or display floating text widgets in your game. Then set Yap's project settings to use your class. */
+/** Required class for brokering Yap to your game. Create a child class of this and implement the functions as needed. Then set Yap's project settings to use your class. */
 UCLASS(Abstract, MinimalAPI)
 class UYapBrokerBase : public UObject
 {
@@ -24,6 +24,9 @@ class UYapBrokerBase : public UObject
 protected:
 	bool bWarnedAboutMatureDialogue = false;
 #endif
+	
+public:
+	bool ImplementsGetWorld() const override { return true; }
 	
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */

@@ -48,7 +48,7 @@ void FYapFragment::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 
 float FYapFragment::GetPaddingToNextFragment() const
 {
-	if (PaddingToNextFragment < 0 && UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeEnabled())
+	if (PaddingToNextFragment < 0)
 	{
 		return UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
 	}

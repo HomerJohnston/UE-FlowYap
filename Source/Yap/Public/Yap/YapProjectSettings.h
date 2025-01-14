@@ -71,10 +71,6 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bDefaultSkippableSetting;
 
-	/** Turn this on if you want to completely disable padding time (delays after each fragment of dialogue). */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bUseDefaultFragmentPaddingTime = true;
-	
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "bUseDefaultFragmentPaddingTime", EditConditionHides))
 	float DefaultFragmentPaddingTime = 0.25f;
@@ -227,8 +223,6 @@ public:
 
 	double GetMinimumFragmentTime();
 
-	bool IsDefaultFragmentPaddingTimeEnabled() const { return bUseDefaultFragmentPaddingTime; }
-
 	bool CacheFragmentWordCount() const { return bCacheFragmentWordCount; }
 	
 	bool CacheFragmentAudioLength() const { return bCacheFragmentAudioLength; }
@@ -236,8 +230,6 @@ public:
 	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
 	
 	EYapMissingAudioErrorLevel GetMissingAudioBehavior() const { return MissingAudioErrorLevel; }
-
-	float GetFragmentPaddingSliderMax() const { return FragmentPaddingSliderMax; }
 
 	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculatorClass; }
 
@@ -256,7 +248,7 @@ public:
 
 	float GetDialogueTimeSliderMax() const { return DialogueTimeSliderMax; }
 
-	float GetPaddingTimeSliderMax() const { return PaddingTimeSliderMax; }
+	float GetFragmentPaddingSliderMax() const { return PaddingTimeSliderMax; }
 
 public:
 	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }

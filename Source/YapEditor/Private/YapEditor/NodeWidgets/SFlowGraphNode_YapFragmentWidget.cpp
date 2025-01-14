@@ -1124,10 +1124,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 				SNew(SNumericEntryBox<float>)
 				.IsEnabled(bHasCommittedDelegate)
 				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-				//.Justification(ETextJustify::Center)
+				//.Justification(ETextJustify::Center) // Numeric Entry Box has a bug, when spinbox is turned on this doesn't work. So don't use it for any of the rows.
 				.AllowSpin(bHasCommittedDelegate)
 				.Delta(0.05f)
-				.MaxValue(99) // TODO project setting?
+				.MaxValue(60) // TODO project setting?
 				.MaxSliderValue(10) // TODO project setting?
 				.MaxFractionalDigits(1) // TODO project setting?
 				.OnValueChanged(this, UpdatedFunction)
@@ -1154,200 +1154,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 	.HeightOverride(24)
 	[
 		RowBox.ToSharedRef()
-	];
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_TimeSettings()
-{
-	// temp TODO erase this whole function
-	EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Mature;
-	
-	return SNew(SHorizontalBox)
-	.Cursor(EMouseCursor::Default)
-	+ SHorizontalBox::Slot()
-	.Padding(8, 8, 8, 8)
-	[
-		SNew(SBox)
-		.WidthOverride(100)
-		.VAlign(VAlign_Fill)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.Padding(0, 0, 0, 8)
-			.AutoHeight()
-			.HAlign(HAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("DialogueTime_Header", "Dialogue Time"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-				.Justification(ETextJustify::Center)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 2)
-			.AutoHeight()
-			[
-				MakeTimeSettingRow(EYapTimeMode::Default, MaturitySetting)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 2)
-			.AutoHeight()
-			[
-				MakeTimeSettingRow(EYapTimeMode::AudioTime, MaturitySetting)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 2)
-			.AutoHeight()
-			[
-				MakeTimeSettingRow(EYapTimeMode::TextTime, MaturitySetting)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 2)
-			.AutoHeight()
-			[
-				MakeTimeSettingRow(EYapTimeMode::ManualTime, MaturitySetting)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0, 2, 0, 2)
-			[
-				SNew(SSeparator)
-				.Thickness(2)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 0)
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(0, 0, 2, 0)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("Time_Label", "Time:"))
-				]
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Right)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0, 0, 0)
-				[
-					SNew(SBox)
-					.WidthOverride(60)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<float>)
-						.IsEnabled(false)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value_Lambda( [this] () { return GetBit().GetTime(EYapMaturitySetting::Mature); } )
-						.OnValueCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTime)
-					]
-				]
-			]
-		]
-	]
-	+ SHorizontalBox::Slot()
-	.AutoWidth()
-	.Padding(0)
-	[
-		SNew(SSeparator)
-		.Orientation(Orient_Vertical)
-		.Thickness(2)
-	]
-	+ SHorizontalBox::Slot()
-	.AutoWidth()
-	.Padding(8, 8, 8, 8)
-	[
-		SNew(SBox)
-		.WidthOverride(100)
-		.VAlign(VAlign_Fill)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.Padding(0, 0, 0, 8)
-			.AutoHeight()
-			.HAlign(HAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("PaddingTime_Header", "Padding Time"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-				.Justification(ETextJustify::Center)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 8, 0, 2)
-			.AutoHeight()
-			.HAlign(HAlign_Fill)
-			[
-				SNew(SSlider)
-				.MaxValue(UYapProjectSettings::Get()->GetFragmentPaddingSliderMax())
-				.MinValue(0.0)
-				.Value_Lambda( [this] () { return GetFragment().GetPaddingToNextFragment(); } )
-				.OnValueChanged_Lambda( [this] (float NewValue) { GetFragmentMutable().SetPaddingToNextFragment(NewValue); } )
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 10, 0, 2)
-			.AutoHeight()
-			.HAlign(HAlign_Center)
-			[
-				SNew(SBox)
-				.HeightOverride(22)
-				[
-				SNew(SButton)
-				.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
-				.ButtonColorAndOpacity(YapColor::DarkGray)
-				.Text(LOCTEXT("UseDefault_Button", "Use Default"))
-				.OnClicked_Lambda( [this] () { GetFragmentMutable().SetPaddingToNextFragment(-1); return FReply::Handled(); } )]
-			]
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0)
-			[
-				SNew(SSpacer)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0, 2, 0, 2)
-			[
-				SNew(SSeparator)
-				.Thickness(2)
-			]
-			+ SVerticalBox::Slot()
-			.Padding(0, 2, 0, 0)
-			.AutoHeight()
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.HAlign(HAlign_Left)
-				.VAlign(VAlign_Center)
-				.Padding(0, 0, 2, 0)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("Time_Label", "Time:"))
-				]
-				+ SHorizontalBox::Slot()
-				.HAlign(HAlign_Right)
-				.VAlign(VAlign_Center)
-				.Padding(2, 0, 0, 0)
-				[
-					SNew(SBox)
-					.WidthOverride(60)
-					[
-						// -----------------------------
-						// TIME DISPLAY
-						// -----------------------------
-						SNew(SNumericEntryBox<float>)
-						.IsEnabled(false)
-						.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
-						.Justification(ETextJustify::Center)
-						.Value_Lambda( [this] () { return GetFragment().GetPaddingToNextFragment(); } )
-						.OnValueCommitted_Lambda( [this] (float NewValue, ETextCommit::Type) { GetFragmentMutable().SetPaddingToNextFragment(NewValue); } )
-					]
-				]
-			]
-		]
 	];
 }
 
@@ -1397,6 +1203,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				[
 					SNew(SOverlay)
 					+ SOverlay::Slot()
+					.Padding(2, 2, 2, 2)
 					[
 						SNew(STextBlock)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
@@ -1457,23 +1264,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 					SNew(SImage)
 					.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_FilledCircle))
 					.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
-					/*
-					SNew(SYapButtonPopup)
-					.PopupPlacement(EMenuPlacement::MenuPlacement_CenteredBelowAnchor)
-					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSettingOpener)
-					.ButtonForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton)
-					.PopupContentGetter(FPopupContentGetter::CreateSP(this, &SFlowGraphNode_YapFragmentWidget::PopupContentGetter_TimeSettings))
-					.ButtonContent()
-					[
-						SNew(SBox)
-						.Padding(4)
-						[
-							SNew(SImage)
-							.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_FilledCircle))
-							.ColorAndOpacity(FSlateColor::UseForeground())
-						]
-					]
-					*/
 				]
 			]
 			+ SHorizontalBox::Slot()
@@ -1560,10 +1350,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Expande
 {
 	FText MatureEditorTitle = NeedsChildSafeData() ? LOCTEXT("MatureDataEditor_Title", "MATURE") : FText::GetEmpty();
 
+	float Width = NeedsChildSafeData() ? 350 : 500; // TODO developer setting
+	
 	TSharedRef<SHorizontalBox> EditorBoxes = SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot().AutoWidth()
 		[
-			BuildExpandedEditor(EYapMaturitySetting::Mature)
+			BuildExpandedEditor(EYapMaturitySetting::Mature, Width)
 		];
 
 	if (NeedsChildSafeData())
@@ -1580,14 +1372,95 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Expande
 		EditorBoxes->AddSlot()
 		.AutoWidth()
 		[
-			BuildExpandedEditor(EYapMaturitySetting::ChildSafe)
+			BuildExpandedEditor(EYapMaturitySetting::ChildSafe, Width)
 		];
 	}
+
+	TSharedRef<SVerticalBox> VerticalBox = SNew(SVerticalBox)
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	[
+		EditorBoxes
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.HAlign(HAlign_Fill)
+	.Padding(0, 8, 0, 8)
+	[
+		SNew(SSeparator)
+		.Thickness(2)
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.HAlign(HAlign_Center)
+	.Padding(0, 4, 0, 4)
+	[
+		SNew(STextBlock)
+		.Text(LOCTEXT("PaddingTime_Header", "Padding Time"))
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+		.Justification(ETextJustify::Center)
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.HAlign(HAlign_Center)
+	.Padding(0, 4, 0, 4)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(2, 0, 2, 0)
+		[
+			SNew(SBox)
+			.WidthOverride(60)
+			[
+				// -----------------------------
+				// TIME DISPLAY
+				// -----------------------------
+				SNew(SNumericEntryBox<float>)
+				.IsEnabled(true)
+				.AllowSpin(true)
+				.Delta(0.01f)
+				.MaxSliderValue(UYapProjectSettings::Get()->GetFragmentPaddingSliderMax())
+				.MinValue(0)
+				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+				.Justification(ETextJustify::Center)
+				.Value_Lambda( [this] () { return GetFragment().GetPaddingToNextFragment(); } )
+				.OnValueChanged_Lambda( [this] (float NewValue) { GetFragmentMutable().SetPaddingToNextFragment(NewValue); } )
+				.OnValueCommitted_Lambda( [this] (float NewValue, ETextCommit::Type) { GetFragmentMutable().SetPaddingToNextFragment(NewValue); } ) // TODO transactions
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.Padding(2, 0, 2, 0)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("SecondsAbbreviated_Label", "Sec."))
+		]
+	]
+	+ SVerticalBox::Slot()
+	.AutoHeight()
+	.HAlign(HAlign_Center)
+	.Padding(0, 4, 0, 4)
+	[
+		SNew(SBox)
+		.HeightOverride(22)
+		.WidthOverride(88)
+		[
+			SNew(SButton)
+			.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_TimeSetting)
+			.ButtonColorAndOpacity(YapColor::DarkGray)
+			.Text(LOCTEXT("UseDefault_Button", "Use Default"))
+			.HAlign(HAlign_Center)
+			.OnClicked_Lambda( [this] () { GetFragmentMutable().SetPaddingToNextFragment(-1); return FReply::Handled(); } ) // TODO transactions
+		]
+	];
 	
-	return EditorBoxes;
+	return VerticalBox;
 }
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildExpandedEditor(EYapMaturitySetting MaturitySetting)
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildExpandedEditor(EYapMaturitySetting MaturitySetting, float Width)
 {
 	bool bMature = MaturitySetting == EYapMaturitySetting::Mature;
 	FYapBit& Bit = GetBit();
@@ -1602,7 +1475,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildExpandedEditor(EYapMa
 	TSharedRef<IEditableTextProperty> MatureTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText));
 
 	return SNew(SBox)
-	.WidthOverride(400)
+	.WidthOverride(Width)
 	.Padding(0, 0, 0, 0)
 	[
 		SNew(SVerticalBox)
@@ -1729,7 +1602,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
-	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetPaddingTimeSliderMax();
+	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
 	if (GEditor->PlayWorld)
@@ -1812,7 +1685,7 @@ void SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding(float 
 	float NewValue = X * MaxPaddedSetting;
 
 	// We will attempt to snap to the default time unless you hold ctrl
-	if (!bCtrlPressed && UYapProjectSettings::Get()->IsDefaultFragmentPaddingTimeEnabled())
+	if (!bCtrlPressed)
 	{
 		float DefaultFragmentPaddingTime = UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
 		
