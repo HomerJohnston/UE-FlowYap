@@ -157,7 +157,7 @@ protected:
 
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
 	
-	TSharedRef<SWidget> BuildExpandedEditor(EYapMaturitySetting MaturitySetting, float Width);
+	TSharedRef<SWidget> BuildExpandedEditor(const FText& Title, EYapMaturitySetting MaturitySetting, float Width);
 
 	// ------------------------------------------
 
@@ -232,6 +232,7 @@ protected:
 	void				OnValueUpdated_ManualTime(float NewValue);
 	void				OnValueCommitted_ManualTime(float NewValue, ETextCommit::Type CommitType);
 	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
+	FSlateColor			ButtonColorAndOpacity_PaddingButton() const;
 	FSlateColor			ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 
 	bool OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
