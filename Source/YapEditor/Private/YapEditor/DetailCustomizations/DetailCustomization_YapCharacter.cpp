@@ -6,13 +6,22 @@
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
+#include "ISettingsModule.h"
+#include "SSimpleButton.h"
 #include "Yap/YapCharacter.h"
+#include "Yap/YapGlobals.h"
+#include "YapEditor/YapEditorStyle.h"
+#include "YapEditor/SlateWidgets/SYapHyperlink.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
 void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
+	//DetailBuilderWeakPtr = DetailBuilder;
+	
 	TArray<TWeakObjectPtr<UObject>> Objects;
+
+	PortraitsProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
 
 	DetailBuilder.GetObjectsBeingCustomized(Objects);
 
@@ -43,30 +52,62 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 	});
 	
 	IDetailCategoryBuilder& CharacterCategory = DetailBuilder.EditCategory("YapCharacter");
-	
-	auto PortraitsProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
+
 
 	PortraitsProperty->MarkHiddenByCustomization();
 
 	CharacterCategory.AddProperty(PortraitsProperty);
-	
-	CharacterCategory.AddCustomRow(LOCTEXT("MoodKeys", "Mood Keys"))
+
+	FDetailWidgetRow X = CharacterCategory.AddCustomRow(LOCTEXT("MoodTags", "Mood Tags"))
 	[
-		SNew(SBox)
-		.Padding(0, 8)
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.HAlign(HAlign_Center)
+		.Padding(0, 12, 0, 4)
 		[
-			SNew(SButton)
-			.ContentPadding(FMargin(0, 4))
-			.Cursor(EMouseCursor::Default)
-			.VAlign(VAlign_Center)
-			.Text(this, &FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton)
-			.ToolTipText(this, &FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton)
-			.HAlign(HAlign_Center)
-			.OnClicked(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
-			.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)	
+			SNew(SBox)
+			.Visibility(this, &FDetailCustomization_YapCharacter::Visibility_EmptyPortraitsMapInfo)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(STextBlock)
+					.Font(YapFonts.Font_WarningText)
+					.Text(LOCTEXT("CharacterPortraitsEmpty_Info", "You need to create mood tags. Go to "))//"Once finished, use the button below to build the character's portrait images list. Open "))
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SYapHyperlink)
+					//.Font(YapFonts.Font_WarningText)
+					.Text(LOCTEXT("CharacterPortraitsEmpty_OpenProjectSettings", "Yap Project Settings"))
+					.OnNavigate_Lambda( [] () { Yap::OpenProjectSettings(); } )
+				]
+			]
+		]
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.HAlign(HAlign_Center)
+		.Padding(0, 4, 0, 4)
+		[
+			SNew(SBox)
+			.Padding(0, 8)
+			.MaxDesiredWidth(150)
+			[
+				SNew(SButton)
+				.ContentPadding(FMargin(0, 4))
+				.Cursor(EMouseCursor::Default)
+				.VAlign(VAlign_Center)
+				.Text(this, &FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton)
+				.ToolTipText(this, &FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton)
+				.HAlign(HAlign_Center)
+				.OnClicked(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
+				.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)
+			]
 		]
 	];
-
 }
 
 FText FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton() const
@@ -89,6 +130,20 @@ FReply FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton()
 bool FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton() const
 {
 	return true;
+}
+
+EVisibility FDetailCustomization_YapCharacter::Visibility_EmptyPortraitsMapInfo() const
+{
+	FProperty* Val; PortraitsProperty->GetValue(Val);
+
+	TArray<void*> RawData;
+
+	PortraitsProperty->AccessRawData(RawData);
+
+	const TMap<FName, TObjectPtr<UTexture2D>>* Map = reinterpret_cast<const TMap<FName, TObjectPtr<UTexture2D>>*>(RawData[0]);
+
+	return Map->Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed;
+	//return EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE

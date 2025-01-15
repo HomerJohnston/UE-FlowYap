@@ -111,6 +111,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_FONT(Font_SectionHeader,		"Bold",		12);
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	YAP_DEFINE_FONT(Font_CharacterAssetThumbnail, "Normal", 14);
+	YAP_DEFINE_FONT(Font_WarningText,		"Italic",	10);
 
 	// ============================================================================================
 	// BRUSHES - PNGs

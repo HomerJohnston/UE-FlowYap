@@ -184,7 +184,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 	
 	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnPromptOptionAdded, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
-		(ConversationName, Handle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
+		(ConversationName, Handle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
@@ -228,7 +228,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 	}
 	
 	BroadcastBrokerListenerFuncs<&UYapBrokerBase::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting), Bit.GetDirectedAt());
+		(ConversationName, DialogueHandle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting));
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)

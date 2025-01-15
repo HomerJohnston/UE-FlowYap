@@ -2,6 +2,8 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
+#include "ISettingsModule.h"
+#include "YapProjectSettings.h"
 #include "Interfaces/IPluginManager.h"
 
 namespace Yap
@@ -21,5 +23,13 @@ namespace Yap
 	static FString GetResourcesFolder()
 	{
 		return GetPluginFolder() / "Resources";
+	}
+
+	static void OpenProjectSettings()
+	{
+		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+		{
+			SettingsModule->ShowViewer("Project", "Yap", FName(UYapProjectSettings::StaticClass()->GetName()));
+		}
 	}
 }

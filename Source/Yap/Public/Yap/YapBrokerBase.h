@@ -37,9 +37,11 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Conversation Ends")
 	void K2_OnConversationEnds(const FGameplayTag& Conversation);
 
+	// TODO reorder this - DirectedAt should go after Speaker.
+	// TODO this should contain TitleText even though most people will not use it.
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Begins")
-	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* DialogueAudioAsset, const UYapCharacter* DirectedAt);
+	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Ends")
@@ -47,7 +49,7 @@ protected:
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Option Added")
-	void K2_OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
+	void K2_OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Options All Added")
@@ -82,9 +84,9 @@ public:
 	};
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, float DialogueTime, const UObject* AudioAsset, const UYapCharacter* DirectedAt)
+	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset)
 	{
-		K2_OnDialogueBegins(Conversation, DialogueHandle, Speaker, MoodKey, DialogueText, DialogueTime, AudioAsset, DirectedAt);
+		K2_OnDialogueBegins(Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, AudioAsset);
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
@@ -94,9 +96,9 @@ public:
 	}
 	
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Super when overriding. */
-	virtual void OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+	virtual void OnPromptOptionAdded(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
 	{
-		K2_OnPromptOptionAdded(Conversation, Handle, Speaker, MoodKey, DialogueText, TitleText);
+		K2_OnPromptOptionAdded(Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
 	}
 	
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Super when overriding. */

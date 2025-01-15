@@ -24,6 +24,8 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Yap Audio")
 	static float GetSoundLength(USoundBase* Sound);
+
+	// TODO I need a function to pass in a Dialogue Handle and skip the dialogue here
 };
 
 #undef LOCTEXT_NAMESPACE

@@ -22,12 +22,17 @@ public:
 		return MakeShareable(new FDetailCustomization_YapCharacter());
 	}
 
+	
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
 	FText Text_RefreshMoodKeysButton() const;
 	FText ToolTipText_RefreshMoodKeysButton() const;
 	FReply OnClicked_RefreshMoodKeysButton();
 	bool IsEnabled_RefreshMoodKeysButton() const;
+	EVisibility Visibility_EmptyPortraitsMapInfo() const;
+
+	TSharedPtr<IPropertyHandle> PortraitsProperty;
+	TWeakPtr<IDetailLayoutBuilder> DetailBuilderWeakPtr;
 };
 
 #undef LOCTEXT_NAMESPACE
