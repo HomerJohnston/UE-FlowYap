@@ -18,8 +18,6 @@
 
 void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	//DetailBuilderWeakPtr = DetailBuilder;
-	
 	TArray<TWeakObjectPtr<UObject>> Objects;
 
 	PortraitsProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));

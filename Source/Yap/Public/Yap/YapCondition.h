@@ -14,6 +14,9 @@ class YAP_API UYapCondition : public UObject
 {
 	GENERATED_BODY()
 
+public:
+	bool ImplementsGetWorld() const override { return true; }
+	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditDefaultsOnly)
 	FString DefaultTitle = "Unnamed Condition";

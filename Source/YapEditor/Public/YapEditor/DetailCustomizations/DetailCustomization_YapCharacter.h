@@ -33,7 +33,6 @@ public:
 	bool IsEnabled_RefreshMoodKeysButton() const;
 
 	TSharedPtr<IPropertyHandle> PortraitsProperty;
-	TWeakPtr<IDetailLayoutBuilder> DetailBuilderWeakPtr;
 };
 
 #undef LOCTEXT_NAMESPACE
