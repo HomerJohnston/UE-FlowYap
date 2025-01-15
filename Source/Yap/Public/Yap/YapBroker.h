@@ -5,7 +5,7 @@
 
 #include "Yap/IYapConversationListener.h"
 
-#include "YapBrokerBase.generated.h"
+#include "YapBroker.generated.h"
 
 enum class EYapMaturitySetting : uint8;
 class UYapCharacter;
@@ -15,8 +15,8 @@ struct FYapPromptHandle;
 #define LOCTEXT_NAMESPACE "Yap"
 
 /** Required class for brokering Yap to your game. Create a child class of this and implement the functions as needed. Then set Yap's project settings to use your class. */
-UCLASS(Abstract, MinimalAPI)
-class UYapBrokerBase : public UObject
+UCLASS(Abstract, Blueprintable)
+class YAP_API UYapBroker : public UObject
 {
 	GENERATED_BODY()
 
@@ -114,7 +114,7 @@ public:
 	}
 
 #if WITH_EDITOR
-	YAP_API bool PreviewDialogueAudio_Internal(const UObject* AudioAsset) const;
+	bool PreviewDialogueAudio_Internal(const UObject* AudioAsset) const;
 	
 	/** Implement this to play audio assets from the graph editor. Cast to your project's audio type and play it. Do NOT call Super when overriding. */
 	virtual bool PreviewDialogueAudio(const UObject* AudioAsset) const
@@ -122,9 +122,9 @@ public:
 		return K2_PreviewDialogueAudio(AudioAsset);
 	}
 
-	YAP_API bool ImplementsPreviewDialogueAudio() const;
+	bool ImplementsPreviewDialogueAudio() const;
 	
-	YAP_API float GetDialogueAudioDuration(const UObject* AudioAsset) const
+	float GetDialogueAudioDuration(const UObject* AudioAsset) const
 	{
 		return K2_GetDialogueAudioDuration(AudioAsset);
 	}

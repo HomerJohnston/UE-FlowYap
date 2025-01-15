@@ -17,7 +17,7 @@ class SFlowGraphNode_YapDialogueWidget;
 class UFlowNode_YapDialogue;
 class UFlowGraphNode_YapDialogue;
 class SMultiLineEditableTextBox;
-class UYapBrokerBase;
+class UYapBroker;
 
 struct FYapBit;
 struct FFlowPin;

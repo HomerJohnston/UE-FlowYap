@@ -336,7 +336,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 {
 	AudioAsset = NewAudio;
 
-	const TSoftClassPtr<UYapBrokerBase>& BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
+	const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
 	
 	if (BrokerClass.IsNull())
 	{
@@ -345,7 +345,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 		return;
 	}
 	
-	UYapBrokerBase* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBrokerBase>();
+	UYapBroker* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 
 	float NewCachedTime = BrokerCDO->GetDialogueAudioDuration(NewAudio);
 

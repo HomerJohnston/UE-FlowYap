@@ -274,7 +274,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 		return FReply::Handled();
 	}
 
-	TSoftClassPtr<UYapBrokerBase> BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
+	TSoftClassPtr<UYapBroker> BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
 
 	// Create a temporary broker to play the sound
 	if (BrokerClass.IsNull())
@@ -282,7 +282,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 		
 	}
 
-	UYapBrokerBase* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBrokerBase>();
+	UYapBroker* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 
 	if (IsValid(BrokerCDO))
 	{

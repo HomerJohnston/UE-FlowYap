@@ -42,7 +42,7 @@ UYapProjectSettings::UYapProjectSettings()
 
 	TextCalculatorClass = UYapTextCalculator::StaticClass();
 
-	ConversationBrokerClass = nullptr; // You *must* create your own conversation handler class!
+	BrokerClass = nullptr; // You *must* create your own conversation handler class!
 	
 	FragmentPaddingSliderMax = 5.0;
 

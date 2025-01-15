@@ -1,7 +1,7 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
-#include "Yap/YapBrokerBase.h"
+#include "Yap/YapBroker.h"
 
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
@@ -12,49 +12,49 @@
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
+void UYapBroker::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnConversationEnds_Implementation(const FGameplayTag& Conversation)
+void UYapBroker::K2_OnConversationEnds_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset)
+void UYapBroker::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+void UYapBroker::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+void UYapBroker::K2_OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapBrokerBase::K2_OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
+void UYapBroker::K2_OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 }
 
 // ------------------------------------------------------------------------------------------------
 
-EYapMaturitySetting UYapBrokerBase::K2_UseMatureDialogue_Implementation()
+EYapMaturitySetting UYapBroker::K2_UseMatureDialogue_Implementation()
 {
 #if WITH_EDITOR
 	if (!bWarnedAboutMatureDialogue)
@@ -77,7 +77,7 @@ EYapMaturitySetting UYapBrokerBase::K2_UseMatureDialogue_Implementation()
 thread_local bool bPreviewDialogueAudioOverridden = false;
 thread_local bool bSuppressPreviewDialogueAudioWarning = false;
 
-bool UYapBrokerBase::K2_PreviewDialogueAudio_Implementation(const UObject* AudioAsset) const
+bool UYapBroker::K2_PreviewDialogueAudio_Implementation(const UObject* AudioAsset) const
 {
 	bPreviewDialogueAudioOverridden = false;
 
@@ -91,21 +91,21 @@ bool UYapBrokerBase::K2_PreviewDialogueAudio_Implementation(const UObject* Audio
 
 // ------------------------------------------------------------------------------------------------
 
-float UYapBrokerBase::K2_GetDialogueAudioDuration_Implementation(const UObject* AudioAsset) const
+float UYapBroker::K2_GetDialogueAudioDuration_Implementation(const UObject* AudioAsset) const
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
 
 	return -1;
 }
 
-bool UYapBrokerBase::PreviewDialogueAudio_Internal(const UObject* AudioAsset) const
+bool UYapBroker::PreviewDialogueAudio_Internal(const UObject* AudioAsset) const
 {
 	bPreviewDialogueAudioOverridden = true;
 
 	return PreviewDialogueAudio(AudioAsset);
 }
 
-bool UYapBrokerBase::ImplementsPreviewDialogueAudio() const
+bool UYapBroker::ImplementsPreviewDialogueAudio() const
 {
 	bSuppressPreviewDialogueAudioWarning = true;
 	(void)PreviewDialogueAudio_Internal(nullptr);

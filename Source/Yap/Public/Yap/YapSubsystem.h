@@ -4,13 +4,13 @@
 #pragma once
 #include "GameplayTagContainer.h"
 #include "YapCharacterComponent.h"
-#include "YapBrokerBase.h"
+#include "YapBroker.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Yap/YapBitReplacement.h"
 
 #include "YapSubsystem.generated.h"
 
-class UYapBrokerBase;
+class UYapBroker;
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
@@ -116,7 +116,7 @@ protected:
 	TArray<UObject*> Listeners;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UYapBrokerBase> ConversationBroker;
+	TObjectPtr<UYapBroker> ConversationBroker;
 	
 	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
 	UPROPERTY(Transient)
@@ -166,7 +166,7 @@ public:
 	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
 	EYapMaturitySetting K2_GetMaturitySetting() { return GetGameMaturitySetting(); };
 
-	static UYapBrokerBase* GetConversationBroker();
+	static UYapBroker* GetConversationBroker();
 	
 	static EYapMaturitySetting GetGameMaturitySetting();
 	

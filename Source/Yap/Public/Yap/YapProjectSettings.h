@@ -9,7 +9,7 @@
 #include "Yap/YapTextCalculator.h"
 #include "YapProjectSettings.generated.h"
 
-class UYapBrokerBase;
+class UYapBroker;
 enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
 enum class EYapMissingAudioErrorLevel : uint8;
@@ -42,9 +42,9 @@ public:
 	// SETTINGS
 protected:
 	
-	/** You can point to any class you make for this, but it MUST implement the Yap Conversation Listener interface (C++ IYapConversationListenerInterface). */
+	/** You must create a Yap Broker class (or blueprint) and set it here for Yap to work. */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UYapBrokerBase> ConversationBrokerClass;
+	TSoftClassPtr<UYapBroker> BrokerClass;
 	
 	/** What type of class to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
@@ -207,7 +207,7 @@ public:
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
 	
 public:
-	static const TSoftClassPtr<UYapBrokerBase>& GetConversationBrokerClass() { return Get()-> ConversationBrokerClass; }
+	static const TSoftClassPtr<UYapBroker>& GetConversationBrokerClass() { return Get()-> BrokerClass; }
 	
 	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get()-> DialogueAssetClasses; }
 
