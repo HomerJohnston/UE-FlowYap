@@ -10,6 +10,7 @@
 #include "SSimpleButton.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapGlobals.h"
+#include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/SlateWidgets/SYapHyperlink.h"
 
@@ -64,33 +65,7 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.HAlign(HAlign_Center)
-		.Padding(0, 12, 0, 4)
-		[
-			SNew(SBox)
-			.Visibility(this, &FDetailCustomization_YapCharacter::Visibility_EmptyPortraitsMapInfo)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(STextBlock)
-					.Font(YapFonts.Font_WarningText)
-					.Text(LOCTEXT("CharacterPortraitsEmpty_Info", "You need to create mood tags. Go to "))//"Once finished, use the button below to build the character's portrait images list. Open "))
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SYapHyperlink)
-					//.Font(YapFonts.Font_WarningText)
-					.Text(LOCTEXT("CharacterPortraitsEmpty_OpenProjectSettings", "Yap Project Settings"))
-					.OnNavigate_Lambda( [] () { Yap::OpenProjectSettings(); } )
-				]
-			]
-		]
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.HAlign(HAlign_Center)
-		.Padding(0, 4, 0, 4)
+		.Padding(0, 2, 0, 2)
 		[
 			SNew(SBox)
 			.Padding(0, 8)
@@ -107,7 +82,45 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 				.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)
 			]
 		]
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.HAlign(HAlign_Center)
+		.Padding(0, 4, 0, 14)
+		[
+			SNew(SBox)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(STextBlock)
+					.Font(YapFonts.Font_WarningText)
+					.Text(this, &FDetailCustomization_YapCharacter::Text_PortraitsList)
+					.ColorAndOpacity(YapColor::LightYellow)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SYapHyperlink)
+					.Text(LOCTEXT("CharacterPortraits_OpenProjectSettings", "Yap Project Settings"))
+					.OnNavigate_Lambda( [] () { Yap::OpenProjectSettings(); } )
+				]
+			]
+		]
 	];
+}
+
+FText FDetailCustomization_YapCharacter::Text_PortraitsList() const
+{
+	FProperty* Val; PortraitsProperty->GetValue(Val);
+
+	TArray<void*> RawData;
+
+	PortraitsProperty->AccessRawData(RawData);
+
+	const TMap<FName, TObjectPtr<UTexture2D>>* Map = reinterpret_cast<const TMap<FName, TObjectPtr<UTexture2D>>*>(RawData[0]);
+
+	return Map->Num() == 0 ? LOCTEXT("CharacterPortraits_MoodTagsEmpty_Info_1", "You need to create mood tags. Go to ") : LOCTEXT("CharacterPortraits_MoodTags_Info_1", "To edit mood tags, go to ");
 }
 
 FText FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton() const
@@ -130,20 +143,6 @@ FReply FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton()
 bool FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton() const
 {
 	return true;
-}
-
-EVisibility FDetailCustomization_YapCharacter::Visibility_EmptyPortraitsMapInfo() const
-{
-	FProperty* Val; PortraitsProperty->GetValue(Val);
-
-	TArray<void*> RawData;
-
-	PortraitsProperty->AccessRawData(RawData);
-
-	const TMap<FName, TObjectPtr<UTexture2D>>* Map = reinterpret_cast<const TMap<FName, TObjectPtr<UTexture2D>>*>(RawData[0]);
-
-	return Map->Num() == 0 ? EVisibility::Visible : EVisibility::Collapsed;
-	//return EVisibility::Visible;
 }
 
 #undef LOCTEXT_NAMESPACE
