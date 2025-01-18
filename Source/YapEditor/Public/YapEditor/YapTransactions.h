@@ -7,6 +7,12 @@ class UFlowGraphNode_YapBase;
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
+#define YAP_DECLARE_TRANSACTION(NAME) static FName NAME = "NAME"
+namespace YapTransactions
+{
+	YAP_DECLARE_TRANSACTION(RefreshCharacterPortraitList);
+}
+
 /** Helper class. I ran into a few odd issues using FScopedTransaction so I made this, seems to work more reliably. */
 class FYapTransactions
 {

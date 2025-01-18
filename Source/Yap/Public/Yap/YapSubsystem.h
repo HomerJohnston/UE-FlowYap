@@ -128,10 +128,6 @@ protected:
 
 	/**  */
 	UPROPERTY(Transient)
-	TSubclassOf<UYapTextCalculator> TextCalculatorClass;
-
-	/**  */
-	UPROPERTY(Transient)
 	TArray<UClass*> DialogueAudioAssetClasses;
 
 	/**  */
@@ -148,6 +144,8 @@ protected:
 	// TODO running dialog interruption
 	//UPROPERTY(Transient)
 	//TMap<FYapDialogueHandle, 
+
+	static bool bGetGameMaturitySettingWarningIssued;
 	
 	// ------------------------------------------
 	// PUBLIC API
@@ -225,8 +223,8 @@ protected:
 	/**  */
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
-	//#define FUNCTION_REF(Class, FunctionRef) Class, &Class::FunctionRef, &Class::Execute_##FunctionRef
-	
+	// TODO these two templates should be rolled into one
+	// Thanks to Blue Man for this
 	template<auto TFunction, auto TExecFunction, typename... TArgs>
 	void BroadcastBrokerListenerFuncs(TArgs&&... Args)
 	{
@@ -257,8 +255,8 @@ protected:
 		}
 	}
 	
-	template<auto TFunction, auto TExecFunction, typename R, typename... TArgs>
-	R ExecuteBrokerListenerFuncs(TArgs&&... Args)
+	template<auto TFunction, auto TExecFunction, typename RetVal, typename... TArgs>
+	RetVal ExecuteBrokerListenerFuncs(TArgs&&... Args)
 	{
 		if (IsValid(ConversationBroker))
 		{
@@ -279,6 +277,6 @@ protected:
 
 		UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
 
-		return R{};
+		return RetVal{};
 	}
 };

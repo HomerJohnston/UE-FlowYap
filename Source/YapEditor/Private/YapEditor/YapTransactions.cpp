@@ -5,6 +5,7 @@
 
 #include "Editor/TransBuffer.h"
 #include "Nodes/FlowNodeBase.h"
+#include "Yap/YapLog.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapBase.h"
 #include "YapEditor/YapLogEditor.h"
 
@@ -40,7 +41,11 @@ void FYapTransactions::EndModify()
 
 FYapScopedTransaction::FYapScopedTransaction(FName InEvent, const FText& TransactionText, UObject* Object)
 {
+	check(Object);
+	
 	GEngine->BeginTransaction(TEXT("Yap"), TransactionText, Object);
+
+	Object->Modify();
 }
 
 FYapScopedTransaction::~FYapScopedTransaction()

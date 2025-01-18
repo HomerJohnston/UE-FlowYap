@@ -138,7 +138,7 @@ bool UFlowNode_YapDialogue::GetSkippable() const
 {
 	if (Skippable == EYapDialogueSkippable::Default)
 	{
-		return UYapProjectSettings::Get()->GetDialogueSkippableByDefault();
+		return UYapProjectSettings::GetDialogueSkippableByDefault();
 	}
 	else
 	{
@@ -577,21 +577,33 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 	UpdateFragmentIndices();
 
-	OnReconstructionRequested.ExecuteIfBound();
+	(void)OnReconstructionRequested.ExecuteIfBound();
 }
 
 FString UFlowNode_YapDialogue::GetNodeDescription() const
 {
 	return "";
-	
-	//return UFlowYapProjectSettings::GetTrimmedGameplayTagString(EFlowYap_TagFilter::Prompts, DialogueTag);
 }
 
 void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const
 {
-	const FGameplayTagContainer& ParentTagContainer = GameplayTagNode->GetParentTagNode()->GetSingleTagContainer();
+	if (GameplayTagNode == nullptr)
+	{
+		bArg = false;
+		return;
+	}
 
-	if (ParentTagContainer.HasTagExact(UYapProjectSettings::Get()->DialogueTagsParent))
+	TSharedPtr<FGameplayTagNode> ParentTagNode = GameplayTagNode->GetParentTagNode();
+
+	if (ParentTagNode == nullptr)
+	{
+		bArg = false;
+		return;
+	}
+	
+	const FGameplayTagContainer& ParentTagContainer = ParentTagNode->GetSingleTagContainer();
+
+	if (ParentTagContainer.HasTagExact(UYapProjectSettings::GetDialogueTagsParent()))
 	{
 		bArg = true;
 	}

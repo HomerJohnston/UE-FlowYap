@@ -19,7 +19,7 @@ UYapProjectSettings::UYapProjectSettings()
 {
 
 #if WITH_EDITORONLY_DATA
-	MoodKeyIconPath.Path = "";
+	MoodTagIconPath.Path = "";
 
 	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
 
@@ -54,7 +54,7 @@ UYapProjectSettings::UYapProjectSettings()
 }
 
 #if WITH_EDITOR
-FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension) const
+FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension)
 {
 	int32 Index;
 
@@ -65,19 +65,19 @@ FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileEx
 		KeyString = KeyString.RightChop(Index + 1);
 	}
 	
-	if (MoodKeyIconPath.Path == "")
+	if (Get().MoodTagIconPath.Path == "")
 	{		
 		static FString ResourcesDir = Yap::GetPluginFolder();
 		
 		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodKeys/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
-	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { MoodKeyIconPath.Path, KeyString, FileExtension });
+	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
 }
 
 FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 {
-	return UGameplayTagsManager::Get().RequestGameplayTagChildren(Get()->MoodTagsParent);
+	return UGameplayTagsManager::Get().RequestGameplayTagChildren(Get().MoodTagsParent);
 }
 
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -104,51 +104,31 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	
 	FString FullPathDir = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ProjectDir);
 	
-	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodKeyIconPath))
+	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodTagIconPath))
 	{
 		if (two == "Path")
 		{
-			MoodKeyIconPath.Path = MoodKeyIconPath.Path.RightChop(FullPathDir.Len());
+			MoodTagIconPath.Path = MoodTagIconPath.Path.RightChop(FullPathDir.Len());
 		}
 	}
 }
 #endif
 
-int32 UYapProjectSettings::GetTextWordsPerMinute() const
-{
-	return TextWordsPerMinute;
-}
-
-double UYapProjectSettings::GetMinimumAutoTextTimeLength() const
-{
-	return MinimumAutoTextTimeLength;
-}
-
-double UYapProjectSettings::GetMinimumAutoAudioTimeLength() const
-{
-	return MinimumAutoAudioTimeLength;
-}
-
-double UYapProjectSettings::GetMinimumFragmentTime()
-{
-	return MinimumFragmentTime;
-}
-
 #if WITH_EDITOR
-const FString& UYapProjectSettings::GetMoodKeyIconPath() const
+const FString& UYapProjectSettings::GetMoodKeyIconPath()
 {
 	static FString CachedPath;
 
 	// Recache the path if it was never calculated, or if the setting is set and the cached path is not equal to it
-	if (CachedPath.IsEmpty() || (!MoodKeyIconPath.Path.IsEmpty() && CachedPath != MoodKeyIconPath.Path))
+	if (CachedPath.IsEmpty() || (!Get().MoodTagIconPath.Path.IsEmpty() && CachedPath != Get().MoodTagIconPath.Path))
 	{
-		if (MoodKeyIconPath.Path == "")
+		if (Get().MoodTagIconPath.Path == "")
 		{
 			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodKeys");
 		}
 		else
 		{
-			CachedPath = FPaths::ProjectDir() / MoodKeyIconPath.Path;
+			CachedPath = FPaths::ProjectDir() / Get().MoodTagIconPath.Path;
 		}	
 	}
 	
@@ -157,7 +137,7 @@ const FString& UYapProjectSettings::GetMoodKeyIconPath() const
 
 void UYapProjectSettings::RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter)
 {
-	TMap<UClass*, EYap_TagFilter>& ClassFiltersForProperty = Get()->TagFilterSubscriptions.FindOrAdd(PropertyName);
+	TMap<UClass*, EYap_TagFilter>& ClassFiltersForProperty = Get().TagFilterSubscriptions.FindOrAdd(PropertyName);
 
 	ClassFiltersForProperty.Add(ClassSource->GetClass(), Filter);
 }
@@ -192,9 +172,10 @@ void UYapProjectSettings::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 	}
 }
 
+// TODO someone posted a nicer way to do this in Slackers without this... something about simple name? using the node?? can't remember
 FString UYapProjectSettings::GetTrimmedGameplayTagString(EYap_TagFilter Filter, const FGameplayTag& PropertyTag)
 {
-	const FGameplayTag& ParentContainer = *Get()->TagContainers[Filter];
+	const FGameplayTag& ParentContainer = *Get().TagContainers[Filter];
 	
 	if (ParentContainer.IsValid() && ParentContainer != FGameplayTag::EmptyTag && PropertyTag.MatchesTag(ParentContainer))
 	{

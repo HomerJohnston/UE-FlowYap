@@ -135,7 +135,7 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff(
 	{
 		case EYapDialogueSkippable::Default:
 		{
-			return UYapProjectSettings::Get()->GetDialogueSkippableByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
+			return UYapProjectSettings::GetDialogueSkippableByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
 		}
 		case EYapDialogueSkippable::Skippable:
 		{
@@ -193,7 +193,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 FOptionalSize SFlowGraphNode_YapDialogueWidget::GetMaxNodeWidth() const
 {
 	const float GraphGridSize = 16;
-	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapProjectSettings::Get()->GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + GraphGridSize * UYapProjectSettings::Get()->GetDialogueWidthAdjustment());
+	return FMath::Max(YAP_MIN_NODE_WIDTH + UYapProjectSettings::GetPortraitSize(), YAP_DEFAULT_NODE_WIDTH + GraphGridSize * UYapProjectSettings::GetDialogueWidthAdjustment());
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -303,7 +303,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			[
 				SNew(SGameplayTagComboFiltered)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
-				.Filter(UYapProjectSettings::Get()->DialogueTagsParent.ToString())
+				.Filter(UYapProjectSettings::GetDialogueTagsParent().ToString())
 				.OnTagChanged(TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag))
 				.ToolTipText(LOCTEXT("DialogueTag", "Dialogue tag"))	
 			]

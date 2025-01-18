@@ -39,20 +39,16 @@ void UYapEditorSubsystem::UpdateMoodKeyBrushes()
 
 void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodKey)
 {
-	const UYapProjectSettings* ProjectSettings = UYapProjectSettings::Get();
-
-	//FString Dir = UYapProjectSettings::GetPortraitIconPath() FPaths::plu RootToContentDir("Icon_Caret_Right", L".svg");
-	//FSlateVectorImageBrush* TesTst = new FSlateVectorImageBrush(Dir, FVector2f(16, 16), YapColor::White);
-
 	TSharedPtr<FSlateImageBrush> ImageBrush = nullptr;
 	
 	// Attempt to load SVG
-	FString IconPath = ProjectSettings->GetMoodKeyIconPath(MoodKey, "svg");
+	FString IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodKey, "svg");
 	ImageBrush = MakeShared<FSlateVectorImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 
+	// Attempt to load PNG
 	if (!ImageBrush)
 	{
-		IconPath = ProjectSettings->GetMoodKeyIconPath(MoodKey, "png");
+		IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodKey, "png");
 		ImageBrush = MakeShared<FSlateImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 	}
 	
@@ -161,7 +157,7 @@ void UYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 
 	if (IsMoodKeyProperty(PropertyHandle))
 	{
-		MetaString = GetDefault<UYapProjectSettings>()->MoodTagsParent.ToString();
+		MetaString = GetDefault<UYapProjectSettings>()->GetMoodTagsParent().ToString();
 		return;
 	}
 }

@@ -70,7 +70,7 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 		{
 			UE_LOG(LogYap, Error, TEXT("UYapSubsystem was invalid in FYapBit::ResolveMaturitySetting. This should not happen! Please contact plugin author. Using project default maturity settings."));
 			MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
-		}	
+		}
 	}
 }
 
@@ -84,7 +84,7 @@ const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 		return Char->GetPortraitBrush(MoodKey);
 	}
 
-	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
+	return UYapProjectSettings::GetMissingPortraitBrush();
 }
 
 const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
@@ -96,7 +96,7 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 		return Char->GetPortraitBrush(FGameplayTag::EmptyTag);
 	}
 
-	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
+	return UYapProjectSettings::GetMissingPortraitBrush();
 }
 #endif
 
@@ -128,7 +128,7 @@ EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 
 	if (EffectiveTimeMode == EYapTimeMode::Default)
 	{
-		EffectiveTimeMode = UYapProjectSettings::Get()->GetDefaultTimeModeSetting();
+		EffectiveTimeMode = UYapProjectSettings::GetDefaultTimeModeSetting();
 	}
 
 	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
@@ -205,13 +205,13 @@ float FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting) const
 		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
 	}
 
-	int32 TWPM = UYapProjectSettings::Get()->GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
+	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
 
 	int32 WordCount = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureWordCount : CachedSafeWordCount;
 
 	double SecondsPerWord = 60.0 / (double)TWPM;
 	
-	double Min = UYapProjectSettings::Get()->GetMinimumAutoTextTimeLength();
+	double Min = UYapProjectSettings::GetMinimumAutoTextTimeLength();
 	
 	return FMath::Max(WordCount * SecondsPerWord, Min);
 }
@@ -314,9 +314,9 @@ void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 
 	int32 WordCount = -1;
 
-	if (UYapProjectSettings::Get()->CacheFragmentWordCount())
+	if (UYapProjectSettings::CacheFragmentWordCount())
 	{
-		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::Get()->GetTextCalculator();
+		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::GetTextCalculator();
 		WordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(NewText);
 	}
 
@@ -347,7 +347,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 	
 	UYapBroker* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 
-	float NewCachedTime = BrokerCDO->GetDialogueAudioDuration(NewAudio);
+	float NewCachedTime = BrokerCDO->GetAudioAssetDuration(NewAudio);
 
 	if (NewCachedTime > 0)
 	{

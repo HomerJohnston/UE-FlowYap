@@ -50,7 +50,7 @@ float FYapFragment::GetPaddingToNextFragment() const
 {
 	if (PaddingToNextFragment < 0)
 	{
-		return UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
+		return UYapProjectSettings::GetDefaultFragmentPaddingTime();
 	}
 	
 	return FMath::Max(PaddingToNextFragment, 0);

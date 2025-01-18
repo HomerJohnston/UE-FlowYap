@@ -10,8 +10,10 @@
 #include "SSimpleButton.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapGlobals.h"
+#include "Yap/YapLog.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
+#include "YapEditor/YapTransactions.h"
 #include "YapEditor/SlateWidgets/SYapHyperlink.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -51,8 +53,7 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 	});
 	
 	IDetailCategoryBuilder& CharacterCategory = DetailBuilder.EditCategory("YapCharacter");
-
-
+	
 	PortraitsProperty->MarkHiddenByCustomization();
 
 	CharacterCategory.AddProperty(PortraitsProperty);
@@ -63,27 +64,34 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.HAlign(HAlign_Center)
-		.Padding(0, 2, 0, 2)
+		.Padding(0, 12, 0, 8)
 		[
 			SNew(SBox)
-			.Padding(0, 8)
-			.MaxDesiredWidth(150)
+			.Visibility(this, &FDetailCustomization_YapCharacter::Visibility_MoodTagsOutOfDateWarning)
 			[
-				SNew(SButton)
-				.ContentPadding(FMargin(0, 4))
-				.Cursor(EMouseCursor::Default)
-				.VAlign(VAlign_Center)
-				.Text(this, &FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton)
-				.ToolTipText(this, &FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton)
-				.HAlign(HAlign_Center)
-				.OnClicked(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
-				.IsEnabled(this, &FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(STextBlock)
+					.Font(YapFonts.Font_WarningText)
+					.Text(LOCTEXT("CharacterPortraits_MoodTagsNeedRefresh", "Portraits list out of date, "))
+					.ColorAndOpacity(YapColor::OrangeRed)
+				]
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SYapHyperlink)
+					.Text(LOCTEXT("CharacterPortraits_PerformMoodTagsRefresh", "click to refresh"))
+					.OnNavigate(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
+					.ToolTipText(LOCTEXT("RefreshMoodKeys_ToolTIp", "Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries."))
+				]
 			]
 		]
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.HAlign(HAlign_Center)
-		.Padding(0, 4, 0, 14)
+		.Padding(0, 8, 0, 12)
 		[
 			SNew(SBox)
 			[
@@ -93,14 +101,14 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 				[
 					SNew(STextBlock)
 					.Font(YapFonts.Font_WarningText)
-					.Text(this, &FDetailCustomization_YapCharacter::Text_PortraitsList)
+					.Text(this, &FDetailCustomization_YapCharacter::Text_PortraitsListHint)
 					.ColorAndOpacity(YapColor::LightYellow)
 				]
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				[
 					SNew(SYapHyperlink)
-					.Text(LOCTEXT("CharacterPortraits_OpenProjectSettings", "Yap Project Settings"))
+					.Text(LOCTEXT("CharacterPortraits_OpenProjectSettings", "Project Settings"))
 					.OnNavigate_Lambda( [] () { Yap::OpenProjectSettings(); } )
 				]
 			]
@@ -108,7 +116,54 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 	];
 }
 
-FText FDetailCustomization_YapCharacter::Text_PortraitsList() const
+EVisibility FDetailCustomization_YapCharacter::Visibility_MoodTagsOutOfDateWarning() const
+{
+	TMap<FName, TObjectPtr<UTexture2D>> PortraitsMap = GetPortraitsMap();
+	
+	FGameplayTagContainer ProjectMoodKeys = UYapProjectSettings::GetMoodTags();
+
+	if (PortraitsMap.Num() != ProjectMoodKeys.Num())
+	{
+		return EVisibility::Visible;
+	}
+
+	TSet<FName> ProjectMoodKeyNames;
+	TSet<FName> CharacterMoodKeysAsNames;
+	
+	ProjectMoodKeyNames.Reserve(ProjectMoodKeys.Num());
+	
+	for (const FGameplayTag& Tag : ProjectMoodKeys)
+	{
+		ProjectMoodKeyNames.Add(Tag.GetTagName());
+	}
+
+	for (const FName& Name : ProjectMoodKeyNames)
+	{
+		if (!PortraitsMap.Contains(Name))
+		{
+			return EVisibility::Visible;
+		}
+	}
+
+	return EVisibility::Collapsed;
+}
+
+FText FDetailCustomization_YapCharacter::Text_PortraitsListHint() const
+{
+	return UYapProjectSettings::GetMoodTags().Num() == 0 ? LOCTEXT("CharacterPortraits_MoodTagsEmpty_Info_1", "You need to create mood tags. Go to ") : LOCTEXT("CharacterPortraits_MoodTags_Info_1", "To edit portrait mood tags, go to ");
+}
+
+void FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton() const
+{
+	check(CharacterBeingCustomized.IsValid())
+	{
+		FYapScopedTransaction T(YapTransactions::RefreshCharacterPortraitList, LOCTEXT("RefreshCharacterPortraitList_Transaction", "Refresh character portrait list"), CharacterBeingCustomized.Get());
+
+		CharacterBeingCustomized->RefreshPortraitList();
+	}
+}
+
+const TMap<FName, TObjectPtr<UTexture2D>>& FDetailCustomization_YapCharacter::GetPortraitsMap() const
 {
 	FProperty* Val; PortraitsProperty->GetValue(Val);
 
@@ -116,31 +171,7 @@ FText FDetailCustomization_YapCharacter::Text_PortraitsList() const
 
 	PortraitsProperty->AccessRawData(RawData);
 
-	const TMap<FName, TObjectPtr<UTexture2D>>* Map = reinterpret_cast<const TMap<FName, TObjectPtr<UTexture2D>>*>(RawData[0]);
-
-	return Map->Num() == 0 ? LOCTEXT("CharacterPortraits_MoodTagsEmpty_Info_1", "You need to create mood tags. Go to ") : LOCTEXT("CharacterPortraits_MoodTags_Info_1", "To edit mood tags, go to ");
-}
-
-FText FDetailCustomization_YapCharacter::Text_RefreshMoodKeysButton() const
-{
-	return LOCTEXT("RefreshPortraitList", "Refresh Portrait List");
-}
-
-FText FDetailCustomization_YapCharacter::ToolTipText_RefreshMoodKeysButton() const
-{
-	return LOCTEXT("RefreshMoodKeys_ToolTIp", "Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries.");
-}
-
-FReply FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton()
-{
-	CharacterBeingCustomized->RefreshPortraitList();
-	
-	return FReply::Handled();
-}
-
-bool FDetailCustomization_YapCharacter::IsEnabled_RefreshMoodKeysButton() const
-{
-	return true;
+	return *reinterpret_cast<const TMap<FName, TObjectPtr<UTexture2D>>*>(RawData[0]);
 }
 
 #undef LOCTEXT_NAMESPACE

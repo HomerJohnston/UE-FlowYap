@@ -27,7 +27,7 @@ void UYapCharacterThumbnailRenderer::Draw(UObject* Object, int32 X, int32 Y, uin
 		return;
 	}
 
-	const FGameplayTag& MoodTag = UYapProjectSettings::Get()->GetDefaultMoodTag();
+	const FGameplayTag& MoodTag = UYapProjectSettings::GetDefaultMoodTag();
 	
 	const TObjectPtr<UTexture2D>* TexturePtr = Character->GetPortraits().Find(MoodTag.GetTagName());
 

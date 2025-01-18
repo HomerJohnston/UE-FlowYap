@@ -17,7 +17,7 @@ FText FDetailCustomization_YapProjectSettings::GetMoodTags() const
 {
 	const UYapProjectSettings* ProjectSettings = GetDefault<UYapProjectSettings>();
 	
-	FGameplayTag ParentTag = ProjectSettings->MoodTagsParent;
+	const FGameplayTag& ParentTag = ProjectSettings->GetMoodTagsParent();
 
 	if (!ParentTag.IsValid())
 	{
@@ -59,7 +59,7 @@ const FSlateBrush* FDetailCustomization_YapProjectSettings::TODOBorderImage() co
 
 void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("Tags");
+	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("Mood Tags");
 	{
 		const UYapProjectSettings* ProjectSettings = GetDefault<UYapProjectSettings>();
 		
@@ -97,7 +97,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					.HAlign(HAlign_Center)
 					.ToolTipText(LOCTEXT("OpenTagsManager", "Open tags manager"))
 					.Text(LOCTEXT("EditDialogueTags", "Edit dialogue tags"))
-					.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, LOCTEXT("DialogueTags", "Dialogue Tags"), ProjectSettings->DialogueTagsParent.ToString())
+					.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManager)
 				];
 
 				continue;
@@ -163,7 +163,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 						.VAlign(VAlign_Center)
 						.HAlign(HAlign_Center)
 						.ToolTipText(LOCTEXT("OpenTagsManager_ToolTip", "Open tags manager"))
-						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager, LOCTEXT("MoodTags", "Mood Tags"), ProjectSettings->MoodTagsParent.ToString())
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager)
 						.Text(LOCTEXT("EditMoodTags", "Edit mood tags"))
 					]
 				];
@@ -244,12 +244,24 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags() co
 	return FReply::Handled();
 }
 
-FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenTagsManager(FText Title, FString Filter)
+FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager()
 {
 	FGameplayTagManagerWindowArgs Args;
-	Args.Title = Title;
+	Args.Title = LOCTEXT("MoodTags", "Mood Tags");
 	Args.bRestrictedTags = false;
-	Args.Filter = Filter;
+	Args.Filter = UYapProjectSettings::GetMoodTagsParent().ToString();
+
+	/*CurrentYapTagPicker = */UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
+
+	return FReply::Handled();
+}
+
+FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManager()
+{
+	FGameplayTagManagerWindowArgs Args;
+	Args.Title = LOCTEXT("DialogueTags", "Dialogue Tags");
+	Args.bRestrictedTags = false;
+	Args.Filter = UYapProjectSettings::GetDialogueTagsParent().ToString();
 
 	/*CurrentYapTagPicker = */UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
 

@@ -45,7 +45,7 @@ EYapMaturitySetting IYapConversationListener::K2_UseMatureDialogue_Implementatio
 #if WITH_EDITOR
 	if (!bWarnedAboutMatureDialogue)
 	{
-		if (!UYapProjectSettings::Get()->GetSuppressMatureWarning())
+		if (!UYapProjectSettings::GetSuppressDefaultMatureWarning())
 		{
 			UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s\nDefaulting to use mature language; child-safe language will never be displayed.\nYou can suppress this warning in project settings."), *FString(__func__));
 		}

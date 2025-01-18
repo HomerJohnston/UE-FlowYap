@@ -29,35 +29,63 @@ UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class YAP_API UYapProjectSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
+
+#if WITH_EDITOR
+	friend class FDetailCustomization_YapProjectSettings;
+#endif
 	
 public:
 	UYapProjectSettings();
 
-	static UYapProjectSettings* Get()
+	static UYapProjectSettings& Get()
 	{
-		return StaticClass()->GetDefaultObject<UYapProjectSettings>();
+		return *StaticClass()->GetDefaultObject<UYapProjectSettings>();
 	}
 
 	// ------------------------------------------
 	// SETTINGS
+	
 protected:
 	
-	/** You must create a Yap Broker class (or blueprint) and set it here for Yap to work. */
+	// =================
+	// CORE
+	
+	/** You must create a Yap Broker class (C++ or blueprint) and set it here for Yap to work. */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapBroker> BrokerClass;
 	
-	/** What type of class to use for dialogue assets (sounds). */
-	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
-	TArray<TSoftClassPtr<UObject>> DialogueAssetClasses;
-	
+	/** Yap comes with a simple text calculator to determine the word count of dialogue. You can optionally supply your own subclass using different logic here (this may be necessary for languages other than English!).  */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
+	
+	/** What type of classes are allowable to use for dialogue assets (sounds). */
+	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
+	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
 
+	// =================
+	// MOOD TAGS
+
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
+	FGameplayTag MoodTagsParent;
+
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
+	FGameplayTag DefaultMoodTag;
+
+	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
+	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
+	FDirectoryPath MoodTagIconPath;
+
+
+
+	
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FSlateBrush MissingPortraitBrush;
 	
 	/** Time mode to use by default. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
 
 	/** Controls how missing audio fields are handled.
@@ -68,15 +96,15 @@ protected:
 	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
 	
 	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	bool bDefaultSkippableSetting;
 
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "bUseDefaultFragmentPaddingTime", EditConditionHides))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "bUseDefaultFragmentPaddingTime", EditConditionHides))
 	float DefaultFragmentPaddingTime = 0.25f;
 
 	/** Controls how fast dialogue plays. Only useful for word-based playtime. */ // TODO I need some way for users to overide this within game settings
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
 	int32 TextWordsPerMinute = 120;
 
 	/**  */
@@ -88,27 +116,23 @@ protected:
 	bool bCacheFragmentAudioLength = true;
 	
 	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
 	double MinimumAutoTextTimeLength = 1.5;
 
 	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
 	double MinimumAutoAudioTimeLength = 0.5;
 
 	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	double MinimumFragmentTime = 2.0;
 
-	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
+	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax;
 
 	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Tags")
-	FGameplayTag DefaultMoodTag;
-
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Tags")
-	bool bSuppressMatureWarning = false;
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bSuppressDefaultMatureWarning = false;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
@@ -116,32 +140,26 @@ protected:
 	// ============================================================================================
 	// EDITOR SETTINGS
 #if WITH_EDITORONLY_DATA
-public:
 	/** If set, enables nicer filtering of condition tags display */
 	UPROPERTY(Config/*, EditAnywhere, Category = "Tags"*/)
 	FGameplayTag ConditionTagsParent;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Tags")
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Tags")
 	FGameplayTag DialogueTagsParent;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Tags") // TODO this should all be protected with getters
-	FGameplayTag MoodTagsParent;
-	
+	// ============================================================================================
+	// STATE
+public:
+	TMulticastDelegate<void()> OnMoodTagsChanged;
+
+protected:
 	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
-	TMulticastDelegate<void()> OnMoodTagsChanged;
-	
-protected:
-	
-	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FDirectoryPath MoodKeyIconPath;
-
 	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bShowTitleTextOnTalkNodes = false;
 
-	/** Turn off to hide the quick pin-enabling buttons, useful if you want smaller graph nodes, requires graph refresh */
+	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bShowPinEnableButtons = true;
 	
@@ -153,23 +171,19 @@ protected:
 	FString DefaultTextNamespace = "Yap";
 
 	/** Adjusts the width of all dialogue nodes in graph grid units (16 px). */
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = -6, ClampMax = +100, UIMin = -6, UIMax = 20, Delta = 1))
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = -6, ClampMax = +100, UIMin = -6, UIMax = 20, Delta = 1))
 	int32 DialogueWidthAdjustment = 0;
 
 	/** Controls how large the portrait widgets are in the graph. Sizes smaller than 64 will result in some odd slate snapping. */
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 64, ClampMax = 128, UIMin = 32, UIMax = 128, Multiple = 16))
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 64, ClampMax = 128, UIMin = 32, UIMax = 128, Multiple = 16))
 	int32 PortraitSize = 64;
 
-	/** Controls how bright the portrait borders are in the graph. */
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
-	float PortraitBorderAlpha = 1.0f;
-
 	/** Controls the length of the time progress line on the dialogue widget (left side, for time of the running dialogue). */
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float DialogueTimeSliderMax = 5.0f;
 	
 	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float PaddingTimeSliderMax = 2.0f;
 	
 #endif
@@ -182,76 +196,78 @@ protected:
 public:
 	static FName CategoryName;
 	
-	virtual FName GetCategoryName() const override { return CategoryName; }
+	FName GetCategoryName() const override { return CategoryName; }
 
-	virtual FText GetSectionText() const override { return LOCTEXT("Settings", "Settings"); }
+	FText GetSectionText() const override { return LOCTEXT("Settings", "Settings"); }
+	
+	FText GetSectionDescription() const override { return LOCTEXT("YapProjectSettingsDescription", "Project-specific settings for Yap"); }
+	
+	static FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension);
 
-	FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension) const;
-
+	static const FGameplayTag& GetMoodTagsParent() { return Get().MoodTagsParent; }
+	
+	static const FGameplayTag& GetDialogueTagsParent() { return Get().DialogueTagsParent; };
+	
 	static FGameplayTagContainer GetMoodTags();
 	
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
-	static bool GetSuppressMatureWarning() { return Get()->bSuppressMatureWarning; }
+	static bool GetSuppressDefaultMatureWarning() { return Get().bSuppressDefaultMatureWarning; }
 #endif
 
 public:
-	FGameplayTag GetDefaultMoodTag() const { return DefaultMoodTag; }
+	static FGameplayTag GetDefaultMoodTag() { return Get().DefaultMoodTag; }
 	
-	const EYapTimeMode GetDefaultTimeModeSetting() const { return DefaultTimeModeSetting; }
+	static EYapTimeMode GetDefaultTimeModeSetting() { return Get().DefaultTimeModeSetting; }
 
-	static bool GetDialogueSkippableByDefault() { return Get()->bDefaultSkippableSetting; }
+	static bool GetDialogueSkippableByDefault() { return Get().bDefaultSkippableSetting; }
 	
-	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get()->DefaultMaturitySetting; }
+	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get().DefaultMaturitySetting; }
 	
 public:
-	static const TSoftClassPtr<UYapBroker>& GetConversationBrokerClass() { return Get()-> BrokerClass; }
+	static const TSoftClassPtr<UYapBroker>& GetConversationBrokerClass() { return Get().BrokerClass; }
 	
-	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get()-> DialogueAssetClasses; }
+	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get().AudioAssetClasses; }
 
-	static bool GetShowTitleTextOnTalkNodes() { return Get()->bShowTitleTextOnTalkNodes; }
+	static bool GetShowTitleTextOnTalkNodes() { return Get().bShowTitleTextOnTalkNodes; }
 
-	// TODO convert everything to static getters
+	static int32 GetTextWordsPerMinute() { return Get().TextWordsPerMinute; }
+
+	static double GetMinimumAutoTextTimeLength() { return Get().MinimumAutoTextTimeLength; };
 	
-	int32 GetTextWordsPerMinute() const;
-
-	double GetMinimumAutoTextTimeLength() const;
+	static double GetMinimumAutoAudioTimeLength() { return Get().MinimumAutoAudioTimeLength; }
 	
-	double GetMinimumAutoAudioTimeLength() const;
+	static double GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
 
-	double GetMinimumFragmentTime();
-
-	bool CacheFragmentWordCount() const { return bCacheFragmentWordCount; }
+	static bool CacheFragmentWordCount() { return Get().bCacheFragmentWordCount; }
 	
-	bool CacheFragmentAudioLength() const { return bCacheFragmentAudioLength; }
+	static bool CacheFragmentAudioLength() { return Get().bCacheFragmentAudioLength; }
 	
-	double GetDefaultFragmentPaddingTime() const { return DefaultFragmentPaddingTime; }
+	static double GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
 	
-	EYapMissingAudioErrorLevel GetMissingAudioBehavior() const { return MissingAudioErrorLevel; }
+	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 
-	TSoftClassPtr<UYapTextCalculator> GetTextCalculator() const { return TextCalculatorClass; }
+	static TSoftClassPtr<UYapTextCalculator> GetTextCalculator() { return Get().TextCalculatorClass; }
 
-	FSlateBrush& GetMissingPortraitBrush() { return MissingPortraitBrush; };
+	static const FSlateBrush& GetMissingPortraitBrush() { return Get().MissingPortraitBrush; };
 
-	const FString& GetMoodKeyIconPath() const;
+	static const FString& GetMoodKeyIconPath();
 	
 #if WITH_EDITOR
 public:
+	static int32 GetDialogueWidthAdjustment() { return Get().DialogueWidthAdjustment; };
 
-	int32 GetDialogueWidthAdjustment() const { return DialogueWidthAdjustment; };
+	static int32 GetPortraitSize() { return Get().PortraitSize; }
 
-	int32 GetPortraitSize() const { return PortraitSize; }
 
-	float GetPortraitBorderAlpha() const { return PortraitBorderAlpha; }
+	static float GetDialogueTimeSliderMax() { return Get().DialogueTimeSliderMax; }
 
-	float GetDialogueTimeSliderMax() const { return DialogueTimeSliderMax; }
-
-	float GetFragmentPaddingSliderMax() const { return PaddingTimeSliderMax; }
+	static float GetFragmentPaddingSliderMax() { return Get().PaddingTimeSliderMax; }
 
 public:
-	bool ShowPinEnableButtons() const { return bShowPinEnableButtons; }
+	static bool ShowPinEnableButtons()  { return Get().bShowPinEnableButtons; }
 	
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 

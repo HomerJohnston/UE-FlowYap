@@ -20,7 +20,7 @@ const TMap<FName, TObjectPtr<UTexture2D>>& UYapCharacter::GetPortraits() const
 
 const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
 {
-	FGameplayTag MoodKeyToUse = MoodKey.IsValid() ? MoodKey : UYapProjectSettings::Get()->GetDefaultMoodTag();
+	FGameplayTag MoodKeyToUse = MoodKey.IsValid() ? MoodKey : UYapProjectSettings::GetDefaultMoodTag();
 	
 	FName MoodKeyAsName = MoodKeyToUse.GetTagName();
 	
@@ -31,7 +31,7 @@ const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) 
 		return *Brush;
 	}
 
-	return UYapProjectSettings::Get()->GetMissingPortraitBrush();
+	return UYapProjectSettings::GetMissingPortraitBrush();
 }
 
 #if WITH_EDITOR
@@ -66,9 +66,7 @@ const TMap<FName, FSlateBrush>& UYapCharacter::GetPortraitBrushes()
 // TODO I need validation code to check if the character's portrait keys array matches the project or not to throw warnings during packaging?
 void UYapCharacter::RefreshPortraitList()
 {
-	const UYapProjectSettings* Settings = UYapProjectSettings::Get();
-
-	FGameplayTagContainer MoodKeys = Settings->GetMoodTags();
+	FGameplayTagContainer MoodKeys = UYapProjectSettings::GetMoodTags();
 
 	TSet<FName> MoodKeysAsNames;
 	TSet<FName> CharacterMoodKeysAsNames;
@@ -100,30 +98,6 @@ void UYapCharacter::RefreshPortraitList()
 
 	// Sort the map for better display.
 	Portraits.KeySort(FNameLexicalLess());
-	/*
-	Portraits.KeySort([](const FName& A, const FName& B)
-	{
-		return A.Compare(B);
-	});
-	*/
-	/*
-	{
-		FGameplayTagContainer MoodKeys = Settings->GetMoodTags();
-		
-		for (const FGameplayTag& MoodKey : MoodKeys)
-		{
-			FName MoodKeyAsName = MoodKey.GetTagName();
-
-			if (!MoodKey.IsValid())
-			{
-				UE_LOG(LogYap, Warning, TEXT("Warning: Portrait keys contains a 'NONE' entry. Clean this up!"));
-				continue;
-			}
-			
-			Portraits.Add(MoodKeyAsName, nullptr);
-		}
-	}
-	*/
 }
 #endif
 

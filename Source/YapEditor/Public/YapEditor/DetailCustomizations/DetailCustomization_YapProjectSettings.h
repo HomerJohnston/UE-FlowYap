@@ -50,7 +50,9 @@ protected:
 
 	FReply OnClicked_DeleteAllMoodTags() const;
 
-	FReply OnClicked_OpenTagsManager(FText Title, FString Filter);
+	FReply OnClicked_OpenMoodTagsManager();
+
+	FReply OnClicked_OpenDialogueTagsManager();
 };
 
 #undef LOCTEXT_NAMESPACE

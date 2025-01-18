@@ -35,6 +35,7 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Yap/YapSubsystem.h"
 #include "Yap/Enums/YapErrorLevel.h"
+#include "YapEditor/YapDeveloperSettings.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -286,9 +287,9 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 
 	if (IsValid(BrokerCDO))
 	{
-		if (BrokerCDO->ImplementsPreviewDialogueAudio())
+		if (BrokerCDO->ImplementsPreviewAudioAsset_Internal())
 		{
-			bool bResult = BrokerCDO->PreviewDialogueAudio_Internal(Object->LoadSynchronous());
+			bool bResult = BrokerCDO->PreviewAudioAsset_Internal(Object->LoadSynchronous());
 
 			if (!bResult)
 			{
@@ -572,7 +573,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtIm
 		Color = YapColor::Transparent;		
 	}
 
-	float A = UYapProjectSettings::Get()->GetPortraitBorderAlpha();
+	float A = UYapDeveloperSettings::GetPortraitBorderAlpha();
 	
 	Color.R *= A;
 	Color.G *= A;
@@ -688,7 +689,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() co
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 {
-	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize() / 3;
+	int32 PortraitSize = UYapProjectSettings::GetPortraitSize() / 3;
 	
 	return SNew(SBorder)
 	.Cursor(EMouseCursor::Default)
@@ -762,7 +763,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_ChildSafeButton(const FDr
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 {
-	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize();
+	int32 PortraitSize = UYapProjectSettings::GetPortraitSize();
 	int32 PortraitBorder = 2;
 
 	return SAssignNew(FragmentWidgetOverlay, SOverlay)
@@ -1110,6 +1111,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 		];
 	}
 
+	auto X = SNew(SNumericEntryBox<float>);
+
 	// Add a numeric box if this row has a value getter -- for mature side we always still add it; for child-safe we add it if it's not the manual time box
 	if (ValueFunction && (MaturitySetting == EYapMaturitySetting::Mature || TimeMode != EYapTimeMode::ManualTime))
 	{
@@ -1120,11 +1123,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 			SNew(SBox)
 			.WidthOverride(60)
 			[
+				bHasCommittedDelegate
+					?
 				SNew(SNumericEntryBox<float>)
-				.IsEnabled(bHasCommittedDelegate)
 				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
 				//.Justification(ETextJustify::Center) // Numeric Entry Box has a bug, when spinbox is turned on this doesn't work. So don't use it for any of the rows.
-				.AllowSpin(bHasCommittedDelegate)
+				.AllowSpin(true)
 				.Delta(0.05f)
 				.MaxValue(60) // TODO project setting?
 				.MaxSliderValue(10) // TODO project setting?
@@ -1132,8 +1136,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 				.OnValueChanged(this, UpdatedFunction)
 				.MinValue(0)
 				.Value(this, ValueFunction, MaturitySetting)
-				.BorderForegroundColor(YapColor::Error)
 				.OnValueCommitted(this, CommittedFunction)
+					:
+				SNew(SNumericEntryBox<float>)
+				.IsEnabled(false)
+				.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
+				//.Justification(ETextJustify::Center) // Numeric Entry Box has a bug, when spinbox is turned on this doesn't work. So don't use it for any of the rows.
+				.MaxFractionalDigits(1) // TODO project setting?
+				.Value(this, ValueFunction, MaturitySetting)
 			]
 		];
 	}
@@ -1720,7 +1730,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildPaddingSettings_Expan
 					.IsEnabled(true)
 					.AllowSpin(true)
 					.Delta(0.01f)
-					.MaxSliderValue(UYapProjectSettings::Get()->GetFragmentPaddingSliderMax())
+					.MaxSliderValue(UYapProjectSettings::GetFragmentPaddingSliderMax())
 					.MinValue(0)
 					.ToolTipText(LOCTEXT("FragmentTimeEntry_Tooltip", "Time this dialogue fragment will play for"))
 					.Justification(ETextJustify::Center)
@@ -1785,7 +1795,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
 {
-	const float MaxPaddedSetting = UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float MaxPaddedSetting = UYapProjectSettings::GetFragmentPaddingSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
 	if (GEditor->PlayWorld)
@@ -1817,7 +1827,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent()
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
-	const float MaxTimeSetting = UYapProjectSettings::Get()->GetDialogueTimeSliderMax();
+	const float MaxTimeSetting = UYapProjectSettings::GetDialogueTimeSliderMax();
 
 	const TOptional<float> FragmentTimeIn = GetBit().GetTime(EYapMaturitySetting::Mature);
 
@@ -1857,20 +1867,20 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 
 float SFlowGraphNode_YapFragmentWidget::Value_FragmentTimePadding() const
 {
-	const float MaxPaddedSetting =  UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float MaxPaddedSetting =  UYapProjectSettings::GetFragmentPaddingSliderMax();
 
 	return GetFragment().GetPaddingToNextFragment() / MaxPaddedSetting;
 }
 
 void SFlowGraphNode_YapFragmentWidget::OnValueChanged_FragmentTimePadding(float X)
 {
-	const float MaxPaddedSetting =  UYapProjectSettings::Get()->GetFragmentPaddingSliderMax();
+	const float MaxPaddedSetting =  UYapProjectSettings::GetFragmentPaddingSliderMax();
 	float NewValue = X * MaxPaddedSetting;
 
 	// We will attempt to snap to the default time unless you hold ctrl
 	if (!bCtrlPressed)
 	{
-		float DefaultFragmentPaddingTime = UYapProjectSettings::Get()->GetDefaultFragmentPaddingTime();
+		float DefaultFragmentPaddingTime = UYapProjectSettings::GetDefaultFragmentPaddingTime();
 		
 		// If we're within 5% of the default, set it to default
 		if (FMath::Abs(NewValue - DefaultFragmentPaddingTime) / MaxPaddedSetting <= 0.05)
@@ -1923,7 +1933,7 @@ FLinearColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterIm
 		Color = YapColor::Gray_Glass;		
 	}
 
-	Color.A *= UYapProjectSettings::Get()->GetPortraitBorderAlpha();
+	Color.A *= UYapDeveloperSettings::GetPortraitBorderAlpha();
 
 	if (!GetDialogueNode()->IsPlayerPrompt())
 	{
@@ -2017,7 +2027,7 @@ FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
 		}
 		else
 		{
-			TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::Get()->GetDefaultMoodTag());
+			TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::GetDefaultMoodTag());
 
 			FText MoodTagNameAsText = DefaultGTN.IsValid() ? FText::FromName(DefaultGTN->GetSimpleTagName()) : LOCTEXT("MoodTag_None_Label", "None");
 			
@@ -2072,7 +2082,7 @@ bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget(T
 
 	UClass* AssetClass = AssetDatas[0].GetClass();
 	
-	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::GetDialogueAssetClasses();
 	
 	for (const TSoftClassPtr<UObject>& AllowableClass : AllowableClasses)
 	{
@@ -2107,7 +2117,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget(const FDragDro
 
 TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 {
-	int32 PortraitSize = UYapProjectSettings::Get()->GetPortraitSize();
+	int32 PortraitSize = UYapProjectSettings::GetPortraitSize();
 	int32 PortraitBorder = 2;
 
 	int32 MinHeight = 72; // Hardcoded minimum height - this keeps pins aligned with the graph snapping grid
@@ -2456,7 +2466,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_TimeSettingButton(
 
 bool SFlowGraphNode_YapFragmentWidget::OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const
 {
-	const TArray<TSoftClassPtr<UObject>>& Classes = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& Classes = UYapProjectSettings::GetDialogueAssetClasses();
 
 	// TODO async loading
 	if (Classes.ContainsByPredicate( [&AssetData] (const TSoftClassPtr<UObject>& Class) { return AssetData.GetClass(EResolveClass::Yes) == Class; } ))
@@ -2477,7 +2487,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(con
 	
 	UClass* DialogueAssetClass = nullptr;
 	
-	const TArray<TSoftClassPtr<UObject>>& DialogueAssetClassPtrs = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& DialogueAssetClassPtrs = UYapProjectSettings::GetDialogueAssetClasses();
 	
 	bool bFoundAssetClass = false;
 	for (const TSoftClassPtr<UObject>& Ptr : DialogueAssetClassPtrs)
@@ -2659,12 +2669,12 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorSta
 
 EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const
 {
-	EYapMissingAudioErrorLevel MissingAudioBehavior = UYapProjectSettings::Get()->GetMissingAudioBehavior();
+	EYapMissingAudioErrorLevel MissingAudioBehavior = UYapProjectSettings::GetMissingAudioBehavior();
 
 	// If we have an asset all we need to do is check if it's the correct class type. Always return an error if it's an improper type.
 	if (!Asset.IsNull())
 	{
-		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::Get()->GetDialogueAssetClasses();
+		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::GetDialogueAssetClasses();
 
 		/*
 		if (AllowedAssetClasses.ContainsByPredicate(&Test))
@@ -2699,7 +2709,7 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const T
 	if (
 		(GetBit().TimeMode == EYapTimeMode::AudioTime)
 		||
-		(GetBit().TimeMode == EYapTimeMode::Default && UYapProjectSettings::Get()->GetDefaultTimeModeSetting() == EYapTimeMode::AudioTime)
+		(GetBit().TimeMode == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::AudioTime)
 		||
 		(GetBit().GetTimeMode(EYapMaturitySetting::Mature) == EYapTimeMode::AudioTime)
 	) // TODO handle edge case of only having child-safe asset and no mature asset
@@ -3049,7 +3059,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidge
 		CreateMoodKeyMenuEntryWidget(FGameplayTag::EmptyTag, SelectedMoodKey == FGameplayTag::EmptyTag)
 	];
 	
-	for (const FGameplayTag& MoodKey : UYapProjectSettings::Get()->GetMoodTags())
+	for (const FGameplayTag& MoodKey : UYapProjectSettings::GetMoodTags())
 	{
 		if (!MoodKey.IsValid())
 		{

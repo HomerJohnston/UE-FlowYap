@@ -25,14 +25,16 @@ public:
 
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
-	FText Text_PortraitsList() const;
+	
+	EVisibility Visibility_MoodTagsOutOfDateWarning() const;
+	
+	FText Text_PortraitsListHint() const;
 
-	FText Text_RefreshMoodKeysButton() const;
-	FText ToolTipText_RefreshMoodKeysButton() const;
-	FReply OnClicked_RefreshMoodKeysButton();
-	bool IsEnabled_RefreshMoodKeysButton() const;
+	void OnClicked_RefreshMoodKeysButton() const;
 
 	TSharedPtr<IPropertyHandle> PortraitsProperty;
+
+	const TMap<FName, TObjectPtr<UTexture2D>>& GetPortraitsMap() const;
 };
 
 #undef LOCTEXT_NAMESPACE

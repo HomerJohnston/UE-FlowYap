@@ -14,14 +14,15 @@ public:
 	UYapEntity();
 	
 protected:
-	/** Human-readable name or title of this entity */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	/** Human-readable name of this character or entity. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, DisplayName = "Name")
 	FText EntityName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	/** Color for display. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, DisplayName = "Color")
 	FLinearColor EntityColor;
 	
-	/** Used to find this actor in the world (e.g. for sending Flow tag notifications) */
+	/** Used to find this actor in the world. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag IdentityTag;
 
