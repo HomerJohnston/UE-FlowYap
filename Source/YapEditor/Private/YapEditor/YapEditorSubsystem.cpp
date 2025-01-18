@@ -10,12 +10,14 @@
 #include "ImageUtils.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
+#include "Yap/YapCharacter.h"
 #include "Yap/YapEngineUtils.h"
 #include "Yap/YapGlobals.h"
 #include "YapEditor/YapInputTracker.h"
 #include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
+#include "Engine/Texture2D.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -78,6 +80,39 @@ const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 	TSharedPtr<FSlateImageBrush>* Brush = MoodKeyIconBrushes.Find(Name);
 
 	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKey_Missing);
+}
+
+const FSlateBrush* UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag)
+{
+	if (!IsValid(Character))
+	{
+		return nullptr;
+	}
+	
+	const UTexture2D* Texture = Character->GetPortraitTexture(MoodTag);
+
+	if (!IsValid(Texture))
+	{
+		Texture = UYapProjectSettings::GetMissingPortraitTexture();
+	}
+	
+	FSlateBrush* PortraitBrush = Get()->CharacterPortraitBrushes.Find(Texture);
+
+	if (PortraitBrush)
+	{
+		// TODO: somehow check if it is out of date
+		return PortraitBrush;
+	}
+
+	FSlateBrush NewPortraitBrush;
+
+	NewPortraitBrush.ImageSize = FVector2D(128, 128);
+	NewPortraitBrush.SetResourceObject(const_cast<UTexture2D*>(Texture)); // TODO make sure this is safe and that there isn't a better system
+	NewPortraitBrush.SetUVRegion(FBox2D(FVector2D(0,0), FVector2D(1,1)));
+	NewPortraitBrush.DrawAs = ESlateBrushDrawType::Box;
+	NewPortraitBrush.Margin = 0;
+
+	return &Get()->CharacterPortraitBrushes.Add(Texture, NewPortraitBrush);
 }
 
 // TODO move these to my editor style

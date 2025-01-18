@@ -10,7 +10,6 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
-#include "Yap/YapTextCalculator.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -74,6 +73,7 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 	}
 }
 
+/* // TODO remove
 #if WITH_EDITOR
 const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
 {
@@ -99,6 +99,7 @@ const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
 	return UYapProjectSettings::GetMissingPortraitBrush();
 }
 #endif
+*/
 
 bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 {
@@ -316,8 +317,17 @@ void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 
 	if (UYapProjectSettings::CacheFragmentWordCount())
 	{
-		TSoftClassPtr<UYapTextCalculator> TextCalculatorClass = UYapProjectSettings::GetTextCalculator();
-		WordCount = TextCalculatorClass.LoadSynchronous()->GetDefaultObject<UYapTextCalculator>()->CalculateWordCount(NewText);
+		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+
+		if (IsValid(Broker))
+		{
+			WordCount = Broker->CalculateWordCount(NewText);
+		}
+	}
+
+	if (WordCount < 0)
+	{
+		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
 	}
 
 	if (TextToSet == &MatureDialogueText)
@@ -336,7 +346,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 {
 	AudioAsset = NewAudio;
 
-	const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
+	const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetBrokerClass();
 	
 	if (BrokerClass.IsNull())
 	{

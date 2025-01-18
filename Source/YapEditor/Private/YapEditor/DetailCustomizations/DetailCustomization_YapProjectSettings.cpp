@@ -66,7 +66,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 		TSharedPtr<IPropertyHandle> DialogueTagsParentPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapProjectSettings, DialogueTagsParent)); 
 		FProperty* DialogueTagsParentProperty = DialogueTagsParentPropertyHandle->GetProperty();
 		
-		TSharedPtr<IPropertyHandle> MoodTagsParentPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapProjectSettings, MoodTagsParent)); 
+		MoodTagsParentPropertyHandle = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapProjectSettings, MoodTagsParent)); 
 		FProperty* MoodTagsParentProperty = MoodTagsParentPropertyHandle->GetProperty();
 		
 		DialogueTagsParentPropertyHandle->MarkHiddenByCustomization();
@@ -105,9 +105,11 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 			
 			if (Property == MoodTagsParentProperty)
 			{
-				float VerticalPadding = 3;
+				float VerticalPadding = 3.0;
 
-				FString DefaultMoodTagsToolTip = "Sets the following tags:\n" + FString::Join(DefaultMoodTags, TEXT("\n"));
+				float TagLineHeight = 15.0; // This is the height of a single tag name in pixels
+				float LineHeightPercentage = 18.0 / TagLineHeight; // Desired row height divided by actual height
+				float TotalHeight = FMath::RoundFromZero(DefaultMoodTags.Num() * TagLineHeight * LineHeightPercentage + VerticalPadding * 2.0);
 				
 				Category.AddCustomRow(LOCTEXT("MoodTags_Header", "Mood Tags"))
 				.NameContent()
@@ -122,7 +124,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					.Padding(0, VerticalPadding)
-					.MaxHeight(200)
+					.MaxHeight(TotalHeight) 
 					[
 						SNew(SScrollBox)
 						+ SScrollBox::Slot()
@@ -133,7 +135,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 							[
 								SNew(STextBlock)
 								.Text(this, &FDetailCustomization_YapProjectSettings::GetMoodTags)
-								.LineHeightPercentage(1.25)
+								.LineHeightPercentage(LineHeightPercentage)
 							]
 						]
 					]
@@ -142,16 +144,22 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					.Padding(0, VerticalPadding)
 					[
 						SNew(SButton)
+						.IsEnabled(this, &FDetailCustomization_YapProjectSettings::IsMoodTagsParentSet)
 						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
 						.Text(LOCTEXT("ResetMoodTags_Button", "Reset to defaults..."))
-						.ToolTipText(FText::FromString(DefaultMoodTagsToolTip))
+						.ToolTipText(this, &FDetailCustomization_YapProjectSettings::ToolTipText_DefaultMoodTags)
 					]
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					.Padding(0, VerticalPadding)
 					[
 						SNew(SButton)
+						.IsEnabled(this, &FDetailCustomization_YapProjectSettings::IsMoodTagsParentSet)
 						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_DeleteAllMoodTags)
+						.VAlign(VAlign_Center)
+						.HAlign(HAlign_Center)
 						.Text(LOCTEXT("DeleteMoodTags_Button", "Delete all..."))
 						.ToolTipText(LOCTEXT("DeleteMoodTags_ToolTip", "Attempts to delete all tags"))
 					]
@@ -160,11 +168,12 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 					.Padding(0, VerticalPadding)
 					[
 						SNew(SButton)
+						.IsEnabled(this, &FDetailCustomization_YapProjectSettings::IsMoodTagsParentSet)
+						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager)
 						.VAlign(VAlign_Center)
 						.HAlign(HAlign_Center)
-						.ToolTipText(LOCTEXT("OpenTagsManager_ToolTip", "Open tags manager"))
-						.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager)
 						.Text(LOCTEXT("EditMoodTags", "Edit mood tags"))
+						.ToolTipText(LOCTEXT("OpenTagsManager_ToolTip", "Open tags manager"))
 					]
 				];
 
@@ -173,6 +182,7 @@ void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuil
 		}
 	}
 }
+
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags() const
 {
@@ -185,21 +195,36 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 	
 	FYapTransactions::BeginModify(LOCTEXT("ResetMoodTags", "Reset mood tags"), ProjectSettings);
 
-	FString DefaultTagParent = "Yap.Mood";
+	FString DefaultMoodTagsParentString = "Yap.Mood";
 	
 	FName IniFile = "YapGameplayTags.ini";
 
 	// Remove any tags that should not be present
 	for (FGameplayTag ExistingTag : ProjectSettings->GetMoodTags())// DefaultTags.CreateIterator(); It; ++It)
 	{
+		bool bKeepTag = true;
+
 		if (!ExistingTag.IsValid())
 		{
-			continue;
+			bKeepTag = false;
+		}
+		else
+		{
+			FString ExistingTagString = ExistingTag.ToString();
+
+			if (!DefaultMoodTags.ContainsByPredicate(
+				[&DefaultMoodTagsParentString, &ExistingTagString]
+				(const FString& DefaultTagString)
+				{
+					FString FullString = DefaultMoodTagsParentString + "." + DefaultTagString;
+					return FullString == ExistingTagString;
+				}))
+			{
+				bKeepTag = false;
+			}
 		}
 		
-		FString ExistingTagString = ExistingTag.ToString();
-		
-		if (!DefaultMoodTags.Contains(ExistingTagString))
+		if (!bKeepTag)
 		{
 			TSharedPtr<FGameplayTagNode> ExistingTagNode = UGameplayTagsManager::Get().FindTagNode(ExistingTag);
 			IGameplayTagsEditorModule::Get().DeleteTagFromINI(ExistingTagNode);
@@ -207,13 +232,15 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 	}
 	
 	// Make sure all of the default tags exist
-	for (const FString& Tag : DefaultMoodTags)
+	for (const FString& DefaultTagString : DefaultMoodTags)
 	{
-		FGameplayTag ExistingTag = UGameplayTagsManager::Get().RequestGameplayTag(FName(Tag), false);
+		FString DefaultTagFullString = DefaultMoodTagsParentString + "." + DefaultTagString;
+
+		FGameplayTag ExistingTag = UGameplayTagsManager::Get().RequestGameplayTag(FName(DefaultTagFullString), false);
 
 		if (!ExistingTag.IsValid())
 		{
-			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag, "", IniFile);
+			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(DefaultTagFullString, "", IniFile);
 		}
 	}
 
@@ -251,7 +278,7 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager()
 	Args.bRestrictedTags = false;
 	Args.Filter = UYapProjectSettings::GetMoodTagsParent().ToString();
 
-	/*CurrentYapTagPicker = */UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
+	UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
 
 	return FReply::Handled();
 }
@@ -263,9 +290,49 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManage
 	Args.bRestrictedTags = false;
 	Args.Filter = UYapProjectSettings::GetDialogueTagsParent().ToString();
 
-	/*CurrentYapTagPicker = */UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
+	UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
 
 	return FReply::Handled();
+}
+
+FText FDetailCustomization_YapProjectSettings::ToolTipText_DefaultMoodTags() const
+{
+	const FGameplayTag& ParentTag = UYapProjectSettings::GetMoodTagsParent();
+
+	if (!ParentTag.IsValid())
+	{
+		return LOCTEXT("MissingParentTag_Warning", "Parent tag needs to be set!");
+	}
+	
+	FString ParentTagString = ParentTag.ToString();
+
+	FString DefaultTagsAsString;
+
+				
+	for (int32 i = 0; i < DefaultMoodTags.Num(); ++i)
+	{
+		const FString& Tag = DefaultMoodTags[i];
+					
+		DefaultTagsAsString = DefaultTagsAsString + ParentTagString + "." + Tag;
+
+		if (i < DefaultMoodTags.Num() - 1)
+		{
+			DefaultTagsAsString += "\n";
+		}
+	}
+	
+	return FText::Format(LOCTEXT("SetDefaultTags_ToolTip", "Sets the following tags:\n{0}"), FText::FromString(DefaultTagsAsString));
+}
+
+bool FDetailCustomization_YapProjectSettings::IsMoodTagsParentSet() const
+{
+	TArray<void*> RawData;
+
+	MoodTagsParentPropertyHandle->AccessRawData(RawData);
+
+	const FGameplayTag* Tag = reinterpret_cast<const FGameplayTag*>(RawData[0]);
+
+	return Tag->IsValid();
 }
 
 #undef LOCTEXT_NAMESPACE

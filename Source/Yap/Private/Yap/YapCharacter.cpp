@@ -18,6 +18,16 @@ const TMap<FName, TObjectPtr<UTexture2D>>& UYapCharacter::GetPortraits() const
 	return Portraits;
 }
 
+const UTexture2D* UYapCharacter::GetPortraitTexture(const FGameplayTag& MoodTag) const
+{
+	FGameplayTag MoodTagToFind = MoodTag.IsValid() ? MoodTag : UYapProjectSettings::GetDefaultMoodTag();
+
+	const TObjectPtr<UTexture2D>* TexturePtr = Portraits.Find(MoodTagToFind.GetTagName());
+
+	return TexturePtr ? *TexturePtr : nullptr;
+}
+
+/*
 const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
 {
 	FGameplayTag MoodKeyToUse = MoodKey.IsValid() ? MoodKey : UYapProjectSettings::GetDefaultMoodTag();
@@ -33,13 +43,12 @@ const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) 
 
 	return UYapProjectSettings::GetMissingPortraitBrush();
 }
+*/
 
 #if WITH_EDITOR
 void UYapCharacter::PostLoad()
 {
 	Super::PostLoad();
-
-	RebuildPortraitBrushes();
 }
 #endif
 
@@ -47,18 +56,6 @@ void UYapCharacter::PostLoad()
 void UYapCharacter::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.Property && PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ThisClass, Portraits))
-	{
-		RebuildPortraitBrushes();
-	}
-}
-#endif
-
-#if WITH_EDITOR
-const TMap<FName, FSlateBrush>& UYapCharacter::GetPortraitBrushes()
-{
-	return PortraitBrushes;
 }
 #endif
 
@@ -101,6 +98,7 @@ void UYapCharacter::RefreshPortraitList()
 }
 #endif
 
+/* // TODO remove
 #if WITH_EDITOR
 void UYapCharacter::RebuildPortraitBrushes()
 {
@@ -133,5 +131,6 @@ void UYapCharacter::RebuildPortraitBrushes()
 	}
 }
 #endif
+*/
 
 #undef LOCTEXT_NAMESPACE

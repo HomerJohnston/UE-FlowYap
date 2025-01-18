@@ -58,8 +58,8 @@ protected:
 	// ==========================================
 	// STATE
 protected:
-	UPROPERTY(VisibleAnywhere)
-	FGuid Guid = FGuid(0, 0, 0, 0);
+	UPROPERTY(VisibleAnywhere, meta=(IgnoreForMemberInitializationTest))
+	FGuid Guid;
 	
 	// TODO should this be serialized or transient
 	UPROPERTY(Transient)

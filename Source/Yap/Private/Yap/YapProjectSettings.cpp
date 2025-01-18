@@ -6,7 +6,7 @@
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
 #include "Yap/YapGlobals.h"
-#include "Yap/YapTextCalculator.h"
+#include "Yap/Enums/YapDialogueSkippable.h"
 #include "Yap/Enums/YapMaturitySetting.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -19,7 +19,7 @@ UYapProjectSettings::UYapProjectSettings()
 {
 
 #if WITH_EDITORONLY_DATA
-	MoodTagIconPath.Path = "";
+	OverrideMoodTagIconPath.Path = "";
 
 	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
 
@@ -38,15 +38,11 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-	bDefaultSkippableSetting = true;
-
-	TextCalculatorClass = UYapTextCalculator::StaticClass();
-
-	BrokerClass = nullptr; // You *must* create your own conversation handler class!
-	
-	FragmentPaddingSliderMax = 5.0;
-
 	DefaultMaturitySetting = EYapMaturitySetting::ChildSafe;
+
+	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
+
+	DefaultSkippableSetting = EYapDialogueSkippable::Skippable;
 	
 #if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
@@ -65,19 +61,29 @@ FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileEx
 		KeyString = KeyString.RightChop(Index + 1);
 	}
 	
-	if (Get().MoodTagIconPath.Path == "")
+	if (Get().OverrideMoodTagIconPath.Path == "")
 	{		
 		static FString ResourcesDir = Yap::GetPluginFolder();
 		
 		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodKeys/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
-	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
+	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().OverrideMoodTagIconPath.Path, KeyString, FileExtension });
 }
 
 FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 {
 	return UGameplayTagsManager::Get().RequestGameplayTagChildren(Get().MoodTagsParent);
+}
+
+const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses()
+{
+	if (Get().OverrideAudioAssetClasses.Num() > 0)
+	{
+		return Get().OverrideAudioAssetClasses;
+	}
+
+	return Get().DefaultAssetAudioClasses;
 }
 
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -104,31 +110,46 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	
 	FString FullPathDir = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ProjectDir);
 	
-	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodTagIconPath))
+	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, OverrideMoodTagIconPath))
 	{
 		if (two == "Path")
 		{
-			MoodTagIconPath.Path = MoodTagIconPath.Path.RightChop(FullPathDir.Len());
+			OverrideMoodTagIconPath.Path = OverrideMoodTagIconPath.Path.RightChop(FullPathDir.Len());
 		}
 	}
 }
 #endif
 
 #if WITH_EDITOR
+const UTexture2D* UYapProjectSettings::GetMissingPortraitTexture()
+{
+	UYapProjectSettings& Settings = Get();
+	
+	if (Settings.MissingPortraitTexture_Loaded && Settings.MissingPortraitTexture == Settings.MissingPortraitTexture_Loaded)
+	{
+		return Settings.MissingPortraitTexture_Loaded;
+	}
+
+	// TODO async loading
+	Settings.MissingPortraitTexture_Loaded = Settings.MissingPortraitTexture.LoadSynchronous();
+	
+	return Settings.MissingPortraitTexture_Loaded;
+}
+
 const FString& UYapProjectSettings::GetMoodKeyIconPath()
 {
 	static FString CachedPath;
 
 	// Recache the path if it was never calculated, or if the setting is set and the cached path is not equal to it
-	if (CachedPath.IsEmpty() || (!Get().MoodTagIconPath.Path.IsEmpty() && CachedPath != Get().MoodTagIconPath.Path))
+	if (CachedPath.IsEmpty() || (!Get().OverrideMoodTagIconPath.Path.IsEmpty() && CachedPath != Get().OverrideMoodTagIconPath.Path))
 	{
-		if (Get().MoodTagIconPath.Path == "")
+		if (Get().OverrideMoodTagIconPath.Path == "")
 		{
 			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodKeys");
 		}
 		else
 		{
-			CachedPath = FPaths::ProjectDir() / Get().MoodTagIconPath.Path;
+			CachedPath = FPaths::ProjectDir() / Get().OverrideMoodTagIconPath.Path;
 		}	
 	}
 	

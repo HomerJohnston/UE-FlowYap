@@ -138,7 +138,7 @@ bool UFlowNode_YapDialogue::GetSkippable() const
 {
 	if (Skippable == EYapDialogueSkippable::Default)
 	{
-		return UYapProjectSettings::GetDialogueSkippableByDefault();
+		return UYapProjectSettings::GetDefaultSkippableSetting() == EYapDialogueSkippable::Skippable;
 	}
 	else
 	{

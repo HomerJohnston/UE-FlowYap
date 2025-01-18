@@ -135,7 +135,8 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff(
 	{
 		case EYapDialogueSkippable::Default:
 		{
-			return UYapProjectSettings::GetDialogueSkippableByDefault() ? EVisibility::Collapsed : EVisibility::Visible;
+			bool bSkippable = UYapProjectSettings::GetDefaultSkippableSetting() == EYapDialogueSkippable::Skippable; 
+			return bSkippable ? EVisibility::Collapsed : EVisibility::Visible;
 		}
 		case EYapDialogueSkippable::Skippable:
 		{

@@ -275,15 +275,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 		return FReply::Handled();
 	}
 
-	TSoftClassPtr<UYapBroker> BrokerClass = UYapProjectSettings::GetConversationBrokerClass();
-
-	// Create a temporary broker to play the sound
-	if (BrokerClass.IsNull())
-	{
-		
-	}
-
-	UYapBroker* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
+	const UYapBroker* BrokerCDO = UYapProjectSettings::GetEditorBrokerDefault();
 
 	if (IsValid(BrokerCDO))
 	{
@@ -293,8 +285,11 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 
 			if (!bResult)
 			{
-				// TODO
-				check(false);
+				FNotificationInfo NotificationInfo(LOCTEXT("AudioPreview_UnknownWarning_Title", "Cannot Play Audio Preview"));
+				NotificationInfo.ExpireDuration = 5.0f;
+				NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
+				NotificationInfo.SubText = LOCTEXT("AudioPreview_UnknownWarning_Description", "Unknown error!");
+				FSlateNotificationManager::Get().AddNotification(NotificationInfo);
 			}
 		}
 		else
@@ -675,11 +670,11 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	const FSlateBrush& PortraitBrush = GetBit().GetDirectedAtPortraitBrush();
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetDirectedAt(), FGameplayTag::EmptyTag);
 
-	if (PortraitBrush.GetResourceObject())
+	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
-		return &PortraitBrush;
+		return PortraitBrush;
 	}
 	else
 	{
@@ -2082,7 +2077,7 @@ bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget(T
 
 	UClass* AssetClass = AssetDatas[0].GetClass();
 	
-	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::GetAudioAssetClasses();
 	
 	for (const TSoftClassPtr<UObject>& AllowableClass : AllowableClasses)
 	{
@@ -2208,11 +2203,11 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush& PortraitBrush = GetBit().GetSpeakerPortraitBrush();
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().Speaker, GetBit().GetMoodKey());
 
-	if (PortraitBrush.GetResourceObject())
+	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
-		return &PortraitBrush;
+		return PortraitBrush;
 	}
 	else
 	{
@@ -2222,9 +2217,9 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush& Brush = GetBit().GetSpeakerPortraitBrush();
+	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodKey());
 	
-	return (Brush.GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
+	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_CharacterSelect() const
@@ -2332,11 +2327,11 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget(FText Labe
 	
 	if (NeedsChildSafeData())
 	{
-		return FText::Format(LOCTEXT("DialogueText_ToolTip_Both", "\u2668\u2502{1}\n\n\u26F9\u2502{2}"), Label, MatureText->IsEmpty() ? Unset : *MatureText, SafeText->IsEmpty() ? Unset : *SafeText);
+		return FText::Format(LOCTEXT("DialogueText_ToolTip_Both", "\u2668{1}\n\n\u26F9{2}"), Label, MatureText->IsEmpty() ? Unset : *MatureText, SafeText->IsEmpty() ? Unset : *SafeText);
 	}
 	else
 	{
-		return FText::Format(LOCTEXT("DialogueText_ToolTip_MatureOnly", "u2756\u2502{1}"), Label, MatureText->IsEmpty() ? Unset : *MatureText);
+		return FText::Format(LOCTEXT("DialogueText_ToolTip_MatureOnly", "\u2756{1}"), Label, MatureText->IsEmpty() ? Unset : *MatureText);
 	}
 }
 
@@ -2466,7 +2461,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_TimeSettingButton(
 
 bool SFlowGraphNode_YapFragmentWidget::OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const
 {
-	const TArray<TSoftClassPtr<UObject>>& Classes = UYapProjectSettings::GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& Classes = UYapProjectSettings::GetAudioAssetClasses();
 
 	// TODO async loading
 	if (Classes.ContainsByPredicate( [&AssetData] (const TSoftClassPtr<UObject>& Class) { return AssetData.GetClass(EResolveClass::Yes) == Class; } ))
@@ -2487,7 +2482,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateAudioAssetWidget(con
 	
 	UClass* DialogueAssetClass = nullptr;
 	
-	const TArray<TSoftClassPtr<UObject>>& DialogueAssetClassPtrs = UYapProjectSettings::GetDialogueAssetClasses();
+	const TArray<TSoftClassPtr<UObject>>& DialogueAssetClassPtrs = UYapProjectSettings::GetAudioAssetClasses();
 	
 	bool bFoundAssetClass = false;
 	for (const TSoftClassPtr<UObject>& Ptr : DialogueAssetClassPtrs)
@@ -2674,7 +2669,7 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const T
 	// If we have an asset all we need to do is check if it's the correct class type. Always return an error if it's an improper type.
 	if (!Asset.IsNull())
 	{
-		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::GetDialogueAssetClasses();
+		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::GetAudioAssetClasses();
 
 		/*
 		if (AllowedAssetClasses.ContainsByPredicate(&Test))

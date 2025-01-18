@@ -5,10 +5,12 @@
 
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
+#include "YapLog.h"
 #include "Engine/DeveloperSettings.h"
-#include "Yap/YapTextCalculator.h"
+#include "Yap/YapBroker.h"
 #include "YapProjectSettings.generated.h"
 
+enum class EYapDialogueSkippable : uint8;
 class UYapBroker;
 enum class EYapMaturitySetting : uint8;
 class UYapConversationListener;
@@ -34,59 +36,68 @@ class YAP_API UYapProjectSettings : public UDeveloperSettings
 	friend class FDetailCustomization_YapProjectSettings;
 #endif
 	
+	// ============================================================================================
+	// CONSTRUCTION
+	// ============================================================================================
 public:
 	UYapProjectSettings();
 
+protected:
 	static UYapProjectSettings& Get()
 	{
 		return *StaticClass()->GetDefaultObject<UYapProjectSettings>();
 	}
 
-	// ------------------------------------------
+	// ============================================================================================
 	// SETTINGS
-	
+	// ============================================================================================
 protected:
 	
-	// =================
-	// CORE
+	// - - - - - CORE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	/** You must create a Yap Broker class (C++ or blueprint) and set it here for Yap to work. */
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UYapBroker> BrokerClass;
+	TSoftClassPtr<UYapBroker> BrokerClass = nullptr;
 	
-	/** Yap comes with a simple text calculator to determine the word count of dialogue. You can optionally supply your own subclass using different logic here (this may be necessary for languages other than English!).  */
-	UPROPERTY(Config, EditAnywhere, Category = "Core")
-	TSoftClassPtr<UYapTextCalculator> TextCalculatorClass;
-	
-	/** What type of classes are allowable to use for dialogue assets (sounds). */
+	/** What type of classes are allowable to use for dialogue assets (sounds). If unset, defaults to Unreal's USoundBase. */
 	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
-	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
+	TArray<TSoftClassPtr<UObject>> OverrideAudioAssetClasses;
 
-	// =================
-	// MOOD TAGS
+	// Do not expose this for editing; only hard-coded
+	UPROPERTY() 
+	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
+	
+	// - - - - - MOOD TAGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-	/**  */
+	/** Parent tag to use for mood tags. Filters the mood tags editor. */
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FGameplayTag MoodTagsParent;
 
-	/**  */
+	/** Optional default mood tag to use, for dialogue fragments which do not have a mood tag set. */
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FGameplayTag DefaultMoodTag;
 
-	/** Where to look for portrait key icons. Path should start in the project's root folder, i.e. to use a folder like "...\ProjectName\\Resources\\MoodKeys", simply type "Resources\\MoodKeys". If unspecified, will use the "...ProjectName\\Plugins\\FlowYap\\Resources\\MoodKeys" folder.*/
+	/** Where to look for portrait key icons. If unspecified, will use the "Plugins\FlowYap\Resources\MoodKeys\" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
-	FDirectoryPath MoodTagIconPath;
+	FDirectoryPath OverrideMoodTagIconPath;
 
-
-
-	
-	
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FSlateBrush MissingPortraitBrush;
+	// - - - - - DIALOGUE PLAYBACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 	
 	/** Time mode to use by default. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
+
+	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ValidEnumValues = "Skippable, NotSkippable"))
+	EYapDialogueSkippable DefaultSkippableSetting;
+
+	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01))
+	float DefaultFragmentPaddingTime = 0.25f;
+
+	/** Controls how fast dialogue plays. Only useful for word-based playtime. */ // TODO I need some way for users to overide this within game settings
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
+	int32 TextWordsPerMinute = 120;
 
 	/** Controls how missing audio fields are handled.
 	 * - OK: Missing audio falls back to using text time without issue.
@@ -94,26 +105,17 @@ protected:
 	 * - Error: Missing audio will not pass package validation. */ // TODO make it not package
 	UPROPERTY(Config, EditAnywhere, Category = "Settings", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
 	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
 	
-	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
-	bool bDefaultSkippableSetting;
-
-	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01, EditCondition = "bUseDefaultFragmentPaddingTime", EditConditionHides))
-	float DefaultFragmentPaddingTime = 0.25f;
-
-	/** Controls how fast dialogue plays. Only useful for word-based playtime. */ // TODO I need some way for users to overide this within game settings
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
-	int32 TextWordsPerMinute = 120;
+	/**  */
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	bool bPreventCachingWordCount = false;
 
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bCacheFragmentWordCount = true;
-
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bCacheFragmentAudioLength = true;
+	bool bPreventCachingAudioLength = false;
 	
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
@@ -128,7 +130,7 @@ protected:
 	double MinimumFragmentTime = 2.0;
 
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	float FragmentPaddingSliderMax;
+	float FragmentPaddingSliderMax = 5.0;
 
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
@@ -136,7 +138,7 @@ protected:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
-
+	
 	// ============================================================================================
 	// EDITOR SETTINGS
 #if WITH_EDITORONLY_DATA
@@ -161,7 +163,7 @@ protected:
 
 	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bShowPinEnableButtons = true;
+	bool bHidePinEnableButtons = false;
 	
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
@@ -185,13 +187,20 @@ protected:
 	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float PaddingTimeSliderMax = 2.0f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTexture2D> MissingPortraitTexture_Loaded;
 	
 #endif
 	
-
 	// ------------------------------------------
-	// API
+	// UObject overrides
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
+	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+	
+	// ------------------------------------------
+	// UDeveloperSettings overrides
 #if WITH_EDITOR
 public:
 	static FName CategoryName;
@@ -201,7 +210,12 @@ public:
 	FText GetSectionText() const override { return LOCTEXT("Settings", "Settings"); }
 	
 	FText GetSectionDescription() const override { return LOCTEXT("YapProjectSettingsDescription", "Project-specific settings for Yap"); }
-	
+#endif
+
+	// ------------------------------------------
+	// Custom API overrides
+#if WITH_EDITOR
+public:
 	static FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension);
 
 	static const FGameplayTag& GetMoodTagsParent() { return Get().MoodTagsParent; }
@@ -209,28 +223,41 @@ public:
 	static const FGameplayTag& GetDialogueTagsParent() { return Get().DialogueTagsParent; };
 	
 	static FGameplayTagContainer GetMoodTags();
-	
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
-	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
 
 	static bool GetSuppressDefaultMatureWarning() { return Get().bSuppressDefaultMatureWarning; }
 #endif
 
 public:
+
 	static FGameplayTag GetDefaultMoodTag() { return Get().DefaultMoodTag; }
 	
 	static EYapTimeMode GetDefaultTimeModeSetting() { return Get().DefaultTimeModeSetting; }
 
-	static bool GetDialogueSkippableByDefault() { return Get().bDefaultSkippableSetting; }
+	static EYapDialogueSkippable GetDefaultSkippableSetting() { return Get().DefaultSkippableSetting; }
 	
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get().DefaultMaturitySetting; }
 	
-public:
-	static const TSoftClassPtr<UYapBroker>& GetConversationBrokerClass() { return Get().BrokerClass; }
-	
-	static const TArray<TSoftClassPtr<UObject>>& GetDialogueAssetClasses() { return Get().AudioAssetClasses; }
+	static const TSoftClassPtr<UYapBroker>& GetBrokerClass() { return Get().BrokerClass; }
 
+#if WITH_EDITOR
+	static const UYapBroker* GetEditorBrokerDefault()
+	{ 
+		TSoftClassPtr<UYapBroker> BrokerClass = UYapProjectSettings::GetBrokerClass();
+
+		if (BrokerClass.IsNull())
+		{
+			UE_LOG(LogYap, Error, TEXT("No broker class set! Set a Yap Broker class in project settings."));
+			return nullptr;
+		}
+
+		return BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
+	}
+#endif
+	
+	static const TArray<TSoftClassPtr<UObject>>& GetAudioAssetClasses();
+
+	static bool HasCustomAudioAssetClasses() { return Get().OverrideAudioAssetClasses.Num() > 0; };
+	
 	static bool GetShowTitleTextOnTalkNodes() { return Get().bShowTitleTextOnTalkNodes; }
 
 	static int32 GetTextWordsPerMinute() { return Get().TextWordsPerMinute; }
@@ -241,17 +268,15 @@ public:
 	
 	static double GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
 
-	static bool CacheFragmentWordCount() { return Get().bCacheFragmentWordCount; }
+	static bool CacheFragmentWordCount() { return !Get().bPreventCachingWordCount; }
 	
-	static bool CacheFragmentAudioLength() { return Get().bCacheFragmentAudioLength; }
+	static bool CacheFragmentAudioLength() { return !Get().bPreventCachingAudioLength; }
 	
 	static double GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
 	
 	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 
-	static TSoftClassPtr<UYapTextCalculator> GetTextCalculator() { return Get().TextCalculatorClass; }
-
-	static const FSlateBrush& GetMissingPortraitBrush() { return Get().MissingPortraitBrush; };
+	static const UTexture2D* GetMissingPortraitTexture();
 
 	static const FString& GetMoodKeyIconPath();
 	
@@ -267,7 +292,7 @@ public:
 	static float GetFragmentPaddingSliderMax() { return Get().PaddingTimeSliderMax; }
 
 public:
-	static bool ShowPinEnableButtons()  { return Get().bShowPinEnableButtons; }
+	static bool ShowPinEnableButtons()  { return !Get().bHidePinEnableButtons; }
 	
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 

@@ -39,165 +39,47 @@ bool UYapBroker::bWarned_CalculateTextTime = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
 bool UYapBroker::bWarned_PreviewAudioAsset = false;
 #endif
-// ================================================================================================
-#if WITH_EDITOR
-
-// Used to check to see if a derived class actually implemented PlayDialogueAudioAsset_Editor()
-thread_local bool bPreviewAudioAssetOverridden = false;
-thread_local bool bSuppressPreviewAudioAssetWarning = false;
-
-/*
-bool UYapBroker::K2_PreviewAudioAsset_Implementation(const UObject* AudioAsset) const
-{
-	bPreviewAudioAssetOverridden = false;
-
-	if (!bSuppressPreviewAudioAssetWarning)
-	{
-		UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
-	}
-	
-	return false;
-}
-*/
-#endif
-
-// ------------------------------------------------------------------------------------------------
-
-/*
-float UYapBroker::K2_GetAudioAssetDuration_Implementation(const UObject* AudioAsset) const
-{
-	UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));
-
-	return -1;
-}
-*/
-
-/*
-int32 UYapBroker::K2_CalculateWordCount_Implementation(const FText& Text)
-{
-	// Utility to count the number of words within a string (we use a line-break iterator to avoid counting the whitespace between the words)
-	TSharedRef<IBreakIterator> LineBreakIterator = FBreakIterator::CreateLineBreakIterator();
-	auto CountWords = [&LineBreakIterator](const FString& InTextToCount) -> int32
-	{
-		int32 NumWords = 0;
-		LineBreakIterator->SetString(InTextToCount);
-
-		int32 PreviousBreak = 0;
-		int32 CurrentBreak;
-
-		while ((CurrentBreak = LineBreakIterator->MoveToNext()) != INDEX_NONE)
-		{
-			if (CurrentBreak > PreviousBreak)
-			{
-				++NumWords;
-			}
-			PreviousBreak = CurrentBreak;
-		}
-
-		LineBreakIterator->ClearString();
-		return NumWords;
-	};
-
-	return CountWords(Text.ToString());
-}
-*/
-
-/*
-float UYapBroker::K2_CalculateTextTime_Implementation(int32 WordCount, int32 CharCount)
-{
-	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute();
-	double Min = UYapProjectSettings::GetMinimumAutoTextTimeLength();
-	double SecondsPerWord = 60.0 / (double)TWPM;
-
-	return FMath::Max(WordCount * SecondsPerWord, Min);
-}
-*/
-
-#if WITH_EDITOR
 
 // ============================================================================================
 // C++ OVERRIDES
 // ============================================================================================
 
-// If the C++ function is not overridden, we attempt to use the blueprint function. If the blueprint function is not implemented, we log a warning once per PIE.
-#define YAP_BROKER_CPP_CALL_K2(FUNC, LOG_CONDITION, DEFAULTRETURN, ...)\
-	/* The Initialize function should have been called to set all of these variables. */\
-	check(bImplemented_##FUNC.IsSet());\
-	\
-	if (bImplemented_##FUNC.GetValue())\
-	{\
-		return K2_##FUNC(__VA_ARGS__);\
-	}\
-	else\
-	{\
-		if (!bWarned_##FUNC)\
-		{\
-			if (LOG_CONDITION)\
-			{\
-				UE_LOG(LogYap, Warning, TEXT("Unimplemented broker function: %s"), *FString(__func__));\
-			}\
-			\
-			bWarned_##FUNC = true;\
-		}\
-	}\
-	return DEFAULTRETURN
-
-template<typename TFunction>
-struct TResolveFunctionReturn
-{
-	using Type = std::invoke_result_t<TFunction, UYapBroker>;
-};
-
 #define YAP_QUOTE(X) #X
-#define YAP_CALL_K2(FUNCTION, ...) CallK2Function<&UYapBroker::K2_##FUNCTION>(YAP_QUOTE(FUNCTION), bImplemented_##FUNCTION, bWarned_##FUNCTION, __VA_ARGS__)
+#define YAP_CALL_K2(FUNCTION, SHOW_UNIMPLEMENTED_WARNING, ...) CallK2Function<&UYapBroker::K2_##FUNCTION>(YAP_QUOTE(FUNCTION), bImplemented_##FUNCTION, bWarned_##FUNCTION, SHOW_UNIMPLEMENTED_WARNING __VA_OPT__(,) __VA_ARGS__)
 
 void UYapBroker::OnConversationOpened(const FGameplayTag& Conversation) const
 {
-	bool bShowUnimplementedWarning = true;
-
-	YAP_CALL_K2(OnConversationOpened, bShowUnimplementedWarning, /*Args*/ Conversation);
+	YAP_CALL_K2(OnConversationOpened, true, Conversation);
 }
 
 void UYapBroker::OnConversationClosed(const FGameplayTag& Conversation) const
 {
-	bool bShowUnimplementedWarning = true;
-	
-	YAP_CALL_K2(OnConversationClosed, bShowUnimplementedWarning, /*Args*/ Conversation);
+	YAP_CALL_K2(OnConversationClosed, true, Conversation);
 }
 
 void UYapBroker::OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset) const
 {
-	bool bShowUnimplementedWarning = true;
-	
-	YAP_CALL_K2(OnDialogueBegins, bShowUnimplementedWarning, /*Args*/ Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, AudioAsset);
+	YAP_CALL_K2(OnDialogueBegins, true, Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, AudioAsset);
 }
 
 void UYapBroker::OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle) const
 {
-	bool bShowUnimplementedWarning = true;
-	
-	YAP_CALL_K2(OnDialogueEnds, bShowUnimplementedWarning, /*Args*/ Conversation, DialogueHandle);
+	YAP_CALL_K2(OnDialogueEnds, true, Conversation, DialogueHandle);
 }
 
 void UYapBroker::AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText) const
 {
-	bool bShowUnimplementedWarning = true;
-	
-	YAP_CALL_K2(AddPlayerPrompt, bShowUnimplementedWarning, /*Args*/ Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
+	YAP_CALL_K2(AddPlayerPrompt, true, Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
 }
 
 void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation) const
 {
-	bool bShowUnimplementedWarning = true;
-
-	YAP_CALL_K2(AfterPlayerPromptsAdded, bShowUnimplementedWarning, /*Args*/ Conversation);
+	YAP_CALL_K2(AfterPlayerPromptsAdded, true, Conversation);
 }
 
 EYapMaturitySetting UYapBroker::UseMatureDialogue() const
 {
-	bool bShowUnimplementedWarning = !UYapProjectSettings::GetSuppressDefaultMatureWarning();
-	
-	return YAP_CALL_K2(UseMatureDialogue, bShowUnimplementedWarning);
+	return YAP_CALL_K2(UseMatureDialogue, !UYapProjectSettings::GetSuppressDefaultMatureWarning());
 }
 
 int32 UYapBroker::CalculateWordCount(const FText& Text) const
@@ -209,6 +91,7 @@ int32 UYapBroker::CalculateWordCount(const FText& Text) const
 		return K2_CalculateWordCount(Text);
 	}
 
+	// ------------------------------------------
 	// Default Implementation
 	
 	// Utility to count the number of words within a string (we use a line-break iterator to avoid counting the whitespace between the words)
@@ -246,6 +129,7 @@ float UYapBroker::CalculateTextTime(int32 WordCount, int32 CharCount) const
 		return K2_CalculateTextTime(WordCount, CharCount);
 	}
 
+	// ------------------------------------------
 	// Default Implementation
 	
 	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute();
@@ -257,9 +141,69 @@ float UYapBroker::CalculateTextTime(int32 WordCount, int32 CharCount) const
 
 float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 {
-	bool bShowUnimplementedWarning = true; // TODO true if audio classes aren't set to default unreal classes, false otherwise?
+#if WITH_EDITOR
+	const TArray<TSoftClassPtr<UObject>>& AudioAssetClasses = UYapProjectSettings::GetAudioAssetClasses();
+
+	float Time = -1;
+	bool bFoundClassMatch = false;
 	
-	return YAP_CALL_K2(GetAudioAssetDuration, bShowUnimplementedWarning, AudioAsset);
+	for (const TSoftClassPtr<UObject>& Class : AudioAssetClasses)
+	{
+		if (Class.IsPending())
+		{
+			UE_LOG(LogYap, Warning, TEXT("Async loading audio class asset - this should not happen!"));
+		}
+		
+		if (AudioAsset->IsA(Class.LoadSynchronous()))
+		{
+			bFoundClassMatch = true;
+			break;
+		}
+	}
+
+	if (!bFoundClassMatch)
+	{
+		FString ProjectAudioClassesString;
+		
+		for (int32 i = 0; i < AudioAssetClasses.Num(); ++i)
+		{
+			const TSoftClassPtr<UObject>& Class = AudioAssetClasses[i];
+			
+			ProjectAudioClassesString += Class->GetName();
+
+			if (i < AudioAssetClasses.Num() - 1)
+			{
+				ProjectAudioClassesString += ", ";
+			}
+		}
+		
+		UE_LOG(LogYap, Error, TEXT("Failed to match [%s] to a valid audio asset class! Asset type: [%s], project asset types: [%s]"), *AudioAsset->GetPathName(), *AudioAsset->GetClass()->GetName(), *ProjectAudioClassesString);
+	}
+#endif
+	
+	if (UYapProjectSettings::HasCustomAudioAssetClasses())
+	{
+		bool bShowUnimplementedWarning = true; // TODO true if audio classes aren't set to default unreal classes, false otherwise?
+		Time = YAP_CALL_K2(GetAudioAssetDuration, bShowUnimplementedWarning, AudioAsset);
+	}
+	else
+	{
+		// ------------------------------------------
+		// Default Implementation
+		const USoundBase* AudioAssetAsSoundBase = Cast<USoundBase>(AudioAsset);
+
+		if (AudioAssetAsSoundBase)
+		{
+			Time = AudioAssetAsSoundBase->GetDuration();
+		}
+	}
+	
+	if (Time < 0)
+	{
+		UE_LOG(LogYap, Error, TEXT("Failed to determine audio asset duration, unknown error!"));
+	}
+
+	return Time;
 }
 
 bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
@@ -283,7 +227,7 @@ void UYapBroker::Initialize()
 	bWarned_CalculateTextTime = false;
 	bWarned_GetAudioAssetDuration = false;
 	bWarned_PreviewAudioAsset = false;
-#endif
+#endif // WITH_EDITOR
 	
 	bImplemented_OnConversationOpened = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnConversationOpened));
 	bImplemented_OnConversationClosed = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnConversationClosed));
@@ -297,16 +241,25 @@ void UYapBroker::Initialize()
 	bImplemented_GetAudioAssetDuration = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetAudioAssetDuration));
 #if WITH_EDITOR
 	bImplemented_PreviewAudioAsset = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_PreviewAudioAsset));
-#endif
+#endif // WITH_EDITOR
 }
 
+#if WITH_EDITOR
+// Used to check to see if a derived class actually implemented PlayDialogueAudioAsset_Editor()
+thread_local bool bPreviewAudioAssetOverridden = false;
+thread_local bool bSuppressPreviewAudioAssetWarning = false;
+#endif // WITH_EDITOR
+
+#if WITH_EDITOR
 bool UYapBroker::PreviewAudioAsset_Internal(const UObject* AudioAsset) const
 {
 	bPreviewAudioAssetOverridden = true;
 
 	return PreviewAudioAsset(AudioAsset);
 }
+#endif // WITH_EDITOR
 
+#if WITH_EDITOR
 bool UYapBroker::ImplementsPreviewAudioAsset_Internal() const
 {
 	bSuppressPreviewAudioAssetWarning = true;
@@ -315,7 +268,6 @@ bool UYapBroker::ImplementsPreviewAudioAsset_Internal() const
 
 	return bPreviewAudioAssetOverridden;
 }
-
 #endif // WITH_EDITOR
 
 #undef LOCTEXT_NAMESPACE

@@ -165,8 +165,6 @@ void FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton() const
 
 const TMap<FName, TObjectPtr<UTexture2D>>& FDetailCustomization_YapCharacter::GetPortraitsMap() const
 {
-	FProperty* Val; PortraitsProperty->GetValue(Val);
-
 	TArray<void*> RawData;
 
 	PortraitsProperty->AccessRawData(RawData);

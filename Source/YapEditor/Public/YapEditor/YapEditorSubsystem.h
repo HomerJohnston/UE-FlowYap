@@ -51,6 +51,8 @@ protected:
 
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
+	TMap<TObjectKey<UTexture2D>, FSlateBrush> CharacterPortraitBrushes;
+	
 public:
 	void UpdateMoodKeyBrushes();
 	void BuildIcon(const FGameplayTag& MoodKey);
@@ -59,6 +61,8 @@ public:
 
 	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
 
+	static const FSlateBrush* GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
+	
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 

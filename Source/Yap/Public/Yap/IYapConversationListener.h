@@ -19,6 +19,11 @@ class UYapConversationListener : public UInterface
 	GENERATED_BODY()
 };
 
+/** A conversation listener is an interface you can apply to any class to let it respond to dialogue events.
+ * This is essentially a virtual copy of part of the UYapBroker, but as an interface.
+ *
+ * You must use UYapSubsystem::RegisterConversationListener(...) to register your class before it receives these events. 
+ */
 class IYapConversationListener
 {
 	GENERATED_BODY()

@@ -16,21 +16,21 @@ class FDetailCustomization_YapProjectSettings : public IDetailCustomization
 private:
 	TArray<FString> DefaultMoodTags
 	{
-		"Yap.Mood.Angry",
-		"Yap.Mood.Calm",
-		"Yap.Mood.Confused",
-		"Yap.Mood.Disgusted",
-		"Yap.Mood.Happy",
-		"Yap.Mood.Injured",
-		"Yap.Mood.Laughing",
-		"Yap.Mood.Panicked",
-		"Yap.Mood.Sad",
-		"Yap.Mood.Scared",
-		"Yap.Mood.Smirking",
-		"Yap.Mood.Stressed",
-		"Yap.Mood.Surprised",
-		"Yap.Mood.Thinking",
-		"Yap.Mood.Tired"
+		"Angry",
+		"Calm",
+		"Confused",
+		"Disgusted",
+		"Happy",
+		"Injured",
+		"Laughing",
+		"Panicked",
+		"Sad",
+		"Scared",
+		"Smirking",
+		"Stressed",
+		"Surprised",
+		"Thinking",
+		"Tired"
 	};
 	
 public:
@@ -43,7 +43,8 @@ protected:
 	FText GetMoodTags() const;
 
 	const FSlateBrush* TODOBorderImage() const;
-	
+
+
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
 	FReply OnClicked_ResetDefaultMoodTags() const;
@@ -53,6 +54,12 @@ protected:
 	FReply OnClicked_OpenMoodTagsManager();
 
 	FReply OnClicked_OpenDialogueTagsManager();
+
+	FText ToolTipText_DefaultMoodTags() const;
+
+	bool IsMoodTagsParentSet() const;
+
+	TSharedPtr<IPropertyHandle> MoodTagsParentPropertyHandle;
 };
 
 #undef LOCTEXT_NAMESPACE

@@ -198,7 +198,7 @@ public:
 	bool ImplementsPreviewAudioAsset_Internal() const;
 #endif
 
-	// Thank you to Blue Man for this... thing
+	// Thank you to Blue Man for this thing
 	template<typename TFunction, typename... TArgs>
 	struct TResolveFunctionReturn
 	{

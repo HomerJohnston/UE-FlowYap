@@ -10,12 +10,12 @@ enum class EYapTimeMode : uint8
 {
 	/** Use project default setting */
 	Default UMETA(Hidden),
-	/** Dialogue can only be progressed by the game returning the dialogue handle to the FlowYapSubsystem */
+	/** Dialogue can only be progressed by the game, using the Dialogue Handle to skip the dialogue. */
 	None,
-	/** Dialogue will automatically progress after an automatically determined time, determined by the selected audio asset */
+	/** Dialogue will automatically progress after an automatically determined time, determined by the selected audio asset. */
 	AudioTime,
-	/** Dialogue will automatically progress after an automatically determined time, see project settings for Words Per Minute */
+	/** Dialogue will automatically progress after an automatically determined time, see project settings for Words Per Minute. */
 	TextTime,
-	/** Dialogue will automatically progress after a set time */
+	/** Dialogue will automatically progress after a set time. */
 	ManualTime,
 };

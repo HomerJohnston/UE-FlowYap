@@ -16,7 +16,6 @@ struct FYapPromptHandle;
 class UFlowAsset;
 class IYapConversationListener;
 struct FYapBit;
-class UYapTextCalculator;
 class UYapCharacterComponent;
 enum class EYapMaturitySetting : uint8;
 
@@ -116,7 +115,7 @@ protected:
 	TArray<UObject*> Listeners;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UYapBroker> ConversationBroker;
+	TObjectPtr<UYapBroker> Broker;
 	
 	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
 	UPROPERTY(Transient)
@@ -139,7 +138,7 @@ protected:
 	TSet<TObjectPtr<AActor>> RegisteredYapCharacterActors;
 
 	UPROPERTY(Transient)
-	TSubclassOf<UObject> ConversationBrokerClass;
+	TSubclassOf<UObject> BrokerClass;
 
 	// TODO running dialog interruption
 	//UPROPERTY(Transient)
@@ -164,7 +163,7 @@ public:
 	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
 	EYapMaturitySetting K2_GetMaturitySetting() { return GetGameMaturitySetting(); };
 
-	static UYapBroker* GetConversationBroker();
+	static UYapBroker* GetBroker();
 	
 	static EYapMaturitySetting GetGameMaturitySetting();
 	
@@ -230,9 +229,9 @@ protected:
 	{
 		bool bHandled = false;
 		
-		if (IsValid(ConversationBroker))
+		if (IsValid(Broker))
 		{
-			(ConversationBroker->*TFunction)(Args...);
+			(Broker->*TFunction)(Args...);
 			bHandled = true;
 		}
 
@@ -258,9 +257,9 @@ protected:
 	template<auto TFunction, auto TExecFunction, typename RetVal, typename... TArgs>
 	RetVal ExecuteBrokerListenerFuncs(TArgs&&... Args)
 	{
-		if (IsValid(ConversationBroker))
+		if (IsValid(Broker))
 		{
-			return (ConversationBroker->*TFunction)(Args...);
+			return (Broker->*TFunction)(Args...);
 		}
 
 		for (int i = 0; i < Listeners.Num(); ++i)

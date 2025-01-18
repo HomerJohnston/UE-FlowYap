@@ -92,9 +92,9 @@ UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& Chara
 	return nullptr;
 }
 
-UYapBroker* UYapSubsystem::GetConversationBroker()
+UYapBroker* UYapSubsystem::GetBroker()
 {
-	UYapBroker* Broker = Get()->ConversationBroker;
+	UYapBroker* Broker = Get()->Broker;
 
 #if WITH_EDITOR
 	ensureMsgf(IsValid(Broker), TEXT("Conversation Broker is invalid. Did you create one and assign it in project settings? Docs: https://github.com/HomerJohnston/UE-FlowYap/wiki/Conversation-Broker"));
@@ -113,7 +113,7 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 	}
 	else
 	{
-		UYapBroker* Broker = GetConversationBroker();
+		UYapBroker* Broker = GetBroker();
 
 		if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetGameMaturitySetting(); returning default project setting.")))
 		{
@@ -303,15 +303,15 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	// TODO handle null unset values
 	// TODO deprecate the text calculator class? everything done in the broker now
-	ConversationBrokerClass = UYapProjectSettings::GetConversationBrokerClass().LoadSynchronous();
+	BrokerClass = UYapProjectSettings::GetBrokerClass().LoadSynchronous();
 
-	if (ConversationBrokerClass)
+	if (BrokerClass)
 	{
-		ConversationBroker = NewObject<UYapBroker>(this, ConversationBrokerClass);
-		ConversationBroker->Initialize();
+		Broker = NewObject<UYapBroker>(this, BrokerClass);
+		Broker->Initialize();
 	}
 
-	TArray<TSoftClassPtr<UObject>> DialogueAudioAssetClassesSoft = UYapProjectSettings::GetDialogueAssetClasses();
+	TArray<TSoftClassPtr<UObject>> DialogueAudioAssetClassesSoft = UYapProjectSettings::GetAudioAssetClasses();
 
 	for (const TSoftClassPtr<UObject>& Class : DialogueAudioAssetClassesSoft)
 	{
