@@ -211,9 +211,9 @@ private:
 	void SetDialogueText_Internal(FText* Text, const FText& InText);
 
 	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime, UObject* NewAudio);
+#endif
 
 	const UYapCharacter* GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings = EYapWarnings::Show) const;
-#endif
 };
 
 template <class T>

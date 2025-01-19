@@ -19,9 +19,11 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+#if WITH_EDITOR
 	UFUNCTION(BlueprintCallable, Category = "Yap Audio")
 	static void PlaySoundInEditor(USoundBase* Sound);
-
+#endif
+	
 	UFUNCTION(BlueprintCallable, Category = "Yap Audio")
 	static float GetSoundLength(USoundBase* Sound);
 

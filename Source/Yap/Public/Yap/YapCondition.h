@@ -14,8 +14,10 @@ class YAP_API UYapCondition : public UObject
 {
 	GENERATED_BODY()
 
+#if WITH_EDITOR
 public:
 	bool ImplementsGetWorld() const override { return true; }
+#endif
 	
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditDefaultsOnly)

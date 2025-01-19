@@ -127,10 +127,6 @@ protected:
 
 	/**  */
 	UPROPERTY(Transient)
-	TArray<UClass*> DialogueAudioAssetClasses;
-
-	/**  */
-	UPROPERTY(Transient)
 	TMap<FGameplayTag, TWeakObjectPtr<UYapCharacterComponent>> YapCharacterComponents;
 
 	/**  */

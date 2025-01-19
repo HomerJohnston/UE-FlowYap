@@ -63,9 +63,11 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Core", meta = (AllowAbstract))
 	TArray<TSoftClassPtr<UObject>> OverrideAudioAssetClasses;
 
+#if WITH_EDITORONLY_DATA
 	// Do not expose this for editing; only hard-coded
 	UPROPERTY() 
 	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
+#endif
 	
 	// - - - - - MOOD TAGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -147,17 +149,19 @@ protected:
 	
 	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
+#endif
 
 	/** If set, you will not be warned when Yap is falling back to default maturity settings. Turn this on if you  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bSuppressDefaultMatureWarning = false;
-
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
-	
+
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
-	
+
+#if WITH_EDITORONLY_DATA
 	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHidePinEnableButtons = false;
@@ -181,17 +185,19 @@ protected:
 	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float PaddingTimeSliderMax = 2.0f;
+#endif
 
 	UPROPERTY(Transient)
-	TObjectPtr<UTexture2D> MissingPortraitTexture_Loaded;
+	TObjectPtr<UTexture2D> MissingPortraitTexture_Loaded; // TODO move this to the subsystem, I don't want my settings class to contain mutable state
 	
-#endif
 	// ------------------------------------------
 	// UObject overrides
+#if WITH_EDITOR
 public:
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+#endif
 	
 	// ------------------------------------------
 	// UDeveloperSettings overrides
@@ -218,9 +224,9 @@ public:
 	static const FGameplayTag& GetDialogueTagsParent() { return Get().DialogueTagsParent; };
 	
 	static FGameplayTagContainer GetMoodTags();
+#endif
 
 	static bool GetSuppressDefaultMatureWarning() { return Get().bSuppressDefaultMatureWarning; }
-#endif
 
 	static FGameplayTag GetDefaultMoodTag() { return Get().DefaultMoodTag; }
 	
@@ -245,9 +251,9 @@ public:
 
 		return BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 	}
-#endif
 	
 	static const TArray<TSoftClassPtr<UObject>>& GetAudioAssetClasses();
+#endif
 
 	static bool HasCustomAudioAssetClasses() { return Get().OverrideAudioAssetClasses.Num() > 0; };
 	
@@ -270,11 +276,11 @@ public:
 	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 
 	static const UTexture2D* GetMissingPortraitTexture();
-
-	static const FString& GetMoodKeyIconPath();
 	
 #if WITH_EDITOR
 public:
+	static const FString& GetMoodKeyIconPath();
+	
 	static int32 GetDialogueWidthAdjustment() { return Get().DialogueWidthAdjustment; };
 
 	static int32 GetPortraitSize() { return Get().PortraitSize; }
@@ -284,7 +290,6 @@ public:
 
 	static float GetFragmentPaddingSliderMax() { return Get().PaddingTimeSliderMax; }
 
-public:
 	static bool ShowPinEnableButtons()  { return !Get().bHidePinEnableButtons; }
 	
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
@@ -293,8 +298,7 @@ public:
 
 protected:
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const;
-
-	#endif
+#endif
 };
 
 #undef LOCTEXT_NAMESPACE

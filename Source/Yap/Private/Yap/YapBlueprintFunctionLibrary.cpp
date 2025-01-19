@@ -3,13 +3,16 @@
 
 #include "Yap/YapBlueprintFunctionLibrary.h"
 
+#if WITH_EDITOR
 #include "AssetTypeActions/AssetDefinition_SoundBase.h"
+#endif
+
 #include "Yap/YapLog.h"
 #include "Yap/YapPromptHandle.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-#undef LOCTEXT_NAMESPACE
+#if WITH_EDITOR
 void UYapBlueprintFunctionLibrary::PlaySoundInEditor(USoundBase* Sound)
 {
 	if (Sound)
@@ -21,8 +24,11 @@ void UYapBlueprintFunctionLibrary::PlaySoundInEditor(USoundBase* Sound)
 		UE_LOG(LogYap, Warning, TEXT("Sound was null"));
 	}
 }
+#endif
 
 float UYapBlueprintFunctionLibrary::GetSoundLength(USoundBase* Sound)
 {
 	return Sound->Duration;
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -3,11 +3,14 @@
 
 #include "Yap/YapProjectSettings.h"
 
+#if WITH_EDITOR
 #include "GameplayTagsManager.h"
 #include "Interfaces/IPluginManager.h"
 #include "Yap/YapGlobals.h"
+#endif
 #include "Yap/Enums/YapDialogueSkippable.h"
 #include "Yap/Enums/YapMaturitySetting.h"
+#include "Yap/Enums/YapMissingAudioErrorLevel.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -35,11 +38,15 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-	DefaultMaturitySetting = EYapMaturitySetting::ChildSafe;
+	DefaultMaturitySetting = EYapMaturitySetting::Mature;
 
+#if WITH_EDITOR
 	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
-
+#endif
+	
 	DefaultSkippableSetting = EYapDialogueSkippable::Skippable;
+
+	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
 	
 #if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);
@@ -113,7 +120,6 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 }
 #endif
 
-#if WITH_EDITOR
 const UTexture2D* UYapProjectSettings::GetMissingPortraitTexture()
 {
 	UYapProjectSettings& Settings = Get();
@@ -129,6 +135,7 @@ const UTexture2D* UYapProjectSettings::GetMissingPortraitTexture()
 	return Settings.MissingPortraitTexture_Loaded;
 }
 
+#if WITH_EDITOR
 const FString& UYapProjectSettings::GetMoodKeyIconPath()
 {
 	static FString CachedPath;

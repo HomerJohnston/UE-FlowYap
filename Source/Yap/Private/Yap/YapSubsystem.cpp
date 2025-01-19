@@ -331,13 +331,6 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		Broker->Initialize();
 	}
 
-	TArray<TSoftClassPtr<UObject>> DialogueAudioAssetClassesSoft = UYapProjectSettings::GetAudioAssetClasses();
-
-	for (const TSoftClassPtr<UObject>& Class : DialogueAudioAssetClassesSoft)
-	{
-		DialogueAudioAssetClasses.Add(Class.LoadSynchronous()); // TODO async loading
-	}
-
 	bGetGameMaturitySettingWarningIssued = false;
 }
 

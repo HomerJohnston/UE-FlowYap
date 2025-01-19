@@ -23,9 +23,11 @@ class YAP_API UYapBroker : public UObject
 {
 	GENERATED_BODY()
 
+#if WITH_EDITOR
 public:
 	bool ImplementsGetWorld() const override { return true; }
-
+#endif
+	
 	// ================================================================================================
 	// STATE DATA
 	// ================================================================================================
@@ -49,7 +51,6 @@ private:
 	static TOptional<bool> bImplemented_PreviewAudioAsset;
 #endif
 	
-#if WITH_EDITOR
 	// Some of these functions may be ran on tick by the editor or during play.
 	// We want to log errors, but not spam the log on tick, only on the first occurrence.
 	// I also want to make sure the errors log each time PIE runs, not just once.
@@ -64,6 +65,7 @@ private:
 	static bool bWarned_CalculateWordCount;
 	static bool bWarned_CalculateTextTime;
 	static bool bWarned_GetAudioAssetDuration;
+#if WITH_EDITOR
 	static bool bWarned_PreviewAudioAsset;
 #endif
 	
@@ -249,7 +251,7 @@ public:
 
 			bWarned = true;
 		}
-
+		
 		return TReturn{};
 	}
 };

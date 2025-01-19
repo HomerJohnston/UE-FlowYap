@@ -2,7 +2,9 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
+#if WITH_EDITOR
 #include "ISettingsModule.h"
+#endif
 #include "YapProjectSettings.h"
 #include "Interfaces/IPluginManager.h"
 
@@ -25,6 +27,7 @@ namespace Yap
 		return GetPluginFolder() / "Resources";
 	}
 
+#if WITH_EDITOR
 	static void OpenProjectSettings()
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
@@ -32,4 +35,5 @@ namespace Yap
 			SettingsModule->ShowViewer("Project", "Yap", FName(UYapProjectSettings::StaticClass()->GetName()));
 		}
 	}
+#endif
 }

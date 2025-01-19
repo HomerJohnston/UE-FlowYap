@@ -27,7 +27,6 @@ TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
 TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
 #endif
 
-#if WITH_EDITOR
 bool UYapBroker::bWarned_OnConversationOpened = false;
 bool UYapBroker::bWarned_OnConversationClosed = false;
 bool UYapBroker::bWarned_OnDialogueBegins = false;
@@ -39,6 +38,7 @@ bool UYapBroker::bWarned_GetPlaybackSpeed = false;
 bool UYapBroker::bWarned_CalculateWordCount = false;
 bool UYapBroker::bWarned_CalculateTextTime = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
+#if WITH_EDITOR
 bool UYapBroker::bWarned_PreviewAudioAsset = false;
 #endif
 
@@ -47,6 +47,7 @@ bool UYapBroker::bWarned_PreviewAudioAsset = false;
 // ============================================================================================
 
 #define YAP_QUOTE(X) #X
+
 #define YAP_CALL_K2(FUNCTION, SHOW_UNIMPLEMENTED_WARNING, ...) CallK2Function<&UYapBroker::K2_##FUNCTION>(YAP_QUOTE(FUNCTION), bImplemented_##FUNCTION, bWarned_##FUNCTION, SHOW_UNIMPLEMENTED_WARNING __VA_OPT__(,) __VA_ARGS__)
 
 void UYapBroker::OnConversationOpened(const FGameplayTag& Conversation) const
@@ -81,7 +82,9 @@ void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation) const
 
 EYapMaturitySetting UYapBroker::UseMatureDialogue() const
 {
-	return YAP_CALL_K2(UseMatureDialogue, !UYapProjectSettings::GetSuppressDefaultMatureWarning());
+	bool bSuppressDefaultMatureWarning = !UYapProjectSettings::GetSuppressDefaultMatureWarning();
+
+	return YAP_CALL_K2(UseMatureDialogue, bSuppressDefaultMatureWarning);
 }
 
 float UYapBroker::GetPlaybackSpeed() const
@@ -148,10 +151,11 @@ float UYapBroker::CalculateTextTime(int32 WordCount, int32 CharCount) const
 
 float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 {
+	float Time = -1;
+	
 #if WITH_EDITOR
 	const TArray<TSoftClassPtr<UObject>>& AudioAssetClasses = UYapProjectSettings::GetAudioAssetClasses();
 
-	float Time = -1;
 	bool bFoundClassMatch = false;
 	
 	for (const TSoftClassPtr<UObject>& Class : AudioAssetClasses)
@@ -213,16 +217,17 @@ float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 	return Time;
 }
 
+#if WITH_EDITOR
 bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 {
 	bool bShowUnimplementedWarning = true; // TODO true if audio classes aren't set to default unreal classes, false otherwise?
 	
 	return YAP_CALL_K2(PreviewAudioAsset, bShowUnimplementedWarning, AudioAsset);
 }
+#endif
 
 void UYapBroker::Initialize()
 {
-#if WITH_EDITOR
 	bWarned_OnConversationOpened = false;
 	bWarned_OnConversationClosed = false;
 	bWarned_OnDialogueBegins = false;
@@ -233,6 +238,7 @@ void UYapBroker::Initialize()
 	bWarned_CalculateWordCount = false;
 	bWarned_CalculateTextTime = false;
 	bWarned_GetAudioAssetDuration = false;
+#if WITH_EDITOR
 	bWarned_PreviewAudioAsset = false;
 #endif // WITH_EDITOR
 	
