@@ -9,7 +9,7 @@
 #include "Yap/YapBroker.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
-#include "Yap/IYapConversationListener.h"
+#include "Yap/IYapConversationHandler.h"
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
@@ -63,21 +63,21 @@ UYapSubsystem::UYapSubsystem()
 {
 }
 
-void UYapSubsystem::RegisterConversationListener(UObject* NewListener)
+void UYapSubsystem::RegisterConversationHandler(UObject* NewHandler)
 {
-	if (NewListener->Implements<UYapConversationListener>())
+	if (NewHandler->Implements<UYapConversationHandler>())
 	{
-		Listeners.AddUnique(NewListener);
+		ConversationHandlers.AddUnique(NewHandler);
 	}
 	else
 	{
-		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation listener, but object does not implement the YapConversationListener interface! [%s]"), *NewListener->GetName());
+		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation handler, but object does not implement the YapConversationHandler interface! [%s]"), *NewHandler->GetName());
 	}
 }
 
-void UYapSubsystem::UnregisterConversationListener(UObject* RemovedListener)
+void UYapSubsystem::UnregisterConversationHandler(UObject* RemovedHandler)
 {
-	Listeners.Remove(RemovedListener);
+	ConversationHandlers.Remove(RemovedHandler);
 }
 
 UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& CharacterTag)
@@ -219,16 +219,16 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
-	
-	BroadcastBrokerListenerFuncs<&UYapBroker::AddPlayerPrompt, &IYapConversationListener::Execute_K2_AddPlayerPrompt>
-		(ConversationName, Handle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
+
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>
+		(ConversationName, Handle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));				
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
 
-	BroadcastBrokerListenerFuncs<&UYapBroker::AfterPlayerPromptsAdded, &IYapConversationListener::Execute_K2_AfterPlayerPromptAdded>
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>
 		(ConversationName);
 }
 
@@ -264,7 +264,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 		UE_LOG(LogYap, Error, TEXT("Fragment failed to return a valid time! Dialogue: %s"), *Bit.GetDialogueText(MaturitySetting).ToString());
 	}
 	
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnDialogueBegins, &IYapConversationListener::Execute_K2_OnDialogueBegins>
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueBegins, &IYapConversationHandler::Execute_K2_OnDialogueBegins>
 		(ConversationName, DialogueHandle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting));
 }
 
@@ -279,7 +279,7 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 
 	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex, false);
 
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnDialogueEnds, &IYapConversationListener::Execute_K2_OnDialogueEnds>
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>
 		(ConversationName, DialogueHandle);
 }
 
@@ -328,7 +328,7 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	if (BrokerClass)
 	{
 		Broker = NewObject<UYapBroker>(this, BrokerClass);
-		Broker->Initialize();
+		Broker->Initialize_Internal();
 	}
 
 	bGetGameMaturitySettingWarningIssued = false;
@@ -342,13 +342,13 @@ void UYapSubsystem::Deinitialize()
 
 void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationOpened, &IYapConversationListener::Execute_K2_OnConversationOpened>
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationOpened, &IYapConversationHandler::Execute_K2_OnConversationOpened>
 		(ConversationName);
 }
 
 void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationClosed, &IYapConversationListener::Execute_K2_OnConversationClosed>
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationClosed, &IYapConversationHandler::Execute_K2_OnConversationClosed>
 		(ConversationName);
 }
 

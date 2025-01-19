@@ -13,7 +13,7 @@
 enum class EYapDialogueSkippable : uint8;
 class UYapBroker;
 enum class EYapMaturitySetting : uint8;
-class UYapConversationListener;
+class UYapConversationHandler;
 enum class EYapMissingAudioErrorLevel : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"

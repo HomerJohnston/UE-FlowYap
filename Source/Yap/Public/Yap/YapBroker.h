@@ -4,7 +4,6 @@
 #pragma once
 
 #include "YapLog.h"
-#include "Yap/IYapConversationListener.h"
 
 #include "YapBroker.generated.h"
 
@@ -36,12 +35,7 @@ private:
 	// implementation to call, if the C++ implementation is not overridden. If the C++ implementation
 	// is overridden, it will supersede. This is "backwards" compared to normal BNE's but if you're
 	// overriding this class in C++ you won't want to override further in BP.
-	static TOptional<bool> bImplemented_OnConversationOpened;
-	static TOptional<bool> bImplemented_OnConversationClosed;
-	static TOptional<bool> bImplemented_OnDialogueBegins;
-	static TOptional<bool> bImplemented_OnDialogueEnds;
-	static TOptional<bool> bImplemented_AddPlayerPrompt;
-	static TOptional<bool> bImplemented_AfterPlayerPromptsAdded;
+	static TOptional<bool> bImplemented_Initialize;
 	static TOptional<bool> bImplemented_UseMatureDialogue;
 	static TOptional<bool> bImplemented_GetPlaybackSpeed;
 	static TOptional<bool> bImplemented_CalculateWordCount;
@@ -53,12 +47,7 @@ private:
 	// Some of these functions may be ran on tick by the editor or during play.
 	// We want to log errors, but not spam the log on tick, only on the first occurrence.
 	// I also want to make sure the errors log each time PIE runs, not just once.
-	static bool bWarned_OnConversationOpened;
-	static bool bWarned_OnConversationClosed;
-	static bool bWarned_OnDialogueBegins;
-	static bool bWarned_OnDialogueEnds;
-	static bool bWarned_AddPlayerPrompt;
-	static bool bWarned_AfterPlayerPromptsAdded;
+	static bool bWarned_Initialize;
 	static bool bWarned_UseMatureDialogue;
 	static bool bWarned_GetPlaybackSpeed;
 	static bool bWarned_CalculateWordCount;
@@ -73,40 +62,13 @@ private:
 
 protected:
 	
-	// - - - - - DIALOGUE PLAYBACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes when a conversation begins. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conversation Opened")
-	void K2_OnConversationOpened(const FGameplayTag& Conversation);
-
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes when a conversation closes. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conversation Closed")
-	void K2_OnConversationClosed(const FGameplayTag& Conversation);
-
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes when a piece of dialogue (speech) begins. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Dialogue Begins")
-	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
-
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes when a piece of dialogue (speech) ends. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Dialogue Ends")
-	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
-
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes when a single player prompt entry is emitted (for example, so you can add a button/text widget to a list). */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Add Player Prompt")
-	void K2_AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
-
-	/** REQUIRED FUNCTION - Do NOT call Parent when overriding.
-	 * Executes after all player prompt entries have been emitted. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "After Player Prompts Added")
-	void K2_AfterPlayerPromptsAdded(const FGameplayTag& Conversation);
-
 	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	* Use this to do any desired initialization, such as creating a Dialogue UI instance if you aren't creating one already elsewhere. */
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Initialize")
+	EYapMaturitySetting K2_Initialize() const;
+	
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Use Mature Dialogue")
@@ -143,36 +105,12 @@ protected:
 	// ============================================================================================
 	
 public:
-	
-	// - - - - - DIALOGUE PLAYBACK EVENTS - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes when a conversation begins. */
-	virtual void OnConversationOpened(const FGameplayTag& Conversation);
-
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes when a conversation closes. */
-	virtual void OnConversationClosed(const FGameplayTag& Conversation);
-
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes when a piece of dialogue (speech) begins. */
-	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset);
-
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes when a piece of dialogue (speech) ends. */
-	virtual void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
-
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes when a single player prompt entry is emitted (for example, to add a button/text widget to a list). */
-	virtual void AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
-
-	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
-	 * Executes after all player prompt entries have been emitted. */
-	virtual void AfterPlayerPromptsAdded(const FGameplayTag& Conversation);
-
-	// TODO should I have an "on player prompt selected" event?
 
 	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
+	 * Use this to do any desired initialization, such as creating a Dialogue UI instance if you aren't creating one already elsewhere. */
+	virtual void Initialize();
 	
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */
@@ -209,7 +147,7 @@ public:
 	// INTERNAL FUNCTIONS (USED BY YAP)
 	// ============================================================================================
 		
-	void Initialize();
+	void Initialize_Internal();
 	
 #if WITH_EDITOR
 	bool PreviewAudioAsset_Internal(const UObject* AudioAsset) const;
@@ -276,13 +214,5 @@ public:
 		return TReturn{};
 	}
 };
-
-// NOTES:
-//
-// This class does NOT implement IYapConversationListenerInterface because it's very annoying that Unreal refuses to let you convert interface events to functions,
-// but you can convert BIE/BNE's to functions. This class includes identical functions as IYapConversationListenerInterface. Templates are used in the Yap Subsystem
-// to call the same functions on either a conversation broker or a IYapConversationListenerInterface implementer.
-//
-// The BNE's above pass many individual args instead of a struct to make it easier to refer to individual args inside of a blueprint graph.
 
 #undef LOCTEXT_NAMESPACE

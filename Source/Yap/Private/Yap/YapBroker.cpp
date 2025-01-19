@@ -12,12 +12,7 @@
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-TOptional<bool> UYapBroker::bImplemented_OnConversationOpened = false;
-TOptional<bool> UYapBroker::bImplemented_OnConversationClosed = false;
-TOptional<bool> UYapBroker::bImplemented_OnDialogueBegins = false;
-TOptional<bool> UYapBroker::bImplemented_OnDialogueEnds = false;
-TOptional<bool> UYapBroker::bImplemented_AddPlayerPrompt = false;
-TOptional<bool> UYapBroker::bImplemented_AfterPlayerPromptsAdded = false;
+TOptional<bool> UYapBroker::bImplemented_Initialize = false;
 TOptional<bool> UYapBroker::bImplemented_UseMatureDialogue = false;
 TOptional<bool> UYapBroker::bImplemented_GetPlaybackSpeed = false;
 TOptional<bool> UYapBroker::bImplemented_CalculateWordCount = false;
@@ -26,12 +21,7 @@ TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
 TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
 #endif
 
-bool UYapBroker::bWarned_OnConversationOpened = false;
-bool UYapBroker::bWarned_OnConversationClosed = false;
-bool UYapBroker::bWarned_OnDialogueBegins = false;
-bool UYapBroker::bWarned_OnDialogueEnds = false;
-bool UYapBroker::bWarned_AddPlayerPrompt = false;
-bool UYapBroker::bWarned_AfterPlayerPromptsAdded = false;
+bool UYapBroker::bWarned_Initialize = false;
 bool UYapBroker::bWarned_UseMatureDialogue = false;
 bool UYapBroker::bWarned_GetPlaybackSpeed = false;
 bool UYapBroker::bWarned_CalculateWordCount = false;
@@ -48,34 +38,9 @@ bool UYapBroker::bWarned_PreviewAudioAsset = false;
 
 #define YAP_CALL_K2(FUNCTION, SHOW_UNIMPLEMENTED_WARNING, ...) CallK2Function<&UYapBroker::K2_##FUNCTION>(YAP_QUOTE(FUNCTION), bImplemented_##FUNCTION, bWarned_##FUNCTION, SHOW_UNIMPLEMENTED_WARNING __VA_OPT__(,) __VA_ARGS__)
 
-void UYapBroker::OnConversationOpened(const FGameplayTag& Conversation)
+void UYapBroker::Initialize()
 {
-	YAP_CALL_K2(OnConversationOpened, true, Conversation);
-}
-
-void UYapBroker::OnConversationClosed(const FGameplayTag& Conversation)
-{
-	YAP_CALL_K2(OnConversationClosed, true, Conversation);
-}
-
-void UYapBroker::OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset)
-{
-	YAP_CALL_K2(OnDialogueBegins, true, Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, AudioAsset);
-}
-
-void UYapBroker::OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
-{
-	YAP_CALL_K2(OnDialogueEnds, true, Conversation, DialogueHandle);
-}
-
-void UYapBroker::AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
-{
-	YAP_CALL_K2(AddPlayerPrompt, true, Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
-}
-
-void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation)
-{
-	YAP_CALL_K2(AfterPlayerPromptsAdded, true, Conversation);
+	YAP_CALL_K2(Initialize, false);
 }
 
 EYapMaturitySetting UYapBroker::UseMatureDialogue() const
@@ -216,14 +181,9 @@ bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 }
 #endif
 
-void UYapBroker::Initialize()
+void UYapBroker::Initialize_Internal()
 {
-	bWarned_OnConversationOpened = false;
-	bWarned_OnConversationClosed = false;
-	bWarned_OnDialogueBegins = false;
-	bWarned_OnDialogueEnds = false;
-	bWarned_AddPlayerPrompt = false;
-	bWarned_AfterPlayerPromptsAdded = false;
+	bWarned_Initialize = false;
 	bWarned_UseMatureDialogue = false;
 	bWarned_CalculateWordCount = false;
 	bWarned_GetAudioAssetDuration = false;
@@ -231,18 +191,15 @@ void UYapBroker::Initialize()
 	bWarned_PreviewAudioAsset = false;
 #endif // WITH_EDITOR
 	
-	bImplemented_OnConversationOpened = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnConversationOpened));
-	bImplemented_OnConversationClosed = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnConversationClosed));
-	bImplemented_OnDialogueBegins = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnDialogueBegins));
-	bImplemented_OnDialogueEnds = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_OnDialogueEnds));
-	bImplemented_AddPlayerPrompt = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_AddPlayerPrompt));
-	bImplemented_AfterPlayerPromptsAdded = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_AfterPlayerPromptsAdded));
+	bImplemented_Initialize = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_Initialize));
 	bImplemented_UseMatureDialogue = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_UseMatureDialogue));
 	bImplemented_CalculateWordCount = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_CalculateWordCount));
 	bImplemented_GetAudioAssetDuration = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetAudioAssetDuration));
 #if WITH_EDITOR
 	bImplemented_PreviewAudioAsset = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_PreviewAudioAsset));
 #endif // WITH_EDITOR
+
+	Initialize();
 }
 
 #if WITH_EDITOR

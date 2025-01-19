@@ -10,11 +10,12 @@
 
 #include "YapSubsystem.generated.h"
 
+class UYapConversationHandler;
 class UYapBroker;
 class UFlowNode_YapDialogue;
 struct FYapPromptHandle;
 class UFlowAsset;
-class IYapConversationListener;
+class IYapConversationHandler;
 struct FYapBit;
 class UYapCharacterComponent;
 enum class EYapMaturitySetting : uint8;
@@ -112,7 +113,7 @@ protected:
 
 	/**  */
 	UPROPERTY(Transient)
-	TArray<UObject*> Listeners;
+	TArray<UObject*> ConversationHandlers;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UYapBroker> Broker;
@@ -147,11 +148,11 @@ protected:
 public:
 	/** When a conversation starts */
 	UFUNCTION(BlueprintCallable)
-	void RegisterConversationListener(UObject* NewListener);
+	void RegisterConversationHandler(UObject* NewHandler);
 
 	/**  */
 	UFUNCTION(BlueprintCallable)
-	void UnregisterConversationListener(UObject* RemovedListener);
+	void UnregisterConversationHandler(UObject* RemovedHandler);
 
 	UFUNCTION(BlueprintCallable)
 	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
@@ -218,60 +219,37 @@ protected:
 	/**  */
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
-	// TODO these two templates should be rolled into one
-	// Thanks to Blue Man for this
+	// Thanks to Blue Man for template help
 	template<auto TFunction, auto TExecFunction, typename... TArgs>
-	void BroadcastBrokerListenerFuncs(TArgs&&... Args)
+	void BroadcastConversationHandlerFunc(TArgs&&... Args)
 	{
 		bool bHandled = false;
-		
-		if (IsValid(Broker))
+	
+		for (int i = 0; i < ConversationHandlers.Num(); ++i)
 		{
-			(Broker->*TFunction)(Args...);
-			bHandled = true;
-		}
+			UObject* HandlerObj = ConversationHandlers[i];
 
-		for (int i = 0; i < Listeners.Num(); ++i)
-		{
-			UObject* Listener = Listeners[i];
-
-			if (!IsValid(Listener))
+			if (!IsValid(HandlerObj))
 			{
 				continue;
 			}
-
-			(*TExecFunction)(Listener, Args...);
+		
+			if (IYapConversationHandler* CppInterface = Cast<IYapConversationHandler>(HandlerObj))
+			{
+				(CppInterface->*TFunction)(Args...);
+			}
+			else
+			{
+				check(HandlerObj->Implements<UYapConversationHandler>());
+				(*TExecFunction)(HandlerObj, Args...);				
+			}
+		
 			bHandled = true;
 		}
-
+	
 		if (!bHandled)
 		{
-			UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
+			UE_LOG(LogYap, Error, TEXT("IYapConversationListener and register it to the Yap subsystem."));
 		}
-	}
-	
-	template<auto TFunction, auto TExecFunction, typename RetVal, typename... TArgs>
-	RetVal ExecuteBrokerListenerFuncs(TArgs&&... Args)
-	{
-		if (IsValid(Broker))
-		{
-			return (Broker->*TFunction)(Args...);
-		}
-
-		for (int i = 0; i < Listeners.Num(); ++i)
-		{
-			UObject* Listener = Listeners[i];
-
-			if (!IsValid(Listener))
-			{
-				continue;
-			}
-
-			return (*TExecFunction)(Listener, Args...);
-		}
-
-		UE_LOG(LogYap, Error, TEXT("Yap has no conversation broker or event listeners registered! You must either write a C++ broker and set it in project settings, or create a class implementing IYapConversationListenerInterface and register it to the Yap subsystem."));
-
-		return RetVal{};
 	}
 };
