@@ -2035,6 +2035,42 @@ FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
 	return FText::GetEmpty();
 }
 
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_SpeakerWidget() const
+{
+	const FYapBit& Bit = GetBit();
+	
+	if (Bit.GetSpeakerAsset().IsNull())
+	{
+		return LOCTEXT("SpeakerUnset_Label","Speaker Unset");
+	}
+	
+	TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodKey());
+	
+	FText CharacterName = Bit.GetSpeakerAsset().IsValid() ? Bit.GetSpeakerAsset().Get()->GetEntityName() : LOCTEXT("Unloaded", "Unloaded");
+	
+	if (CharacterName.IsEmpty())
+	{
+		CharacterName = LOCTEXT("Unnamed", "Unnamed");
+	}
+
+	FText MoodTagLabel;
+	
+	if (GTN.IsValid())
+	{
+		MoodTagLabel = FText::FromName(GTN->GetSimpleTagName());
+	}
+	else
+	{
+		TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::GetDefaultMoodTag());
+
+		FText MoodTagNameAsText = DefaultGTN.IsValid() ? FText::FromName(DefaultGTN->GetSimpleTagName()) : LOCTEXT("MoodTag_None_Label", "None");
+		
+		MoodTagLabel = FText::Format(LOCTEXT("DefaultMoodTag_Label", "{0}(D)"), MoodTagNameAsText);
+	}
+	
+	return FText::Format(LOCTEXT("SpeakerMoodImageMissing_Label", "{0}\n\n{1}\n<missing>"), CharacterName, MoodTagLabel);
+}
+
 bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const
 {
 	if (AssetDatas.Num() != 1)
@@ -2162,6 +2198,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 							SNew(SImage)
 							.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
 							.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage)
+							.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_SpeakerWidget)
 						]
 						+ SOverlay::Slot()
 						.HAlign(HAlign_Center)

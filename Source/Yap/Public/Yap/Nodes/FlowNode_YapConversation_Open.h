@@ -5,14 +5,14 @@
 
 #include "Nodes/FlowNode.h"
 
-#include "FlowNode_YapConversationStart.generated.h"
+#include "FlowNode_YapConversation_Open.generated.h"
 
 UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Conversation Start", Keywords = "yap"))
-class YAP_API UFlowNode_YapConversationStart : public UFlowNode
+class YAP_API UFlowNode_YapConversation_Open : public UFlowNode
 {
 	GENERATED_BODY()
 public:
-	UFlowNode_YapConversationStart();
+	UFlowNode_YapConversation_Open();
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

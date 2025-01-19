@@ -20,7 +20,6 @@ FName UYapProjectSettings::CategoryName = FName("Yap");
 
 UYapProjectSettings::UYapProjectSettings()
 {
-
 #if WITH_EDITORONLY_DATA
 	MoodTagIconPath.Path = "";
 
@@ -47,6 +46,8 @@ UYapProjectSettings::UYapProjectSettings()
 	DefaultSkippableSetting = EYapDialogueSkippable::Skippable;
 
 	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
+
+	MissingPortraitTexture = FSoftObjectPath("/Yap/T_Avatar_Missing.T_Avatar_Missing");
 	
 #if WITH_EDITOR
 	UGameplayTagsManager::Get().OnGetCategoriesMetaFromPropertyHandle.AddUObject(this, &ThisClass::OnGetCategoriesMetaFromPropertyHandle);

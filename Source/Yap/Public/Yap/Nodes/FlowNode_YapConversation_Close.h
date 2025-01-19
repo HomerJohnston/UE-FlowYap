@@ -5,10 +5,10 @@
 
 #include "Nodes/FlowNode.h"
 
-#include "FlowNode_YapConversationEnd.generated.h"
+#include "FlowNode_YapConversation_Close.generated.h"
 
 UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Conversation End", Keywords = "yap"))
-class YAP_API UFlowNode_YapConversationEnd : public UFlowNode
+class YAP_API UFlowNode_YapConversation_Close : public UFlowNode
 {
 	GENERATED_BODY()
 
@@ -16,7 +16,7 @@ class YAP_API UFlowNode_YapConversationEnd : public UFlowNode
 	FName ConversationName;
 	
 public:
-	UFlowNode_YapConversationEnd();
+	UFlowNode_YapConversation_Close();
 
 	void ExecuteInput(const FName& PinName) override;
 #if WITH_EDITOR

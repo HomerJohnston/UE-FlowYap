@@ -22,7 +22,7 @@ class UYapConversationListener : public UInterface
 /** A conversation listener is an interface you can apply to *any* class to help it respond to Yap dialogue.
  * This is essentially a virtual copy of part of the UYapBroker, but as an interface.
  *
- * You must use UYapSubsystem::RegisterConversationListener(...) to register your class before it receives these events. 
+ * You can optionally use UYapSubsystem::RegisterConversationListener(...) to register your class to automatically receive these events. 
  */
 class IYapConversationListener
 {
@@ -34,32 +34,32 @@ class IYapConversationListener
 	
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Conversation Begins")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Opened")
 	void K2_OnConversationOpened(const FGameplayTag& Conversation);
 	virtual void K2_OnConversationOpened_Implementation(const FGameplayTag& Conversation);
 	
-	/** Code to run when a conversation ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Conversation Ends")
+	/** Code to run when a conversation closes. Do NOT call Parent when overriding. */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Closed")
 	void K2_OnConversationClosed(const FGameplayTag& Conversation);
 	virtual void K2_OnConversationClosed_Implementation(const FGameplayTag& Conversation);
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Begins")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Begins")
 	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
 	virtual void K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Dialogue Ends")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Ends")
 	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Option Added")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Prompt Option Added")
 	void K2_AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 	virtual void K2_AddPlayerPrompt_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, DisplayName = "On Prompt Options All Added")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Prompt Options All Added")
 	void K2_AfterPlayerPromptAdded(const FGameplayTag& Conversation);
 	virtual void K2_AfterPlayerPromptAdded_Implementation(const FGameplayTag& Conversation);
 
@@ -71,7 +71,7 @@ public:
 	};
 	
 	/** Code to run when a conversation ends. Do NOT call Super when overriding. */
-	virtual void OnConversationEnds(const FGameplayTag& Conversation)
+	virtual void OnConversationCloses(const FGameplayTag& Conversation)
 	{
 		K2_OnConversationClosed(Conversation);
 	};

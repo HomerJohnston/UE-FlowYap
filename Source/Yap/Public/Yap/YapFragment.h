@@ -12,7 +12,7 @@ class UYapCondition;
 class UFlowNode_YapDialogue;
 struct FFlowPin;
 
-USTRUCT(BlueprintType)
+USTRUCT(NotBlueprintType)
 struct YAP_API FYapFragment
 {
 	GENERATED_BODY()

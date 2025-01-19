@@ -103,15 +103,15 @@ protected:
 
 	/** When speaking time is calculated from text, this sets the minimum speaking time. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 5.0, Delta = 0.1))
-	double MinimumAutoTextTimeLength = 1.0;
+	float MinimumAutoTextTimeLength = 1.0;
 
 	/** When speaking time is calculated from the length of an audio asset, this sets the minimum speaking time. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 5.0, Delta = 0.1))
-	double MinimumAutoAudioTimeLength = 0.5;
+	float MinimumAutoAudioTimeLength = 0.5;
 
 	/** Total minimum speaking time (overrides both auto length minimums above). Should be fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	double MinimumFragmentTime = 0.25;
+	float MinimumFragmentTime = 0.25;
 
 	/** Controls the scaling of the small padding time indicator on each fragment. */
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
@@ -158,22 +158,23 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
 
+	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
 
 #if WITH_EDITORONLY_DATA
-	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bHidePinEnableButtons = false;
-	
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	/** TODO - currently unused */
+	UPROPERTY(Config/*, EditAnywhere, Category = "Settings"*/)
 	FString DefaultTextNamespace = "Yap";
 
 	/** Adjusts the width of all dialogue nodes in graph grid units (16 px). */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = -6, ClampMax = +100, UIMin = -6, UIMax = 20, Delta = 1))
 	int32 DialogueWidthAdjustment = 0;
 
+	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
+	bool bHidePinEnableButtons = false;
+	
 	/** Controls how large the portrait widgets are in the graph. Sizes smaller than 64 will result in some odd slate snapping. */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 64, ClampMax = 128, UIMin = 32, UIMax = 128, Multiple = 16))
 	int32 PortraitSize = 64;
@@ -261,17 +262,17 @@ public:
 
 	static int32 GetTextWordsPerMinute() { return Get().TextWordsPerMinute; }
 
-	static double GetMinimumAutoTextTimeLength() { return Get().MinimumAutoTextTimeLength; };
+	static float GetMinimumAutoTextTimeLength() { return Get().MinimumAutoTextTimeLength; };
 	
-	static double GetMinimumAutoAudioTimeLength() { return Get().MinimumAutoAudioTimeLength; }
+	static float GetMinimumAutoAudioTimeLength() { return Get().MinimumAutoAudioTimeLength; }
 	
-	static double GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
+	static float GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
 
 	static bool CacheFragmentWordCount() { return !Get().bPreventCachingWordCount; }
 	
 	static bool CacheFragmentAudioLength() { return !Get().bPreventCachingAudioLength; }
 	
-	static double GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
+	static float GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
 	
 	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 

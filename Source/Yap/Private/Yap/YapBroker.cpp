@@ -21,7 +21,6 @@ TOptional<bool> UYapBroker::bImplemented_AfterPlayerPromptsAdded = false;
 TOptional<bool> UYapBroker::bImplemented_UseMatureDialogue = false;
 TOptional<bool> UYapBroker::bImplemented_GetPlaybackSpeed = false;
 TOptional<bool> UYapBroker::bImplemented_CalculateWordCount = false;
-TOptional<bool> UYapBroker::bImplemented_CalculateTextTime = false;
 TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
@@ -36,7 +35,6 @@ bool UYapBroker::bWarned_AfterPlayerPromptsAdded = false;
 bool UYapBroker::bWarned_UseMatureDialogue = false;
 bool UYapBroker::bWarned_GetPlaybackSpeed = false;
 bool UYapBroker::bWarned_CalculateWordCount = false;
-bool UYapBroker::bWarned_CalculateTextTime = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 bool UYapBroker::bWarned_PreviewAudioAsset = false;
@@ -50,32 +48,32 @@ bool UYapBroker::bWarned_PreviewAudioAsset = false;
 
 #define YAP_CALL_K2(FUNCTION, SHOW_UNIMPLEMENTED_WARNING, ...) CallK2Function<&UYapBroker::K2_##FUNCTION>(YAP_QUOTE(FUNCTION), bImplemented_##FUNCTION, bWarned_##FUNCTION, SHOW_UNIMPLEMENTED_WARNING __VA_OPT__(,) __VA_ARGS__)
 
-void UYapBroker::OnConversationOpened(const FGameplayTag& Conversation) const
+void UYapBroker::OnConversationOpened(const FGameplayTag& Conversation)
 {
 	YAP_CALL_K2(OnConversationOpened, true, Conversation);
 }
 
-void UYapBroker::OnConversationClosed(const FGameplayTag& Conversation) const
+void UYapBroker::OnConversationClosed(const FGameplayTag& Conversation)
 {
 	YAP_CALL_K2(OnConversationClosed, true, Conversation);
 }
 
-void UYapBroker::OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset) const
+void UYapBroker::OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* AudioAsset)
 {
 	YAP_CALL_K2(OnDialogueBegins, true, Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, AudioAsset);
 }
 
-void UYapBroker::OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle) const
+void UYapBroker::OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
 {
 	YAP_CALL_K2(OnDialogueEnds, true, Conversation, DialogueHandle);
 }
 
-void UYapBroker::AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText) const
+void UYapBroker::AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
 {
 	YAP_CALL_K2(AddPlayerPrompt, true, Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
 }
 
-void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation) const
+void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation)
 {
 	YAP_CALL_K2(AfterPlayerPromptsAdded, true, Conversation);
 }
@@ -132,21 +130,13 @@ int32 UYapBroker::CalculateWordCount(const FText& Text) const
 
 float UYapBroker::CalculateTextTime(int32 WordCount, int32 CharCount) const
 {
-	check(bImplemented_CalculateTextTime.IsSet());
-
-	if (bImplemented_CalculateTextTime)
-	{
-		return K2_CalculateTextTime(WordCount, CharCount);
-	}
-
-	// ------------------------------------------
-	// Default Implementation
-	
 	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute();
-	double Min = UYapProjectSettings::GetMinimumAutoTextTimeLength();
-	double SecondsPerWord = 60.0 / (double)TWPM;
+	float SecondsPerWord = 60.0 / (float)TWPM;
+	float TalkTime = WordCount * SecondsPerWord * GetPlaybackSpeed();
 
-	return FMath::Max(WordCount * SecondsPerWord, Min);
+	float Min = UYapProjectSettings::GetMinimumAutoTextTimeLength();
+		
+	return FMath::Max(TalkTime, Min);
 }
 
 float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
@@ -236,7 +226,6 @@ void UYapBroker::Initialize()
 	bWarned_AfterPlayerPromptsAdded = false;
 	bWarned_UseMatureDialogue = false;
 	bWarned_CalculateWordCount = false;
-	bWarned_CalculateTextTime = false;
 	bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 	bWarned_PreviewAudioAsset = false;
@@ -250,7 +239,6 @@ void UYapBroker::Initialize()
 	bImplemented_AfterPlayerPromptsAdded = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_AfterPlayerPromptsAdded));
 	bImplemented_UseMatureDialogue = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_UseMatureDialogue));
 	bImplemented_CalculateWordCount = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_CalculateWordCount));
-	bImplemented_CalculateTextTime = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_CalculateTextTime));
 	bImplemented_GetAudioAssetDuration = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetAudioAssetDuration));
 #if WITH_EDITOR
 	bImplemented_PreviewAudioAsset = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_PreviewAudioAsset));

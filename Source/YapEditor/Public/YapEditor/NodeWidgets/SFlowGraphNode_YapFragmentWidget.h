@@ -179,6 +179,8 @@ protected:
 	TSharedRef<SWidget> PopupContentGetter_SpeakerWidget(TSoftObjectPtr<UYapCharacter>* CharacterAsset, const UYapCharacter* Character);
 
 	FText Text_SpeakerWidget() const;
+	FText ToolTipText_SpeakerWidget() const;
+	
 	bool OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 

@@ -127,12 +127,6 @@ const FSlateBrush* UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapChar
 	return &Get()->CharacterPortraitBrushes.Add(Texture, NewPortraitBrush);
 }
 
-// TODO move these to my editor style
-#define INITALIZE_CHECKBOX_STYLE(Name, Col) CheckBoxStyles.Name = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("ToggleButtonCheckBox");\
-	CheckBoxStyles.Name.CheckedImage.TintColor = YapColor::Col;\
-	CheckBoxStyles.Name.CheckedHoveredImage.TintColor = YapColor::Col##Hovered;\
-	CheckBoxStyles.Name.CheckedPressedImage.TintColor = YapColor::Col##Pressed\
-
 void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	if (UGameplayTagsManager::Get().FindTagSource("YapGameplayTags.ini") == nullptr)

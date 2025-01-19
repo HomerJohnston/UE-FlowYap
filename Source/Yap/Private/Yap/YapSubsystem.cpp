@@ -26,27 +26,27 @@ FYapActiveConversation::FYapActiveConversation()
 	Conversation.Reset();
 }
 
-bool FYapActiveConversation::StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
+bool FYapActiveConversation::OpenConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
 {
 	if (Conversation.IsSet())
 	{
-		UE_LOGFMT(LogYap, Warning, "Tried to start conversation {0} but conversation {1} was already ongoing. Ignoring start request.", InConversation.ToString(), Conversation.GetValue().ToString());
+		UE_LOGFMT(LogYap, Warning, "Tried to open conversation {0} but conversation {1} was already ongoing. Ignoring request.", InConversation.ToString(), Conversation.GetValue().ToString());
 		return false;
 	}
 	
 	FlowAsset = InOwningAsset;
 	Conversation = InConversation;
 
-	(void)OnConversationStarts.ExecuteIfBound(Conversation.GetValue());
+	(void)OnConversationOpens.ExecuteIfBound(Conversation.GetValue());
 	
 	return true;
 }
 
-bool FYapActiveConversation::EndConversation()
+bool FYapActiveConversation::CloseConversation()
 {
 	if (Conversation.IsSet())
 	{
-		(void)OnConversationEnds.ExecuteIfBound(Conversation.GetValue());
+		(void)OnConversationCloses.ExecuteIfBound(Conversation.GetValue());
 
 		FlowAsset = nullptr;
 		Conversation.Reset();
@@ -181,25 +181,25 @@ FYapFragment* UYapSubsystem::FindTaggedFragment(const FGameplayTag& FragmentTag)
 	return nullptr;
 }
 
-bool UYapSubsystem::StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
+bool UYapSubsystem::OpenConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {
-	return ActiveConversation.StartConversation(OwningAsset, Conversation);
+	return ActiveConversation.OpenConversation(OwningAsset, Conversation);
 }
 
-void UYapSubsystem::EndCurrentConversation()
+void UYapSubsystem::CloseConversation()
 {
-	if (!ActiveConversation.EndConversation())
+	if (!ActiveConversation.CloseConversation())
 	{
 		return;
 	}
 
-	// TODO
+	// TODO - Queue or nest conversations
 	/*
 	if (ConversationQueue.Num() > 0)
 	{
 		FName NextConversation = ConversationQueue[0];
 		ConversationQueue.RemoveAt(0);
-		StartConversation(NextConversation);
+		OpenConversation(NextConversation);
 	}
 	*/
 }
@@ -318,8 +318,8 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	World = Cast<UWorld>(GetOuter());
 
 	// TODO async load these
-	ActiveConversation.OnConversationStarts.BindUObject(this, &UYapSubsystem::OnConversationStarts_Internal);
-	ActiveConversation.OnConversationEnds.BindUObject(this, &UYapSubsystem::OnConversationEnds_Internal);
+	ActiveConversation.OnConversationOpens.BindUObject(this, &UYapSubsystem::OnConversationOpens_Internal);
+	ActiveConversation.OnConversationCloses.BindUObject(this, &UYapSubsystem::OnConversationCloses_Internal);
 
 	// TODO handle null unset values
 	// TODO deprecate the text calculator class? everything done in the broker now
@@ -340,13 +340,13 @@ void UYapSubsystem::Deinitialize()
 }
 
 
-void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& ConversationName)
+void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& ConversationName)
 {
 	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationOpened, &IYapConversationListener::Execute_K2_OnConversationOpened>
 		(ConversationName);
 }
 
-void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& ConversationName)
+void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& ConversationName)
 {
 	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationClosed, &IYapConversationListener::Execute_K2_OnConversationClosed>
 		(ConversationName);

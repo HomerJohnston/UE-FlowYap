@@ -39,14 +39,14 @@ public:
 	TOptional<FGameplayTag> Conversation;
 
 public:
-	TDelegate<void(const FGameplayTag&)> OnConversationStarts;
+	TDelegate<void(const FGameplayTag&)> OnConversationOpens;
 	
-	TDelegate<void(const FGameplayTag&)> OnConversationEnds;
+	TDelegate<void(const FGameplayTag&)> OnConversationCloses;
 
 public:
-	bool StartConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InName);
+	bool OpenConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InName);
 
-	bool EndConversation();
+	bool CloseConversation();
 
 	bool IsConversationInProgress() const { return Conversation.IsSet(); };
 
@@ -71,8 +71,8 @@ class YAP_API UYapSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 friend class UFlowNode_YapDialogue;
-friend class UFlowNode_YapConversationStart;
-friend class UFlowNode_YapConversationEnd;
+friend class UFlowNode_YapConversation_Open;
+friend class UFlowNode_YapConversation_Close;
 friend struct FYapFragment;
 friend struct FYapPromptHandle;
 	
@@ -174,10 +174,10 @@ protected:
 	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
 
 	/**  */
-	bool StartConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by ConversationStart node
+	bool OpenConversation(UFlowAsset* OwningAsset, const FGameplayTag& ConversationName); // Called by Open Conversation node
 
 	/**  */
-	void EndCurrentConversation(); // Called by ConversationEnd node
+	void CloseConversation(); // Called by Close Conversation node
 
 	/**  */
 	void BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
@@ -210,10 +210,10 @@ public:
 	
 protected:
 	/**  */
-	void OnConversationStarts_Internal(const FGameplayTag& ConversationName);
+	void OnConversationOpens_Internal(const FGameplayTag& ConversationName);
 
 	/**  */
-	void OnConversationEnds_Internal(const FGameplayTag& Name);
+	void OnConversationCloses_Internal(const FGameplayTag& Name);
 
 	/**  */
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;

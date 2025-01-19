@@ -17,7 +17,7 @@ class UYapCharacter;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct YAP_API FYapBit
 {
 #if WITH_EDITOR

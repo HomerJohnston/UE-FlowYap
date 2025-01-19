@@ -40,7 +40,7 @@ enum class EYapDialogueNodeType : uint8
 /**
  * Emits Dialogue through UYapSubsystem.
  */
-UCLASS(NotBlueprintable, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
+UCLASS(NotBlueprintable, NotBlueprintType, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
 class YAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -86,7 +86,7 @@ protected:
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 
 	/** Actual dialogue contents. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY()
 	TArray<FYapFragment> Fragments;
 
 	// ============================================================================================
