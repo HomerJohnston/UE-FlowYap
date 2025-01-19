@@ -23,12 +23,52 @@ class YAP_API UYapBroker : public UObject
 {
 	GENERATED_BODY()
 
-	// Some of these functions may be ran on tick by the editor or during play. I want to log errors, but not spam the log. I also want to keep logging it every time PIE runs, so static isn't a convenient option.	
 public:
 	bool ImplementsGetWorld() const override { return true; }
+
+	// ================================================================================================
+	// STATE DATA
+	// ================================================================================================
+private:
+	// These will be initialized during BeginPlay and keep track of whether there is a K2 function
+	// implementation to call, if the C++ implementation is not overridden. If the C++ implementation
+	// is overridden, it will supersede. This is "backwards" compared to normal BNE's but if you're
+	// overriding this class in C++ you won't want to override further in BP.
+	static TOptional<bool> bImplemented_OnConversationOpened;
+	static TOptional<bool> bImplemented_OnConversationClosed;
+	static TOptional<bool> bImplemented_OnDialogueBegins;
+	static TOptional<bool> bImplemented_OnDialogueEnds;
+	static TOptional<bool> bImplemented_AddPlayerPrompt;
+	static TOptional<bool> bImplemented_AfterPlayerPromptsAdded;
+	static TOptional<bool> bImplemented_UseMatureDialogue;
+	static TOptional<bool> bImplemented_GetPlaybackSpeed;
+	static TOptional<bool> bImplemented_CalculateWordCount;
+	static TOptional<bool> bImplemented_CalculateTextTime;
+	static TOptional<bool> bImplemented_GetAudioAssetDuration;
+#if WITH_EDITOR
+	static TOptional<bool> bImplemented_PreviewAudioAsset;
+#endif
+	
+#if WITH_EDITOR
+	// Some of these functions may be ran on tick by the editor or during play.
+	// We want to log errors, but not spam the log on tick, only on the first occurrence.
+	// I also want to make sure the errors log each time PIE runs, not just once.
+	static bool bWarned_OnConversationOpened;
+	static bool bWarned_OnConversationClosed;
+	static bool bWarned_OnDialogueBegins;
+	static bool bWarned_OnDialogueEnds;
+	static bool bWarned_AddPlayerPrompt;
+	static bool bWarned_AfterPlayerPromptsAdded;
+	static bool bWarned_UseMatureDialogue;
+	static bool bWarned_GetPlaybackSpeed;
+	static bool bWarned_CalculateWordCount;
+	static bool bWarned_CalculateTextTime;
+	static bool bWarned_GetAudioAssetDuration;
+	static bool bWarned_PreviewAudioAsset;
+#endif
 	
 	// ================================================================================================
-	// BLUEPRINT - Do NOT override these using C++. Override the raw non-K2 functions below.
+	// BLUEPRINT
 	// ================================================================================================
 
 protected:
@@ -72,6 +112,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Use Mature Dialogue")
 	EYapMaturitySetting K2_UseMatureDialogue() const;
 
+	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	 * Use this to modify speaking time by a scalar multiplier. Does NOT affect anything when fragments are using audio duration! */
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Get Playback Speed")
+	float K2_GetPlaybackSpeed() const;
+	
 	// - - - - - TEXT ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
@@ -104,7 +149,7 @@ protected:
 	
 public:
 	
-	// - - - - - DIALOGUE PLAYBACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	// - - - - - DIALOGUE PLAYBACK EVENTS - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	/** REQUIRED FUNCTION - Do NOT call Super when overriding.
 	 * Executes when a conversation begins. */
@@ -130,12 +175,18 @@ public:
 	 * Executes after all player prompt entries have been emitted. */
 	virtual void AfterPlayerPromptsAdded(const FGameplayTag& Conversation) const;
 
+	// TODO should I have an "on player prompt selected" event?
+
 	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */
 	virtual EYapMaturitySetting UseMatureDialogue() const;
 
+	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
+	 * Use this to modify speaking time by a scalar multiplier. Does NOT affect anything when fragments are using audio duration! */
+	virtual float GetPlaybackSpeed() const;
+	
 	// - - - - - TEXT ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
@@ -145,7 +196,7 @@ public:
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to read your game's settings (e.g. text playback speed) and determine the duration a dialogue should run for. The default implementation of this function will use the project setting TextWordsPerMinute. */
 	virtual float CalculateTextTime(int32 WordCount, int32 CharCount) const;
-
+	
 	// - - - - - AUDIO ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	/** Overriding this is required for 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Super when overriding.
@@ -157,38 +208,10 @@ public:
 	 * Use this to cast to your project's audio type(s) and initiate playback in editor. */
 	virtual bool PreviewAudioAsset(const UObject* AudioAsset) const;
 #endif
-
+	
 	// ============================================================================================
 	// INTERNAL FUNCTIONS (USED BY YAP)
 	// ============================================================================================
-
-	static TOptional<bool> bImplemented_OnConversationOpened;
-	static TOptional<bool> bImplemented_OnConversationClosed;
-	static TOptional<bool> bImplemented_OnDialogueBegins;
-	static TOptional<bool> bImplemented_OnDialogueEnds;
-	static TOptional<bool> bImplemented_AddPlayerPrompt;
-	static TOptional<bool> bImplemented_AfterPlayerPromptsAdded;
-	static TOptional<bool> bImplemented_UseMatureDialogue;
-	static TOptional<bool> bImplemented_CalculateWordCount;
-	static TOptional<bool> bImplemented_CalculateTextTime;
-	static TOptional<bool> bImplemented_GetAudioAssetDuration;
-#if WITH_EDITOR
-	static TOptional<bool> bImplemented_PreviewAudioAsset;
-#endif
-	
-#if WITH_EDITOR
-	static bool bWarned_OnConversationOpened;
-	static bool bWarned_OnConversationClosed;
-	static bool bWarned_OnDialogueBegins;
-	static bool bWarned_OnDialogueEnds;
-	static bool bWarned_AddPlayerPrompt;
-	static bool bWarned_AfterPlayerPromptsAdded;
-	static bool bWarned_UseMatureDialogue;
-	static bool bWarned_CalculateWordCount;
-	static bool bWarned_CalculateTextTime;
-	static bool bWarned_GetAudioAssetDuration;
-	static bool bWarned_PreviewAudioAsset;
-#endif
 		
 	void Initialize();
 	

@@ -19,11 +19,9 @@ UYapProjectSettings::UYapProjectSettings()
 {
 
 #if WITH_EDITORONLY_DATA
-	OverrideMoodTagIconPath.Path = "";
+	MoodTagIconPath.Path = "";
 
 	UGameplayTagsManager& TagsManager = UGameplayTagsManager::Get();
-
-	ConditionTagsParent = TagsManager.AddNativeGameplayTag("Yap.Condition");
 
 	DialogueTagsParent = TagsManager.AddNativeGameplayTag("Yap.Dialogue");
 
@@ -31,7 +29,6 @@ UYapProjectSettings::UYapProjectSettings()
 
 	TagContainers =
 	{
-		{ EYap_TagFilter::Conditions, &ConditionTagsParent },
 		{ EYap_TagFilter::Prompts, &DialogueTagsParent }
 	};
 #endif
@@ -61,14 +58,14 @@ FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileEx
 		KeyString = KeyString.RightChop(Index + 1);
 	}
 	
-	if (Get().OverrideMoodTagIconPath.Path == "")
+	if (Get().MoodTagIconPath.Path == "")
 	{		
 		static FString ResourcesDir = Yap::GetPluginFolder();
 		
 		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodKeys/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
-	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().OverrideMoodTagIconPath.Path, KeyString, FileExtension });
+	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
 }
 
 FGameplayTagContainer UYapProjectSettings::GetMoodTags()
@@ -89,13 +86,6 @@ const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses(
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	FName PropertyName = PropertyChangedEvent.Property->GetFName();
-
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ThisClass, MoodTagsParent))
-	{
-		OnMoodTagsChanged.Broadcast();
-	}
 }
 
 void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
@@ -106,15 +96,18 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	FName one = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
 	FName two = PropertyChangedEvent.PropertyChain.GetTail()->GetValue()->GetFName();
 	
-	FString ProjectDir = FPaths::ProjectDir();
-	
-	FString FullPathDir = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ProjectDir);
-	
-	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, OverrideMoodTagIconPath))
+	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodTagIconPath))
 	{
 		if (two == "Path")
 		{
-			OverrideMoodTagIconPath.Path = OverrideMoodTagIconPath.Path.RightChop(FullPathDir.Len());
+			FString ProjectDir = FPaths::ProjectDir();
+	
+			FString FullPathDir = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ProjectDir);
+
+			if (MoodTagIconPath.Path.StartsWith(FullPathDir))
+			{
+				MoodTagIconPath.Path = MoodTagIconPath.Path.RightChop(FullPathDir.Len());
+			}
 		}
 	}
 }
@@ -141,15 +134,15 @@ const FString& UYapProjectSettings::GetMoodKeyIconPath()
 	static FString CachedPath;
 
 	// Recache the path if it was never calculated, or if the setting is set and the cached path is not equal to it
-	if (CachedPath.IsEmpty() || (!Get().OverrideMoodTagIconPath.Path.IsEmpty() && CachedPath != Get().OverrideMoodTagIconPath.Path))
+	if (CachedPath.IsEmpty() || (!Get().MoodTagIconPath.Path.IsEmpty() && CachedPath != Get().MoodTagIconPath.Path))
 	{
-		if (Get().OverrideMoodTagIconPath.Path == "")
+		if (Get().MoodTagIconPath.Path == "")
 		{
 			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodKeys");
 		}
 		else
 		{
-			CachedPath = FPaths::ProjectDir() / Get().OverrideMoodTagIconPath.Path;
+			CachedPath = FPaths::ProjectDir() / Get().MoodTagIconPath.Path;
 		}	
 	}
 	

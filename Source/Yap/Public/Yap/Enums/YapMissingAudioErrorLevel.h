@@ -13,5 +13,5 @@ enum class EYapMissingAudioErrorLevel : uint8
 {
 	OK		UMETA(ToolTip = "Always use text time when audio is missing"),
 	Warning	UMETA(ToolTip = "Use text time, but write a warning log and highlight the node yellow"),
-	Error	UMETA(ToolTip = "Throw a fatal error, and attempt to prevent packaging"),
+	Error	UMETA(ToolTip = "Throw a fatal error, and prevent packaging"),
 };

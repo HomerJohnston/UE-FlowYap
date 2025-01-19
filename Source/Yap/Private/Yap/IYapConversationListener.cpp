@@ -10,12 +10,12 @@ class UYapCharacter;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-void IYapConversationListener::K2_OnConversationBegins_Implementation(const FGameplayTag& Conversation)
+void IYapConversationListener::K2_OnConversationOpened_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
 }
 
-void IYapConversationListener::K2_OnConversationEnds_Implementation(const FGameplayTag& Conversation)
+void IYapConversationListener::K2_OnConversationClosed_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
 }
@@ -30,30 +30,14 @@ void IYapConversationListener::K2_OnDialogueEnds_Implementation(const FGameplayT
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
 }
 
-void IYapConversationListener::K2_OnPromptOptionAdded_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+void IYapConversationListener::K2_AddPlayerPrompt_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
 }
 
-void IYapConversationListener::K2_OnPromptOptionsAllAdded_Implementation(const FGameplayTag& Conversation)
+void IYapConversationListener::K2_AfterPlayerPromptAdded_Implementation(const FGameplayTag& Conversation)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s"), *FString(__func__));
-}
-
-EYapMaturitySetting IYapConversationListener::K2_UseMatureDialogue_Implementation()
-{
-#if WITH_EDITOR
-	if (!bWarnedAboutMatureDialogue)
-	{
-		if (!UYapProjectSettings::GetSuppressDefaultMatureWarning())
-		{
-			UE_LOG(LogYap, Warning, TEXT("Unimplemented listener function: %s\nDefaulting to use mature language; child-safe language will never be displayed.\nYou can suppress this warning in project settings."), *FString(__func__));
-		}
-
-		bWarnedAboutMatureDialogue = true;
-	}
-#endif
-	return UYapProjectSettings::GetDefaultMaturitySetting();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -3,6 +3,7 @@
 
 #pragma once
 #include "ISettingsModule.h"
+#include "YapColors.h"
 #include "YapDeveloperSettings.h"
 #include "Interfaces/IPluginManager.h"
 
@@ -15,4 +16,5 @@ namespace Yap
 			SettingsModule->ShowViewer("Project", "Yap", FName(UYapDeveloperSettings::StaticClass()->GetName()));
 		}
 	}
+	
 }

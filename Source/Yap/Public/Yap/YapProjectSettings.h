@@ -69,7 +69,7 @@ protected:
 	
 	// - - - - - MOOD TAGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-	/** Parent tag to use for mood tags. Filters the mood tags editor. */
+	/** Parent tag to use for mood tags. All sub-tags of this parent will be used as mood tags! */
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FGameplayTag MoodTagsParent;
 
@@ -77,9 +77,9 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FGameplayTag DefaultMoodTag;
 
-	/** Where to look for portrait key icons. If unspecified, will use the "Plugins\FlowYap\Resources\MoodKeys\" folder.*/
+	/** Where to look for portrait key icons. If unspecified, will use the default "Plugins/FlowYap/Resources/MoodKeys" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
-	FDirectoryPath OverrideMoodTagIconPath;
+	FDirectoryPath MoodTagIconPath;
 
 	// - - - - - DIALOGUE PLAYBACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 	
@@ -95,79 +95,73 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01))
 	float DefaultFragmentPaddingTime = 0.25f;
 
-	/** Controls how fast dialogue plays. Only useful for word-based playtime. */ // TODO I need some way for users to overide this within game settings
+	/** Controls how fast dialogue plays. Only useful for word-based playtime. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
 	int32 TextWordsPerMinute = 120;
 
-	/** Controls how missing audio fields are handled.
-	 * - OK: Missing audio falls back to using text time without issue.
-	 * - Warning: Missing audio falls back to using text time, but nodes show with warnings on Flow Graph, and warning logs on play.
-	 * - Error: Missing audio will not pass package validation. */ // TODO make it not package
-	UPROPERTY(Config, EditAnywhere, Category = "Settings", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
+	/** When speaking time is calculated from text, this sets the minimum speaking time. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 5.0, Delta = 0.1))
+	double MinimumAutoTextTimeLength = 1.0;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
-	
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bPreventCachingWordCount = false;
-
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bPreventCachingAudioLength = false;
-	
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
-	double MinimumAutoTextTimeLength = 1.5;
-
-	/**  */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 20.0, Delta = 0.1))
+	/** When speaking time is calculated from the length of an audio asset, this sets the minimum speaking time. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 5.0, Delta = 0.1))
 	double MinimumAutoAudioTimeLength = 0.5;
 
-	/** Master minimum time for all fragments ever. Should be set fairly low; intended mostly to only handle accidental "0" time values. */
+	/** Total minimum speaking time (overrides both auto length minimums above). Should be fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	double MinimumFragmentTime = 2.0;
+	double MinimumFragmentTime = 0.25;
 
+	/** Controls the scaling of the small padding time indicator on each fragment. */
 	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	float FragmentPaddingSliderMax = 5.0;
+	float FragmentPaddingSliderMax = 2.0;
+	
+	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	/** Controls how missing audio fields are handled. */ // TODO make it not package
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
+	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
 
-	/**  */
+	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor")
+	bool bPreventCachingWordCount = false;
+
+	/** Normally, when assigning an audio length, Yap will read the audio asset and set the speaking time based on it. Set this to prevent that. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor")
+	bool bPreventCachingAudioLength = false;
+	
+	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor")
+	bool bShowTitleTextOnTalkNodes = false;
+	
+	/** Filters dialogue and fragment tags. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Tags")
+	FGameplayTag DialogueTagsParent;
+
+	// ============================================================================================
+	// STATE
+	// ============================================================================================
+
+#if WITH_EDITORONLY_DATA
+protected:
+	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
+	
+	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
+	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
+
+	/** If set, you will not be warned when Yap is falling back to default maturity settings. Turn this on if you  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bSuppressDefaultMatureWarning = false;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
 	
-	// ============================================================================================
-	// EDITOR SETTINGS
-#if WITH_EDITORONLY_DATA
-	/** If set, enables nicer filtering of condition tags display */
-	UPROPERTY(Config/*, EditAnywhere, Category = "Tags"*/)
-	FGameplayTag ConditionTagsParent;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Tags")
-	FGameplayTag DialogueTagsParent;
-
-	// ============================================================================================
-	// STATE
-public:
-	TMulticastDelegate<void()> OnMoodTagsChanged;
-
-protected:
-	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
-	
-	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bShowTitleTextOnTalkNodes = false;
-
+	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
+	
 	/** Turn off to hide the On Start / On End pin-buttons, useful if you want a simpler graph without these features. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bHidePinEnableButtons = false;
 	
-	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
-	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
-
 	/**  */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	FString DefaultTextNamespace = "Yap";
@@ -192,9 +186,9 @@ protected:
 	TObjectPtr<UTexture2D> MissingPortraitTexture_Loaded;
 	
 #endif
-	
 	// ------------------------------------------
 	// UObject overrides
+public:
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
@@ -214,8 +208,9 @@ public:
 
 	// ------------------------------------------
 	// Custom API overrides
-#if WITH_EDITOR
 public:
+
+#if WITH_EDITOR
 	static FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension);
 
 	static const FGameplayTag& GetMoodTagsParent() { return Get().MoodTagsParent; }
@@ -226,8 +221,6 @@ public:
 
 	static bool GetSuppressDefaultMatureWarning() { return Get().bSuppressDefaultMatureWarning; }
 #endif
-
-public:
 
 	static FGameplayTag GetDefaultMoodTag() { return Get().DefaultMoodTag; }
 	

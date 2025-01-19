@@ -127,7 +127,7 @@ public:
 	/** Is this dialogue a Talk node or a Player Prompt node? */
 	bool IsPlayerPrompt() const { return DialogueNodeType == EYapDialogueNodeType::PlayerPrompt; }
 
-	/** Does this node use title text? */ // TODO 
+	/** Does this node use title text? */
 	bool UsesTitleText() const;
 
 	/** How many times has this dialogue node successfully ran? */

@@ -13,6 +13,8 @@ class IDetailCategoryBuilder;
 
 class FDetailCustomization_YapProjectSettings : public IDetailCustomization
 {
+	//FSlateColor ForegroundColor_Button(FLinearColor Col, TSharedPtr<SButton> Button) const { return YapColor::Error; };
+
 private:
 	TArray<FString> DefaultMoodTags
 	{
@@ -32,6 +34,8 @@ private:
 		"Thinking",
 		"Tired"
 	};
+
+	FName DialogueTagsParent {"DialogueTagsParent"};
 	
 public:
 	static TSharedRef<IDetailCustomization> MakeInstance()
@@ -44,9 +48,14 @@ protected:
 
 	const FSlateBrush* TODOBorderImage() const;
 
-
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
+	void ProcessDialogueTagsCategoryProperty(IDetailCategoryBuilder& Category, TSharedPtr<IPropertyHandle> Property);
+
+	void ProcessMoodTagsProperty(IDetailCategoryBuilder& Category, TSharedPtr<IPropertyHandle> Property);
+
+	void ProcessCategory(IDetailCategoryBuilder& Category, void(FDetailCustomization_YapProjectSettings::*Func)(IDetailCategoryBuilder&, TSharedPtr<IPropertyHandle>));
+	
 	FReply OnClicked_ResetDefaultMoodTags() const;
 
 	FReply OnClicked_DeleteAllMoodTags() const;
@@ -55,11 +64,11 @@ protected:
 
 	FReply OnClicked_OpenDialogueTagsManager();
 
+	FReply OnClicked_RefreshMoodTagIcons();
+	
 	FText ToolTipText_DefaultMoodTags() const;
 
-	bool IsMoodTagsParentSet() const;
-
-	TSharedPtr<IPropertyHandle> MoodTagsParentPropertyHandle;
+	bool IsTagPropertySet(TSharedPtr<IPropertyHandle> TagPropertyHandle) const;
 };
 
 #undef LOCTEXT_NAMESPACE

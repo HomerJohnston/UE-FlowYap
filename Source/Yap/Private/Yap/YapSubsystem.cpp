@@ -71,7 +71,7 @@ void UYapSubsystem::RegisterConversationListener(UObject* NewListener)
 	}
 	else
 	{
-		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation handler, but it does not implement the FlowYapConversationHandler interface!"));
+		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation listener, but object does not implement the YapConversationListener interface! [%s]"), *NewListener->GetName());
 	}
 }
 
@@ -105,9 +105,9 @@ UYapBroker* UYapSubsystem::GetBroker()
 
 EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 {
-	EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified;
+	EYapMaturitySetting MaturitySetting;
 	
-	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetGameMaturitySetting(); this should not happen! Returning default project setting.")))
+	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetGameMaturitySetting(). This should never happen! Using default project maturity setting.")))
 	{
 		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting(); 
 	}
@@ -115,7 +115,7 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 	{
 		UYapBroker* Broker = GetBroker();
 
-		if (ensureMsgf(IsValid(Broker), TEXT("No Conversation Broker in UYapSubsystem::GetGameMaturitySetting(); returning default project setting.")))
+		if (ensureMsgf(IsValid(Broker), TEXT("No broker set in project settings! Using default project maturity setting.")))
 		{
 			MaturitySetting = Broker->UseMatureDialogue();
 		}
@@ -125,16 +125,36 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 		}	
 	}
 
+	// Something went wrong... we will try to grab it from project settings with error logging. If even that fails, we will hard-code default to mature.
 	if (MaturitySetting == EYapMaturitySetting::Unspecified)
 	{
+		bool bSetWarningIssued = false;
+
 		if (!bGetGameMaturitySettingWarningIssued)
 		{
-			UE_LOG(LogYap, Error, TEXT("UYapSubsystem::GetGameMaturitySetting failed to get a valid game maturity setting! Defaulting to mature. This could be caused by a faulty Broker implementation, or corrupt project settings?"));
-			bGetGameMaturitySettingWarningIssued = true;			
+			UE_LOG(LogYap, Error, TEXT("UYapSubsystem::GetGameMaturitySetting failed to get a valid game maturity setting! Using default project maturity setting. This could be caused by a faulty Broker implementation."));
+			bSetWarningIssued = true;
 		}
-		MaturitySetting = EYapMaturitySetting::Mature;
-	}
+		
+		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
 
+		if (MaturitySetting == EYapMaturitySetting::Unspecified)
+		{
+			if (!bGetGameMaturitySettingWarningIssued)
+			{
+				UE_LOG(LogYap, Error, TEXT("UYapSubsystem::GetGameMaturitySetting failed to get a valid game maturity setting! Defaulting to mature. This could be caused by corrupt project settings."));
+				bSetWarningIssued = true;
+			}
+		
+			MaturitySetting = EYapMaturitySetting::Mature;
+		}
+		
+		if (bSetWarningIssued)
+		{
+			bGetGameMaturitySettingWarningIssued = true;
+		}
+	}
+	
 	return MaturitySetting;
 }
 
@@ -200,7 +220,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 	
-	BroadcastBrokerListenerFuncs<&UYapBroker::AddPlayerPrompt, &IYapConversationListener::Execute_K2_OnPromptOptionAdded>
+	BroadcastBrokerListenerFuncs<&UYapBroker::AddPlayerPrompt, &IYapConversationListener::Execute_K2_AddPlayerPrompt>
 		(ConversationName, Handle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));
 }
 
@@ -208,7 +228,7 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
 
-	BroadcastBrokerListenerFuncs<&UYapBroker::AfterPlayerPromptsAdded, &IYapConversationListener::Execute_K2_OnPromptOptionsAllAdded>
+	BroadcastBrokerListenerFuncs<&UYapBroker::AfterPlayerPromptsAdded, &IYapConversationListener::Execute_K2_AfterPlayerPromptAdded>
 		(ConversationName);
 }
 
@@ -329,13 +349,13 @@ void UYapSubsystem::Deinitialize()
 
 void UYapSubsystem::OnConversationStarts_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationOpened, &IYapConversationListener::Execute_K2_OnConversationBegins>
+	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationOpened, &IYapConversationListener::Execute_K2_OnConversationOpened>
 		(ConversationName);
 }
 
 void UYapSubsystem::OnConversationEnds_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationClosed, &IYapConversationListener::Execute_K2_OnConversationEnds>
+	BroadcastBrokerListenerFuncs<&UYapBroker::OnConversationClosed, &IYapConversationListener::Execute_K2_OnConversationClosed>
 		(ConversationName);
 }
 

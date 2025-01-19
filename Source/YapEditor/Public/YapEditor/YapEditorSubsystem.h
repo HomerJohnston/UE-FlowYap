@@ -5,7 +5,6 @@
 
 #include "Textures/SlateIcon.h"
 #include "GameplayTagContainer.h"
-#include "Yap/YapCondition.h"
 
 #include "YapEditorSubsystem.generated.h"
 
@@ -43,7 +42,7 @@ public:
 	}
 	
 private:
-	TMap<FGameplayTag, TSharedPtr<FSlateImageBrush>> MoodKeyIconBrushes;
+	TMap<FGameplayTag, TSharedPtr<FSlateImageBrush>> MoodTagIconBrushes;
 
 protected:
 	// STATE
@@ -52,12 +51,21 @@ protected:
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
 	TMap<TObjectKey<UTexture2D>, FSlateBrush> CharacterPortraitBrushes;
+
+	FGameplayTagContainer CachedMoodTags;
+
+	bool bMoodTagsDirty;
 	
 public:
-	void UpdateMoodKeyBrushes();
-	void BuildIcon(const FGameplayTag& MoodKey);
+	void UpdateMoodTagBrushesIfRequired();
 
-	TSharedPtr<FSlateImageBrush> GetMoodKeyIcon(FGameplayTag MoodKey);
+	void UpdateMoodTagBrushes();
+	
+protected:
+	void BuildIcon(const FGameplayTag& MoodTag);
+
+public:
+	TSharedPtr<FSlateImageBrush> GetMoodKeyIcon(FGameplayTag MoodTag);
 
 	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
 
@@ -65,10 +73,8 @@ public:
 	
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
-
-	void Deinitialize() override;
 	
-	void LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize = 16);
+	void Deinitialize() override;
 	
 	FYapInputTracker* GetInputTracker();
 
@@ -90,6 +96,8 @@ public:
 	void ReOpenAssets();
 
 	void Tick(float DeltaTime) override;
+
+	static bool GetMoodTagsDirty();
 
 	TStatId GetStatId() const override;
 	

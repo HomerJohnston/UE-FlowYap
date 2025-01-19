@@ -189,6 +189,8 @@ void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 			FYapStreamableManager::Get().RequestAsyncLoad(DirectedAtAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this, &DirectedAtAsset, &DirectedAt));
 		}
 	}
+
+	// TODO preload audio assets
 }
 
 void FYapBit::OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
@@ -350,7 +352,8 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 	
 	if (BrokerClass.IsNull())
 	{
-		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!")); // TODO I need to handle the issue where you assign audio assets and they don't get a time assigned!
+		// TODO I need to handle the case of assigning lots of audio assets without time assigned - can I parse through all assets and fix up? Or log warnings during play so devs can go and fix them?
+		UE_LOG(LogYap, Warning, TEXT("No audio time cache class found in project settings! Cannot set audio time!")); 
 		CachedTime.Reset();
 		return;
 	}

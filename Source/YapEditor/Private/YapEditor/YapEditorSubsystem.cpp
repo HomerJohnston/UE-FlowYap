@@ -11,13 +11,11 @@
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Yap/YapCharacter.h"
-#include "Yap/YapEngineUtils.h"
-#include "Yap/YapGlobals.h"
 #include "YapEditor/YapInputTracker.h"
 #include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapEditorStyle.h"
-#include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "Engine/Texture2D.h"
+#include "Yap/YapGlobals.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -25,32 +23,46 @@ bool UYapEditorSubsystem::bLiveCodingInProgress = true;
 TArray<TWeakObjectPtr<UObject>> UYapEditorSubsystem::OpenedAssets = {};
 
 
-void UYapEditorSubsystem::UpdateMoodKeyBrushes()
+void UYapEditorSubsystem::UpdateMoodTagBrushesIfRequired()
 {
-	FGameplayTagContainer MoodKeys = UYapProjectSettings::GetMoodTags();
+	FGameplayTagContainer ProjectMoodTags = UYapProjectSettings::GetMoodTags();
 	
-	MoodKeyIconBrushes.Empty(MoodKeys.Num() + 1);
+	if (ProjectMoodTags.Num() != CachedMoodTags.Num() || !CachedMoodTags.HasAllExact(ProjectMoodTags))
+	{
+		UpdateMoodTagBrushes();
+	}
 
-	for (const FGameplayTag& MoodKey : MoodKeys)
+	CachedMoodTags = ProjectMoodTags;
+}
+
+void UYapEditorSubsystem::UpdateMoodTagBrushes()
+{
+	FGameplayTagContainer ProjectMoodTags = UYapProjectSettings::GetMoodTags();
+	
+	MoodTagIconBrushes.Empty(ProjectMoodTags.Num() + 1);
+
+	for (const FGameplayTag& MoodKey : ProjectMoodTags)
 	{
 		BuildIcon(MoodKey);
 	}
 
 	BuildIcon(FGameplayTag::EmptyTag);
+
+	CachedMoodTags = ProjectMoodTags;
 }
 
-void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodKey)
+void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodTag)
 {
 	TSharedPtr<FSlateImageBrush> ImageBrush = nullptr;
 	
 	// Attempt to load SVG
-	FString IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodKey, "svg");
+	FString IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodTag, "svg");
 	ImageBrush = MakeShared<FSlateVectorImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 
 	// Attempt to load PNG
 	if (!ImageBrush)
 	{
-		IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodKey, "png");
+		IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodTag, "png");
 		ImageBrush = MakeShared<FSlateImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 	}
 	
@@ -60,12 +72,12 @@ void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodKey)
 		return;
 	}
 
-	MoodKeyIconBrushes.Add(MoodKey, ImageBrush);
+	MoodTagIconBrushes.Add(MoodTag, ImageBrush);
 }
 
-TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodKey)
+TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodTag)
 {
-	TSharedPtr<FSlateImageBrush>* Brush = MoodKeyIconBrushes.Find(MoodKey);
+	TSharedPtr<FSlateImageBrush>* Brush = MoodTagIconBrushes.Find(MoodTag);
 
 	if (Brush)
 	{
@@ -77,7 +89,7 @@ TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag Mo
 
 const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
 {
-	TSharedPtr<FSlateImageBrush>* Brush = MoodKeyIconBrushes.Find(Name);
+	TSharedPtr<FSlateImageBrush>* Brush = MoodTagIconBrushes.Find(Name);
 
 	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKey_Missing);
 }
@@ -128,11 +140,10 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		IGameplayTagsEditorModule::Get().AddNewGameplayTagSource("YapGameplayTags.ini");
 	}
 
-	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
-
-	ProjectSettings->OnMoodTagsChanged.AddUObject(this, &ThisClass::UpdateMoodKeyBrushes);
-
-	UpdateMoodKeyBrushes();
+	// TODO -- this does NOT work! Keep it hidden until I can figure out why. For some reason FSlateSVGRasterizer will NOT attempt to load a file that didn't exist on startup?
+	// Also see: FDetailCustomization_YapProjectSetting for hidden/disabled button to run UpdateMoodTagBrushes().
+	//UGameplayTagsManager::Get().OnEditorRefreshGameplayTagTree.AddUObject(this, &UYapEditorSubsystem::UpdateMoodTagBrushesIfRequired);
+	UpdateMoodTagBrushes();
 
 	if (IsValid(GUnrealEd))
 	{
@@ -151,20 +162,8 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #endif
 }
 
-void UYapEditorSubsystem::LoadIcon(FString LocalResourcePath, UTexture2D*& Texture, FSlateBrush& Brush, int32 XYSize)
-{
-	FString ResourcePath = FYapEngineUtils::GetFlowYapPluginDir() / LocalResourcePath;
-	Texture = FImageUtils::ImportFileAsTexture2D(ResourcePath);
-
-	Brush.ImageSize = FVector2D(XYSize, XYSize);
-	Brush.SetResourceObject(Texture);
-}
-
 void UYapEditorSubsystem::Deinitialize()
 {
-	UYapProjectSettings* ProjectSettings = GetMutableDefault<UYapProjectSettings>();
-	ProjectSettings->OnMoodTagsChanged.RemoveAll(this);
-
 	if (IsValid(GUnrealEd))
 	{
 		FSlateApplication::Get().UnregisterInputPreProcessor(InputTracker);
@@ -275,6 +274,19 @@ void UYapEditorSubsystem::Tick(float DeltaTime)
 		}
 	}
 #endif
+}
+
+bool UYapEditorSubsystem::GetMoodTagsDirty()
+{
+	//return Get()->bMoodTagsDirty;
+	FGameplayTagContainer ProjectMoodTags = UYapProjectSettings::GetMoodTags();
+	
+	if (ProjectMoodTags.Num() != Get()->CachedMoodTags.Num() || !Get()->CachedMoodTags.HasAllExact(ProjectMoodTags))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 TStatId UYapEditorSubsystem::UYapEditorSubsystem::GetStatId() const

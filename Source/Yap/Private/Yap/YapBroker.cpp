@@ -19,6 +19,7 @@ TOptional<bool> UYapBroker::bImplemented_OnDialogueEnds = false;
 TOptional<bool> UYapBroker::bImplemented_AddPlayerPrompt = false;
 TOptional<bool> UYapBroker::bImplemented_AfterPlayerPromptsAdded = false;
 TOptional<bool> UYapBroker::bImplemented_UseMatureDialogue = false;
+TOptional<bool> UYapBroker::bImplemented_GetPlaybackSpeed = false;
 TOptional<bool> UYapBroker::bImplemented_CalculateWordCount = false;
 TOptional<bool> UYapBroker::bImplemented_CalculateTextTime = false;
 TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
@@ -34,6 +35,7 @@ bool UYapBroker::bWarned_OnDialogueEnds = false;
 bool UYapBroker::bWarned_AddPlayerPrompt = false;
 bool UYapBroker::bWarned_AfterPlayerPromptsAdded = false;
 bool UYapBroker::bWarned_UseMatureDialogue = false;
+bool UYapBroker::bWarned_GetPlaybackSpeed = false;
 bool UYapBroker::bWarned_CalculateWordCount = false;
 bool UYapBroker::bWarned_CalculateTextTime = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
@@ -80,6 +82,11 @@ void UYapBroker::AfterPlayerPromptsAdded(const FGameplayTag& Conversation) const
 EYapMaturitySetting UYapBroker::UseMatureDialogue() const
 {
 	return YAP_CALL_K2(UseMatureDialogue, !UYapProjectSettings::GetSuppressDefaultMatureWarning());
+}
+
+float UYapBroker::GetPlaybackSpeed() const
+{
+	return YAP_CALL_K2(GetPlaybackSpeed, false);
 }
 
 int32 UYapBroker::CalculateWordCount(const FText& Text) const
