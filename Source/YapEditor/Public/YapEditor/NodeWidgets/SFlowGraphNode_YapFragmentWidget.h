@@ -54,7 +54,7 @@ protected:
 	TSharedPtr<SWidget> DirectedAtWidget;
 	
 	bool bCursorContained = false;
-	bool MoodKeySelectorMenuOpen = false;
+	bool MoodTagSelectorMenuOpen = false;
 
 	uint8 FragmentIndex = 0;
 
@@ -196,20 +196,20 @@ protected:
 	EVisibility			Visibility_CharacterSelect() const;
 	FString				ObjectPath_CharacterSelect() const;
 
-	FText ToolTipText_MoodKeySelector() const;
-	FSlateColor ForegroundColor_MoodKeySelectorWidget() const;
+	FText ToolTipText_MoodTagSelector() const;
+	FSlateColor ForegroundColor_MoodTagSelectorWidget() const;
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateMoodKeySelectorWidget();
+	TSharedRef<SWidget>	CreateMoodTagSelectorWidget();
 
-	EVisibility			Visibility_MoodKeySelector() const;
-	void				OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen);
-	const FSlateBrush*	Image_MoodKeySelector() const;
-	FGameplayTag		GetCurrentMoodKey() const;
+	EVisibility			Visibility_MoodTagSelector() const;
+	void				OnMenuOpenChanged_MoodTagSelector(bool bMenuOpen);
+	const FSlateBrush*	Image_MoodTagSelector() const;
+	FGameplayTag		GetCurrentMoodTag() const;
 	
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateMoodKeyMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+	TSharedRef<SWidget> CreateMoodTagMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FReply				OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue);
+	FReply				OnClicked_MoodTagMenuEntry(FGameplayTag NewValue);
 
 	FText Text_EditedText(FText* Text) const;
 	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);

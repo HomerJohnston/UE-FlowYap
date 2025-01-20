@@ -120,7 +120,7 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Baby,						"Icon_Baby", ".svg",					FVector2f(16, 16));
-	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_MoodKey_Missing,			"Icon_MoodKey_Missing", ".svg",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_MoodTag_Missing,			"Icon_MoodTag_Missing", ".svg",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Delete,					"Icon_Delete", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_DownArrow,					"Icon_DownArrow", ".png",				FVector2f(8, 8));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_TextTime,					"DialogueNodeIcons/TextTime", ".png",	FVector2f(16, 16));

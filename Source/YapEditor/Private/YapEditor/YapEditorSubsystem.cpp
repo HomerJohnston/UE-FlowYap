@@ -43,9 +43,9 @@ void UYapEditorSubsystem::UpdateMoodTagBrushes()
 	
 	MoodTagIconBrushes.Empty(ProjectMoodTags.Num() + 1);
 
-	for (const FGameplayTag& MoodKey : ProjectMoodTags)
+	for (const FGameplayTag& MoodTag : ProjectMoodTags)
 	{
-		BuildIcon(MoodKey);
+		BuildIcon(MoodTag);
 	}
 
 	BuildIcon(FGameplayTag::EmptyTag);
@@ -58,13 +58,13 @@ void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodTag)
 	TSharedPtr<FSlateImageBrush> ImageBrush = nullptr;
 	
 	// Attempt to load SVG
-	FString IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodTag, "svg");
+	FString IconPath = UYapProjectSettings::GetMoodTagIconPath(MoodTag, "svg");
 	ImageBrush = MakeShared<FSlateVectorImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 
 	// Attempt to load PNG
 	if (!ImageBrush)
 	{
-		IconPath = UYapProjectSettings::GetMoodKeyIconPath(MoodTag, "png");
+		IconPath = UYapProjectSettings::GetMoodTagIconPath(MoodTag, "png");
 		ImageBrush = MakeShared<FSlateImageBrush>(IconPath, FVector2f(16, 16), YapColor::White);
 	}
 	
@@ -77,7 +77,7 @@ void UYapEditorSubsystem::BuildIcon(const FGameplayTag& MoodTag)
 	MoodTagIconBrushes.Add(MoodTag, ImageBrush);
 }
 
-TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag MoodTag)
+TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodTagIcon(FGameplayTag MoodTag)
 {
 	TSharedPtr<FSlateImageBrush>* Brush = MoodTagIconBrushes.Find(MoodTag);
 
@@ -89,11 +89,11 @@ TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetMoodKeyIcon(FGameplayTag Mo
 	return nullptr;
 }
 
-const FSlateBrush* UYapEditorSubsystem::GetMoodKeyBrush(FGameplayTag Name)
+const FSlateBrush* UYapEditorSubsystem::GetMoodTagBrush(FGameplayTag Name)
 {
 	TSharedPtr<FSlateImageBrush>* Brush = MoodTagIconBrushes.Find(Name);
 
-	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodKey_Missing);
+	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodTag_Missing);
 }
 
 const FSlateBrush* UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag)
@@ -191,20 +191,20 @@ void UYapEditorSubsystem::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IProp
 		return;
 	}
 
-	if (IsMoodKeyProperty(PropertyHandle))
+	if (IsMoodTagProperty(PropertyHandle))
 	{
 		MetaString = GetDefault<UYapProjectSettings>()->GetMoodTagsParent().ToString();
 		return;
 	}
 }
 
-bool UYapEditorSubsystem::IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const
+bool UYapEditorSubsystem::IsMoodTagProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const
 {
 	TArray<FName> PropertyNames
 	{
-		"MoodKey",
-		"MoodKeys",
-		"MoodKeys2"
+		"MoodTag",
+		"MoodTags",
+		"MoodTags2"
 	};
 	
 	if (PropertyNames.Contains(PropertyHandle->GetProperty()->GetFName()))

@@ -79,7 +79,7 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FGameplayTag DefaultMoodTag;
 
-	/** Where to look for portrait key icons. If unspecified, will use the default "Plugins/FlowYap/Resources/MoodKeys" folder.*/
+	/** Where to look for portrait key icons. If unspecified, will use the default "Plugins/FlowYap/Resources/MoodTags" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FDirectoryPath MoodTagIconPath;
 
@@ -220,7 +220,7 @@ public:
 public:
 
 #if WITH_EDITOR
-	static FString GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension);
+	static FString GetMoodTagIconPath(FGameplayTag Key, FString FileExtension);
 
 	static const FGameplayTag& GetMoodTagsParent() { return Get().MoodTagsParent; }
 	
@@ -282,7 +282,7 @@ public:
 	
 #if WITH_EDITOR
 public:
-	static const FString& GetMoodKeyIconPath();
+	static const FString& GetMoodTagIconPath();
 	
 	static int32 GetDialogueWidthAdjustment() { return Get().DialogueWidthAdjustment; };
 

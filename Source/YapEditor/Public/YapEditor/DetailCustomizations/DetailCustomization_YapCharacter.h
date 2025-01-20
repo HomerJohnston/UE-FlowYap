@@ -30,7 +30,7 @@ public:
 	
 	FText Text_PortraitsListHint() const;
 
-	void OnClicked_RefreshMoodKeysButton() const;
+	void OnClicked_RefreshMoodTagsButton() const;
 
 	TSharedPtr<IPropertyHandle> PortraitsProperty;
 

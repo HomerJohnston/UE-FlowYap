@@ -223,7 +223,7 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	Data.Handle = FYapPromptHandle(Dialogue, FragmentIndex);
 	Data.DirectedAt = Bit.GetDirectedAt();
 	Data.Speaker = Bit.GetSpeaker();
-	Data.MoodKey = Bit.GetMoodKey();
+	Data.MoodTag = Bit.GetMoodTag();
 	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
 	Data.TitleText = Bit.GetTitleText(MaturitySetting);
 	
@@ -275,7 +275,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 	Data.DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
 	Data.DirectedAt = Bit.GetDirectedAt();
 	Data.Speaker = Bit.GetSpeaker();
-	Data.MoodKey = Bit.GetMoodKey();
+	Data.MoodTag = Bit.GetMoodTag();
 	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
 	Data.TitleText = Bit.GetTitleText(MaturitySetting);
 	Data.DialogueTime = EffectiveTime;

@@ -69,7 +69,7 @@ struct FYapData_OnDialogueBegins
 
 	/** Mood of the speaker. */
 	UPROPERTY(BlueprintReadOnly)
-	FGameplayTag MoodKey;
+	FGameplayTag MoodTag;
 
 	/** Text being spoken. */
 	UPROPERTY(BlueprintReadOnly)
@@ -151,7 +151,7 @@ struct FYapData_AddPlayerPrompt
 
 	/** Mood of the speaker. */
 	UPROPERTY(BlueprintReadOnly)
-	FGameplayTag MoodKey;
+	FGameplayTag MoodTag;
 	 
 	/** Text that will be spoken. */
 	UPROPERTY(BlueprintReadOnly)

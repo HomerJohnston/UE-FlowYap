@@ -538,7 +538,7 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 		{
 			const FYapFragment& PreviousFragment = GetFragmentByIndex(PreviousFragmentIndex);
 			NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
-			NewFragment.GetBitMutable().SetMoodKey(PreviousFragment.GetBit().GetMoodKey());
+			NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
 		}
 	}
 	else

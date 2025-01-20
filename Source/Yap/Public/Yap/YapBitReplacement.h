@@ -51,7 +51,7 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FGameplayTag> MoodKey = FGameplayTag::EmptyTag;
+	TOptional<FGameplayTag> MoodTag = FGameplayTag::EmptyTag;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -105,7 +105,7 @@ inline FYapBitReplacement::FYapBitReplacement()
 	MatureAudioAsset.Reset();
 	SafeAudioAsset.Reset();
 	
-	MoodKey.Reset();
+	MoodTag.Reset();
 	TimeMode.Reset();
 	Skippable.Reset();
 

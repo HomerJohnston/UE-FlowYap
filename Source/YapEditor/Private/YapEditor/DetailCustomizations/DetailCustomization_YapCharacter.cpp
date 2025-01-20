@@ -83,8 +83,8 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 				[
 					SNew(SYapHyperlink)
 					.Text(LOCTEXT("CharacterPortraits_PerformMoodTagsRefresh", "click to refresh"))
-					.OnNavigate(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton)
-					.ToolTipText(LOCTEXT("RefreshMoodKeys_ToolTIp", "Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries."))
+					.OnNavigate(this, &FDetailCustomization_YapCharacter::OnClicked_RefreshMoodTagsButton)
+					.ToolTipText(LOCTEXT("RefreshMoodTags_ToolTIp", "Will process the portraits list, removing entries which are no longer present in project settings, and adding missing entries."))
 				]
 			]
 		]
@@ -120,24 +120,24 @@ EVisibility FDetailCustomization_YapCharacter::Visibility_MoodTagsOutOfDateWarni
 {
 	TMap<FName, TObjectPtr<UTexture2D>> PortraitsMap = GetPortraitsMap();
 	
-	FGameplayTagContainer ProjectMoodKeys = UYapProjectSettings::GetMoodTags();
+	FGameplayTagContainer ProjectMoodTags = UYapProjectSettings::GetMoodTags();
 
-	if (PortraitsMap.Num() != ProjectMoodKeys.Num())
+	if (PortraitsMap.Num() != ProjectMoodTags.Num())
 	{
 		return EVisibility::Visible;
 	}
 
-	TSet<FName> ProjectMoodKeyNames;
-	TSet<FName> CharacterMoodKeysAsNames;
+	TSet<FName> ProjectMoodTagNames;
+	TSet<FName> CharacterMoodTagsAsNames;
 	
-	ProjectMoodKeyNames.Reserve(ProjectMoodKeys.Num());
+	ProjectMoodTagNames.Reserve(ProjectMoodTags.Num());
 	
-	for (const FGameplayTag& Tag : ProjectMoodKeys)
+	for (const FGameplayTag& Tag : ProjectMoodTags)
 	{
-		ProjectMoodKeyNames.Add(Tag.GetTagName());
+		ProjectMoodTagNames.Add(Tag.GetTagName());
 	}
 
-	for (const FName& Name : ProjectMoodKeyNames)
+	for (const FName& Name : ProjectMoodTagNames)
 	{
 		if (!PortraitsMap.Contains(Name))
 		{
@@ -153,7 +153,7 @@ FText FDetailCustomization_YapCharacter::Text_PortraitsListHint() const
 	return UYapProjectSettings::GetMoodTags().Num() == 0 ? LOCTEXT("CharacterPortraits_MoodTagsEmpty_Info_1", "You need to create mood tags. Go to ") : LOCTEXT("CharacterPortraits_MoodTags_Info_1", "To edit portrait mood tags, go to ");
 }
 
-void FDetailCustomization_YapCharacter::OnClicked_RefreshMoodKeysButton() const
+void FDetailCustomization_YapCharacter::OnClicked_RefreshMoodTagsButton() const
 {
 	check(CharacterBeingCustomized.IsValid())
 	{

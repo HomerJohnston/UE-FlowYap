@@ -854,7 +854,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 						.WidthOverride(22)
 						.HeightOverride(22)
 						[
-							CreateMoodKeySelectorWidget()
+							CreateMoodTagSelectorWidget()
 						]
 					]
 				]
@@ -2006,7 +2006,7 @@ FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
 	
 	if (Image_SpeakerImage() == nullptr)
 	{
-		TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodKey());
+		TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodTag());
 		
 		FText CharacterName = Bit.GetSpeakerAsset().IsValid() ? Bit.GetSpeakerAsset().Get()->GetEntityName() : LOCTEXT("Unloaded", "Unloaded");
 		
@@ -2045,7 +2045,7 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_SpeakerWidget() const
 		return LOCTEXT("SpeakerUnset_Label","Speaker Unset");
 	}
 	
-	TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodKey());
+	TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(Bit.GetMoodTag());
 	
 	FText CharacterName = Bit.GetSpeakerAsset().IsValid() ? Bit.GetSpeakerAsset().Get()->GetEntityName() : LOCTEXT("Unloaded", "Unloaded");
 	
@@ -2241,7 +2241,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().Speaker, GetBit().GetMoodKey());
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().Speaker, GetBit().GetMoodTag());
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -2255,7 +2255,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodKey());
+	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodTag());
 	
 	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
@@ -2279,9 +2279,9 @@ FString SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect() const
 	return Asset.ToString();
 }
 
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector() const
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodTagSelector() const
 {
-	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetBit().GetMoodKey());
+	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetBit().GetMoodTag());
 
 	if (TagNode.IsValid())
 	{
@@ -2291,9 +2291,9 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector() const
 	return LOCTEXT("Default", "Default");
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodKeySelectorWidget() const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWidget() const
 {
-	if (GetBit().GetMoodKey() == FGameplayTag::EmptyTag)
+	if (GetBit().GetMoodTag() == FGameplayTag::EmptyTag)
 	{
 		return YapColor::DarkGray;
 	}
@@ -3077,34 +3077,34 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 }
 
 // ================================================================================================
-// MOOD KEY SELECTOR WIDGET
+// MOOD TAG SELECTOR WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidget()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidget()
 {
-	FGameplayTag SelectedMoodKey = GetCurrentMoodKey();
+	FGameplayTag SelectedMoodTag = GetCurrentMoodTag();
 
 	TSharedRef<SUniformWrapPanel> MoodTagSelectorPanel = SNew(SUniformWrapPanel)
 		.NumColumnsOverride(4); // TODO use maff
 
 	MoodTagSelectorPanel->AddSlot()
 	[
-		CreateMoodKeyMenuEntryWidget(FGameplayTag::EmptyTag, SelectedMoodKey == FGameplayTag::EmptyTag)
+		CreateMoodTagMenuEntryWidget(FGameplayTag::EmptyTag, SelectedMoodTag == FGameplayTag::EmptyTag)
 	];
 	
-	for (const FGameplayTag& MoodKey : UYapProjectSettings::GetMoodTags())
+	for (const FGameplayTag& MoodTag : UYapProjectSettings::GetMoodTags())
 	{
-		if (!MoodKey.IsValid())
+		if (!MoodTag.IsValid())
 		{
 			UE_LOG(LogYap, Warning, TEXT("Warning: Portrait keys contains an invalid entry. Clean this up!"));
 			continue;
 		}
 		
-		bool bSelected = MoodKey == SelectedMoodKey;
+		bool bSelected = MoodTag == SelectedMoodTag;
 		
 		MoodTagSelectorPanel->AddSlot()
 		[
-			CreateMoodKeyMenuEntryWidget(MoodKey, bSelected)
+			CreateMoodTagMenuEntryWidget(MoodTag, bSelected)
 		];
 	}
 
@@ -3118,14 +3118,14 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidge
 		//.ButtonColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.5f)))
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.OnMenuOpenChanged(this, &SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodKeySelector)
-		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodKeySelector)
-		.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodKeySelectorWidget)
+		.OnMenuOpenChanged(this, &SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodTagSelector)
+		.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodTagSelector)
+		.ForegroundColor(this, &SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWidget)
 		.ButtonContent()
 		[
 			SNew(SImage)
 			.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector)
+			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_MoodTagSelector)
 		]
 		.MenuContent()
 		[
@@ -3133,39 +3133,39 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeySelectorWidge
 		];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MoodKeySelector() const
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MoodTagSelector() const
 {
-	return IsHovered() || MoodKeySelectorMenuOpen ? EVisibility::Visible : EVisibility::Collapsed;
+	return IsHovered() || MoodTagSelectorMenuOpen ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-void SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodKeySelector(bool bMenuOpen)
+void SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodTagSelector(bool bMenuOpen)
 {
-	MoodKeySelectorMenuOpen = bMenuOpen;
+	MoodTagSelectorMenuOpen = bMenuOpen;
 }
 
-const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodKeySelector() const
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodTagSelector() const
 {
-	return GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodKeyBrush(GetCurrentMoodKey());
+	return GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodTagBrush(GetCurrentMoodTag());
 }
 
-FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodKey() const
+FGameplayTag SFlowGraphNode_YapFragmentWidget::GetCurrentMoodTag() const
 {
-	return GetBit().GetMoodKey();
+	return GetBit().GetMoodTag();
 }
 
 // ================================================================================================
-// MOOD KEY MENU ENTRY WIDGET
+// MOOD TAG MENU ENTRY WIDGET
 // ------------------------------------------------------------------------------------------------
 
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidget(FGameplayTag MoodKey, bool bSelected, const FText& InLabel, FName InTextStyle)
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagMenuEntryWidget(FGameplayTag MoodTag, bool bSelected, const FText& InLabel, FName InTextStyle)
 {
 	TSharedPtr<SHorizontalBox> HBox = SNew(SHorizontalBox);
 
 	TSharedPtr<SImage> PortraitIconImage;
 		
-	TSharedPtr<FSlateImageBrush> MoodKeyBrush = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodKeyIcon(MoodKey);
+	TSharedPtr<FSlateImageBrush> MoodTagBrush = GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetMoodTagIcon(MoodTag);
 	
-	if (MoodKey.IsValid())
+	if (MoodTag.IsValid())
 	{
 		HBox->AddSlot()
 		.AutoWidth()
@@ -3175,15 +3175,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 		[
 			SAssignNew(PortraitIconImage, SImage)
 			.ColorAndOpacity(FSlateColor::UseForeground())
-			.Image(MoodKeyBrush.Get())
+			.Image(MoodTagBrush.Get())
 		];
 	}
 
 	FText ToolTipText;
 	
-	if (MoodKey.IsValid())
+	if (MoodTag.IsValid())
 	{
-		TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(MoodKey);
+		TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(MoodTag);
 		ToolTipText = FText::FromName(TagNode->GetSimpleTagName());
 	}
 	else
@@ -3196,7 +3196,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 	.ContentPadding(FMargin(4, 4))
 	.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 	.ClickMethod(EButtonClickMethod::MouseDown)
-	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry, MoodKey)
+	.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_MoodTagMenuEntry, MoodTag)
 	.ToolTipText(ToolTipText)
 	[
 		SNew(SOverlay)
@@ -3204,9 +3204,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 		.Padding(-3)
 		[
 			SNew(SBorder)
-			.Visibility_Lambda([this, MoodKey]()
+			.Visibility_Lambda([this, MoodTag]()
 			{
-				if (GetBit().GetMoodKey() == MoodKey)
+				if (GetBit().GetMoodTag() == MoodTag)
 				{
 					return EVisibility::Visible;
 				}
@@ -3220,16 +3220,16 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodKeyMenuEntryWidg
 		[
 			SAssignNew(PortraitIconImage, SImage)
 			.ColorAndOpacity(FSlateColor::UseForeground())
-			.Image(MoodKeyBrush.Get())
+			.Image(MoodTagBrush.Get())
 		]
 	];
 }
 
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_MoodKeyMenuEntry(FGameplayTag NewValue)
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_MoodTagMenuEntry(FGameplayTag NewValue)
 {	
-	FYapTransactions::BeginModify(LOCTEXT("NodeMoodKeyChanged", "Portrait Key Changed"), GetDialogueNode());
+	FYapTransactions::BeginModify(LOCTEXT("NodeMoodTagChanged", "Portrait Key Changed"), GetDialogueNode());
 
-	GetBit().SetMoodKey(NewValue);
+	GetBit().SetMoodTag(NewValue);
 
 	FYapTransactions::EndModify();
 

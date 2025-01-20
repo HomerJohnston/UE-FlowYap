@@ -45,33 +45,33 @@ void UYapCharacter::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 // TODO I need validation code to check if the character's portrait keys array matches the project or not to throw warnings during packaging?
 void UYapCharacter::RefreshPortraitList()
 {
-	FGameplayTagContainer MoodKeys = UYapProjectSettings::GetMoodTags();
+	FGameplayTagContainer MoodTags = UYapProjectSettings::GetMoodTags();
 
-	TSet<FName> MoodKeysAsNames;
-	TSet<FName> CharacterMoodKeysAsNames;
+	TSet<FName> MoodTagsAsNames;
+	TSet<FName> CharacterMoodTagsAsNames;
 
-	for (const FGameplayTag& Tag : MoodKeys)
+	for (const FGameplayTag& Tag : MoodTags)
 	{
-		MoodKeysAsNames.Add(Tag.GetTagName());
+		MoodTagsAsNames.Add(Tag.GetTagName());
 	}
 	
 	// Iterate through all existing keys. Remove any which are no longer in use.
 	for (auto It = Portraits.CreateIterator(); It; ++It)
 	{
-		FName MoodKey = It.Key();
+		FName MoodTag = It.Key();
 		
-		if (!MoodKeysAsNames.Contains(MoodKey))
+		if (!MoodTagsAsNames.Contains(MoodTag))
 		{
 			It.RemoveCurrent();
 		}
 	}
 
 	// Iterate through all project keys. Add any which are missing.
-	for (FName MoodKey : MoodKeysAsNames)
+	for (FName MoodTag : MoodTagsAsNames)
 	{
-		if (!Portraits.Contains(MoodKey))
+		if (!Portraits.Contains(MoodTag))
 		{
-			Portraits.Add(MoodKey, nullptr);
+			Portraits.Add(MoodTag, nullptr);
 		}
 	}
 

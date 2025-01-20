@@ -32,8 +32,8 @@ struct FYapBrushes
 
 	FName Icon_LocalLimit;
 
-	FName Icon_MoodKey_Missing;
-	FName Icon_MoodKey_None;
+	FName Icon_MoodTag_Missing;
+	FName Icon_MoodTag_None;
 	FName Icon_Speaker;
 	FName Icon_Tag;
 	FName Icon_TextTime;

@@ -68,9 +68,9 @@ protected:
 	void BuildIcon(const FGameplayTag& MoodTag);
 
 public:
-	TSharedPtr<FSlateImageBrush> GetMoodKeyIcon(FGameplayTag MoodTag);
+	TSharedPtr<FSlateImageBrush> GetMoodTagIcon(FGameplayTag MoodTag);
 
-	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
+	const FSlateBrush* GetMoodTagBrush(FGameplayTag Name);
 
 	static const FSlateBrush* GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
 
@@ -87,7 +87,7 @@ public:
 
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& String) const;
 
-	bool IsMoodKeyProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const;
+	bool IsMoodTagProperty(TSharedPtr<IPropertyHandle> PropertyHandle) const;
 
 public:
 	static bool bLiveCodingInProgress;

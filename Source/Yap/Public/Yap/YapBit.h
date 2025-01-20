@@ -65,7 +65,7 @@ protected:
 
 	/**  */
 	UPROPERTY()
-	FGameplayTag MoodKey;
+	FGameplayTag MoodTag;
 		
 	/**  */
 	UPROPERTY()
@@ -148,7 +148,7 @@ public:
 
 	bool HasAudioAsset() { return !MatureAudioAsset.IsNull(); }
 
-	FGameplayTag GetMoodKey() const { return MoodKey; }
+	FGameplayTag GetMoodTag() const { return MoodTag; }
 
 	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetSkippable(const UFlowNode_YapDialogue* Owner) const;
@@ -191,7 +191,7 @@ public:
 	
 	void SetSafeDialogueAudioAsset(UObject* NewAudio);
 	
-	void SetMoodKey(const FGameplayTag& NewValue) { MoodKey = NewValue; };
+	void SetMoodTag(const FGameplayTag& NewValue) { MoodTag = NewValue; };
 
 	EYapTimeMode GetBitTimeMode() const { return TimeMode; }
 

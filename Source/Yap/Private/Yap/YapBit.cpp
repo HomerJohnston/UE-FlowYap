@@ -216,7 +216,7 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(SafeDialogueText);
 	FLOWYAP_REPLACE(MatureAudioAsset);
 	FLOWYAP_REPLACE(SafeAudioAsset);
-	FLOWYAP_REPLACE(MoodKey);
+	FLOWYAP_REPLACE(MoodTag);
 	FLOWYAP_REPLACE(TimeMode);
 	FLOWYAP_REPLACE(ManualTime);
 	FLOWYAP_REPLACE(CachedMatureWordCount);

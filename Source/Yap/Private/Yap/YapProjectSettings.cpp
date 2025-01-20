@@ -55,7 +55,7 @@ UYapProjectSettings::UYapProjectSettings()
 }
 
 #if WITH_EDITOR
-FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileExtension)
+FString UYapProjectSettings::GetMoodTagIconPath(FGameplayTag Key, FString FileExtension)
 {
 	int32 Index;
 
@@ -70,7 +70,7 @@ FString UYapProjectSettings::GetMoodKeyIconPath(FGameplayTag Key, FString FileEx
 	{		
 		static FString ResourcesDir = Yap::GetPluginFolder();
 		
-		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodKeys/{0}.{1}"), { KeyString, FileExtension });
+		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodTags/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
@@ -122,7 +122,7 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 #endif
 
 #if WITH_EDITOR
-const FString& UYapProjectSettings::GetMoodKeyIconPath()
+const FString& UYapProjectSettings::GetMoodTagIconPath()
 {
 	static FString CachedPath;
 
@@ -131,7 +131,7 @@ const FString& UYapProjectSettings::GetMoodKeyIconPath()
 	{
 		if (Get().MoodTagIconPath.Path == "")
 		{
-			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodKeys");
+			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodTags");
 		}
 		else
 		{
