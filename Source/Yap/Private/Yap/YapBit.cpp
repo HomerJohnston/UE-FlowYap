@@ -73,34 +73,6 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 	}
 }
 
-/* // TODO remove
-#if WITH_EDITOR
-const FSlateBrush& FYapBit::GetSpeakerPortraitBrush() const
-{
-	const UYapCharacter* Char = GetSpeaker(EYapWarnings::Ignore);
-
-	if (IsValid(Char))
-	{
-		return Char->GetPortraitBrush(MoodKey);
-	}
-
-	return UYapProjectSettings::GetMissingPortraitBrush();
-}
-
-const FSlateBrush& FYapBit::GetDirectedAtPortraitBrush() const
-{
-	const UYapCharacter* Char = GetDirectedAt();
-
-	if (IsValid(Char))
-	{
-		return Char->GetPortraitBrush(FGameplayTag::EmptyTag);
-	}
-
-	return UYapProjectSettings::GetMissingPortraitBrush();
-}
-#endif
-*/
-
 bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 {
 	// If no time mode is set, we MUST be skippable no matter what

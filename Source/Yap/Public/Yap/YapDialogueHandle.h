@@ -21,22 +21,35 @@ public:
 
 	FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable);
 
-	UPROPERTY(Transient)
+private:
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<const UFlowNode_YapDialogue> DialogueNode = nullptr;
 
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	uint8 FragmentIndex = 0;
 
-	UPROPERTY(BlueprintReadOnly, Transient)
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess, IgnoreForMemberInitializationTest))
+	FGuid Guid;
+	
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	bool bSkippable = true;
 
+public:
+	const UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
+
+	uint8 GetFragmentIndex() const { return FragmentIndex; }
+
+	const FGuid& GetGuid() const { return Guid; }
+
+	bool GetSkippable() const { return bSkippable; }
+	
 	bool operator==(const FYapDialogueHandle& Other) const
 	{
-		return DialogueNode == Other.DialogueNode && FragmentIndex == Other.FragmentIndex;
+		return Guid == Other.Guid;
 	}
 };
 
 FORCEINLINE uint32 GetTypeHash(const FYapDialogueHandle& Struct)
 {
-	return HashCombine(GetTypeHash(Struct.DialogueNode), GetTypeHash(Struct.FragmentIndex));
+	return GetTypeHash(Struct.GetGuid());
 }

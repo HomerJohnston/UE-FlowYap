@@ -9,7 +9,6 @@
 
 enum class EYapMaturitySetting : uint8;
 class UYapCharacter;
-struct FYapDialogueHandle;
 struct FYapPromptHandle;
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -67,7 +66,7 @@ protected:
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
 	* Use this to do any desired initialization, such as creating a Dialogue UI instance if you aren't creating one already elsewhere. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Initialize")
-	EYapMaturitySetting K2_Initialize() const;
+	void K2_Initialize() const;
 	
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */

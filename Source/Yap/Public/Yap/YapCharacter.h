@@ -33,7 +33,7 @@ protected:
 public:
 	const TMap<FName, TObjectPtr<UTexture2D>>& GetPortraits() const;
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION(BlueprintCallable)
 	const UTexture2D* GetPortraitTexture(const FGameplayTag& MoodTag) const;
 	
 #if WITH_EDITOR
@@ -42,14 +42,7 @@ public:
 
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	//const TMap<FName, FSlateBrush>& GetPortraitBrushes();
-
 	void RefreshPortraitList();
-
-	/*
-private:
-	void RebuildPortraitBrushes();
-	*/
 #endif
 
 };

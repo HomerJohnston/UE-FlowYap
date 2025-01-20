@@ -146,12 +146,6 @@ public:
 	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 
-	/* // TODO Remove
-	const FSlateBrush& GetSpeakerPortraitBrush() const;
-
-	const FSlateBrush& GetDirectedAtPortraitBrush() const;
-	*/
-
 	bool HasAudioAsset() { return !MatureAudioAsset.IsNull(); }
 
 	FGameplayTag GetMoodKey() const { return MoodKey; }

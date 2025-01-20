@@ -246,7 +246,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 
 	bool bSkippable = Bit.GetSkippable(DialogueNode);
 
-	FYapDialogueHandle DialogueHandle(DialogueNode, FragmentIndex, bSkippable);
+	FYapDialogueHandle& DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
@@ -277,7 +277,7 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	FYapDialogueHandle DialogueHandle(OwnerDialogue, FragmentIndex, false);
+	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
 
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>
 		(ConversationName, DialogueHandle);

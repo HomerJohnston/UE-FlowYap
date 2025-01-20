@@ -6,6 +6,7 @@
 #include "YapCharacterComponent.h"
 #include "YapBroker.h"
 #include "Enums/YapMaturitySetting.h"
+#include "Yap/YapDialogueHandle.h"
 #include "Yap/YapBitReplacement.h"
 
 #include "YapSubsystem.generated.h"
@@ -137,9 +138,9 @@ protected:
 	UPROPERTY(Transient)
 	TSubclassOf<UObject> BrokerClass;
 
-	// TODO running dialog interruption
-	//UPROPERTY(Transient)
-	//TMap<FYapDialogueHandle, 
+	// Running dialogue instances. Since only one fragment of a dialogue node can be running at any time, we don't need handles to map to individual fragments.
+	UPROPERTY(Transient)
+	TMap<TObjectPtr<UFlowNode_YapDialogue>, FYapDialogueHandle> DialogueHandles;
 
 	static bool bGetGameMaturitySettingWarningIssued;
 	

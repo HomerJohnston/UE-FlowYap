@@ -53,12 +53,12 @@ protected:
 	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Prompt Option Added")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
 	void K2_AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 	virtual void K2_AddPlayerPrompt_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Prompt Options All Added")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
 	void K2_AfterPlayerPromptsAdded(const FGameplayTag& Conversation);
 	virtual void K2_AfterPlayerPromptsAdded_Implementation(const FGameplayTag& Conversation);
 
@@ -101,3 +101,4 @@ public:
 
 	// TODO should I have an "on player prompt selected" event?
 };
+

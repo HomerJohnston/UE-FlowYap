@@ -10,6 +10,8 @@ FYapDialogueHandle::FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNo
 	DialogueNode = InDialogueNode;
 	FragmentIndex = InFragmentIndex;
 	bSkippable = bInSkippable;
+
+	Guid = FGuid::NewGuid();
 }
 
 #undef LOCTEXT_NAMESPACE

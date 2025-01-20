@@ -27,24 +27,6 @@ const UTexture2D* UYapCharacter::GetPortraitTexture(const FGameplayTag& MoodTag)
 	return TexturePtr ? *TexturePtr : nullptr;
 }
 
-/*
-const FSlateBrush& UYapCharacter::GetPortraitBrush(const FGameplayTag& MoodKey) const
-{
-	FGameplayTag MoodKeyToUse = MoodKey.IsValid() ? MoodKey : UYapProjectSettings::GetDefaultMoodTag();
-	
-	FName MoodKeyAsName = MoodKeyToUse.GetTagName();
-	
-	const FSlateBrush* Brush = PortraitBrushes.Find(MoodKeyAsName);
-
-	if (Brush)
-	{
-		return *Brush;
-	}
-
-	return UYapProjectSettings::GetMissingPortraitBrush();
-}
-*/
-
 #if WITH_EDITOR
 void UYapCharacter::PostLoad()
 {
@@ -97,40 +79,5 @@ void UYapCharacter::RefreshPortraitList()
 	Portraits.KeySort(FNameLexicalLess());
 }
 #endif
-
-/* // TODO remove
-#if WITH_EDITOR
-void UYapCharacter::RebuildPortraitBrushes()
-{
-	PortraitBrushes.Empty(Portraits.Num());
-	
-	for (const TPair<FName, TObjectPtr<UTexture2D>>& PortraitsKVP : Portraits)
-	{
-		FName MoodKeyAsName = PortraitsKVP.Key;
-
-		UTexture2D* Portrait = PortraitsKVP.Value;
-
-		FSlateBrush PortraitBrush;
-		PortraitBrush.ImageSize = FVector2D(64,64);
-		
-		if (Portrait)
-		{
-			PortraitBrush.SetResourceObject(Portrait);
-			//PortraitBrush.SetUVRegion(FBox2D(FVector2D(0.125,0), FVector2D(0.875,1)));
-			PortraitBrush.SetUVRegion(FBox2D(FVector2D(0,0), FVector2D(1,1)));
-			PortraitBrush.DrawAs = ESlateBrushDrawType::Box;
-			PortraitBrush.Margin = 0;
-		}
-		else
-		{
-			// TODO
-			PortraitBrush.TintColor = FLinearColor::Transparent;
-		}
-
-		PortraitBrushes.Add(MoodKeyAsName, PortraitBrush);
-	}
-}
-#endif
-*/
 
 #undef LOCTEXT_NAMESPACE
