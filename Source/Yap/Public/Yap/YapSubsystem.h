@@ -194,6 +194,9 @@ protected:
 	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
 
 	/**  */
+	void BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
+	
+	/**  */
 	UFUNCTION(BlueprintCallable)
 	void RunPrompt(const FYapPromptHandle& Handle);
 

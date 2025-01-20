@@ -49,8 +49,13 @@ protected:
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Ends")
-	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
-	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
+	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime);
+	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime);
+
+	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Parent when overriding. */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Padding Time Over")
+	void K2_OnPaddingTimeOver(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
+	virtual void K2_OnPaddingTimeOver_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
@@ -82,9 +87,15 @@ public:
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
-	virtual void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+	virtual void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime)
 	{
-		K2_OnDialogueEnds(Conversation, DialogueHandle);
+		K2_OnDialogueEnds(Conversation, DialogueHandle, PaddingTime);
+	}
+
+	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Super when overriding. */
+	virtual void OnPaddingTimeOver(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+	{
+		K2_OnPaddingTimeOver(Conversation, DialogueHandle);
 	}
 	
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Super when overriding. */

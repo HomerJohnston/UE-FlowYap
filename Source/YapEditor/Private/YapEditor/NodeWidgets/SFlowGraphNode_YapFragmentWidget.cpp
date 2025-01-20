@@ -1210,6 +1210,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 					.Padding(2, 2, 2, 2)
 					[
 						SNew(STextBlock)
+						.AutoWrapText(UYapProjectSettings::GetWrapDialogueText())
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
 						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::White, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)

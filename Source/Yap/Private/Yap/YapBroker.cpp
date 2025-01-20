@@ -175,9 +175,26 @@ float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 #if WITH_EDITOR
 bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 {
-	bool bShowUnimplementedWarning = true; // TODO true if audio classes aren't set to default unreal classes, false otherwise?
-	
-	return YAP_CALL_K2(PreviewAudioAsset, bShowUnimplementedWarning, AudioAsset);
+	if (UYapProjectSettings::HasCustomAudioAssetClasses())
+	{
+		bool bShowUnimplementedWarning = true; // TODO true if audio classes aren't set to default unreal classes, false otherwise?
+		return YAP_CALL_K2(PreviewAudioAsset, bShowUnimplementedWarning, AudioAsset);
+	}
+	else
+	{
+		// ------------------------------------------
+		// Default Implementation
+		if (const USoundBase* AudioAssetAsSoundBase = Cast<USoundBase>(AudioAsset))
+		{
+			GEditor->PlayPreviewSound(const_cast<USoundBase*>(AudioAssetAsSoundBase));
+		}
+		else
+		{
+			UE_LOG(LogYap, Warning, TEXT("Sound was null"));
+		}
+	}
+
+	return false;
 }
 #endif
 

@@ -25,7 +25,7 @@ void IYapConversationHandler::K2_OnDialogueBegins_Implementation(const FGameplay
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+void IYapConversationHandler::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }

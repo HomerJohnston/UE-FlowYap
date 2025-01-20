@@ -186,6 +186,11 @@ protected:
 	/** Controls the length of the time progress line on the dialogue widget (right side, for delay to next action). */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 60.0, UIMin = 0.0, UIMax = 10.0, Delta = 0.01))
 	float PaddingTimeSliderMax = 2.0f;
+
+	/** If set, dialogue in the nodes will cut off to the right. This may help if you intend to use lots of multi-line dialogue text. */
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
+	bool bPreventDialogueTextWrapping = true;
+	
 #endif
 
 	UPROPERTY(Transient)
@@ -286,11 +291,12 @@ public:
 
 	static int32 GetPortraitSize() { return Get().PortraitSize; }
 
-
 	static float GetDialogueTimeSliderMax() { return Get().DialogueTimeSliderMax; }
 
 	static float GetFragmentPaddingSliderMax() { return Get().PaddingTimeSliderMax; }
 
+	static bool GetWrapDialogueText() { return Get().bPreventDialogueTextWrapping; }
+	
 	static bool ShowPinEnableButtons()  { return !Get().bHidePinEnableButtons; }
 	
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);

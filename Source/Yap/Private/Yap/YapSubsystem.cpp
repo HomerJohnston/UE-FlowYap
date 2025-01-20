@@ -279,7 +279,24 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 
 	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
 
+	const FYapFragment& Fragment = OwnerDialogue->GetFragmentByIndex(FragmentIndex);
+	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>
+		(ConversationName, DialogueHandle, Fragment.GetPaddingToNextFragment());
+}
+
+void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
+{
+	FGameplayTag ConversationName;
+
+	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
+	{
+		ConversationName = ActiveConversation.Conversation.GetValue();
+	}
+
+	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>
 		(ConversationName, DialogueHandle);
 }
 

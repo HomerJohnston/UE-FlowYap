@@ -304,7 +304,6 @@ void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
 #endif
 }
 
-
 void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 {
 #if WITH_EDITOR
@@ -312,6 +311,8 @@ void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
 	RunningFragment = nullptr;
 #endif
 
+	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPaddingTimeOver(this, FragmentIndex);
+	
 	if (IsPlayerPrompt())
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
