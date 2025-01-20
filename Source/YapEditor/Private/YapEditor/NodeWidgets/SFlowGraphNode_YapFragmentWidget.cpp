@@ -2241,7 +2241,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().Speaker, GetBit().GetMoodTag());
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodTag());
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
