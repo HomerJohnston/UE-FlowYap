@@ -124,11 +124,6 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 	}
 }
 
-void UFlowNode_YapDialogue::OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
-{
-	Bit->OnCharacterLoadComplete(CharacterAsset, Character);
-}
-
 bool UFlowNode_YapDialogue::UsesTitleText() const
 {
 	return IsPlayerPrompt() || UYapProjectSettings::GetShowTitleTextOnTalkNodes();

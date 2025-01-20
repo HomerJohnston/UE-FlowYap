@@ -106,7 +106,6 @@ protected:
 	// TODO I should have a queue system???... otherwise I'll have odd race conditions on multiple conversation requests
 	//UPROPERTY(Transient)
 	//TArray<FName> ConversationQueue;
-
 	
 	/**  */
 	UPROPERTY(Transient)
@@ -164,7 +163,7 @@ public:
 	static UYapBroker* GetBroker();
 	
 	static EYapMaturitySetting GetGameMaturitySetting();
-	
+
 	// ------------------------------------------
 	// YAP API - These are called by Yap classes
 public:

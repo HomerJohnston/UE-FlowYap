@@ -16,6 +16,8 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "Engine/Texture2D.h"
 #include "Yap/YapGlobals.h"
+#include "Yap/YapSubsystem.h"
+#include "YapEditor/YapDeveloperSettings.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -103,9 +105,15 @@ const FSlateBrush* UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapChar
 	
 	const UTexture2D* Texture = Character->GetPortraitTexture(MoodTag);
 
+	// Load the default missing portrait
 	if (!IsValid(Texture))
 	{
-		Texture = UYapProjectSettings::GetMissingPortraitTexture();
+		if (!IsValid(Get()->MissingPortraitTexture))
+		{
+			Get()->MissingPortraitTexture = UYapProjectSettings::GetMissingPortraitTextureAsset().LoadSynchronous();
+		}
+
+		Texture = Get()->MissingPortraitTexture;
 	}
 	
 	FSlateBrush* PortraitBrush = Get()->CharacterPortraitBrushes.Find(Texture);
@@ -216,22 +224,25 @@ void UYapEditorSubsystem::UpdateLiveCodingState(bool bNewState)
 
 	bLiveCodingInProgress = bNewState;
 
-	UAssetEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
-
-	if (bLiveCodingInProgress)
+	if (UYapDeveloperSettings::GetCloseAndReopenAssetsOnLiveCoding())
 	{
-		TArray<UObject*> OpenedAssetsTemp = Subsystem->GetAllEditedAssets();
+		UAssetEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
 
-		for (UObject* Obj : OpenedAssetsTemp)
+		if (bLiveCodingInProgress)
 		{
-			OpenedAssets.Add(Obj);
-		}
+			TArray<UObject*> OpenedAssetsTemp = Subsystem->GetAllEditedAssets();
+
+			for (UObject* Obj : OpenedAssetsTemp)
+			{
+				OpenedAssets.Add(Obj);
+			}
 		
-		Subsystem->CloseAllAssetEditors();
-	}
-	else
-	{
-		GEditor->GetTimerManager()->SetTimerForNextTick(this, &UYapEditorSubsystem::ReOpenAssets);
+			Subsystem->CloseAllAssetEditors();
+		}
+		else
+		{
+			GEditor->GetTimerManager()->SetTimerForNextTick(this, &UYapEditorSubsystem::ReOpenAssets);
+		}
 	}
 }
 
@@ -290,7 +301,10 @@ TStatId UYapEditorSubsystem::UYapEditorSubsystem::GetStatId() const
 
 void UYapEditorSubsystem::OnPatchComplete()
 {
-	ReOpenAssets();
+	if (UYapDeveloperSettings::GetCloseAndReopenAssetsOnLiveCoding())
+	{
+		ReOpenAssets();
+	}
 	
 	bLiveCodingInProgress = false;
 }

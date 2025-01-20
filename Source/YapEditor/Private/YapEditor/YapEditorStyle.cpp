@@ -11,6 +11,7 @@
 #include "Styling/SlateStyleMacros.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "YapEditor/YapColors.h"
+#include "YapEditor/YapDeveloperSettings.h"
 
 TArray<TStrongObjectPtr<UTexture2D>> FYapEditorStyle::Textures;
 
@@ -81,11 +82,12 @@ FYapEditorStyle::~FYapEditorStyle()
 #if WITH_LIVE_CODING
 void FYapEditorStyle::OnPatchComplete()
 {
-#if 1
-	FSlateStyleRegistry::UnRegisterSlateStyle(*this);
-	Initialize();
-	FSlateStyleRegistry::RegisterSlateStyle(*this);
-#endif
+	if (UYapDeveloperSettings::GetCloseAndReopenAssetsOnLiveCoding())
+	{
+		FSlateStyleRegistry::UnRegisterSlateStyle(*this);
+		Initialize();
+		FSlateStyleRegistry::RegisterSlateStyle(*this);
+	}
 }
 #endif
 

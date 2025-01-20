@@ -178,7 +178,7 @@ public:
 		{
 			if (bLogWarnings)
 			{
-				UE_LOG(LogYap, Error, TEXT("Unimplemented broker function: %s"), *FunctionName);
+				UE_LOG(LogYap, Error, TEXT("Unimplemented broker function: %s, using default implementation (you can suppress these warnings in project settings)"), *FunctionName);
 			}
 
 			bWarned = true;
@@ -187,30 +187,11 @@ public:
 		return TReturn{};
 	}
 
-	// const variant, exactly the same
+	// const variant, exactly the same. Just call the non-const variant.
 	template<auto TFunction, typename ...TArgs>
 	auto CallK2Function(FString FunctionName, TOptional<bool>& bImplemented, bool& bWarned, bool bLogWarnings, TArgs&&... Args) const -> typename TResolveFunctionReturn<decltype(TFunction), TArgs...>::Type
 	{
-		using TReturn = typename TResolveFunctionReturn<decltype(TFunction), TArgs...>::Type;
-		
-		check(bImplemented.IsSet());
-
-		if (bImplemented.GetValue())
-		{
-			return (this->*TFunction)(std::forward<TArgs>(Args)...);
-		}
-
-		if (!bWarned)
-		{
-			if (bLogWarnings)
-			{
-				UE_LOG(LogYap, Error, TEXT("Unimplemented broker function: %s"), *FunctionName);
-			}
-
-			bWarned = true;
-		}
-		
-		return TReturn{};
+		return (const_cast<UYapBroker*>(this))->CallK2Function<TFunction, TArgs...>(FunctionName, bImplemented, bWarned, bLogWarnings, Args...);
 	}
 };
 

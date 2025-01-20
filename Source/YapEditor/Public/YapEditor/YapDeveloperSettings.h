@@ -25,22 +25,27 @@ protected:
 	/** Controls how bright the portrait borders are in the graph. */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
 	float PortraitBorderAlpha = 1.0f;
-	
-	//UPROPERTY(Config, EditAnywhere, Category = "Other")
-	//UTexture2D* CharacterAsset
+
+	/** This is for internal development only. This helps to reduce crashes from reloading slate styles after live coding. */
+	UPROPERTY(Config, EditAnywhere, Category = "Development")
+	bool bCloseAndReopenAssetsOnLiveCoding = false;
+
 public:
 	static float GetConditionDetailsWidth() { return Get().ConditionDetailsWidth; }
 	
 	static float GetConditionDetailsHeight() { return Get().ConditionDetailsHeight; }
 
-public:
-	virtual FName GetCategoryName() const override { return FName("Yap"); }
+	static float GetPortraitBorderAlpha() { return Get().PortraitBorderAlpha; }
 
-	virtual FText GetSectionText() const override { return LOCTEXT("DeveloperSettings", "Developer Settings"); }
+	static bool GetCloseAndReopenAssetsOnLiveCoding() { return Get().bCloseAndReopenAssetsOnLiveCoding; }
+	
+public:
+	FName GetCategoryName() const override { return FName("Yap"); }
+
+	FText GetSectionText() const override { return LOCTEXT("DeveloperSettings", "Developer Settings"); }
 	
 	FText GetSectionDescription() const override { return LOCTEXT("YapDeveloperSettingsDescription", "Local user settings for Yap"); }
 	
-	static float GetPortraitBorderAlpha() { return Get().PortraitBorderAlpha; }
 };
 
 #undef LOCTEXT_NAMESPACE

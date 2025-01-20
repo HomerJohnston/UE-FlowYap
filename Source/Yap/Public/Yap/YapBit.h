@@ -163,8 +163,6 @@ public:
 	
 	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 	
-	void OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
-
 	bool NeedsChildSafeData() const { return bNeedsChildSafeData; };
 
 protected:
@@ -218,11 +216,12 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 	const TSoftObjectPtr<UObject>& PreferredAsset = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudioAsset : SafeAudioAsset;
 	const TSoftObjectPtr<UObject>& SecondaryAsset = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudioAsset : MatureAudioAsset;
 
+	// Asset is unset. Return nothing.
 	if (PreferredAsset.IsNull() && SecondaryAsset.IsNull())
 	{
 		return nullptr;
 	}
-		
+	
 	TObjectPtr<UObject>& PreferredAudio = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudio : SafeAudio; 
 	TObjectPtr<UObject>& SecondaryAudio = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudio : MatureAudio; 
 
@@ -231,7 +230,7 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 		return PreferredAsset.Get();
 	}
 
-	if (!PreferredAsset.IsNull())
+	if (PreferredAsset.IsPending())
 	{
 #if WITH_EDITOR
 		if (GEditor->PlayWorld)
@@ -240,10 +239,10 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 		}
 #endif
 		PreferredAudio = PreferredAsset.LoadSynchronous();
-		return  PreferredAudio;
+		return PreferredAudio;
 	}
 
-	// Don't allow falling back to child-safe data if it is 
+	// Don't allow falling back to child-safe data if it doesn't make sense to
 	if (MaturitySetting == EYapMaturitySetting::Mature && !bNeedsChildSafeData)
 	{
 		return nullptr;
@@ -254,12 +253,17 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 		return SecondaryAsset.Get();
 	}
 
-#if WITH_EDITOR
-	if (GEditor->PlayWorld)
+	if (SecondaryAsset.IsPending())
 	{
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
-	}
+#if WITH_EDITOR
+		if (GEditor->PlayWorld)
+		{
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
+		}
 #endif
-	SecondaryAudio = SecondaryAsset.LoadSynchronous();
-	return SecondaryAudio;
+		SecondaryAudio = SecondaryAsset.LoadSynchronous();
+		return SecondaryAudio;	
+	}
+
+	return nullptr;
 }

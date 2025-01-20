@@ -151,14 +151,15 @@ protected:
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
 #endif
 
-	/** If set, you will not be warned when Yap is falling back to default maturity settings. Turn this on if you  */
+	/** If set, you will not be warned when Yap is using default broker functions. Turn this on if you do not need to customize your broker. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bSuppressDefaultMatureWarning = false;
-	
+	bool bSuppressBrokerWarnings = false;
+
+	/** Fallback project maturity setting to use if the broker is not overridden to use another setting. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	EYapMaturitySetting DefaultMaturitySetting;
 
-	/**  */
+	/** Default texture to use for missing character portraits. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
 
@@ -190,12 +191,8 @@ protected:
 	/** If set, dialogue in the nodes will cut off to the right. This may help if you intend to use lots of multi-line dialogue text. */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
 	bool bPreventDialogueTextWrapping = true;
-	
 #endif
 
-	UPROPERTY(Transient)
-	TObjectPtr<UTexture2D> MissingPortraitTexture_Loaded; // TODO move this to the subsystem, I don't want my settings class to contain mutable state
-	
 	// ------------------------------------------
 	// UObject overrides
 #if WITH_EDITOR
@@ -232,7 +229,7 @@ public:
 	static FGameplayTagContainer GetMoodTags();
 #endif
 
-	static bool GetSuppressDefaultMatureWarning() { return Get().bSuppressDefaultMatureWarning; }
+	static bool GetSuppressBrokerWarnings() { return Get().bSuppressBrokerWarnings; }
 
 	static FGameplayTag GetDefaultMoodTag() { return Get().DefaultMoodTag; }
 	
@@ -281,7 +278,7 @@ public:
 	
 	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 
-	static const UTexture2D* GetMissingPortraitTexture();
+	static const TSoftObjectPtr<UTexture2D> GetMissingPortraitTextureAsset() { return Get().MissingPortraitTexture; };
 	
 #if WITH_EDITOR
 public:
@@ -295,7 +292,7 @@ public:
 
 	static float GetFragmentPaddingSliderMax() { return Get().PaddingTimeSliderMax; }
 
-	static bool GetWrapDialogueText() { return Get().bPreventDialogueTextWrapping; }
+	static bool GetWrapDialogueText() { return !Get().bPreventDialogueTextWrapping; }
 	
 	static bool ShowPinEnableButtons()  { return !Get().bHidePinEnableButtons; }
 	

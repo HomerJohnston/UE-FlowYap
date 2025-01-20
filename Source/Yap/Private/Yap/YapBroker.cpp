@@ -45,7 +45,7 @@ void UYapBroker::Initialize()
 
 EYapMaturitySetting UYapBroker::UseMatureDialogue() const
 {
-	bool bSuppressDefaultMatureWarning = !UYapProjectSettings::GetSuppressDefaultMatureWarning();
+	bool bSuppressDefaultMatureWarning = !UYapProjectSettings::GetSuppressBrokerWarnings();
 
 	return YAP_CALL_K2(UseMatureDialogue, bSuppressDefaultMatureWarning);
 }

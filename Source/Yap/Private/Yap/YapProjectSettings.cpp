@@ -121,21 +121,6 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 }
 #endif
 
-const UTexture2D* UYapProjectSettings::GetMissingPortraitTexture()
-{
-	UYapProjectSettings& Settings = Get();
-	
-	if (Settings.MissingPortraitTexture_Loaded && Settings.MissingPortraitTexture == Settings.MissingPortraitTexture_Loaded)
-	{
-		return Settings.MissingPortraitTexture_Loaded;
-	}
-
-	// TODO async loading
-	Settings.MissingPortraitTexture_Loaded = Settings.MissingPortraitTexture.LoadSynchronous();
-	
-	return Settings.MissingPortraitTexture_Loaded;
-}
-
 #if WITH_EDITOR
 const FString& UYapProjectSettings::GetMoodKeyIconPath()
 {

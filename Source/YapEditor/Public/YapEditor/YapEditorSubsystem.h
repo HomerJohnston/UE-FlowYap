@@ -55,6 +55,9 @@ protected:
 	FGameplayTagContainer CachedMoodTags;
 
 	bool bMoodTagsDirty;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTexture2D> MissingPortraitTexture;
 	
 public:
 	void UpdateMoodTagBrushesIfRequired();
@@ -70,7 +73,7 @@ public:
 	const FSlateBrush* GetMoodKeyBrush(FGameplayTag Name);
 
 	static const FSlateBrush* GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
-	
+
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 	

@@ -144,30 +144,21 @@ TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 	}
 }
 
+#define YAP_ASYNC_LOAD_AND_SET(ASSET, TARGET)\
+	if (!IsValid(TARGET) && ASSET.IsPending())\
+	{\
+		FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath(), FStreamableDelegate::CreateWeakLambda(OwningContext, [this] ()\
+		{\
+			TARGET = ASSET.Get();\
+		}));\
+	}
+
 void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 {
-	if (!IsValid(Speaker))
-	{
-		if (SpeakerAsset.IsPending())
-		{
-			FYapStreamableManager::Get().RequestAsyncLoad(SpeakerAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this, &SpeakerAsset, &Speaker));
-		}
-	}
-
-	if (!IsValid(DirectedAt))
-	{
-		if (DirectedAtAsset.IsPending())
-		{
-			FYapStreamableManager::Get().RequestAsyncLoad(DirectedAtAsset.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(OwningContext, &UFlowNode_YapDialogue::OnCharacterLoadComplete, this, &DirectedAtAsset, &DirectedAt));
-		}
-	}
-
-	// TODO preload audio assets
-}
-
-void FYapBit::OnCharacterLoadComplete(TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character)
-{
-	*Character = CharacterAsset->Get();
+	YAP_ASYNC_LOAD_AND_SET(SpeakerAsset, Speaker);
+	YAP_ASYNC_LOAD_AND_SET(DirectedAtAsset, DirectedAt);
+	YAP_ASYNC_LOAD_AND_SET(MatureAudioAsset, MatureAudio);
+	YAP_ASYNC_LOAD_AND_SET(SafeAudioAsset, SafeAudio);
 }
 
 // --------------------------------------------------------------------------------------------

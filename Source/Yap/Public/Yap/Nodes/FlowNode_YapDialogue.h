@@ -200,9 +200,6 @@ protected:
 
 	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;
 
-public:
-	void OnCharacterLoadComplete(FYapBit* Bit, TSoftObjectPtr<UYapCharacter>* CharacterAsset, TObjectPtr<UYapCharacter>* Character);
-	
 protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
 	
