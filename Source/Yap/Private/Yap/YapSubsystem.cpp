@@ -220,16 +220,26 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>
-		(ConversationName, Handle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting));				
+	FYapData_AddPlayerPrompt Data;
+	Data.Conversation = ConversationName;
+	Data.Handle = FYapPromptHandle(Dialogue, FragmentIndex);
+	Data.DirectedAt = Bit.GetDirectedAt();
+	Data.Speaker = Bit.GetSpeaker();
+	Data.MoodKey = Bit.GetMoodKey();
+	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
+	Data.TitleText = Bit.GetTitleText(MaturitySetting);
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>(Data);
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
 
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>
-		(ConversationName);
+	FYapData_AfterPlayerPromptsAdded Data;
+	Data.Conversation = ConversationName;
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>(Data);
 }
 
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex)
@@ -246,8 +256,6 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 
 	bool bSkippable = Bit.GetSkippable(DialogueNode);
 
-	FYapDialogueHandle& DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
-
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
 	TOptional<float> Time = Bit.GetTime();
@@ -263,9 +271,19 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 		EffectiveTime = UYapProjectSettings::GetMinimumFragmentTime();
 		UE_LOG(LogYap, Error, TEXT("Fragment failed to return a valid time! Dialogue: %s"), *Bit.GetDialogueText(MaturitySetting).ToString());
 	}
+
+	FYapData_OnDialogueBegins Data;
+	Data.Conversation = ConversationName;
+	Data.DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
+	Data.DirectedAt = Bit.GetDirectedAt();
+	Data.Speaker = Bit.GetSpeaker();
+	Data.MoodKey = Bit.GetMoodKey();
+	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
+	Data.TitleText = Bit.GetTitleText(MaturitySetting);
+	Data.DialogueTime = EffectiveTime;
+	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>(MaturitySetting);
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueBegins, &IYapConversationHandler::Execute_K2_OnDialogueBegins>
-		(ConversationName, DialogueHandle, Bit.GetDirectedAt(), Bit.GetSpeaker(), Bit.GetMoodKey(), Bit.GetDialogueText(MaturitySetting), Bit.GetTitleText(MaturitySetting), EffectiveTime, Bit.GetAudioAsset<UObject>(MaturitySetting));
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueBegins, &IYapConversationHandler::Execute_K2_OnDialogueBegins>(Data);
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -280,9 +298,13 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
 
 	const FYapFragment& Fragment = OwnerDialogue->GetFragmentByIndex(FragmentIndex);
+
+	FYapData_OnDialogueEnds Data;
+	Data.Conversation = ConversationName;
+	Data.DialogueHandle = DialogueHandle;
+	Data.PaddingTime = Fragment.GetPaddingToNextFragment();
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>
-		(ConversationName, DialogueHandle, Fragment.GetPaddingToNextFragment());
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>(Data);
 }
 
 void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -294,10 +316,11 @@ void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerD
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
+	FYapData_OnPaddingTimeOver Data;
+	Data.Conversation = ConversationName;
+	Data.DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>
-		(ConversationName, DialogueHandle);
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>(Data);
 }
 
 void UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
@@ -359,14 +382,18 @@ void UYapSubsystem::Deinitialize()
 
 void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationOpened, &IYapConversationHandler::Execute_K2_OnConversationOpened>
-		(ConversationName);
+	FYapData_OnConversationOpened Data;
+	Data.Conversation = ConversationName;
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationOpened, &IYapConversationHandler::Execute_K2_OnConversationOpened>(Data);
 }
 
 void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& ConversationName)
 {
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationClosed, &IYapConversationHandler::Execute_K2_OnConversationClosed>
-		(ConversationName);
+	FYapData_OnConversationClosed Data;
+	Data.Conversation = ConversationName;
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationClosed, &IYapConversationHandler::Execute_K2_OnConversationClosed>(Data);
 }
 
 bool UYapSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const

@@ -2,8 +2,9 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
+#include "GameplayTagContainer.h"
 
-struct FGameplayTag;
+class UYapCharacter;
 struct FYapPromptHandle;
 struct FYapDialogueHandle;
 struct FYapBit;
@@ -13,6 +14,167 @@ struct FYapBit;
 
 #include "IYapConversationHandler.generated.h"
 
+// We will pass data into the conversation handlers via structs.
+// This makes it easier for users to (optionally) build blueprint functions which accept the whole chunk of data in one pin.
+
+// ------------------------------------------------------------------------------------------------
+
+/** This could be passed directly. We're passing it within a struct so that if we ever decide to add more data to the event, existing blueprints remain working. */
+USTRUCT(BlueprintType, DisplayName = "Yap - Conversation Opened")
+struct FYapData_OnConversationOpened
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+/** This could be passed directly. We're passing it within a struct so that if we ever decide to add more data to the event, existing blueprints remain working. */
+USTRUCT(BlueprintType, DisplayName = "Yap - Conversation Closed")
+struct FYapData_OnConversationClosed
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap: Dialogue Begins")
+struct FYapData_OnDialogueBegins
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+	
+	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
+	UPROPERTY(BlueprintReadOnly)
+	FYapDialogueHandle DialogueHandle;
+
+	/** Who is being speaked towards. */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const UYapCharacter> DirectedAt;
+
+	/** Who is speaking. */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const UYapCharacter> Speaker;
+
+	/** Mood of the speaker. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag MoodKey;
+
+	/** Text being spoken. */
+	UPROPERTY(BlueprintReadOnly)
+	FText DialogueText;
+
+	/** Optional title text representing the dialogue. */
+	UPROPERTY(BlueprintReadOnly)
+	FText TitleText;
+	
+	/** How long this dialogue is expected to play for. */
+	UPROPERTY(BlueprintReadOnly)
+	float DialogueTime;
+
+	/** Audio asset, you are responsible to cast to your proper type to use. */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const UObject> DialogueAudioAsset;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap: Dialogue Ends")
+struct FYapData_OnDialogueEnds
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+
+	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
+	UPROPERTY(BlueprintReadOnly)
+	FYapDialogueHandle DialogueHandle;
+
+	/** How long it is expected to wait before moving on to the next fragment or Flow Graph node. */
+	UPROPERTY(BlueprintReadOnly)
+	float PaddingTime;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+struct FYapData_OnPaddingTimeOver
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+	
+	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
+	UPROPERTY(BlueprintReadOnly)FYapDialogueHandle DialogueHandle;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+struct FYapData_AddPlayerPrompt
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+
+	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
+	UPROPERTY(BlueprintReadOnly)
+	FYapPromptHandle Handle;
+
+	/** Who will be spoken to. */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const UYapCharacter> DirectedAt;
+
+	/** Who is going to speak. */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<const UYapCharacter> Speaker;
+
+	/** Mood of the speaker. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag MoodKey;
+	 
+	/** Text that will be spoken. */
+	UPROPERTY(BlueprintReadOnly)
+	FText DialogueText;
+
+	/** Optional title text representing the dialogue. */
+	UPROPERTY(BlueprintReadOnly)
+	FText TitleText;
+};
+
+// ------------------------------------------------------------------------------------------------
+
+USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+struct FYapData_AfterPlayerPromptsAdded
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+};
+
+// ================================================================================================
+
 UINTERFACE(MinimalAPI, Blueprintable)
 class UYapConversationHandler : public UInterface
 {
@@ -20,7 +182,6 @@ class UYapConversationHandler : public UInterface
 };
 
 /** A conversation handler is an interface you can apply to anything to help it respond to Yap dialogue.
-  *
  * Use UYapSubsystem::RegisterConversationHandler(...) to register your class for events. 
  */
 class IYapConversationHandler
@@ -34,82 +195,83 @@ class IYapConversationHandler
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Opened")
-	void K2_OnConversationOpened(const FGameplayTag& Conversation);
-	virtual void K2_OnConversationOpened_Implementation(const FGameplayTag& Conversation);
+	void K2_OnConversationOpened(FYapData_OnConversationOpened Data);
+	//virtual void K2_OnConversationOpened_Implementation(FYapData_OnConversationOpened Data);
 	
 	/** Code to run when a conversation closes. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Closed")
-	void K2_OnConversationClosed(const FGameplayTag& Conversation);
-	virtual void K2_OnConversationClosed_Implementation(const FGameplayTag& Conversation);
+	void K2_OnConversationClosed(FYapData_OnConversationClosed Data);
+	//virtual void K2_OnConversationClosed_Implementation(FYapData_OnConversationClosed Data);
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Begins")
-	void K2_OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
-	virtual void K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset);
+	void K2_OnDialogueBegins(FYapData_OnDialogueBegins Data);
+	//virtual void K2_OnDialogueBegins_Implementation(FYapData_OnDialogueBegins Data);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Ends")
-	void K2_OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime);
-	virtual void K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime);
+	void K2_OnDialogueEnds(FYapData_OnDialogueEnds Data);
+	//virtual void K2_OnDialogueEnds_Implementation(FYapData_OnDialogueEnds Data);
 
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Padding Time Over")
-	void K2_OnPaddingTimeOver(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
-	virtual void K2_OnPaddingTimeOver_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle);
+	void K2_OnPaddingTimeOver(FYapData_OnPaddingTimeOver Data);
+	//virtual void K2_OnPaddingTimeOver_Implementation(FYapData_OnPaddingTimeOver Data);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
-	void K2_AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
-	virtual void K2_AddPlayerPrompt_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText);
+	void K2_AddPlayerPrompt(FYapData_AddPlayerPrompt Data);
+	//virtual void K2_AddPlayerPrompt_Implementation(FYapData_AddPlayerPrompt Data);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
-	void K2_AfterPlayerPromptsAdded(const FGameplayTag& Conversation);
-	virtual void K2_AfterPlayerPromptsAdded_Implementation(const FGameplayTag& Conversation);
+	void K2_AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data);
+	//virtual void K2_AfterPlayerPromptsAdded_Implementation(FYapData_AfterPlayerPromptsAdded Data);
 
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
-	virtual void OnConversationOpened(const FGameplayTag& Conversation)
+	virtual void OnConversationOpened(FYapData_OnConversationOpened Data)
 	{
-		K2_OnConversationOpened(Conversation);
+		K2_OnConversationOpened(Data);
 	};
 	
 	/** Code to run when a conversation ends. Do NOT call Super when overriding. */
-	virtual void OnConversationClosed(const FGameplayTag& Conversation)
+	virtual void OnConversationClosed(FYapData_OnConversationClosed Data)
 	{
-		K2_OnConversationClosed(Conversation);
+		K2_OnConversationClosed(Data);
 	};
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueBegins(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset)
+	virtual void OnDialogueBegins(FYapData_OnDialogueBegins Data)
 	{
-		K2_OnDialogueBegins(Conversation, DialogueHandle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText, DialogueTime, DialogueAudioAsset);
+		K2_OnDialogueBegins(Data);
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
-	virtual void OnDialogueEnds(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime)
+	virtual void OnDialogueEnds(FYapData_OnDialogueEnds Data)
 	{
-		K2_OnDialogueEnds(Conversation, DialogueHandle, PaddingTime);
+		K2_OnDialogueEnds(Data);
 	}
-
+	
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Super when overriding. */
-	virtual void OnPaddingTimeOver(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle)
+	virtual void OnPaddingTimeOver(FYapData_OnPaddingTimeOver Data)
 	{
-		K2_OnPaddingTimeOver(Conversation, DialogueHandle);
+		K2_OnPaddingTimeOver(Data);
 	}
 	
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Super when overriding. */
-	virtual void AddPlayerPrompt(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+	virtual void AddPlayerPrompt(FYapData_AddPlayerPrompt Data)
 	{
-		K2_AddPlayerPrompt(Conversation, Handle, DirectedAt, Speaker, MoodKey, DialogueText, TitleText);
+		K2_AddPlayerPrompt(Data);
 	}
 	
+	// DoneAddingPlayerPrompts
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Super when overriding. */
-	virtual void AfterPlayerPromptsAdded(const FGameplayTag& Conversation)
+	virtual void AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data)
 	{
-		K2_AfterPlayerPromptsAdded(Conversation);
+		K2_AfterPlayerPromptsAdded(Data);
 	}
-
+	
 	// TODO should I have an "on player prompt selected" event?
 };
 

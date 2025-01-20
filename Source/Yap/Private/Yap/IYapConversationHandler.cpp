@@ -10,34 +10,41 @@ class UYapCharacter;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-void IYapConversationHandler::K2_OnConversationOpened_Implementation(const FGameplayTag& Conversation)
+/*
+void IYapConversationHandler::K2_OnConversationOpened_Implementation(FYapData_OnConversationOpened Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_OnConversationClosed_Implementation(const FGameplayTag& Conversation)
+void IYapConversationHandler::K2_OnConversationClosed_Implementation(FYapData_OnConversationClosed Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_OnDialogueBegins_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText, float DialogueTime, const UObject* DialogueAudioAsset)
+void IYapConversationHandler::K2_OnDialogueBegins_Implementation(FYapData_OnDialogueBegins Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_OnDialogueEnds_Implementation(const FGameplayTag& Conversation, FYapDialogueHandle DialogueHandle, float PaddingTime)
+void IYapConversationHandler::K2_OnDialogueEnds_Implementation(FYapData_OnDialogueEnds Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_AddPlayerPrompt_Implementation(const FGameplayTag& Conversation, FYapPromptHandle Handle, const UYapCharacter* DirectedAt, const UYapCharacter* Speaker, const FGameplayTag& MoodKey, const FText& DialogueText, const FText& TitleText)
+void IYapConversationHandler::K2_OnPaddingTimeOver_Implementation(FYapData_OnPaddingTimeOver Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
 
-void IYapConversationHandler::K2_AfterPlayerPromptsAdded_Implementation(const FGameplayTag& Conversation)
+void IYapConversationHandler::K2_AddPlayerPrompt_Implementation(FYapData_AddPlayerPrompt Data)
 {
 	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
 }
+
+void IYapConversationHandler::K2_AfterPlayerPromptsAdded_Implementation(FYapData_AfterPlayerPromptsAdded Data)
+{
+	UE_LOG(LogYap, Warning, TEXT("Unimplemented conversation handler function: %s"), *FString(__func__));
+}
+*/
 
 #undef LOCTEXT_NAMESPACE
