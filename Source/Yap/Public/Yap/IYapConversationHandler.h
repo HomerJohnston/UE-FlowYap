@@ -20,7 +20,7 @@ struct FYapBit;
 // ------------------------------------------------------------------------------------------------
 
 /** This could be passed directly. We're passing it within a struct so that if we ever decide to add more data to the event, existing blueprints remain working. */
-USTRUCT(BlueprintType, DisplayName = "Yap - Conversation Opened")
+USTRUCT(BlueprintType, DisplayName = "Yap: Conversation Opened")
 struct FYapData_OnConversationOpened
 {
 	GENERATED_BODY()
@@ -33,7 +33,7 @@ struct FYapData_OnConversationOpened
 // ------------------------------------------------------------------------------------------------
 
 /** This could be passed directly. We're passing it within a struct so that if we ever decide to add more data to the event, existing blueprints remain working. */
-USTRUCT(BlueprintType, DisplayName = "Yap - Conversation Closed")
+USTRUCT(BlueprintType, DisplayName = "Yap: Conversation Closed")
 struct FYapData_OnConversationClosed
 {
 	GENERATED_BODY()
@@ -112,7 +112,7 @@ struct FYapData_OnDialogueEnds
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+USTRUCT(BlueprintType, DisplayName = "Yap: Padding Time Over")
 struct FYapData_OnPaddingTimeOver
 {
 	GENERATED_BODY()
@@ -127,7 +127,8 @@ struct FYapData_OnPaddingTimeOver
 
 // ------------------------------------------------------------------------------------------------
 
-USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap: Add Player Prompt")
 struct FYapData_AddPlayerPrompt
 {
 	GENERATED_BODY()
@@ -163,7 +164,8 @@ struct FYapData_AddPlayerPrompt
 
 // ------------------------------------------------------------------------------------------------
 
-USTRUCT(BlueprintType, DisplayName = "Yap > Padding Time Over")
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap: After Player Prompts Added")
 struct FYapData_AfterPlayerPromptsAdded
 {
 	GENERATED_BODY()
@@ -173,6 +175,18 @@ struct FYapData_AfterPlayerPromptsAdded
 	FGameplayTag Conversation;
 };
 
+// ------------------------------------------------------------------------------------------------
+
+/** Struct containing all the data for this event. */
+USTRUCT(BlueprintType, DisplayName = "Yap: Player Prompt Selected")
+struct FYapData_OnPlayerPromptSelected
+{
+	GENERATED_BODY()
+
+	/** Conversation name. */
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag Conversation;
+};
 // ================================================================================================
 
 UINTERFACE(MinimalAPI, Blueprintable)
@@ -194,40 +208,37 @@ class IYapConversationHandler
 	
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Opened")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Conversation Opened")
 	void K2_OnConversationOpened(FYapData_OnConversationOpened Data);
-	//virtual void K2_OnConversationOpened_Implementation(FYapData_OnConversationOpened Data);
 	
 	/** Code to run when a conversation closes. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Conversation Closed")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Conversation Closed")
 	void K2_OnConversationClosed(FYapData_OnConversationClosed Data);
-	//virtual void K2_OnConversationClosed_Implementation(FYapData_OnConversationClosed Data);
 
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Begins")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Dialogue Begins")
 	void K2_OnDialogueBegins(FYapData_OnDialogueBegins Data);
-	//virtual void K2_OnDialogueBegins_Implementation(FYapData_OnDialogueBegins Data);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Dialogue Ends")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Dialogue Ends")
 	void K2_OnDialogueEnds(FYapData_OnDialogueEnds Data);
-	//virtual void K2_OnDialogueEnds_Implementation(FYapData_OnDialogueEnds Data);
 
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "On Padding Time Over")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Padding Time Over")
 	void K2_OnPaddingTimeOver(FYapData_OnPaddingTimeOver Data);
-	//virtual void K2_OnPaddingTimeOver_Implementation(FYapData_OnPaddingTimeOver Data);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
 	void K2_AddPlayerPrompt(FYapData_AddPlayerPrompt Data);
-	//virtual void K2_AddPlayerPrompt_Implementation(FYapData_AddPlayerPrompt Data);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
 	void K2_AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data);
-	//virtual void K2_AfterPlayerPromptsAdded_Implementation(FYapData_AfterPlayerPromptsAdded Data);
 
+	/** Code to run when a player prompt is ran. Do NOT call Parent when overriding. */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "On Player Prompt Selected")
+	void K2_OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Data);
+	
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
 	virtual void OnConversationOpened(FYapData_OnConversationOpened Data)
@@ -265,13 +276,16 @@ public:
 		K2_AddPlayerPrompt(Data);
 	}
 	
-	// DoneAddingPlayerPrompts
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Super when overriding. */
 	virtual void AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data)
 	{
 		K2_AfterPlayerPromptsAdded(Data);
 	}
-	
-	// TODO should I have an "on player prompt selected" event?
+
+	/** Code to run when a player prompt is ran. Do NOT call Super when overriding. */
+	virtual void OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Data)
+	{
+		K2_OnPlayerPromptSelected(Data);
+	}
 };
 

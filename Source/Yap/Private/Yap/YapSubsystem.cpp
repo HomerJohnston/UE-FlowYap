@@ -216,8 +216,6 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	FYapPromptHandle Handle(Dialogue, FragmentIndex);
-
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
 	FYapData_AddPlayerPrompt Data;
@@ -325,7 +323,20 @@ void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerD
 
 void UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 {
+	// TODO handle invalid handles gracefully
 	Handle.DialogueNode->RunPrompt(Handle.FragmentIndex);
+
+	FGameplayTag ConversationName;
+
+	if (ActiveConversation.FlowAsset == Handle.DialogueNode->GetFlowAsset())
+	{
+		ConversationName = ActiveConversation.Conversation.GetValue();
+	}
+	
+	FYapData_OnPlayerPromptSelected Data;
+	Data.Conversation = ConversationName;
+	
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPlayerPromptSelected, &IYapConversationHandler::Execute_K2_OnPlayerPromptSelected>(Data);
 }
 
 void UYapSubsystem::RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)

@@ -30,4 +30,6 @@ public:
 	bool bSkippable = true;
 	
 	void RunPrompt(UObject* WorldContextObject);
+
+	// TODO Guid
 };
