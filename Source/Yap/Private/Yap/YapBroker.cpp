@@ -107,6 +107,11 @@ float UYapBroker::CalculateTextTime(int32 WordCount, int32 CharCount) const
 float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 {
 	float Time = -1;
+
+	if (!AudioAsset)
+	{
+		return Time;
+	}
 	
 #if WITH_EDITOR
 	const TArray<TSoftClassPtr<UObject>>& AudioAssetClasses = UYapProjectSettings::GetAudioAssetClasses();
@@ -173,6 +178,11 @@ float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 }
 
 #if WITH_EDITOR
+
+// Used to check to see if a derived class actually implemented PlayDialogueAudioAsset_Editor()
+thread_local bool bPreviewAudioAssetOverridden = false;
+thread_local bool bSuppressPreviewAudioAssetWarning = false;
+
 bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 {
 	if (UYapProjectSettings::HasCustomAudioAssetClasses())
@@ -187,14 +197,17 @@ bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 		if (const USoundBase* AudioAssetAsSoundBase = Cast<USoundBase>(AudioAsset))
 		{
 			GEditor->PlayPreviewSound(const_cast<USoundBase*>(AudioAssetAsSoundBase));
+			return true;
 		}
 		else
 		{
-			UE_LOG(LogYap, Warning, TEXT("Sound was null"));
+			if (!bSuppressPreviewAudioAssetWarning)
+			{
+				UE_LOG(LogYap, Warning, TEXT("Sound was null"));
+			}
+			return false;
 		}
 	}
-
-	return false;
 }
 #endif
 
@@ -218,12 +231,6 @@ void UYapBroker::Initialize_Internal()
 
 	Initialize();
 }
-
-#if WITH_EDITOR
-// Used to check to see if a derived class actually implemented PlayDialogueAudioAsset_Editor()
-thread_local bool bPreviewAudioAssetOverridden = false;
-thread_local bool bSuppressPreviewAudioAssetWarning = false;
-#endif // WITH_EDITOR
 
 #if WITH_EDITOR
 bool UYapBroker::PreviewAudioAsset_Internal(const UObject* AudioAsset) const
