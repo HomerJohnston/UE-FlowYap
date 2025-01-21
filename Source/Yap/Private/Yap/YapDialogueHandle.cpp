@@ -5,13 +5,21 @@
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-FYapDialogueHandle::FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable)
+FYapDialogueHandle::FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable)
 {
 	DialogueNode = InDialogueNode;
 	FragmentIndex = InFragmentIndex;
 	bSkippable = bInSkippable;
 
 	Guid = FGuid::NewGuid();
+}
+
+void FYapDialogueHandle::Invalidate()
+{
+	DialogueNode = nullptr;
+	FragmentIndex = INDEX_NONE;
+	Guid.Invalidate();
+	bSkippable = false;
 }
 
 #undef LOCTEXT_NAMESPACE

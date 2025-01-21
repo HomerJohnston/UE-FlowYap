@@ -20,6 +20,13 @@ FYapPromptHandle::FYapPromptHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 
 	FragmentIndex = InFragmentIndex;
 }
 
+void FYapPromptHandle::Invalidate()
+{
+	DialogueNode = nullptr;
+	FragmentIndex = INDEX_NONE;
+	Guid.Invalidate();
+}
+
 void FYapPromptHandle::RunPrompt(UObject* WorldContextObject)
 {
 	UWorld* World = WorldContextObject->GetWorld();

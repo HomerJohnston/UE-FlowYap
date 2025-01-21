@@ -24,6 +24,15 @@ enum class EYapDialogueTalkSequencing : uint8
 	COUNT				UMETA(Hidden)
 };
 
+UENUM()
+enum class EYapFragmentState : uint8
+{
+	Undefined,
+	Idle,
+	Running,
+	InPadding,
+};
+
 // ------------------------------------------------------------------------------------------------
 /**
  * Node type. Freestyle talking or player prompt. Changes the execution flow of dialogue.
@@ -106,6 +115,12 @@ protected:
 	UPROPERTY(Transient)
 	FTimerHandle FragmentTimerHandle;
 
+	UPROPERTY(Transient)
+	FTimerHandle PaddingTimerHandle;
+
+	UPROPERTY(Transient)
+	int32 RunningFragmentIndex = INDEX_NONE;
+	
 #if WITH_EDITORONLY_DATA
 	/** When was the current running fragment started? */ 
 	double FragmentStartedTime = -1;
@@ -154,9 +169,13 @@ public:
 	// TODO this sucks can I register the fragments some other way instead
 	/** Finds the first fragment on this dialogue containing a tag. */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
+
+	bool Skip(int32 FragmentIndex);
 	
 protected:
 	bool ActivationLimitsMet() const;
+
+	EYapFragmentState GetFragmentState(int32 FragmentIndex) const;
 	
 #if WITH_EDITOR
 private:
@@ -198,9 +217,9 @@ protected:
 
 	bool RunFragment(uint8 FragmentIndex);
 
-	void WhenFragmentComplete(uint8 FragmentIndex);
+	void OnSpeakingComplete(uint8 FragmentIndex);
 
-	void WhenPaddingTimeComplete(uint8 FragmentIndex);
+	void OnPaddingComplete(uint8 FragmentIndex);
 
 	bool IsBypassPinRequired() const;
 

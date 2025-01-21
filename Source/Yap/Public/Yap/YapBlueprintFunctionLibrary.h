@@ -7,6 +7,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "YapBlueprintFunctionLibrary.generated.h"
 
+struct FYapDialogueHandle;
 struct FYapPromptHandle;
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -20,16 +21,27 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 #if WITH_EDITOR
-	UFUNCTION(BlueprintCallable, Category = "Yap Audio")
+	/** Built-in simple helper function to play an Unreal sound. */
+	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static void PlaySoundInEditor(USoundBase* Sound);
 #endif
 	
-	UFUNCTION(BlueprintCallable, Category = "Yap Audio")
+	/** Built-in simple helper function to retrieve the length of an Unreal sound. */
+	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static float GetSoundLength(USoundBase* Sound);
 
-	// TODO I need a function to pass in a Dialogue Handle and skip the dialogue here
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static bool SkipDialogue(const FYapDialogueHandle& Handle);
 
-	// TODO I need a function to pass in a prompt handle and run the prompt here
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static bool RunPrompt(const FYapPromptHandle& Handle);
+
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void InvalidateDialogueHandle(UPARAM(ref) FYapDialogueHandle& Handle);
+	
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void InvalidatePromptHandle(UPARAM(ref) FYapPromptHandle& Handle);
 };
+
 
 #undef LOCTEXT_NAMESPACE

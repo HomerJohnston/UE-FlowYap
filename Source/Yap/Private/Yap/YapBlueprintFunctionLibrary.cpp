@@ -7,8 +7,10 @@
 #include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #endif
 
+#include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
 #include "Yap/YapPromptHandle.h"
+#include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -31,4 +33,24 @@ float UYapBlueprintFunctionLibrary::GetSoundLength(USoundBase* Sound)
 	return Sound->Duration;
 }
 
+bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle)
+{
+	Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
+	return false;
+}
+
+bool UYapBlueprintFunctionLibrary::RunPrompt(const FYapPromptHandle& Handle)
+{
+	return false;
+}
+
+void UYapBlueprintFunctionLibrary::InvalidateDialogueHandle(FYapDialogueHandle& Handle)
+{
+	Handle.Invalidate();
+}
+
+void UYapBlueprintFunctionLibrary::InvalidatePromptHandle(FYapPromptHandle& Handle)
+{
+	Handle.Invalidate();
+}
 #undef LOCTEXT_NAMESPACE

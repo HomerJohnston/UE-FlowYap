@@ -15,21 +15,35 @@ struct YAP_API FYapPromptHandle
 {
 	GENERATED_BODY()
 
-public:
-	FYapPromptHandle();
-
-	FYapPromptHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex);
-
+protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UFlowNode_YapDialogue> DialogueNode;
 
 	UPROPERTY(Transient)
 	uint8 FragmentIndex;
 
-	UPROPERTY(BlueprintReadOnly, Transient)
-	bool bSkippable = true;
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess, IgnoreForMemberInitializationTest))
+	FGuid Guid;
+	
+public:
+	FYapPromptHandle();
+
+	FYapPromptHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex);
+
+	void Invalidate();
+	
+	bool IsValid() { return Guid.IsValid(); }
 	
 	void RunPrompt(UObject* WorldContextObject);
 
-	// TODO Guid
+	UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
+
+	uint8 GetFragmentIndex() const { return FragmentIndex; }
+
+	FGuid GetGuid() const { return Guid; }
+	
+	bool operator==(const FYapPromptHandle& Other) const
+	{
+		return Guid == Other.Guid;
+	}
 };

@@ -19,11 +19,11 @@ struct YAP_API FYapDialogueHandle
 public:
 	FYapDialogueHandle() { };
 
-	FYapDialogueHandle(const UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable);
+	FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable);
 
 private:
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
-	TObjectPtr<const UFlowNode_YapDialogue> DialogueNode = nullptr;
+	TObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
 
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	uint8 FragmentIndex = 0;
@@ -35,13 +35,17 @@ private:
 	bool bSkippable = true;
 
 public:
-	const UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
+	UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
 
 	uint8 GetFragmentIndex() const { return FragmentIndex; }
 
 	const FGuid& GetGuid() const { return Guid; }
 
 	bool GetSkippable() const { return bSkippable; }
+
+	void Invalidate();
+	
+	bool IsValid() { return Guid.IsValid(); }
 	
 	bool operator==(const FYapDialogueHandle& Other) const
 	{

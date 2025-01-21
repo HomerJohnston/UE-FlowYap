@@ -71,6 +71,49 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 	return nullptr;
 }
 
+bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
+{
+	EYapFragmentState State = GetFragmentState(FragmentIndex);
+
+	switch (State)
+	{
+		case EYapFragmentState::Running:
+		{			
+			OnSpeakingComplete(FragmentIndex);
+
+			if (UYapProjectSettings::GetDoesSkipSkipPaddingTime())
+			{
+				OnPaddingComplete(FragmentIndex);
+			}
+			
+			return true;
+		}
+		case EYapFragmentState::InPadding:
+		{
+			if (UYapProjectSettings::GetDoesSkipSkipPaddingTime())
+			{
+				OnPaddingComplete(FragmentIndex);
+
+				return true;
+			}
+
+			return false;
+		}
+		case EYapFragmentState::Idle:
+		{
+			UE_LOG(LogYap, Warning, TEXT("Attempted to skip fragment but fragment was not running!"));
+
+			return false;
+		}
+		default:
+		{
+			UE_LOG(LogYap, Warning, TEXT("Attempted to skip fragment but encountered unknown error!"));
+
+			return false;
+		}
+	}
+}
+
 void UFlowNode_YapDialogue::InitializeInstance()
 {
 	Super::InitializeInstance();
@@ -241,6 +284,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 		RunningFragment = &Fragment;
 		FragmentStartedTime = GetWorld()->GetTimeSeconds();
 #endif
+		RunningFragmentIndex = FragmentIndex;
 
 		if (Fragment.UsesStartPin())
 		{
@@ -257,7 +301,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 		else
 		{
 			// TODO: make it possible for dialogue to pause and require pressing "continue" after each dialogue
-			GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::WhenFragmentComplete, FragmentIndex), Time.GetValue(), false);
+			GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnSpeakingComplete, FragmentIndex), Time.GetValue(), false);
 		}
 
 		return true;
@@ -268,8 +312,15 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 	}
 }
 
-void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 {
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+
+	if (TimerManager.TimerExists(FragmentTimerHandle))
+	{
+		TimerManager.ClearTimer(FragmentTimerHandle);
+	}
+	
 	FYapFragment& Fragment = Fragments[FragmentIndex];
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
@@ -284,11 +335,11 @@ void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
 	
 	if (PaddingTime > 0)
 	{
-		GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::WhenPaddingTimeComplete, FragmentIndex), PaddingTime, false);
+		TimerManager.SetTimer(PaddingTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingComplete, FragmentIndex), PaddingTime, false);
 	}
 	else
 	{
-		WhenPaddingTimeComplete(FragmentIndex);
+		OnPaddingComplete(FragmentIndex);
 	}
 
 #if WITH_EDITOR
@@ -296,12 +347,21 @@ void UFlowNode_YapDialogue::WhenFragmentComplete(uint8 FragmentIndex)
 #endif
 }
 
-void UFlowNode_YapDialogue::WhenPaddingTimeComplete(uint8 FragmentIndex)
+void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 {
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+
+	if (TimerManager.TimerExists(PaddingTimerHandle))
+	{
+		TimerManager.ClearTimer(PaddingTimerHandle);
+	}
+	
 #if WITH_EDITOR
 	FinishedFragments.Add(RunningFragment);
 	RunningFragment = nullptr;
 #endif
+
+	RunningFragmentIndex = INDEX_NONE;
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPaddingTimeOver(this, FragmentIndex);
 	
@@ -624,6 +684,26 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	}
 
 	return true;
+}
+
+EYapFragmentState UFlowNode_YapDialogue::GetFragmentState(int32 FragmentIndex) const
+{
+	if (!Fragments.IsValidIndex(FragmentIndex))
+	{
+		return EYapFragmentState::Undefined;
+	}
+
+	if (RunningFragmentIndex == FragmentIndex)
+	{
+		if (PaddingTimerHandle.IsValid())
+		{
+			return EYapFragmentState::InPadding;
+		}
+
+		return EYapFragmentState::Running;
+	}
+
+	return EYapFragmentState::Idle;
 }
 
 #if WITH_EDITOR

@@ -267,7 +267,6 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 	else
 	{
 		EffectiveTime = UYapProjectSettings::GetMinimumFragmentTime();
-		UE_LOG(LogYap, Error, TEXT("Fragment failed to return a valid time! Dialogue: %s"), *Bit.GetDialogueText(MaturitySetting).ToString());
 	}
 
 	FYapData_OnDialogueBegins Data;
@@ -324,11 +323,11 @@ void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerD
 void UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 {
 	// TODO handle invalid handles gracefully
-	Handle.DialogueNode->RunPrompt(Handle.FragmentIndex);
+	Handle.GetDialogueNode()->RunPrompt(Handle.GetFragmentIndex());
 
 	FGameplayTag ConversationName;
 
-	if (ActiveConversation.FlowAsset == Handle.DialogueNode->GetFlowAsset())
+	if (ActiveConversation.FlowAsset == Handle.GetDialogueNode()->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
@@ -337,6 +336,12 @@ void UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 	Data.Conversation = ConversationName;
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPlayerPromptSelected, &IYapConversationHandler::Execute_K2_OnPlayerPromptSelected>(Data);
+}
+
+void UYapSubsystem::SkipDialogue(const FYapPromptHandle& Handle)
+{
+	// TODO handle invalid handles gracefully
+	Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
 }
 
 void UYapSubsystem::RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)

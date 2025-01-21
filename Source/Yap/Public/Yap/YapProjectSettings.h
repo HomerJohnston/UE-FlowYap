@@ -119,8 +119,12 @@ protected:
 	float MinimumFragmentTime = 0.25;
 
 	/** Controls the scaling of the small padding time indicator on each fragment. */
-	UPROPERTY(Config, EditFixedSize, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float FragmentPaddingSliderMax = 2.0;
+
+	/** If set, skipping dialogue will not skip any padding time set for the fragment. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
+	bool bPreventSkippingPaddingTime = false;
 	
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -282,11 +286,13 @@ public:
 	static bool CacheFragmentAudioLength() { return !Get().bPreventCachingAudioLength; }
 	
 	static float GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
+
+	static bool GetDoesSkipSkipPaddingTime() { return !Get().bPreventSkippingPaddingTime; }
 	
 	static EYapMissingAudioErrorLevel GetMissingAudioBehavior() { return Get().MissingAudioErrorLevel; }
 
 	static const TSoftObjectPtr<UTexture2D> GetMissingPortraitTextureAsset() { return Get().MissingPortraitTexture; };
-	
+
 #if WITH_EDITOR
 public:
 	static const FString& GetMoodTagIconPath();

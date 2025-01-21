@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "YapCharacterComponent.h"
 #include "YapBroker.h"
+#include "YapPromptHandle.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapBitReplacement.h"
@@ -199,6 +200,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void RunPrompt(const FYapPromptHandle& Handle);
 
+	UFUNCTION(BlueprintCallable)
+	void SkipDialogue(const FYapPromptHandle& Handle);
+	
 public:
 	/**  */
 	void RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent);
