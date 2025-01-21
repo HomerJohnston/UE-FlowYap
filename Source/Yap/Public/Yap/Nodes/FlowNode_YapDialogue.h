@@ -5,7 +5,7 @@
 
 #include "Nodes/FlowNode.h"
 #include "Yap/YapFragment.h"
-#include "Yap/Enums/YapDialogueSkippable.h"
+#include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "FlowNode_YapDialogue.generated.h"
 
@@ -73,9 +73,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EYapDialogueTalkSequencing TalkSequencing;
 
-	/** Controls if dialogue can be interrupted. See EYapDialogueSkippable. */
+	/** Controls if dialogue can be interrupted. */
 	UPROPERTY(BlueprintReadOnly)
-	EYapDialogueSkippable Skippable;
+	TOptional<bool> bSkippable;
+
+	/** Controls if dialogue automatically advances (only applicable if it has a time duration set). */
+	UPROPERTY(BlueprintReadOnly)
+	TOptional<bool> bAutoAdvance;
 
 	/** Tags can be used to interact with this dialogue node during the game. Dialogue nodes can be looked up and/or modified by UYapSubsystem by their tag. */
 	UPROPERTY(BlueprintReadOnly)
@@ -145,6 +149,8 @@ public:
 	/** Is dialogue from this node skippable by default? */
 	bool GetSkippable() const;
 
+	bool GetAutoAdvance() const;
+	
 	// TODO this sucks can I register the fragments some other way instead
 	/** Finds the first fragment on this dialogue containing a tag. */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
@@ -154,7 +160,7 @@ protected:
 	
 #if WITH_EDITOR
 private:
-	EYapDialogueSkippable GetSkippableSetting() const;
+	TOptional<bool> GetSkippableSetting() const;
 	
 	void InvalidateFragmentTags();
 

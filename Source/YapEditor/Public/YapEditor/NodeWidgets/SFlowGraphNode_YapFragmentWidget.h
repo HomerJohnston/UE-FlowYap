@@ -7,7 +7,7 @@
 #include "EditorUndoClient.h"
 #include "Yap/YapTimeMode.h"
 
-enum class EYapDialogueSkippable : uint8;
+enum class EYapDialogueProgressionFlags : uint8;
 class UYapCharacter;
 class SYapConditionsScrollBox;
 class UYapCondition;
@@ -43,7 +43,7 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 	// ------------------------------------------
 	// SETTINGS
 	TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
-
+	
 	// ------------------------------------------
 	// STATE
 protected:

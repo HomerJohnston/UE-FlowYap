@@ -10,7 +10,7 @@
 
 namespace Yap
 {
-	static FString GetPluginFolder()
+	inline FString GetPluginFolder()
 	{
 		static FString PluginDir;
 
@@ -22,13 +22,13 @@ namespace Yap
 		return PluginDir;
 	}
 
-	static FString GetResourcesFolder()
+	inline FString GetResourcesFolder()
 	{
 		return GetPluginFolder() / "Resources";
 	}
 
 #if WITH_EDITOR
-	static void OpenProjectSettings()
+	inline void OpenProjectSettings()
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{

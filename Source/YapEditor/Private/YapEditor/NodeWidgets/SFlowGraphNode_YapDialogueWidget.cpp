@@ -25,10 +25,10 @@
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "YapEditor/YapEditorEvents.h"
+#include "YapEditor/Helpers/ProgressionSettingWidget.h"
 #include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
-#include "YapEditor/NodeWidgets/SSkippableCheckBox.h"
 #include "YapEditor/NodeWidgets/SYapGraphPinExec.h"
 #include "YapEditor/SlateWidgets/SGameplayTagComboFiltered.h"
 
@@ -129,33 +129,6 @@ int32 SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit() const
 }
 
 // ------------------------------------------------------------------------------------------------
-EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_SkippableToggleIconOff() const
-{
-	switch (GetFlowYapDialogueNode()->GetSkippableSetting())
-	{
-		case EYapDialogueSkippable::Default:
-		{
-			bool bSkippable = UYapProjectSettings::GetDefaultSkippableSetting() == EYapDialogueSkippable::Skippable; 
-			return bSkippable ? EVisibility::Collapsed : EVisibility::Visible;
-		}
-		case EYapDialogueSkippable::Skippable:
-		{
-			return EVisibility::Collapsed;
-		}
-		case EYapDialogueSkippable::NotSkippable:
-		{
-			return EVisibility::Visible;
-		}
-		default:
-		{
-			check(false);
-		}
-	}
-	
-	return (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::NotSkippable) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
-}
-
-// ------------------------------------------------------------------------------------------------
 void SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg)
 {
 	FYapTransactions::BeginModify(LOCTEXT("ChangeActivationLimit", "Change activation limit"), GetFlowYapDialogueNodeMutable());
@@ -240,16 +213,9 @@ void SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged()
 	UpdateGraphNode();
 }
 
-void SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget)
-{
-	AddOverlayWidget(ButtonWidget, ConditionWidget);
-}
-
 // ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
-	TSharedPtr<SCheckBox> SkippableCheckBox;
-	
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
 	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
@@ -289,7 +255,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 				.ConditionsArrayProperty(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
 				.ConditionsContainer(GetFlowYapDialogueNodeMutable())
 				.OnConditionsArrayChanged(this, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
-				.OnConditionDetailsViewBuilt(this, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 			]
 		]
 		+ SHorizontalBox::Slot()
@@ -318,10 +283,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.WidthOverride(20)
 			.HAlign(HAlign_Center)
 			[
-				SNew(SYapSkippableCheckBox)
-				.IsSkippable_Lambda( [this] () { return GetFlowYapDialogueNode()->GetSkippable(); } )
-				.SkippableSetting_Lambda( [this] () { return GetFlowYapDialogueNode()->Skippable; })
-				.OnCheckStateChanged(this, &SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle)
+				MakeProgressionPopupButton<UFlowNode_YapDialogue, &UFlowNode_YapDialogue::GetSkippable, &UFlowNode_YapDialogue::GetAutoAdvance>(&GetFlowYapDialogueNodeMutable()->bSkippable, &GetFlowYapDialogueNodeMutable()->bAutoAdvance, GetFlowYapDialogueNodeMutable())
 			]
 		]
 	];
@@ -329,74 +291,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	return Widget;
 }
 
-// ------------------------------------------------------------------------------------------------
-ECheckBoxState SFlowGraphNode_YapDialogueWidget::IsChecked_SkippableToggle() const
-{
-	switch (GetFlowYapDialogueNode()->Skippable)
-	{
-		case EYapDialogueSkippable::Default:
-		{
-			return ECheckBoxState::Undetermined;
-		}
-		case EYapDialogueSkippable::NotSkippable:
-		{
-			return ECheckBoxState::Unchecked;
-		}
-		case EYapDialogueSkippable::Skippable:
-		{
-			return ECheckBoxState::Checked;
-		}
-		default:
-		{
-			check(false);
-		}
-	}
-	return ECheckBoxState::Undetermined;
-}
-
-// ------------------------------------------------------------------------------------------------
-void SFlowGraphNode_YapDialogueWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
-{
-	FYapTransactions::BeginModify(LOCTEXT("ToggleSkippable", "Toggle skippable"), GetFlowYapDialogueNodeMutable());
-
-	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
-	{
-		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::Default;
-	}
-	else if (CheckBoxState == ECheckBoxState::Checked)
-	{
-		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::Skippable;
-	}
-	else
-	{
-		GetFlowYapDialogueNodeMutable()->Skippable = EYapDialogueSkippable::NotSkippable;
-	}
-
-	FYapTransactions::EndModify();
-}
-
-// ------------------------------------------------------------------------------------------------
-FSlateColor SFlowGraphNode_YapDialogueWidget::ColorAndOpacity_SkippableToggleIcon() const
-{
-	if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::NotSkippable)
-	{
-		return YapColor::LightYellow;
-	}
-	else if (GetFlowYapDialogueNode()->Skippable == EYapDialogueSkippable::Skippable)
-	{
-		return YapColor::LightGreen;
-	}
-	else
-	{
-		return YapColor::DarkGray;
-	}
-}
-
 // ================================================================================================
 // NODE CONTENT WIDGET
 // ------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateNodeContentArea()
 {
 	TSharedPtr<SVerticalBox> Content; 
@@ -677,7 +575,6 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator(uint8 Index
 // FRAGMENT ROW
 // ------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(uint8 FragmentIndex)
 {
 	TSharedPtr<SFlowGraphNode_YapFragmentWidget> FragmentWidget = SNew(SFlowGraphNode_YapFragmentWidget, this, FragmentIndex);
@@ -691,7 +588,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentRowWidget(ui
 // LEFT SIDE PANE
 // ------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------
 TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftFragmentPane(uint8 FragmentIndex)
 {
 	return SNew(SBox)
@@ -723,7 +619,6 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftFragmentPane(uint8 
 // INPUT NODE BOX (UPPER HALF OF LEFT SIDE PANE)
 // ------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------
 TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 {
 	TSharedRef<SVerticalBox> LeftSideNodeBox = SNew(SVerticalBox);
@@ -744,7 +639,6 @@ TSharedRef<SBox> SFlowGraphNode_YapDialogueWidget::CreateLeftSideNodeBox()
 // BOTTOM BAR
 // ------------------------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateContentFooter()
 {
 	return SNew(SVerticalBox)
@@ -997,39 +891,6 @@ bool SFlowGraphNode_YapDialogueWidget::IsEnabled_ConditionWidgetsScrollBox() con
 TArray<FOverlayWidgetInfo> SFlowGraphNode_YapDialogueWidget::GetOverlayWidgets(bool bSelected, const FVector2D& WidgetSize) const
 {
 	TArray<FOverlayWidgetInfo> Widgets;
-
-	/*
-	if (FocusedConditionWidget.IsValid())
-	{
-		if (FocusedConditionWidgetStartTime < 0)
-		{
-			FocusedConditionWidget->SetRenderOpacity(0.0);
-		}
-		else
-		{
-			const float Delta = 0.2;
-			float Opacity = FMath::Lerp(0.0, 1.0, (FPlatformTime::Seconds() - FocusedConditionWidgetStartTime) / Delta);
-			FocusedConditionWidget->SetRenderOpacity(Opacity);
-		}
-		TSharedPtr<SYapConditionsScrollBox> ScrollBox = (FocusedConditionWidget->FragmentIndex == INDEX_NONE) ? DialogueConditionsScrollBox : FragmentWidgets[FocusedConditionWidget->FragmentIndex]->GetConditionsScrollBox();
-
-		FVector2D OwnerLTA = GetPaintSpaceGeometry().LocalToAbsolute(FVector2D(0, 0));
-		
-		TSharedPtr<SWidget> EditedButton = ScrollBox->GetEditedButton(FocusedConditionWidget->ConditionIndex);
-
-		const FGeometry& ButtonGeo = EditedButton->GetPaintSpaceGeometry();
-	
-		FVector2D ConditionDetailsPaneOffset = ButtonGeo.LocalToAbsolute(FVector2D(0, 0)) - OwnerLTA;
-
-		ConditionDetailsPaneOffset *= 1.0 / OwnerGraphPanelPtr.Pin()->GetZoomAmount();
-	
-		FOverlayWidgetInfo Info;
-		Info.OverlayOffset = ConditionDetailsPaneOffset + FVector2D(0, 20);
-		Info.Widget = FocusedConditionWidget;
-
-		Widgets.Add(Info);
-	}
-*/
 
 	for (const FYapWidgetOverlay& WidgetOverlay : OverlayWidgets)
 	{

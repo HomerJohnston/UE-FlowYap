@@ -109,7 +109,6 @@ protected:
 	int32 GetDialogueActivationCount() const;
 
 	int32 GetDialogueActivationLimit() const;
-	EVisibility Visibility_SkippableToggleIconOff() const;
 	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
 	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
@@ -121,17 +120,10 @@ public:
 
 public:
 	void OnConditionsArrayChanged();
-	void OnConditionDetailsViewBuilt(TSharedPtr<SYapConditionDetailsViewWidget> ConditionWidget, TSharedPtr<SWidget> ButtonWidget);
 
 	// ------------------------------------------
 protected:
 	TSharedRef<SWidget> CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle) override;
-
-public:
-	ECheckBoxState		IsChecked_SkippableToggle() const;
-public:
-	void				OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
-	FSlateColor			ColorAndOpacity_SkippableToggleIcon() const;
 
 	// ------------------------------------------
 protected:
@@ -162,7 +154,6 @@ protected:
 	TSharedRef<SWidget>	CreateFragmentSeparatorWidget(uint8 FragmentIndex);
 
 	EVisibility			Visibility_FragmentSeparator() const;
-	FSlateColor			ColorAndOpacity_FragmentSeparator() const;
 	FReply				OnClicked_FragmentSeparator(uint8 Index);
 
 	// ------------------------------------------

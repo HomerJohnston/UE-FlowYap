@@ -7,7 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-UCLASS(Config = "Editor")
+UCLASS(Config = "EditorPerProjectUserSettings")
 class UYapDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -23,9 +23,9 @@ protected:
 	float ConditionDetailsHeight = 400;
 
 	/** Controls how bright the portrait borders are in the graph. */
-	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
+	UPROPERTY(Config, EditAnywhere, Category = "Settings", meta = (ClampMin = 0.0, ClampMax = 1.0, UIMin = 0.0, UIMax = 1.0, Delta = 0.01))
 	float PortraitBorderAlpha = 1.0f;
-
+	
 	/** This is for internal development only. This helps to reduce crashes from reloading slate styles after live coding. */
 	UPROPERTY(Config, EditAnywhere, Category = "Development")
 	bool bCloseAndReopenAssetsOnLiveCoding = false;

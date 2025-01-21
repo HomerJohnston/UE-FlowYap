@@ -28,8 +28,6 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 	
 	TalkSequencing = EYapDialogueTalkSequencing::RunAll;
 
-	Skippable = EYapDialogueSkippable::Default;
-
 	// Always have at least one fragment.
 	Fragments.Add(FYapFragment());
 
@@ -131,20 +129,18 @@ bool UFlowNode_YapDialogue::UsesTitleText() const
 
 bool UFlowNode_YapDialogue::GetSkippable() const
 {
-	if (Skippable == EYapDialogueSkippable::Default)
-	{
-		return UYapProjectSettings::GetDefaultSkippableSetting() == EYapDialogueSkippable::Skippable;
-	}
-	else
-	{
-		return Skippable == EYapDialogueSkippable::Skippable;
-	}
+	return bSkippable.Get(UYapProjectSettings::GetDefaultSkippableSetting());
+}
+
+bool UFlowNode_YapDialogue::GetAutoAdvance() const
+{
+	return bAutoAdvance.Get(UYapProjectSettings::GetDefaultAutoAdvanceSetting());
 }
 
 #if WITH_EDITOR
-EYapDialogueSkippable UFlowNode_YapDialogue::GetSkippableSetting() const
+TOptional<bool> UFlowNode_YapDialogue::GetSkippableSetting() const
 {
-	return Skippable;
+	return bSkippable;
 }
 #endif
 
@@ -256,10 +252,11 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 
 		if (!Time.IsSet())
 		{
-			WhenFragmentComplete(FragmentIndex);
+			// We do nothing! This dialogue can only be advanced by using the Dialogue Handle to skip the dialogue.
 		}
 		else
 		{
+			// TODO: make it possible for dialogue to pause and require pressing "continue" after each dialogue
 			GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::WhenFragmentComplete, FragmentIndex), Time.GetValue(), false);
 		}
 

@@ -10,8 +10,10 @@
 #include "ImageUtils.h"
 #include "Styling/SlateStyleMacros.h"
 #include "Styling/SlateStyleRegistry.h"
+#include "Yap/YapGlobals.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapDeveloperSettings.h"
+#include "YapEditor/YapEditorEvents.h"
 
 TArray<TStrongObjectPtr<UTexture2D>> FYapEditorStyle::Textures;
 
@@ -21,28 +23,34 @@ FYapStyles YapStyles;
 
 #define YAP_QUOTE(X) #X
 
+/** Makes a simple font definition copying default font */
 #define YAP_DEFINE_FONT(NAME, STYLE, SIZE)\
-YapFonts.NAME = DEFAULT_FONT(STYLE, SIZE);\
-FSlateFontInfo& NAME = YapFonts.NAME
+	YapFonts.NAME = DEFAULT_FONT(STYLE, SIZE);\
+	FSlateFontInfo& NAME = YapFonts.NAME
+
+/** Loads a TTF from disk */
+#define YAP_LOAD_FONT(NAME, RESOURCE_PATH, SIZE)\
+	YapFonts.NAME = FSlateFontInfo(Yap::GetResourcesFolder() / RESOURCE_PATH, SIZE);\
+	FSlateFontInfo& NAME = YapFonts.NAME
 
 /** Define a new brush */
 #define YAP_DEFINE_BRUSH(TYPE, BRUSHNAME, FILENAME, EXTENSION, ...)\
-YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
-Set(YAP_QUOTE(BRUSHNAME), new TYPE(RootToContentDir(FILENAME, TEXT(EXTENSION)), __VA_ARGS__));\
-const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
+	YapBrushes.BRUSHNAME = YAP_QUOTE(BRUSHNAME);\
+	Set(YAP_QUOTE(BRUSHNAME), new TYPE(RootToContentDir(FILENAME, TEXT(EXTENSION)), __VA_ARGS__));\
+	const TYPE& BRUSHNAME = *static_cast<const TYPE*>(GetBrush(YAP_QUOTE(BRUSHNAME)))
 
 /** Define a new style */
 #define YAP_DEFINE_STYLE(TYPE, STYLENAME, TEMPLATE, MODS)\
-YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
-Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE));\
-TYPE& STYLENAME = const_cast<TYPE&>(GetWidgetStyle<TYPE>(YAP_QUOTE(STYLENAME)));\
-STYLENAME MODS;
+	YapStyles.STYLENAME = YAP_QUOTE(STYLENAME);\
+	Set(YAP_QUOTE(STYLENAME), TYPE(TEMPLATE));\
+	TYPE& STYLENAME = const_cast<TYPE&>(GetWidgetStyle<TYPE>(YAP_QUOTE(STYLENAME)));\
+	STYLENAME MODS
 	
 /** Used to copy an existing UE brush into Yap style for easier use */
 #define YAP_REDEFINE_UE_BRUSH(TYPE, YAPNAME, UESTYLESET, UENAME, ...)\
-YapBrushes.YAPNAME = YAP_QUOTE(YAPNAME);\
-const TYPE& YAPNAME = *(new TYPE(UESTYLESET::GetBrush(UENAME)->GetResourceName().ToString(), __VA_ARGS__));\
-Set(YAP_QUOTE(YAPNAME), const_cast<TYPE*>(&YAPNAME))
+	YapBrushes.YAPNAME = YAP_QUOTE(YAPNAME);\
+	const TYPE& YAPNAME = *(new TYPE(UESTYLESET::GetBrush(UENAME)->GetResourceName().ToString(), __VA_ARGS__));\
+	Set(YAP_QUOTE(YAPNAME), const_cast<TYPE*>(&YAPNAME))
 	
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -102,7 +110,6 @@ void FYapEditorStyle::Initialize()
 	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_FilledCircle,				FAppStyle,	"Icons.FilledCircle",		FVector2f(16, 16));
 	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_PlusSign,					FAppStyle,	"Icons.Plus",				FVector2f(16, 16));
 	YAP_REDEFINE_UE_BRUSH(FSlateVectorImageBrush,	Icon_ProjectSettings_TabIcon,	FAppStyle,	"ProjectSettings.TabIcon",	FVector2f(16, 16));
-
 	
 	// ============================================================================================
 	// FONTS
@@ -114,6 +121,10 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_FONT(Font_NodeSequencing,	"Italic",	9);
 	YAP_DEFINE_FONT(Font_CharacterAssetThumbnail, "Normal", 14);
 	YAP_DEFINE_FONT(Font_WarningText,		"Italic",	10);
+
+	YAP_LOAD_FONT(Font_OpenSans_Regular, "Fonts/OpenSans-Regular.ttf", 10);
+	YAP_LOAD_FONT(Font_NotoSans_Regular, "Fonts/NotoSans-Regular.ttf", 10);
+	YAP_LOAD_FONT(Font_NotoSans_SemiBold, "Fonts/NotoSans-SemiBold.ttf", 10);
 
 	// ============================================================================================
 	// BRUSHES - PNGs
@@ -131,21 +142,26 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_CornerDropdown_Right,		"Icon_CornerDropdown_Right", ".svg",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
-			
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Skippable,					"Icon_Skippable", ".svg",				FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_NotSkippable,				"Icon_NotSkippable", ".svg",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_AutoAdvance,				"Icon_AutoAdvance", ".svg",				FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_ManualAdvance,				"Icon_ManualAdvance", ".svg",			FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Reset_Small,				"Icon_Reset_Small", ".svg",				FVector2f(16, 16));
+	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));
-			
+	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_Thick_RoundedSquare,		"Border_Thick_Rounded", ".png",			FMargin(8.0/16.0));
-			
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Sharp,					"Panel_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Deburred,					"Panel_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Panel_Rounded,					"Panel_Rounded", ".png",				FMargin(4.0/8.0));
-			
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite,					"Box_SolidWhite", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite_Deburred,		"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidWhite_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0));
-			
+	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray,				"Box_SolidWhite", ".png",				FMargin(4.0/8.0), YapColor::LightGray);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray_Deburred,	"Box_SolidWhite_Deburred", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidLightGray_Rounded,		"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::LightGray);
@@ -163,7 +179,7 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Box_SolidBlack_Rounded,			"Box_SolidWhite_Rounded", ".png",		FMargin(4.0/8.0), YapColor::Black);
 			
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Outline_White_Deburred,			"Outline_Deburred", ".png",				FMargin(4.0/8.0));
-		
+	
 	// ============================================================================================
 	// BRUSHES - SVGs
 	// ============================================================================================
@@ -187,7 +203,6 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_NoBorder, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("NoBorder"), );
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HoverHintOnly, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("HoverHintOnly"), );
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SimpleButton, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton"), );
-
 	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_HeaderButton, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Gray))
@@ -218,7 +233,7 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
-
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_FragmentControls, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray_Glass))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
@@ -228,7 +243,7 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
-
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_DialogueCornerFoldout, FButtonStyle::GetDefault(),
 		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Transparent))
@@ -258,7 +273,7 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
-
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TimeSettingOpener, FButtonStyle::GetDefault(),
 		.SetNormal(None)
 		.SetHovered(None)
@@ -269,7 +284,7 @@ void FYapEditorStyle::Initialize()
 		.SetPressedForeground(YapColor::LightGray)
 		.SetPressedPadding(YAP_COMMON_PRESSED_PADDING)
 	);
-
+	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_ConditionWidget, FButtonStyle::GetDefault(),
 		.SetNormal(Box_SolidLightGray_Deburred)
 		.SetHovered(Box_SolidWhite_Deburred)
@@ -321,8 +336,9 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_DialogueText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
-		.SetFont(Font_DialogueText)
+		.SetFont(Font_NotoSans_Regular)
 		.SetColorAndOpacity(FSlateColor::UseForeground())
+		.SetFontSize(10)
 	);
 
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_TitleText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
@@ -347,7 +363,6 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_STYLE(FEditableTextBoxStyle, EditableTextBoxStyle_Dialogue, FEditableTextBoxStyle::GetDefault(),
 		.SetScrollBarStyle(ScrollBarStyle_DialogueBox) // This doesn't do dick, thanks Epic
 		.SetTextStyle(TextBlockStyle_DialogueText)
-		.SetFont(Font_DialogueText)
 		.SetForegroundColor(FSlateColor::UseForeground())
 		.SetPadding(0)
 		.SetBackgroundImageNormal(CORE_BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
@@ -363,10 +378,6 @@ void FYapEditorStyle::Initialize()
 		.SetFont(Font_TitleText)
 		.SetForegroundColor(FSlateColor::UseForeground())
 		.SetPadding(0)
-		//.SetBackgroundImageNormal(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
-		//.SetBackgroundImageHovered(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
-		//.SetBackgroundImageFocused(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
-		//.SetBackgroundImageReadOnly(BOX_BRUSH("Common/WhiteGroupBorder", FMargin(4.0f / 16.0f)))
 		.SetBackgroundColor(FStyleColors::Recessed)
 	);
 		
@@ -375,9 +386,7 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FProgressBarStyle, ProgressBarStyle_FragmentTimePadding, FProgressBarStyle::GetDefault(),
-		//.SetBackgroundImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::Transparent))
 		.SetBackgroundImage(None)
-		//.SetFillImage(BOX_BRUSH("ProgressBar_Fill", 2.0f/8.0f, YapColor::White))
 		.SetFillImage(Box_SolidWhite)
 		.SetEnableFillAnimation(false)
 	);

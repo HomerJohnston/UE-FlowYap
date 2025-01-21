@@ -75,22 +75,12 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 
 bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 {
-	// If no time mode is set, we MUST be skippable no matter what
-	if (TimeMode == EYapTimeMode::None)
-	{
-		return true;
-	}
+	return Skippable.Get(Owner->GetSkippable());
+}
 
-	// If skippable setting is default, we MUST slave to the owner's setting
-	if (Skippable == EYapDialogueSkippable::Default)
-	{
-		if (IsValid(Owner))
-		{
-			return Owner->GetSkippable();
-		}
-	}
-
-	return Skippable == EYapDialogueSkippable::Skippable;
+bool FYapBit::GetAutoAdvance(const UFlowNode_YapDialogue* Owner) const
+{
+	return AutoAdvance.Get(Owner->GetAutoAdvance());
 }
 
 EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const

@@ -39,7 +39,11 @@ struct FYapBrushes
 	FName Icon_TextTime;
 	FName Icon_Timer;
 	FName Icon_UpArrow;
-	FName Icon_Circle_22px;
+	FName Icon_Skippable;
+	FName Icon_NotSkippable;
+	FName Icon_AutoAdvance;
+	FName Icon_ManualAdvance;
+	FName Icon_Reset_Small;
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
@@ -126,6 +130,10 @@ struct FYapFonts
 	FSlateFontInfo Font_CharacterAssetThumbnail;
 
 	FSlateFontInfo Font_WarningText;
+
+	FSlateFontInfo Font_OpenSans_Regular;
+	FSlateFontInfo Font_NotoSans_Regular;
+	FSlateFontInfo Font_NotoSans_SemiBold;
 };
 
 extern FYapFonts YapFonts;

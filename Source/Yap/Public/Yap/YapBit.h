@@ -8,11 +8,10 @@
 #include "GameplayTagContainer.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Enums/YapWarnings.h"
-#include "Yap/Enums/YapDialogueSkippable.h"
+#include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "YapBit.generated.h"
 
-enum class EYapDialogueSkippable : uint8;
 class UYapCharacter;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
@@ -73,7 +72,11 @@ protected:
 
 	/**  */
 	UPROPERTY()
-	EYapDialogueSkippable Skippable = EYapDialogueSkippable::Default;
+	TOptional<bool> Skippable;
+	
+	/**  */
+	UPROPERTY()
+	TOptional<bool> AutoAdvance;
 	
 	// --------------------------------------------------------------------------------------------
 	// SERIALIZED STATE FROM EDITOR
@@ -153,7 +156,15 @@ public:
 	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
 	bool GetSkippable(const UFlowNode_YapDialogue* Owner) const;
 
-	EYapDialogueSkippable GetSkippableSetting() const { return Skippable; }
+	bool GetAutoAdvance(const UFlowNode_YapDialogue* Owner) const;
+	
+	TOptional<bool> GetSkippableSetting() const { return Skippable; }
+	
+	TOptional<bool>& GetSkippableSetting() { return Skippable; }
+
+	TOptional<bool> GetAutoAdvanceSetting() const { return AutoAdvance; }
+	
+	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
 	
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
 	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;

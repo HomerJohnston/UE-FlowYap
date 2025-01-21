@@ -7,10 +7,11 @@
 #include "GameplayTagContainer.h"
 #include "YapLog.h"
 #include "Engine/DeveloperSettings.h"
+#include "Enums/YapDialogueProgressionFlags.h"
 #include "Yap/YapBroker.h"
 #include "YapProjectSettings.generated.h"
 
-enum class EYapDialogueSkippable : uint8;
+enum class EYapDialogueProgressionFlags : uint8;
 class UYapBroker;
 enum class EYapMaturitySetting : uint8;
 class UYapConversationHandler;
@@ -89,10 +90,14 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
 
-	/** Controls whether dialogue playback can be interrupted (skipped) by default. Can be overridden by individual nodes. */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ValidEnumValues = "Skippable, NotSkippable"))
-	EYapDialogueSkippable DefaultSkippableSetting;
+	/** If set, dialogue will be non-skippable by default and must play for its entire duration. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
+	bool bForcedDialogueDuration = false;
 
+	/** If set, dialogue will not auto-advance when its duration finishes and will require advancement by using the Dialogue Handle. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
+	bool bManualAdvanceOnly = false;
+	
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01))
 	float DefaultFragmentPaddingTime = 0.25f;
@@ -235,7 +240,9 @@ public:
 	
 	static EYapTimeMode GetDefaultTimeModeSetting() { return Get().DefaultTimeModeSetting; }
 
-	static EYapDialogueSkippable GetDefaultSkippableSetting() { return Get().DefaultSkippableSetting; }
+	static bool GetDefaultSkippableSetting() { return !Get().bForcedDialogueDuration; }
+	
+	static bool GetDefaultAutoAdvanceSetting() { return !Get().bManualAdvanceOnly; }
 	
 	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get().DefaultMaturitySetting; }
 	

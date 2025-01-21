@@ -52,7 +52,9 @@ public class YapEditor : ModuleRules
                 
                 "EditorWidgets",
                 "ToolWidgets",
-                "KismetWidgets"
+                "KismetWidgets",
+                
+                "Projects"
                 
             }
         );

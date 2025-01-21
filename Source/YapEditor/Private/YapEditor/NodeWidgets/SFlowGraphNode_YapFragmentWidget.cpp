@@ -28,7 +28,6 @@
 #include "YapEditor/Helpers/YapEditableTextPropertyHandle.h"
 #include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
-#include "YapEditor/NodeWidgets/SSkippableCheckBox.h"
 #include "YapEditor/NodeWidgets/SYapButtonPopup.h"
 #include "YapEditor/Testing/SYapPropertyMenuAssetPicker.h"
 #include "Templates/FunctionFwd.h"
@@ -36,8 +35,12 @@
 #include "Yap/YapSubsystem.h"
 #include "Yap/Enums/YapErrorLevel.h"
 #include "YapEditor/YapDeveloperSettings.h"
+#include "Framework/MultiBox/SToolBarButtonBlock.h"
+#include "YapEditor/Helpers/ProgressionSettingWidget.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
+
+
 
 bool SFlowGraphNode_YapFragmentWidget::NeedsChildSafeData() const
 {
@@ -388,7 +391,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			.ConditionsArrayProperty(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
 			.ConditionsContainer(&GetFragment())
 			.OnConditionsArrayChanged(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
-			.OnConditionDetailsViewBuilt(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionDetailsViewBuilt)
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
@@ -416,13 +418,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		[
 			SNew(SBox)
 			.WidthOverride(20)
-			.HAlign(HAlign_Center)
 			[
-				SNew(SYapSkippableCheckBox)
-				.Visibility_Lambda( [this, &Bit] () { return (Bit.GetBitTimeMode() != EYapTimeMode::None) ? EVisibility::Visible : EVisibility::Hidden; } )
-				.IsSkippable_Lambda( [this, &Bit] () { return Bit.GetSkippable(Owner->GetFlowYapDialogueNode()); } )
-				.SkippableSetting_Lambda( [this, &Bit] () { return Bit.GetSkippableSetting(); } )
-				.OnCheckStateChanged(this, &SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_SkippableToggle)
+				MakeProgressionPopupButton<FYapBit, &FYapBit::GetSkippable, &FYapBit::GetAutoAdvance>(&GetBit().Skippable, &GetBit().AutoAdvance, &GetBit(), GetDialogueNode())
 			]
 		]
 	];
@@ -439,22 +436,24 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() con
 
 void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
 {
+	/*
 	FYapTransactions::BeginModify(LOCTEXT("ToggleSkippable", "Toggle skippable"), GetDialogueNode());
 
 	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
 	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::Default;
+		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::Default;
 	}
 	else if (CheckBoxState == ECheckBoxState::Checked)
 	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::Skippable;
+		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::Skippable;
 	}
 	else
 	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueSkippable::NotSkippable;
+		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::NotSkippable;
 	}	
 	
 	FYapTransactions::EndModify();
+	*/
 }
 
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings() const
@@ -1201,7 +1200,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				SNew(SBorder)
 				.Cursor(EMouseCursor::Default)
 				.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
-				.BorderBackgroundColor(FSlateColor::UseForeground())// YapColor::DeepGray)
+				.BorderBackgroundColor(FSlateColor::UseForeground())
 				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
 				.Padding(0)
 				[
@@ -1210,10 +1209,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 					.Padding(2, 2, 2, 2)
 					[
 						SNew(STextBlock)
-						.AutoWrapText(UYapProjectSettings::GetWrapDialogueText())
+						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::White, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
 					]
 					+ SOverlay::Slot()
 					.VAlign(VAlign_Center)

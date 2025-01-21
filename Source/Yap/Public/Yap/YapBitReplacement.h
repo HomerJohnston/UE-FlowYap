@@ -57,10 +57,6 @@ struct FYapBitReplacement
 	UPROPERTY(EditAnywhere)
 	TOptional<EYapTimeMode> TimeMode = EYapTimeMode::AudioTime;
 
-	/**  */
-	UPROPERTY(EditAnywhere)
-	TOptional<EYapDialogueSkippable> Skippable = EYapDialogueSkippable::Default;
-
 	// TODO calculate and serialize below on PostEditChangeProperty
 
 	/**  */
@@ -107,7 +103,6 @@ inline FYapBitReplacement::FYapBitReplacement()
 	
 	MoodTag.Reset();
 	TimeMode.Reset();
-	Skippable.Reset();
 
 	ManualTime.Reset();
 

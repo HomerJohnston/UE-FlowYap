@@ -377,8 +377,7 @@ FText FDetailCustomization_YapProjectSettings::ToolTipText_DefaultMoodTags() con
 	FString ParentTagString = ParentTag.ToString();
 
 	FString DefaultTagsAsString;
-
-				
+	
 	for (int32 i = 0; i < DefaultMoodTags.Num(); ++i)
 	{
 		const FString& Tag = DefaultMoodTags[i];

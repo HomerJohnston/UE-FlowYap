@@ -8,7 +8,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "Yap/YapGlobals.h"
 #endif
-#include "Yap/Enums/YapDialogueSkippable.h"
+#include "Yap/Enums/YapDialogueProgressionFlags.h"
 #include "Yap/Enums/YapMaturitySetting.h"
 #include "Yap/Enums/YapMissingAudioErrorLevel.h"
 
@@ -43,8 +43,6 @@ UYapProjectSettings::UYapProjectSettings()
 	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
 #endif
 	
-	DefaultSkippableSetting = EYapDialogueSkippable::Skippable;
-
 	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
 
 	MissingPortraitTexture = FSoftObjectPath("/Yap/T_Avatar_Missing.T_Avatar_Missing");
