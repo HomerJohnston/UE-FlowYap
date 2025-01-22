@@ -309,8 +309,6 @@ void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 	*TextToSet = NewText;
 
 	RecalculateText(TextToSet);
-
-	CachedMatureWordCount = 24;
 }
 #endif
 
