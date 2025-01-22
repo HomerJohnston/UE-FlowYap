@@ -252,6 +252,41 @@ void FYapBit::SetTextData(FText* TextToSet, const FText& NewText)
 	SetDialogueText_Internal(TextToSet, NewText);
 }
 
+void FYapBit::RecalculateText()
+{
+	RecalculateText(&MatureDialogueText);
+	RecalculateText(&SafeDialogueText);
+}
+
+void FYapBit::RecalculateText(FText* TextToCalculate)
+{
+	int32 WordCount = -1;
+
+	if (UYapProjectSettings::CacheFragmentWordCount())
+	{
+		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+
+		if (IsValid(Broker))
+		{
+			WordCount = Broker->CalculateWordCount(*TextToCalculate);
+		}
+	}
+
+	if (WordCount < 0)
+	{
+		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
+	}
+
+	if (TextToCalculate == &MatureDialogueText)
+	{
+		CachedMatureWordCount = WordCount;
+	}
+	else
+	{
+		CachedSafeWordCount = WordCount;
+	}
+}
+
 #endif
 
 #if WITH_EDITOR
@@ -273,31 +308,9 @@ void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
 {
 	*TextToSet = NewText;
 
-	int32 WordCount = -1;
+	RecalculateText(TextToSet);
 
-	if (UYapProjectSettings::CacheFragmentWordCount())
-	{
-		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
-
-		if (IsValid(Broker))
-		{
-			WordCount = Broker->CalculateWordCount(NewText);
-		}
-	}
-
-	if (WordCount < 0)
-	{
-		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
-	}
-
-	if (TextToSet == &MatureDialogueText)
-	{
-		CachedMatureWordCount = WordCount;
-	}
-	else
-	{
-		CachedSafeWordCount = WordCount;
-	}
+	CachedMatureWordCount = 24;
 }
 #endif
 

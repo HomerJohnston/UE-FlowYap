@@ -23,6 +23,9 @@ class UFlowGraphNode_YapDialogue : public UFlowGraphNode_YapBase
 public:
 	UFlowGraphNode_YapDialogue();
 	
+protected:
+	TSharedPtr<FUICommandList> Commands;
+	
 public:	
 	TSharedPtr<SGraphNode> CreateVisualWidget() override;
 
@@ -36,6 +39,12 @@ public:
 
 public:
 	void PreSave(FObjectPreSaveContext SaveContext) override;
+
+	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
+
+	void RecalculateTextOnAllFragments();
+
+	void InitializeInstance() override;
 };
 
 #undef LOCTEXT_NAMESPACE
