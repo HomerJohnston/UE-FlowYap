@@ -115,8 +115,6 @@ protected:
 	TSharedRef<SWidget> CreateUpperFragmentBar();
 	EVisibility Visibility_FragmentTagWidget() const;
 	
-	void OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState);
-
 	ECheckBoxState		IsChecked_ChildSafeSettings() const;
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;

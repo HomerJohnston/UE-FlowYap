@@ -204,9 +204,9 @@ public:
 	
 	void SetMoodTag(const FGameplayTag& NewValue) { MoodTag = NewValue; };
 
-	EYapTimeMode GetBitTimeMode() const { return TimeMode; }
+	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
 
-	void SetBitTimeMode(EYapTimeMode NewValue) { TimeMode = NewValue; }
+	void SetTimeModeSetting(EYapTimeMode NewValue) { TimeMode = NewValue; }
 	
 	void SetManualTime(float NewValue) { ManualTime = NewValue; }
 

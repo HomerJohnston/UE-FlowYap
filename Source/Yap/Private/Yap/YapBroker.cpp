@@ -15,7 +15,6 @@
 TOptional<bool> UYapBroker::bImplemented_Initialize = false;
 TOptional<bool> UYapBroker::bImplemented_UseMatureDialogue = false;
 TOptional<bool> UYapBroker::bImplemented_GetPlaybackSpeed = false;
-TOptional<bool> UYapBroker::bImplemented_CalculateWordCount = false;
 TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
@@ -24,7 +23,6 @@ TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
 bool UYapBroker::bWarned_Initialize = false;
 bool UYapBroker::bWarned_UseMatureDialogue = false;
 bool UYapBroker::bWarned_GetPlaybackSpeed = false;
-bool UYapBroker::bWarned_CalculateWordCount = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 bool UYapBroker::bWarned_PreviewAudioAsset = false;
@@ -57,9 +55,7 @@ float UYapBroker::GetPlaybackSpeed() const
 
 int32 UYapBroker::CalculateWordCount(const FText& Text) const
 {
-	check(bImplemented_CalculateWordCount.IsSet());
-	
-	if (bImplemented_CalculateWordCount)
+	if (GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_CalculateWordCount)))
 	{
 		return K2_CalculateWordCount(Text);
 	}
@@ -215,7 +211,6 @@ void UYapBroker::Initialize_Internal()
 {
 	bWarned_Initialize = false;
 	bWarned_UseMatureDialogue = false;
-	bWarned_CalculateWordCount = false;
 	bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 	bWarned_PreviewAudioAsset = false;
@@ -223,7 +218,6 @@ void UYapBroker::Initialize_Internal()
 	
 	bImplemented_Initialize = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_Initialize));
 	bImplemented_UseMatureDialogue = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_UseMatureDialogue));
-	bImplemented_CalculateWordCount = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_CalculateWordCount));
 	bImplemented_GetAudioAssetDuration = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetAudioAssetDuration));
 #if WITH_EDITOR
 	bImplemented_PreviewAudioAsset = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_PreviewAudioAsset));

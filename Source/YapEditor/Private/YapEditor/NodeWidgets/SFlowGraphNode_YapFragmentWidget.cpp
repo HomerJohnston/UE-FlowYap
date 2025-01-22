@@ -434,28 +434,6 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() con
 	return GetDialogueNode()->GetDialogueTag().IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
-void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_SkippableToggle(ECheckBoxState CheckBoxState)
-{
-	/*
-	FYapTransactions::BeginModify(LOCTEXT("ToggleSkippable", "Toggle skippable"), GetDialogueNode());
-
-	if (GEditor->GetEditorSubsystem<UYapEditorSubsystem>()->GetInputTracker()->GetControlPressed())
-	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::Default;
-	}
-	else if (CheckBoxState == ECheckBoxState::Checked)
-	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::Skippable;
-	}
-	else
-	{
-		GetFragment().GetBitMutable().Skippable = EYapDialogueProgression::NotSkippable;
-	}	
-	
-	FYapTransactions::EndModify();
-	*/
-}
-
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings() const
 {
 	if (!NeedsChildSafeData())
@@ -2431,11 +2409,11 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton(EYapTimeMod
 
 	if (GetBit().TimeMode == TimeMode)
 	{
-		GetBit().SetBitTimeMode(EYapTimeMode::None);
+		GetBit().SetTimeModeSetting(EYapTimeMode::None);
 	}
 	else
 	{
-		GetBit().SetBitTimeMode(TimeMode);
+		GetBit().SetTimeModeSetting(TimeMode);
 	}
 	
 	FYapTransactions::EndModify();
@@ -2446,7 +2424,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton(EYapTimeMod
 void SFlowGraphNode_YapFragmentWidget::OnValueUpdated_ManualTime(float NewValue)
 {
 	GetBit().SetManualTime(NewValue);
-	GetBit().SetBitTimeMode(EYapTimeMode::ManualTime);
+	GetBit().SetTimeModeSetting(EYapTimeMode::ManualTime);
 }
 
 // ---------------------

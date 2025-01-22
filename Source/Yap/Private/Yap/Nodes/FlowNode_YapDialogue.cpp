@@ -332,16 +332,19 @@ void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 		const FFlowPin EndPin = Fragment.GetEndPin();
 		TriggerOutput(EndPin.PinName, false);
 	}
-	
-	if (PaddingTime > 0)
-	{
-		TimerManager.SetTimer(PaddingTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingComplete, FragmentIndex), PaddingTime, false);
-	}
-	else
-	{
-		OnPaddingComplete(FragmentIndex);
-	}
 
+	if (Fragment.GetBit().GetAutoAdvance(this))
+	{
+		if (PaddingTime > 0)
+		{
+			TimerManager.SetTimer(PaddingTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingComplete, FragmentIndex), PaddingTime, false);
+		}
+		else
+		{
+			OnPaddingComplete(FragmentIndex);
+		}
+	}
+	
 #if WITH_EDITOR
 	FragmentEndedTime = GetWorld()->GetTimeSeconds();
 #endif

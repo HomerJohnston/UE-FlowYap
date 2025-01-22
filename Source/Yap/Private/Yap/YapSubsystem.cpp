@@ -269,7 +269,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 		EffectiveTime = UYapProjectSettings::GetMinimumFragmentTime();
 	}
 
-	FYapData_OnDialogueBegins Data;
+	FYapData_OnSpeakingBegins Data;
 	Data.Conversation = ConversationName;
 	Data.DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
 	Data.DirectedAt = Bit.GetDirectedAt();
@@ -280,7 +280,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 	Data.DialogueTime = EffectiveTime;
 	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>(MaturitySetting);
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueBegins, &IYapConversationHandler::Execute_K2_OnDialogueBegins>(Data);
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingBegins, &IYapConversationHandler::Execute_K2_OnSpeakingBegins>(Data);
 }
 
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
@@ -296,12 +296,12 @@ void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialo
 
 	const FYapFragment& Fragment = OwnerDialogue->GetFragmentByIndex(FragmentIndex);
 
-	FYapData_OnDialogueEnds Data;
+	FYapData_OnSpeakingEnds Data;
 	Data.Conversation = ConversationName;
 	Data.DialogueHandle = DialogueHandle;
 	Data.PaddingTime = Fragment.GetPaddingToNextFragment();
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnDialogueEnds, &IYapConversationHandler::Execute_K2_OnDialogueEnds>(Data);
+	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingEnds, &IYapConversationHandler::Execute_K2_OnSpeakingEnds>(Data);
 }
 
 void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)

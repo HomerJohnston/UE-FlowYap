@@ -49,7 +49,7 @@ enum class EYapDialogueNodeType : uint8
 /**
  * Emits Dialogue through UYapSubsystem.
  */
-UCLASS(NotBlueprintable, NotBlueprintType, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
+UCLASS(NotBlueprintable, BlueprintType, meta = (DisplayName = "Dialogue", Keywords = "yap")) /*, ToolTip = "Emits Yap dialogue events"*/
 class YAP_API UFlowNode_YapDialogue : public UFlowNode
 {
 	GENERATED_BODY()
@@ -111,15 +111,15 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	int32 NodeActivationCount = 0;
 
+	UPROPERTY(Transient)
+	int32 RunningFragmentIndex = INDEX_NONE;
+	
 	/** Timer handle, used internally for fragment runs. */
 	UPROPERTY(Transient)
 	FTimerHandle FragmentTimerHandle;
 
 	UPROPERTY(Transient)
 	FTimerHandle PaddingTimerHandle;
-
-	UPROPERTY(Transient)
-	int32 RunningFragmentIndex = INDEX_NONE;
 	
 #if WITH_EDITORONLY_DATA
 	/** When was the current running fragment started? */ 
@@ -136,6 +136,7 @@ protected:
 #endif
 
 	static FName OutputPinName;
+	
 	static FName BypassPinName;
 	
 	// ============================================================================================

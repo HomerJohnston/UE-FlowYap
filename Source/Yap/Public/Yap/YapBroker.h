@@ -37,7 +37,6 @@ private:
 	static TOptional<bool> bImplemented_Initialize;
 	static TOptional<bool> bImplemented_UseMatureDialogue;
 	static TOptional<bool> bImplemented_GetPlaybackSpeed;
-	static TOptional<bool> bImplemented_CalculateWordCount;
 	static TOptional<bool> bImplemented_GetAudioAssetDuration;
 #if WITH_EDITOR
 	static TOptional<bool> bImplemented_PreviewAudioAsset;
@@ -49,7 +48,6 @@ private:
 	static bool bWarned_Initialize;
 	static bool bWarned_UseMatureDialogue;
 	static bool bWarned_GetPlaybackSpeed;
-	static bool bWarned_CalculateWordCount;
 	static bool bWarned_GetAudioAssetDuration;
 #if WITH_EDITOR
 	static bool bWarned_PreviewAudioAsset;
