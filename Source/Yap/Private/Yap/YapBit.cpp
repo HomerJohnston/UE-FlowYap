@@ -80,7 +80,7 @@ bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 
 bool FYapBit::GetAutoAdvance(const UFlowNode_YapDialogue* Owner) const
 {
-	if (GetTimeModeSetting() == EYapTimeMode::None || (GetTimeModeSetting() == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::None))
+	if (TimeMode == EYapTimeMode::None || (TimeMode == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::None))
 	{
 		return false;
 	}
