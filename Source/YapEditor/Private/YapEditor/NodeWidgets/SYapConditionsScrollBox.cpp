@@ -83,7 +83,7 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateAddConditionButton()
 		[
 			SNew(SImage)
 			.Image(FAppStyle::GetBrush(TEXT("Icons.PlusCircle")))
-			.ColorAndOpacity(YapColor::DeepGray)
+			.ColorAndOpacity(YapColor::Button_Unset())
 		]
 	];
 }

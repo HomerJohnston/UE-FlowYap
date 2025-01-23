@@ -114,6 +114,9 @@ protected:
 	UPROPERTY(Transient)
 	int32 RunningFragmentIndex = INDEX_NONE;
 	
+	UPROPERTY(Transient)
+	int32 FragmentAwaitingManualAdvance = INDEX_NONE;
+	
 	/** Timer handle, used internally for fragment runs. */
 	UPROPERTY(Transient)
 	FTimerHandle FragmentTimerHandle;
@@ -222,6 +225,8 @@ protected:
 
 	void OnPaddingComplete(uint8 FragmentIndex);
 
+	void AdvanceToNextFragment(uint8 CurrentFragmentIndex);
+	
 	bool IsBypassPinRequired() const;
 
 	int16 FindFragmentIndex(const FGuid& InFragmentGuid) const;

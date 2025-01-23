@@ -70,7 +70,7 @@ void SYapConditionDetailsViewWidget::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite_Deburred))
-			.BorderBackgroundColor(YapColor::DeepGray)
+			.BorderBackgroundColor(YapColor::Button_Unset())
 			.Padding(4)
 			[
 				SNew(SScrollBox)

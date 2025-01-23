@@ -530,7 +530,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 {
 	if (!NeedsChildSafeData())
 	{
-		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::DeepGray;
+		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::Button_Unset();
 	}
 
 	if (!HasCompleteChildSafeData())
@@ -2280,7 +2280,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWid
 {
 	if (GetBit().GetMoodTag() == FGameplayTag::EmptyTag)
 	{
-		return YapColor::DeepGray;
+		return YapColor::Button_Unset();
 	}
 	
 	return YapColor::White_Trans;

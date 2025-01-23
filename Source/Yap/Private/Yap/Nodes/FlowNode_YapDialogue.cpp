@@ -73,25 +73,32 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 
 bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 {
+	if (FragmentAwaitingManualAdvance == FragmentIndex)
+	{
+		AdvanceToNextFragment(FragmentIndex);
+		return true;
+	}
+	
 	EYapFragmentState State = GetFragmentState(FragmentIndex);
 
+	bool bPreventSkippingTimers = !GetFragmentByIndex(FragmentIndex).GetBit().GetSkippable(this);
+			
+	if (bPreventSkippingTimers && (FragmentTimerHandle.IsValid() || PaddingTimerHandle.IsValid()))
+	{
+		return false;
+	}
+	
 	switch (State)
 	{
 		case EYapFragmentState::Running:
 		{
-			if (GetFragmentByIndex(FragmentIndex).GetBit().GetSkippable(this))
-			{
-				OnSpeakingComplete(FragmentIndex);
-				OnPaddingComplete(FragmentIndex);
-			}
-			
-			return true;
+			OnSpeakingComplete(FragmentIndex);
+			// Fallthrough
 		}
 		case EYapFragmentState::InPadding:
 		{
 			OnPaddingComplete(FragmentIndex);
-
-			return true;
+			break;
 		}
 		case EYapFragmentState::Idle:
 		{
@@ -106,6 +113,13 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 			return false;
 		}
 	}
+
+	if (FragmentAwaitingManualAdvance == FragmentIndex)
+	{
+		AdvanceToNextFragment(FragmentIndex);
+	}
+
+	return true;
 }
 
 void UFlowNode_YapDialogue::InitializeInstance()
@@ -327,16 +341,13 @@ void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 		TriggerOutput(EndPin.PinName, false);
 	}
 
-	if (Fragment.GetBit().GetAutoAdvance(this))
+	if (PaddingTime > 0)
 	{
-		if (PaddingTime > 0)
-		{
-			TimerManager.SetTimer(PaddingTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingComplete, FragmentIndex), PaddingTime, false);
-		}
-		else
-		{
-			OnPaddingComplete(FragmentIndex);
-		}
+		TimerManager.SetTimer(PaddingTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnPaddingComplete, FragmentIndex), PaddingTime, false);
+	}
+	else
+	{
+		OnPaddingComplete(FragmentIndex);
 	}
 	
 #if WITH_EDITOR
@@ -362,10 +373,24 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPaddingTimeOver(this, FragmentIndex);
 	
+	FYapFragment& Fragment = Fragments[FragmentIndex];
+	
+	if (Fragment.GetBit().GetAutoAdvance(this))
+	{
+		AdvanceToNextFragment(FragmentIndex);
+	}
+	else
+	{
+		FragmentAwaitingManualAdvance = FragmentIndex;
+	}
+}
+
+void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
+{
+	FYapFragment& Fragment = Fragments[CurrentFragmentIndex];
+
 	if (IsPlayerPrompt())
 	{
-		FYapFragment& Fragment = Fragments[FragmentIndex];
-
 		TriggerOutput(Fragment.GetPromptPin().PinName, true);
 	}
 	else
@@ -376,7 +401,7 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 		}
 		else
 		{
-			for (uint8 NextIndex = FragmentIndex + 1; NextIndex < Fragments.Num(); ++NextIndex)
+			for (uint8 NextIndex = CurrentFragmentIndex + 1; NextIndex < Fragments.Num(); ++NextIndex)
 			{
 				bool bRanNextFragment =  RunFragment(NextIndex);
 
@@ -583,26 +608,13 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 	}
 
 	FYapFragment NewFragment;
+	uint8 CopyFragmentIndex = InsertionIndex == 0 ? InsertionIndex : InsertionIndex - 1;
 
-	if (InsertionIndex > 0 || InsertionIndex >= Fragments.Num()) // TODO this looks messed up, wtf?
+	if (Fragments.IsValidIndex(CopyFragmentIndex))
 	{
-		uint8 PreviousFragmentIndex = InsertionIndex - 1;
-
-		if (Fragments.IsValidIndex(PreviousFragmentIndex))
-		{
-			const FYapFragment& PreviousFragment = GetFragmentByIndex(PreviousFragmentIndex);
-			NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
-			NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
-		}
-	}
-	else
-	{
-		uint8 NextFragmentIndex = InsertionIndex + 1;
-
-		if (Fragments.IsValidIndex(NextFragmentIndex))
-		{
-			NewFragment.GetBitMutable().SetSpeaker(GetFragmentByIndex(NextFragmentIndex).GetBit().GetSpeakerAsset());
-		}
+		const FYapFragment& PreviousFragment = GetFragmentByIndex(CopyFragmentIndex);
+		NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
+		NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
 	}
 	
 	Fragments.Insert(NewFragment, InsertionIndex);

@@ -215,7 +215,7 @@ void FYapEditorStyle::Initialize()
 	);
 	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_SequencingSelector, FButtonStyle::GetDefault(),
-		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray))
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Button_Unset()))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Noir))
 		.SetNormalForeground(YapColor::White_Glass)
@@ -225,7 +225,7 @@ void FYapEditorStyle::Initialize()
 	);
 	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_ActivationLimit, FButtonStyle::GetDefault(),
-		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray))
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Button_Unset()))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Noir))
 		.SetNormalForeground(YapColor::White_Glass)
@@ -235,7 +235,7 @@ void FYapEditorStyle::Initialize()
 	);
 	
 	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_FragmentControls, FButtonStyle::GetDefault(),
-		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DeepGray_Glass))
+		.SetNormal(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Button_Unset()))
 		.SetHovered(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::DarkGray))
 		.SetPressed(CORE_BOX_BRUSH(YAP_COMMON_BRUSH, YAP_COMMON_MARGIN, YapColor::Noir))
 		.SetNormalForeground(YapColor::White_Glass)

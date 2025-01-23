@@ -540,12 +540,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateFragmentSeparatorWid
 	return SNew(SButton)
 	.Cursor(EMouseCursor::Default)
 	.ContentPadding(2)
-	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton)
-	.ButtonColorAndOpacity(YapColor::DarkGray)
+	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
+	.ButtonColorAndOpacity(YapColor::White)
 	.OnClicked(this, &SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator, FragmentIndex)
 	[
 		SNew(SSeparator)
-		.Thickness(2)	
+		.Thickness(3)
+		.ColorAndOpacity(YapColor::White_SemiTrans)
 	];
 }
 

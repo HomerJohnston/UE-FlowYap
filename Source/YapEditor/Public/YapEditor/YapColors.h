@@ -84,7 +84,8 @@ namespace YapColor
 	DECLARE_COLOR_TRAN(Transparent,	1.000, 1.000, 1.000, 0.0);
 	DECLARE_COLOR(Error,		1.000, 0.000, 1.000);
 
-	const FLinearColor Asset_Character = LightGreen; 
+	const FLinearColor Asset_Character = LightGreen;
+	inline const FLinearColor Button_Unset() { return DarkGray; }
 }
 
 #undef LOCTEXT_NAMESPACE
