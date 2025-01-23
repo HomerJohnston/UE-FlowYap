@@ -107,25 +107,25 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 {
 	EYapMaturitySetting MaturitySetting;
 	
-	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetGameMaturitySetting(). This should never happen! Using default project maturity setting.")))
+	if (!ensureMsgf(World.IsValid(), TEXT("World was invalid in UYapSubsystem::GetGameMaturitySetting(). This should never happen! Defaulting to mature.")))
 	{
-		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting(); 
+		MaturitySetting = EYapMaturitySetting::Mature; 
 	}
 	else
 	{
 		UYapBroker* Broker = GetBroker();
 
-		if (ensureMsgf(IsValid(Broker), TEXT("No broker set in project settings! Using default project maturity setting.")))
+		if (ensureMsgf(IsValid(Broker), TEXT("No broker set in project settings! Defaulting to mature.")))
 		{
 			MaturitySetting = Broker->UseMatureDialogue();
 		}
 		else
 		{
-			MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+			MaturitySetting = EYapMaturitySetting::Mature;
 		}	
 	}
 
-	// Something went wrong... we will try to grab it from project settings with error logging. If even that fails, we will hard-code default to mature.
+	// Something went wrong... we will hard-code default to mature.
 	if (MaturitySetting == EYapMaturitySetting::Unspecified)
 	{
 		bool bSetWarningIssued = false;
@@ -136,18 +136,7 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 			bSetWarningIssued = true;
 		}
 		
-		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
-
-		if (MaturitySetting == EYapMaturitySetting::Unspecified)
-		{
-			if (!bGetGameMaturitySettingWarningIssued)
-			{
-				UE_LOG(LogYap, Error, TEXT("UYapSubsystem::GetGameMaturitySetting failed to get a valid game maturity setting! Defaulting to mature. This could be caused by corrupt project settings."));
-				bSetWarningIssued = true;
-			}
-		
-			MaturitySetting = EYapMaturitySetting::Mature;
-		}
+		MaturitySetting = EYapMaturitySetting::Mature;
 		
 		if (bSetWarningIssued)
 		{

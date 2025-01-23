@@ -160,10 +160,6 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	bool bSuppressBrokerWarnings = false;
 
-	/** Fallback project maturity setting to use if the broker is not overridden to use another setting. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	EYapMaturitySetting DefaultMaturitySetting;
-
 	/** Default texture to use for missing character portraits. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
 	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
@@ -243,9 +239,7 @@ public:
 	static bool GetDefaultSkippableSetting() { return !Get().bForcedDialogueDuration; }
 	
 	static bool GetDefaultAutoAdvanceSetting() { return !Get().bManualAdvanceOnly; }
-	
-	static EYapMaturitySetting GetDefaultMaturitySetting() { return Get().DefaultMaturitySetting; }
-	
+		
 	static const TSoftClassPtr<UYapBroker>& GetBrokerClass() { return Get().BrokerClass; }
 
 #if WITH_EDITOR

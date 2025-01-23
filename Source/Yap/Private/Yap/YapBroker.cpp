@@ -46,7 +46,14 @@ EYapMaturitySetting UYapBroker::UseMatureDialogue() const
 {
 	bool bSuppressDefaultMatureWarning = !UYapProjectSettings::GetSuppressBrokerWarnings();
 
-	return YAP_CALL_K2(UseMatureDialogue, bSuppressDefaultMatureWarning);
+	EYapMaturitySetting MaturitySetting = YAP_CALL_K2(UseMatureDialogue, bSuppressDefaultMatureWarning);
+
+	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	{
+		return EYapMaturitySetting::Mature;
+	}
+
+	return MaturitySetting;
 }
 
 float UYapBroker::GetPlaybackSpeed() const

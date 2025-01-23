@@ -133,8 +133,8 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 		}
 		else
 		{
-			UE_LOG(LogYap, Error, TEXT("UYapSubsystem was invalid in FYapBit::ResolveMaturitySetting. This should not happen! Please contact plugin author. Using project default maturity settings."));
-			MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+			UE_LOG(LogYap, Error, TEXT("UYapSubsystem was invalid in FYapBit::ResolveMaturitySetting. This should not happen! Please contact plugin author. Defaulting to mature."));
+			MaturitySetting = EYapMaturitySetting::Mature;
 		}
 	}
 }

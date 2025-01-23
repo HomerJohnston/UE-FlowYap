@@ -37,8 +37,6 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-	DefaultMaturitySetting = EYapMaturitySetting::Mature;
-
 #if WITH_EDITOR
 	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
 #endif
