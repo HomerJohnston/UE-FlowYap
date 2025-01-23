@@ -10,6 +10,7 @@
 class UObject;
 class UYapCharacter;
 
+// TODO -- URGENT -- we need a details customization for FYapText. So that whenever you set the text, it caches the length.
 USTRUCT()
 struct FYapBitReplacement
 {
@@ -27,19 +28,19 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> MatureTitleText;
+	TOptional<FYapText> MatureTitleText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> SafeTitleText;
+	TOptional<FYapText> SafeTitleText;
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> MatureDialogueText;
+	TOptional<FYapText> MatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FText> SafeDialogueText;
+	TOptional<FYapText> SafeDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -57,27 +58,9 @@ struct FYapBitReplacement
 	UPROPERTY(EditAnywhere)
 	TOptional<EYapTimeMode> TimeMode = EYapTimeMode::AudioTime;
 
-	// TODO calculate and serialize below on PostEditChangeProperty
-
 	/**  */
 	UPROPERTY(EditAnywhere)
 	TOptional<float> ManualTime = 0;
-
-	/**  */
-	UPROPERTY(VisibleAnywhere)
-	TOptional<int32> CachedMatureWordCount = 0;
-
-	/**  */
-	UPROPERTY(VisibleAnywhere)
-	TOptional<int32> CachedSafeWordCount = 0;
-	
-	/**  */
-	UPROPERTY(VisibleAnywhere)
-	TOptional<float> CachedMatureAudioTime = 0;
-
-	/**  */
-	UPROPERTY(VisibleAnywhere)
-	TOptional<float> CachedSafeAudioTime = 0;
 };
 
 inline FYapBitReplacement::FYapBitReplacement()
@@ -86,16 +69,16 @@ inline FYapBitReplacement::FYapBitReplacement()
 	DirectedAtAsset.Reset();
 
 	// TODO investigate this more, why is FText TOptional crashing if I don't do this?
-	MatureTitleText = FText::GetEmpty();
+	//MatureTitleText.
 	MatureTitleText.Reset();
 
-	SafeTitleText = FText::GetEmpty();
+	//SafeTitleText = FText::GetEmpty();
 	SafeTitleText.Reset();
 
-	MatureDialogueText = FText::GetEmpty();
+	//MatureDialogueText = FText::GetEmpty();
 	MatureDialogueText.Reset();
 	
-	SafeDialogueText = FText::GetEmpty();
+	//SafeDialogueText = FText::GetEmpty();
 	SafeDialogueText.Reset();
 	
 	MatureAudioAsset.Reset();
@@ -105,10 +88,4 @@ inline FYapBitReplacement::FYapBitReplacement()
 	TimeMode.Reset();
 
 	ManualTime.Reset();
-
-	CachedMatureWordCount.Reset();
-	CachedSafeWordCount.Reset();
-	
-	CachedMatureAudioTime.Reset();
-	CachedSafeAudioTime.Reset();
 }

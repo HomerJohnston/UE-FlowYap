@@ -45,7 +45,7 @@ public:
 
 	void Invalidate();
 	
-	bool IsValid() { return Guid.IsValid(); }
+	bool IsValid() const { return Guid.IsValid(); }
 	
 	bool operator==(const FYapDialogueHandle& Other) const
 	{

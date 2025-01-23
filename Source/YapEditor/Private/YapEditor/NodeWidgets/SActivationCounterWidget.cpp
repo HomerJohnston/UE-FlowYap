@@ -25,7 +25,7 @@ FSlateColor SActivationCounterWidget::NumeratorColor() const
 
 	if (ActivationCountVal == 0)
 	{
-		return YapColor::DarkGray;
+		return YapColor::DeepGray;
 	}
 	
 	int32 ActivationLimitVal = ActivationLimit.Get();
@@ -35,7 +35,7 @@ FSlateColor SActivationCounterWidget::NumeratorColor() const
 		return ActivationCountVal >= ActivationLimitVal ? YapColor::Red : YapColor::LightGray;
 	}
 	
-	return ActivationCountVal > 0 ? YapColor::LightGray : YapColor::DarkGray;
+	return ActivationCountVal > 0 ? YapColor::LightGray : YapColor::DeepGray;
 }
 
 FSlateColor SActivationCounterWidget::DenominatorColor() const
@@ -52,7 +52,7 @@ FSlateColor SActivationCounterWidget::DenominatorColor() const
 		return YapColor::Red;
 	}
 	
-	return ActivationLimitVal > 0 ? YapColor::LightGray : YapColor::DarkGray;
+	return ActivationLimitVal > 0 ? YapColor::LightGray : YapColor::DeepGray;
 }
 
 void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted)

@@ -48,6 +48,11 @@ void FYapFragment::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 
 float FYapFragment::GetPaddingToNextFragment() const
 {
+	if (GetBit().IsTimeModeNone())
+	{
+		return 0;
+	}
+	
 	if (PaddingToNextFragment < 0)
 	{
 		return UYapProjectSettings::GetDefaultFragmentPaddingTime();

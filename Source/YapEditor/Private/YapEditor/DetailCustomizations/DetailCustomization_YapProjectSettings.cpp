@@ -10,7 +10,7 @@
 #include "SGameplayTagPicker.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/YapProjectSettings.h"
-#include "YapEditor/YapEditorGlobals.h"
+#include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"
 

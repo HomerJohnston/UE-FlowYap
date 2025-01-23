@@ -3,6 +3,7 @@
 
 #include "Yap/YapBroker.h"
 
+#include "Components/AudioComponent.h"
 #include "Internationalization/BreakIterator.h"
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
@@ -190,9 +191,16 @@ bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 	{
 		// ------------------------------------------
 		// Default Implementation
+		static TWeakObjectPtr<UAudioComponent> PreviewAudioComponent; 
+		
 		if (const USoundBase* AudioAssetAsSoundBase = Cast<USoundBase>(AudioAsset))
 		{
-			GEditor->PlayPreviewSound(const_cast<USoundBase*>(AudioAssetAsSoundBase));
+			if (PreviewAudioComponent.IsValid())
+			{
+				PreviewAudioComponent->Stop();
+			}
+			
+			PreviewAudioComponent = GEditor->PlayPreviewSound(const_cast<USoundBase*>(AudioAssetAsSoundBase));
 			return true;
 		}
 		else

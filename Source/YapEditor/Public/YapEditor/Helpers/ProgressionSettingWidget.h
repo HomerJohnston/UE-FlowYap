@@ -31,10 +31,10 @@ SOverlay::FOverlaySlot::FSlotArguments MakePopupImage(TOptional<bool>* bSetting,
 
 			if (bUsingDefaults)
 			{
-				return YapColor::DarkGray;
+				return YapColor::DeepGray;
 			}
 				
-			return bEvaluatedValue ? YapColor::LightGreen : YapColor::DarkOrange_Trans;  
+			return bEvaluatedValue ? YapColor::LightGreen : YapColor::Orange;  
 		})
 	];
 	

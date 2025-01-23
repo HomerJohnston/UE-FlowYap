@@ -58,7 +58,8 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTexture2D> MissingPortraitTexture;
-	
+
+	TWeakObjectPtr<UAudioComponent> PreviewSoundComponent;
 public:
 	void UpdateMoodTagBrushesIfRequired();
 

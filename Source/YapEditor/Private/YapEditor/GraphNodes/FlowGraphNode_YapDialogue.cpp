@@ -48,7 +48,7 @@ UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
 
 FLinearColor UFlowGraphNode_YapDialogue::GetNodeBodyTintColor() const
 {
-	return YapColor::LightGray;
+	return 0.5 * (YapColor::LightGray + YapColor::Gray);
 }
 
 FSlateIcon UFlowGraphNode_YapDialogue::GetIconAndTint(FLinearColor& OutColor) const
@@ -127,7 +127,8 @@ void UFlowGraphNode_YapDialogue::RecalculateTextOnAllFragments()
 
 			for (FYapFragment& Fragment : DialogueNode2->GetFragmentsMutable())
 			{
-				Fragment.GetBitMutable().RecalculateText();
+				// TODO
+				//Fragment.GetBitMutable().RecacheSpeakingTime();
 			}
 		}
 	}

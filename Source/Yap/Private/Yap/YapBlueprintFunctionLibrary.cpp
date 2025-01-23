@@ -35,7 +35,23 @@ float UYapBlueprintFunctionLibrary::GetSoundLength(USoundBase* Sound)
 
 bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle)
 {
-	Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
+	if (Handle.IsValid())
+	{
+		//if (Handle.GetSkippable())
+		//{
+			Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
+			return true;
+		//}
+		//else
+		//{
+		//	UE_LOG(LogYap, Warning, TEXT("Attempted to skip with a handle that does not permit skipping!"))
+		//}
+	}
+	else
+	{
+		UE_LOG(LogYap, Warning, TEXT("Attempted to skip with invalid handle!"))
+	}
+	
 	return false;
 }
 

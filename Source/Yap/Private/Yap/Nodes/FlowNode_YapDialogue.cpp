@@ -78,11 +78,10 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 	switch (State)
 	{
 		case EYapFragmentState::Running:
-		{			
-			OnSpeakingComplete(FragmentIndex);
-
-			if (UYapProjectSettings::GetDoesSkipSkipPaddingTime())
+		{
+			if (GetFragmentByIndex(FragmentIndex).GetBit().GetSkippable(this))
 			{
+				OnSpeakingComplete(FragmentIndex);
 				OnPaddingComplete(FragmentIndex);
 			}
 			
@@ -90,14 +89,9 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 		}
 		case EYapFragmentState::InPadding:
 		{
-			if (UYapProjectSettings::GetDoesSkipSkipPaddingTime())
-			{
-				OnPaddingComplete(FragmentIndex);
+			OnPaddingComplete(FragmentIndex);
 
-				return true;
-			}
-
-			return false;
+			return true;
 		}
 		case EYapFragmentState::Idle:
 		{
@@ -292,7 +286,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 			TriggerOutput(StartPin.PinName, false);
 		}
 
-		TOptional<float> Time = Fragment.GetBit().GetTime();
+		TOptional<float> Time = Fragment.GetBitMutable().GetTime(UYapSubsystem::GetGameMaturitySetting());
 
 		if (!Time.IsSet())
 		{
@@ -544,7 +538,7 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 
 	if (bBypassRequired != IsBypassPinRequired())
 	{
-		OnReconstructionRequested.ExecuteIfBound();
+		(void)OnReconstructionRequested.ExecuteIfBound();
 	}
 }
 
@@ -571,7 +565,7 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 
 	UpdateFragmentIndices();
 	
-	OnReconstructionRequested.ExecuteIfBound();
+	(void)OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
@@ -616,7 +610,7 @@ void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
 	UpdateFragmentIndices();
 
 	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
-	OnReconstructionRequested.ExecuteIfBound();
+	(void)OnReconstructionRequested.ExecuteIfBound();
 }
 
 void UFlowNode_YapDialogue::UpdateFragmentIndices()
@@ -702,7 +696,7 @@ EYapFragmentState UFlowNode_YapDialogue::GetFragmentState(int32 FragmentIndex) c
 		{
 			return EYapFragmentState::InPadding;
 		}
-
+		
 		return EYapFragmentState::Running;
 	}
 
@@ -726,7 +720,7 @@ void UFlowNode_YapDialogue::ToggleNodeType()
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ForceReconstruction()
 {
-	OnReconstructionRequested.ExecuteIfBound();
+	(void)OnReconstructionRequested.ExecuteIfBound();
 }
 #endif
 

@@ -40,8 +40,6 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-
-
 bool SFlowGraphNode_YapFragmentWidget::NeedsChildSafeData() const
 {
 	return GetBit().NeedsChildSafeData();
@@ -51,8 +49,8 @@ bool SFlowGraphNode_YapFragmentWidget::HasAnyChildSafeData() const
 {
 	const FYapBit& Bit = GetBit();
 
-	bool bHasSafeDialogueText = !Bit.SafeDialogueText.IsEmpty();
-	bool bHasSafeTitleText = !Bit.SafeTitleText.IsEmpty();
+	bool bHasSafeDialogueText = !Bit.SafeDialogueText.Get().IsEmpty();
+	bool bHasSafeTitleText = !Bit.SafeTitleText.Get().IsEmpty();
 	bool bHasSafeAudio = !Bit.SafeAudioAsset.IsNull();
 
 	return (bHasSafeDialogueText || bHasSafeTitleText || bHasSafeAudio);
@@ -68,8 +66,8 @@ bool SFlowGraphNode_YapFragmentWidget::HasCompleteChildSafeData() const
 	}
 
 	// For all three elements, if the mature text is set, then the safe text must also be set
-	bool bDialogueTextOK = Bit.MatureDialogueText.IsEmpty() ? true : !Bit.SafeDialogueText.IsEmpty();
-	bool bTitleTextOK = Bit.MatureTitleText.IsEmpty() ? true : !Bit.SafeTitleText.IsEmpty(); 
+	bool bDialogueTextOK = Bit.MatureDialogueText.Get().IsEmpty() ? true : !Bit.SafeDialogueText.Get().IsEmpty();
+	bool bTitleTextOK = Bit.MatureTitleText.Get().IsEmpty() ? true : !Bit.SafeTitleText.Get().IsEmpty(); 
 	bool bAudioAssetOK = Bit.MatureAudioAsset.IsNull() ? true : !Bit.SafeAudioAsset.IsNull();
 
 	return bDialogueTextOK && bTitleTextOK && bAudioAssetOK;
@@ -110,6 +108,21 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWid
 	];
 }
 
+EYapMaturitySetting SFlowGraphNode_YapFragmentWidget::GetDisplayMaturitySetting() const
+{
+	if (GEditor->PlayWorld)
+	{
+		return UYapSubsystem::GetGameMaturitySetting();
+	}
+	
+	if (!NeedsChildSafeData())
+	{
+		return EYapMaturitySetting::Mature;
+	}
+	
+	return bChildSafeCheckBoxHovered ? EYapMaturitySetting::ChildSafe : EYapMaturitySetting::Mature;
+}
+
 void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex)
 {	
 	Owner = InOwner;
@@ -118,7 +131,7 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 
 	TimeModeButtonColors =
 	{
-		{ EYapTimeMode::None, YapColor::Noir },
+		{ EYapTimeMode::None, YapColor::OrangeRed },
 		{ EYapTimeMode::Default, YapColor::Green },
 		{ EYapTimeMode::AudioTime, YapColor::LightBlue },
 		{ EYapTimeMode::TextTime, YapColor::LightYellow },
@@ -261,9 +274,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentControlsWidg
 
 bool SFlowGraphNode_YapFragmentWidget::Enabled_AudioPreviewButton() const
 {
-	const UObject* AudioAsset = GetBit().GetAudioAsset<UObject>(EYapMaturitySetting::Mature);
-	
-	return IsValid(AudioAsset);
+	return GetBit().HasAudioAsset(GetDisplayMaturitySetting());
 }
 
 FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSoftObjectPtr<UObject>* Object)
@@ -288,29 +299,29 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_AudioPreviewWidget(const TSof
 
 			if (!bResult)
 			{
-				FNotificationInfo NotificationInfo(LOCTEXT("AudioPreview_UnknownWarning_Title", "Cannot Play Audio Preview"));
-				NotificationInfo.ExpireDuration = 5.0f;
-				NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-				NotificationInfo.SubText = LOCTEXT("AudioPreview_UnknownWarning_Description", "Unknown error!");
-				FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+				Yap::PostNotificationInfo_Warning
+				(
+					LOCTEXT("AudioPreview_UnknownWarning_Title", "Cannot Play Audio Preview"),
+					LOCTEXT("AudioPreview_UnknownWarning_Description", "Unknown error!")
+				);
 			}
 		}
 		else
 		{
-			FNotificationInfo NotificationInfo(LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Title", "Cannot Play Audio Preview"));
-			NotificationInfo.ExpireDuration = 5.0f;
-			NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-			NotificationInfo.SubText = LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Description", "Your Broker Class must implement the \"PlayDialogueAudioAssetInEditor\" function.");
-			FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+			Yap::PostNotificationInfo_Warning
+			(
+				LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Title", "Cannot Play Audio Preview"),
+				LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Description", "Your Broker Class must implement the \"PlayDialogueAudioAssetInEditor\" function.")
+			);
 		}
 	}
 	else
 	{
-		FNotificationInfo NotificationInfo(LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Title", "Cannot Play Audio Preview"));
-		NotificationInfo.ExpireDuration = 5.0f;
-		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-		NotificationInfo.SubText = LOCTEXT("AudioPreview_BrokerMissingWarning_Description", "Yap Broker class missing - you must set a Yap Broker class in project settings.");
-		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
+		Yap::PostNotificationInfo_Warning
+		(
+			LOCTEXT("AudioPreview_BrokerPlayFunctionMissingWarning_Title", "Cannot Play Audio Preview"),
+			LOCTEXT("AudioPreview_BrokerMissingWarning_Description", "Yap Broker class missing - you must set a Yap Broker class in project settings.")
+		);
 	}
 	
 	return FReply::Handled();
@@ -492,8 +503,8 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 						FYapScopedTransaction T("ChangeChildSafeSettings", LOCTEXT("ResetChildSafeSettings", "Reset child-safe settings"), GetDialogueNode());
 						
 						GetBit().SetSafeDialogueAudioAsset(nullptr);
-						GetBit().SetTextData(&GetBit().SafeDialogueText, FText::GetEmpty());
-						GetBit().SetTitleText(&GetBit().SafeTitleText, FText::GetEmpty());
+						GetBit().SetSafeDialogueText(FText::GetEmpty());
+						GetBit().SetSafeTitleText(FText::GetEmpty());
 
 						GetBit().bNeedsChildSafeData = false;
 					}
@@ -519,7 +530,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 {
 	if (!NeedsChildSafeData())
 	{
-		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::DarkGray;
+		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::DeepGray;
 	}
 
 	if (!HasCompleteChildSafeData())
@@ -647,7 +658,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetDirectedAt(), FGameplayTag::EmptyTag);
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetDirectedAt(), FGameplayTag::EmptyTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -776,7 +787,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							.OnAreAssetsAcceptableForDrop(this, &SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_ChildSafeButton)
 							.OnAssetsDropped(this, &SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_ChildSafeButton)
 							[
-								SNew(SCheckBox)
+								SAssignNew(ChildSafeCheckBox, SCheckBox)
 								.Cursor(EMouseCursor::Default)
 								.Style(FYapEditorStyle::Get(), YapStyles.CheckBoxStyle_Skippable)
 								.Type(ESlateCheckBoxType::ToggleButton)
@@ -908,22 +919,22 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_EmptyTextIndicator(cons
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_Default(EYapMaturitySetting MaturitySetting) const
 {
-	return GetBit().GetTime(MaturitySetting);
+	return GetBitMutable().GetTime(MaturitySetting);
 }
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_AudioTime(EYapMaturitySetting MaturitySetting) const
 {
-	return GetBit().GetAudioTime(MaturitySetting);
+	return GetBitMutable().GetAudioTime(MaturitySetting);
 }
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_TextTime(EYapMaturitySetting MaturitySetting) const
 {
-	return GetBit().GetTextTime(MaturitySetting);
+	return GetBitMutable().GetTextTime(MaturitySetting);
 }
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_ManualTime(EYapMaturitySetting MaturitySetting) const
 {
-	return GetBit().GetManualTime();
+	return GetBitMutable().GetManualTime();
 }
 
 void SFlowGraphNode_YapFragmentWidget::OnValueCommitted_ManualTime(float NewValue, ETextCommit::Type CommitType)
@@ -1161,8 +1172,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 	//FMargin TimerSliderPadding = GetDialogueNode()->UsesTitleText() ? FMargin(0, 0, 0, -(TimeSliderSize / 2) - 2) : FMargin(0, 0, 0, -(TimeSliderSize / 2));
 	FMargin TimerSliderPadding = FMargin(0, 0, 0, -(TimeSliderSize / 2) - 2);
 
-	TSharedRef<SWidget> ASDF = SNew(SBox);
-
+	const FText* MatureDialogueText = &GetBitConst().MatureDialogueText.Txt;
+	const FText* SafeDialogueText = &GetBitConst().SafeDialogueText.Txt;
+	
 	TSharedRef<SWidget> Widget = SNew(SLevelOfDetailBranchNode)
 	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 	.HighDetail()
@@ -1179,7 +1191,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				.Cursor(EMouseCursor::Default)
 				.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
 				.BorderBackgroundColor(FSlateColor::UseForeground())
-				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), MatureDialogueText, SafeDialogueText)
 				.Padding(0)
 				[
 					SNew(SOverlay)
@@ -1189,8 +1201,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						SNew(STextBlock)
 						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
-						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray, &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, MatureDialogueText, SafeDialogueText)
+						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray, MatureDialogueText, SafeDialogueText)
 					]
 					+ SOverlay::Slot()
 					.VAlign(VAlign_Center)
@@ -1199,8 +1211,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						SNew(STextBlock)
 						.Visibility_Lambda( [this] ()
 						{
-							const FText& Text = GetBit().MatureDialogueText;
-							return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
+							const FText& Text = GetBit().GetDialogueText(GetDisplayMaturitySetting());
+							return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
 						})
 						.Justification(ETextJustify::Center)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
@@ -1224,7 +1236,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				SNew(SBox)
 				.HeightOverride(2)
 				.Visibility(EVisibility::HitTestInvisible)
-				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), &GetBitConst().MatureDialogueText, &GetBitConst().SafeDialogueText)
+				.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), MatureDialogueText, SafeDialogueText)
 				[
 					SNew(SProgressBar)
 					.BorderPadding(0)
@@ -1310,12 +1322,7 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight() cons
 
 FText SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget(const FText* MatureText, const FText* SafeText) const
 {
-	if (GEditor->PlayWorld)
-	{
-		return (UYapSubsystem::GetGameMaturitySetting() == EYapMaturitySetting::Mature) ? *MatureText : *SafeText;
-	}
-	
-	return *MatureText;
+	return GetBit().GetDialogueText(GetDisplayMaturitySetting());
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_DialogueBackground() const
@@ -1371,6 +1378,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Expande
 	return Boxes;
 }
 
+// TODO this is all doubled-up for mature and child safe. Simplify it.
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_ExpandedEditor(float Width)
 {
 	bool bMature = !NeedsChildSafeData();
@@ -1379,8 +1387,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 
 	FYapBit& Bit = GetBit();
 
-	FText& DialogueText = Bit.MatureDialogueText;
-	FText& TitleText = Bit.MatureTitleText;
+	FText& DialogueText = Bit.MatureDialogueText.Txt;
+	FText& TitleText = Bit.MatureTitleText.Txt;
 	
 	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText));
 	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText));
@@ -1414,7 +1422,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 					SNew(SYapTextPropertyEditableTextBox, DialogueTextProperty)
 					.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &DialogueText)
-					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetTextData, &DialogueText)
+					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetMatureDialogueText)
 					.ForegroundColor(YapColor::White)
 					.Cursor(EMouseCursor::Default)
 				]
@@ -1429,7 +1437,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 					SNew(SYapTextPropertyEditableTextBox, TitleTextProperty)
 					.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_TitleText)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &TitleText)
-					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetTextData, &TitleText)
+					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetMatureTitleText)
 					.ForegroundColor(YapColor::YellowGray)
 					.Cursor(EMouseCursor::Default)
 				]
@@ -1469,8 +1477,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 			.Thickness(2)
 		];
 	
-		FText& SafeDialogueText = Bit.SafeDialogueText;
-		FText& SafeTitleText = Bit.SafeTitleText;
+		FText& SafeDialogueText = Bit.SafeDialogueText.Txt;
+		FText& SafeTitleText = Bit.SafeTitleText.Txt;
 		
 		TSharedRef<IEditableTextProperty> SafeDialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeDialogueText));
 		TSharedRef<IEditableTextProperty> SafeTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeTitleText));
@@ -1501,7 +1509,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 						SNew(SYapTextPropertyEditableTextBox, SafeDialogueTextProperty)
 						.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &SafeDialogueText)
-						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetTextData, &SafeDialogueText)
+						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetSafeDialogueText)
 						.ForegroundColor(YapColor::White)
 						.Cursor(EMouseCursor::Default)
 					]
@@ -1516,7 +1524,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 						SNew(SYapTextPropertyEditableTextBox, SafeTitleTextProperty)
 						.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_TitleText)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &SafeTitleText)
-						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetTextData, &SafeTitleText)
+						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetSafeTitleText)
 						.ForegroundColor(YapColor::YellowGray)
 						.Cursor(EMouseCursor::Default)
 					]
@@ -1767,7 +1775,7 @@ FText SFlowGraphNode_YapFragmentWidget::FragmentTagPreview_Text() const
 // ------------------------------------------------------------------------------------------------
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTimePadding_Percent() const
-{
+{	
 	const float MaxPaddedSetting = UYapProjectSettings::GetFragmentPaddingSliderMax();
 	const float FragmentPadding = GetFragment().GetPaddingToNextFragment();
 
@@ -1802,7 +1810,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
 	const float MaxTimeSetting = UYapProjectSettings::GetDialogueTimeSliderMax();
 
-	const TOptional<float> FragmentTimeIn = GetBit().GetTime(EYapMaturitySetting::Mature);
+	const TOptional<float> FragmentTimeIn = GetBitMutable().GetTime(GetDisplayMaturitySetting());
 
 	if (!FragmentTimeIn.IsSet())
 	{
@@ -1817,7 +1825,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 		
 		if (RunningFragment == &GetFragment())
 		{
-			if (GetDialogueNode()->FragmentStartedTime > GetDialogueNode()->FragmentEndedTime)
+			if (GetDialogueNode()->FragmentStartedTime >= GetDialogueNode()->FragmentEndedTime)
 			{
 				double ElapsedPaddingTime = GEditor->PlayWorld->GetTimeSeconds() - GetDialogueNode()->FragmentStartedTime;
 				return (1 - (ElapsedPaddingTime / FragmentTime)) * (FragmentTime / MaxTimeSetting);
@@ -2218,7 +2226,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodTag());
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetSpeaker(), GetBit().GetMoodTag());
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -2232,7 +2240,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBit().GetSpeaker(), GetBit().GetMoodTag());
+	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetSpeaker(), GetBit().GetMoodTag());
 	
 	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
@@ -2272,7 +2280,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWid
 {
 	if (GetBit().GetMoodTag() == FGameplayTag::EmptyTag)
 	{
-		return YapColor::DarkGray;
+		return YapColor::DeepGray;
 	}
 	
 	return YapColor::White_Trans;
@@ -2284,6 +2292,9 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWid
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidget()
 {
+	const FText* MatureTitleText = &GetBitConst().GetTitleText(EYapMaturitySetting::Mature);
+	const FText* SafeTitleText = &GetBitConst().GetTitleText(EYapMaturitySetting::ChildSafe);
+	
 	return SNew(SBorder)
 	.Cursor(EMouseCursor::Default)
 	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
@@ -2295,9 +2306,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidg
 		[
 			SNew(STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_TitleText)
-			.Text_Lambda( [this] () { return GetBit().GetTitleText(EYapMaturitySetting::Mature); } )
-			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("TitleText_ToolTip", "Title text"), &GetBitConst().MatureTitleText, &GetBitConst().SafeTitleText)
-			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::YellowGray, &GetBitConst().MatureTitleText, &GetBitConst().SafeTitleText)
+			.Text_Lambda( [this] () { return GetBit().GetTitleText(GetDisplayMaturitySetting()); } )
+			.ToolTipText(this, &SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget, LOCTEXT("TitleText_ToolTip", "Title text"), MatureTitleText, SafeTitleText)
+			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::YellowGray, MatureTitleText, SafeTitleText)
 		]
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Center)
@@ -2306,7 +2317,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidg
 			SNew(STextBlock)
 			.Visibility_Lambda( [this] ()
 			{
-				const FText& Text = GetBit().MatureTitleText;
+				const FText& Text = GetBit().GetTitleText(GetDisplayMaturitySetting());
 				return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
 			})
 			.Justification(ETextJustify::Center)
@@ -2322,13 +2333,13 @@ FText SFlowGraphNode_YapFragmentWidget::Text_EditedText(FText* Text) const
 	return *Text;
 }
 
-void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet)
+void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(const FText& NewValue))
 {
 	FYapTransactions::BeginModify(LOCTEXT("ChangeDialogueText", "Text changed"), GetDialogueNode());
 
 	if (CommitType != ETextCommit::OnCleared)
 	{
-		(GetBit().*Func)(TextToSet, NewValue);
+		(GetBit().*Func)(NewValue);
 	}
 
 	FYapTransactions::EndModify();
@@ -2353,12 +2364,19 @@ FText SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget(FText Labe
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const
 {
 	FLinearColor Color = BaseColor;
-	
-	if (GEditor->PlayWorld)
+
+	if (GetDisplayMaturitySetting() == EYapMaturitySetting::ChildSafe)
 	{
-		if (UYapSubsystem::GetGameMaturitySetting() == EYapMaturitySetting::ChildSafe && !SafeText->IsEmpty())
+		if (NeedsChildSafeData())
 		{
-			Color *= YapColor::LightBlue;
+			if (HasCompleteChildSafeData())
+			{
+				Color *= YapColor::LightBlue;
+			}
+			else
+			{
+				Color *= YapColor::OrangeRed;
+			}
 		}
 	}
 
@@ -2407,6 +2425,7 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton(EYapTimeMod
 {
 	FYapTransactions::BeginModify(LOCTEXT("TimeModeChanged", "Time mode changed"), GetDialogueNode());
 
+	/*
 	if (GetBit().TimeMode == TimeMode)
 	{
 		GetBit().SetTimeModeSetting(EYapTimeMode::None);
@@ -2415,7 +2434,9 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_SetTimeModeButton(EYapTimeMod
 	{
 		GetBit().SetTimeModeSetting(TimeMode);
 	}
-	
+	*/
+	GetBit().SetTimeModeSetting(TimeMode);
+
 	FYapTransactions::EndModify();
 
 	return FReply::Handled();
@@ -2438,7 +2459,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_UseTimeMode(
 		return ColorTint;
 	}
 	
-	if (GetBit().GetTimeMode(EYapMaturitySetting::Mature) == TimeMode)
+	if (GetBit().GetTimeMode(GetDisplayMaturitySetting()) == TimeMode)
 	{
 		// Implicit match through project defaults
 		return ColorTint.Desaturate(0.50);
@@ -2465,7 +2486,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_TimeSettingButton(
 		return ColorTint;
 	}
 	
-	if (GetBit().GetTimeMode(EYapMaturitySetting::Mature) == TimeMode)
+	if (GetBit().GetTimeMode(GetDisplayMaturitySetting()) == TimeMode)
 	{
 		// Implicit match through project defaults
 		return ColorTint;
@@ -2579,7 +2600,7 @@ FText SFlowGraphNode_YapFragmentWidget::ObjectPathText_AudioAsset() const
 
 FString SFlowGraphNode_YapFragmentWidget::ObjectPath_AudioAsset() const
 {
-	const UObject* Asset = GetBit().GetAudioAsset<UObject>(EYapMaturitySetting::Mature);
+	const UObject* Asset = GetBitMutable().GetAudioAsset<UObject>(GetDisplayMaturitySetting());
 
 	if (!Asset) { return ""; }
 
@@ -2721,7 +2742,7 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const T
 		||
 		(GetBit().TimeMode == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::AudioTime)
 		||
-		(GetBit().GetTimeMode(EYapMaturitySetting::Mature) == EYapTimeMode::AudioTime)
+		(GetBit().GetTimeMode(GetDisplayMaturitySetting()) == EYapTimeMode::AudioTime)
 	) // TODO handle edge case of only having child-safe asset and no mature asset
 	{
 		switch (MissingAudioBehavior)
@@ -2882,6 +2903,8 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 		FragmentWidgetOverlay->RemoveSlot(MoveFragmentControls.ToSharedRef());
 		MoveFragmentControls = nullptr;
 	}
+
+	bChildSafeCheckBoxHovered = ChildSafeCheckBox->IsHovered();
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
@@ -2930,7 +2953,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 					SNew(SButton)
 					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnStartPinButton)
-					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+					.ButtonColorAndOpacity(YapColor::Gray_Trans)
 					.ToolTipText(LOCTEXT("ClickToEnableOnStartPin_Label", "Click to enable 'On Start' Pin"))
 				]
 			]
@@ -2969,7 +2992,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 					SNew(SButton)
 					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton)
-					.ButtonColorAndOpacity(YapColor::LightGray_Trans)
+					.ButtonColorAndOpacity(YapColor::Gray_Trans)
 					.ToolTipText(LOCTEXT("ClickToEnableOnEndPin_Label", "Click to enable 'On End' Pin"))
 				]
 			]
@@ -3089,7 +3112,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidge
 	return SNew(SComboButton)
 		.Cursor(EMouseCursor::Default)
 		.HasDownArrow(false)
-		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_DialogueCornerFoldout)
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_DialogueCornerFoldout) // TODO fix style
 		.ContentPadding(FMargin(0.f, 0.f))
 		.MenuPlacement(MenuPlacement_CenteredBelowAnchor)
 		//.ButtonColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.5f)))
@@ -3101,7 +3124,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidge
 		.ButtonContent()
 		[
 			SNew(SImage)
-			.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+			.ColorAndOpacity(FSlateColor::UseForeground())
 			.Image(this, &SFlowGraphNode_YapFragmentWidget::Image_MoodTagSelector)
 		]
 		.MenuContent()

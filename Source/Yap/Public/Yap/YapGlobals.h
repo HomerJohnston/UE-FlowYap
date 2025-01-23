@@ -10,30 +10,14 @@
 
 namespace Yap
 {
-	inline FString GetPluginFolder()
-	{
-		static FString PluginDir;
+	YAP_API FString GetPluginFolder();
 
-		if (PluginDir.IsEmpty())
-		{
-			PluginDir = IPluginManager::Get().FindPlugin(TEXT("Yap"))->GetBaseDir();
-		}
-
-		return PluginDir;
-	}
-
-	inline FString GetResourcesFolder()
-	{
-		return GetPluginFolder() / "Resources";
-	}
+	YAP_API FString GetResourcesFolder();
 
 #if WITH_EDITOR
-	inline void OpenProjectSettings()
-	{
-		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
-		{
-			SettingsModule->ShowViewer("Project", "Yap", FName(UYapProjectSettings::StaticClass()->GetName()));
-		}
-	}
+	YAP_API void OpenProjectSettings();
+
+	YAP_API void PostNotificationInfo_Warning(FText Title, FText Description, float Duration = 6.0f);
 #endif
+
 }

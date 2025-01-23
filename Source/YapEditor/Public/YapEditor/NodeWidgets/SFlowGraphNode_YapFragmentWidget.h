@@ -84,6 +84,13 @@ protected:
 	TSharedPtr<SBox> SpeakerSelectionContainer;
 	
 	TSharedPtr<SButton> TextExpanderButton;
+
+	TSharedPtr<SWidget> ChildSafeCheckBox;
+
+	bool bChildSafeCheckBoxHovered = false;
+
+	EYapMaturitySetting GetDisplayMaturitySetting() const;
+	
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
 
@@ -124,7 +131,7 @@ protected:
 	bool OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const;
 	FReply OnClicked_DirectedAtWidget();
 	TSharedRef<SWidget> PopupContentGetter_DirectedAtWidget();
-	const FSlateBrush* Image_DirectedAtWidget() const;
+	const FSlateBrush* Image_DirectedAtWidget()const;
 	TSharedRef<SWidget> CreateDirectedAtWidget();
 	
 	bool OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const;
@@ -210,7 +217,7 @@ protected:
 	FReply				OnClicked_MoodTagMenuEntry(FGameplayTag NewValue);
 
 	FText Text_EditedText(FText* Text) const;
-	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(FText* TextToSet, const FText& NewValue), FText* TextToSet);
+	void OnTextCommitted_EditedText(const FText& NewValue, ETextCommit::Type CommitType, void (FYapBit::*Func)(const FText& NewValue));
 
 	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;
 	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;

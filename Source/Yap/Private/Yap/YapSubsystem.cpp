@@ -207,7 +207,7 @@ void UYapSubsystem::CloseConversation()
 void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
-	const FYapBit& Bit = Fragment.GetBit();
+	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit()); // TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
 
 	FGameplayTag ConversationName;
 
@@ -243,7 +243,7 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex)
 {
 	const FYapFragment& Fragment = DialogueNode->GetFragmentByIndex(FragmentIndex);
-	const FYapBit& Bit = Fragment.GetBit();
+	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit()); // TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
 
 	FGameplayTag ConversationName;
 
@@ -256,7 +256,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 
 	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
 
-	TOptional<float> Time = Bit.GetTime();
+	TOptional<float> Time = Bit.GetTime(MaturitySetting);
 
 	float EffectiveTime;
 	

@@ -7,27 +7,87 @@
 #include "Widgets/Notifications/SNotificationList.h"
 #include "Yap/YapBitReplacement.h"
 #include "Yap/YapCharacter.h"
+#include "Yap/YapGlobals.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
+#define YAP_ASYNC_LOAD(ASSET, HANDLE)\
+if (ASSET.IsPending())\
+HANDLE = FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath());\
+
 // --------------------------------------------------------------------------------------------
 // PUBLIC API
+
+void FYapText::Set(const FText& InText)
+{
+	Txt = InText;
+	
+	int32 NewWordCount = -1;
+
+	if (Txt.IsEmptyOrWhitespace())
+	{
+		WordCnt = 0;
+		return;
+	}
+	
+	if (UYapProjectSettings::CacheFragmentWordCount())
+	{
+		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+
+		if (IsValid(Broker))
+		{
+			NewWordCount = Broker->CalculateWordCount(Txt);
+		}
+	}
+
+	if (NewWordCount < 0)
+	{
+		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
+	}
+
+	WordCnt = NewWordCount;
+}
 
 FYapBit::FYapBit()
 {
 }
 
-const UYapCharacter* FYapBit::GetSpeaker(EYapWarnings Warnings) const
+const UYapCharacter* FYapBit::GetSpeaker(EYapWarnings Warnings)
 {
-	return GetCharacterAsset_Internal(SpeakerAsset, Speaker, Warnings);
+	return GetCharacter_Internal(SpeakerAsset, SpeakerHandle, Warnings);
 }
 
-const UYapCharacter* FYapBit::GetDirectedAt() const
+const UYapCharacter* FYapBit::GetDirectedAt()
 {
-	return GetCharacterAsset_Internal(DirectedAtAsset, DirectedAt, EYapWarnings::Ignore); // We ignore warnings for directed-at assets; they're always allowed to be normally unset
+	return GetCharacter_Internal(DirectedAtAsset, DirectedAtHandle, EYapWarnings::Ignore); // We ignore warnings for directed-at assets; they're always allowed to be normally unset
+}
+
+const UYapCharacter* FYapBit::GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle, EYapWarnings Warnings)
+{
+	if (CharacterAsset.IsNull())
+	{
+		return nullptr;
+	}
+
+	if (CharacterAsset.IsPending())
+	{
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loading character: %s"), *CharacterAsset->GetName());
+
+#if WITH_EDITOR
+		Yap::PostNotificationInfo_Warning
+		(
+			FText::Format(LOCTEXT("SyncLoadingWarning_Title", "Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())),
+			FText::Format(LOCTEXT("SyncLoadingWarning_Description", "Loading asset: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()))
+		);
+#endif
+
+		Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.LoadSynchronous());
+	}
+
+	return CharacterAsset.Get();
 }
 
 const FText& FYapBit::GetDialogueText(EYapMaturitySetting MaturitySetting) const
@@ -36,12 +96,12 @@ const FText& FYapBit::GetDialogueText(EYapMaturitySetting MaturitySetting) const
 
 	check(MaturitySetting != EYapMaturitySetting::Unspecified);
 	
-	if (MaturitySetting == EYapMaturitySetting::Mature || SafeDialogueText.IsEmpty())
+	if (MaturitySetting == EYapMaturitySetting::Mature || SafeDialogueText.Get().IsEmpty())
 	{
-		return MatureDialogueText;
+		return MatureDialogueText.Get();
 	}
 
-	return SafeDialogueText;
+	return SafeDialogueText.Get();
 }
 
 const FText& FYapBit::GetTitleText(EYapMaturitySetting MaturitySetting) const
@@ -49,16 +109,22 @@ const FText& FYapBit::GetTitleText(EYapMaturitySetting MaturitySetting) const
 	ResolveMaturitySetting(MaturitySetting);
 	check(MaturitySetting != EYapMaturitySetting::Unspecified);
 	
-	if (MaturitySetting == EYapMaturitySetting::Mature || SafeTitleText.IsEmpty())
+	if (MaturitySetting == EYapMaturitySetting::Mature || SafeTitleText.Get().IsEmpty())
 	{
-		return MatureTitleText;
+		return MatureTitleText.Get();
 	}
 
-	return SafeTitleText;
+	return SafeTitleText.Get();
 }
 
 void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 {
+	if (!bNeedsChildSafeData)
+	{
+		MaturitySetting = EYapMaturitySetting::Mature;
+		return;
+	}
+	
 	if (MaturitySetting == EYapMaturitySetting::Unspecified)
 	{
 		if (IsValid(UYapSubsystem::Get()))
@@ -99,21 +165,21 @@ EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 		EffectiveTimeMode = UYapProjectSettings::GetDefaultTimeModeSetting();
 	}
 
-	const TSoftObjectPtr<UObject>& AudioAsset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
-	const TOptional<float>& AudioTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
-	
-	if (EffectiveTimeMode == EYapTimeMode::AudioTime && (AudioAsset.IsNull() || !AudioTime.IsSet()))
+	if (EffectiveTimeMode == EYapTimeMode::AudioTime)
 	{
-		EffectiveTimeMode = EYapTimeMode::TextTime;
+		const TSoftObjectPtr<UObject>& Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
+
+		if (Asset.IsNull())
+		{
+			EffectiveTimeMode = EYapTimeMode::TextTime;
+		}
 	}
 
 	return EffectiveTimeMode;
 }
 
-TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
+TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting)
 {
-	ResolveMaturitySetting(MaturitySetting);
-
 	// TODO clamp minimums from project settings
 	
 	EYapTimeMode EffectiveTimeMode = GetTimeMode(MaturitySetting);
@@ -126,11 +192,11 @@ TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 		}
 		case EYapTimeMode::AudioTime:
 		{
-			return GetAudioTime();
+			return GetAudioTime(MaturitySetting);
 		}
 		case EYapTimeMode::TextTime:
 		{
-			return GetTextTime();
+			return GetTextTime(MaturitySetting);
 		}
 		default:
 		{
@@ -139,36 +205,58 @@ TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 	}
 }
 
-#define YAP_ASYNC_LOAD_AND_SET(ASSET, TARGET)\
-	if (!IsValid(TARGET) && ASSET.IsPending())\
-	{\
-		FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath(), FStreamableDelegate::CreateWeakLambda(OwningContext, [this] ()\
-		{\
-			TARGET = ASSET.Get();\
-		}));\
-	}
-
 void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 {
-	YAP_ASYNC_LOAD_AND_SET(SpeakerAsset, Speaker);
-	YAP_ASYNC_LOAD_AND_SET(DirectedAtAsset, DirectedAt);
-	YAP_ASYNC_LOAD_AND_SET(MatureAudioAsset, MatureAudio);
-	YAP_ASYNC_LOAD_AND_SET(SafeAudioAsset, SafeAudio);
+	YAP_ASYNC_LOAD(SpeakerAsset, SpeakerHandle);
+	
+	YAP_ASYNC_LOAD(DirectedAtAsset, DirectedAtHandle);
+	
+	UWorld* World = OwningContext->GetWorld();
+
+	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	{
+		EYapMaturitySetting MaturitySetting = UYapSubsystem::GetGameMaturitySetting();
+
+		switch (MaturitySetting)
+		{
+			case EYapMaturitySetting::Mature:
+			{
+				YAP_ASYNC_LOAD(MatureAudioAsset, AudioAssetHandle);
+				break;
+			}
+			case EYapMaturitySetting::ChildSafe:
+			{
+				if (bNeedsChildSafeData)
+				{
+					YAP_ASYNC_LOAD(SafeAudioAsset, AudioAssetHandle);
+				}
+				else
+				{
+					YAP_ASYNC_LOAD(MatureAudioAsset, AudioAssetHandle);
+				}
+				break;
+			}
+			default:
+			{
+				UE_LOG(LogYap, Warning, TEXT("Failed to preload audio, invalid maturity setting!"));
+				break;
+			}
+		}
+
+		// TODO I need some way for Yap to act upon the user changing their maturity setting. Broker needs an "OnMaturitySettingChanged" delegate
+	}
 }
 
 // --------------------------------------------------------------------------------------------
 // Protected
 
-float FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting) const
+TOptional<float> FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting)
 {
-	if (MaturitySetting == EYapMaturitySetting::Unspecified)
-	{
-		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
-	}
+	ResolveMaturitySetting(MaturitySetting);
 
-	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute(); // TODO WPM needs to become a game setting, not a project setting!
+	int32 TWPM = UYapProjectSettings::GetTextWordsPerMinute();
 
-	int32 WordCount = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureWordCount : CachedSafeWordCount;
+	int32 WordCount = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureDialogueText.WordCount() : SafeDialogueText.WordCount();
 
 	double SecondsPerWord = 60.0 / (double)TWPM;
 	
@@ -177,22 +265,54 @@ float FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting) const
 	return FMath::Max(WordCount * SecondsPerWord, Min);
 }
 
-TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting) const
+TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting)
 {
-	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	if (AudioAssetHandle.IsValid() && AudioAssetHandle->IsLoadingInProgress())
 	{
-		MaturitySetting = UYapProjectSettings::GetDefaultMaturitySetting();
+		UE_LOG(LogYap, Warning, TEXT("Loading in progress...")); 
+		return NullOpt;
 	}
 	
-	TOptional<float> CachedTime = (MaturitySetting == EYapMaturitySetting::Mature) ? CachedMatureAudioTime : CachedSafeAudioTime;
-	TSoftObjectPtr<UObject> Asset = (MaturitySetting == EYapMaturitySetting::Mature) ? MatureAudioAsset : SafeAudioAsset;
+	const UObject* AudioAsset = GetAudioAsset<UObject>(MaturitySetting);
 
-	if (Asset.IsNull() || !CachedTime.IsSet())
+	if (!AudioAsset)
 	{
-		return TOptional<float>();
+		return NullOpt;
 	}
+	
+	UYapBroker* Broker = nullptr;
 
-	return CachedTime;
+#if WITH_EDITOR
+	if (GEditor->PlayWorld)
+	{
+		Broker = UYapSubsystem::GetBroker();
+	}
+	else
+	{
+		const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetBrokerClass();
+	
+		if (BrokerClass.IsNull())
+		{
+			UE_LOG(LogYap, Warning, TEXT("No broker found in project settings! Cannot determine audio time!")); 
+			return NullOpt;
+		}
+		
+		if (!BrokerClass.IsNull())
+		{
+			Broker = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
+		}
+	}
+#else
+	Broker = UYapSubsystem::GetBroker();
+#endif
+
+	if (!Broker)
+	{
+		UE_LOG(LogYap, Warning, TEXT("No broker found! Cannot determine audio time!")); 
+		return NullOpt;
+	}
+		
+	return Broker->GetAudioAssetDuration(AudioAsset);
 }
 
 // --------------------------------------------------------------------------------------------
@@ -214,13 +334,9 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(MoodTag);
 	FLOWYAP_REPLACE(TimeMode);
 	FLOWYAP_REPLACE(ManualTime);
-	FLOWYAP_REPLACE(CachedMatureWordCount);
-	FLOWYAP_REPLACE(CachedSafeWordCount);
-	FLOWYAP_REPLACE(CachedMatureAudioTime);
-	FLOWYAP_REPLACE(CachedSafeAudioTime);
-
-#undef FLOWYAP_REPLACE
 	
+#undef FLOWYAP_REPLACE
+
 	return *this;
 }
 
@@ -231,92 +347,49 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 void FYapBit::SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter)
 {
 	SpeakerAsset = InCharacter;
-	Speaker = nullptr;
+	SpeakerHandle = nullptr;
 }
 
 void FYapBit::SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt)
 {
 	DirectedAtAsset = InDirectedAt;
-	DirectedAt = nullptr;
+	DirectedAtHandle = nullptr;
 }
 
-void FYapBit::SetTitleText(FText* TextToSet, const FText& NewText)
+void FYapBit::SetMatureTitleText(const FText& NewText)
 {
-	*TextToSet = NewText;
+	MatureTitleText.Set(NewText);	
 }
-#endif
-
-#if WITH_EDITOR
-void FYapBit::SetTextData(FText* TextToSet, const FText& NewText)
+void FYapBit::SetSafeTitleText(const FText& NewText)
 {
-	SetDialogueText_Internal(TextToSet, NewText);
+	SafeTitleText.Set(NewText);
 }
 
-void FYapBit::RecalculateText()
+void FYapBit::SetMatureDialogueText(const FText& NewText)
 {
-	RecalculateText(&MatureDialogueText);
-	RecalculateText(&SafeDialogueText);
+	SetTextData_Internal(MatureDialogueText, NewText);
 }
 
-void FYapBit::RecalculateText(FText* TextToCalculate)
+void FYapBit::SetSafeDialogueText(const FText& NewText)
 {
-	int32 WordCount = -1;
-
-	if (UYapProjectSettings::CacheFragmentWordCount())
-	{
-		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
-
-		if (IsValid(Broker))
-		{
-			WordCount = Broker->CalculateWordCount(*TextToCalculate);
-		}
-	}
-
-	if (WordCount < 0)
-	{
-		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
-	}
-
-	if (TextToCalculate == &MatureDialogueText)
-	{
-		CachedMatureWordCount = WordCount;
-	}
-	else
-	{
-		CachedSafeWordCount = WordCount;
-	}
-}
-
-#endif
-
-#if WITH_EDITOR
-void FYapBit::SetMatureDialogueAudioAsset(UObject* NewAudio)
-{
-	SetDialogueAudioAsset_Internal(MatureAudioAsset, CachedMatureAudioTime, NewAudio);
+	SetTextData_Internal(SafeDialogueText, NewText);
 }
 #endif
 
 #if WITH_EDITOR
-void FYapBit::SetSafeDialogueAudioAsset(UObject* NewAudio)
+void FYapBit::SetTextData_Internal(FYapText& TextToSet, const FText& NewText)
 {
-	SetDialogueAudioAsset_Internal(SafeAudioAsset, CachedSafeAudioTime, NewAudio);
+	TextToSet.Set(NewText);
 }
-#endif
 
-#if WITH_EDITOR
-void FYapBit::SetDialogueText_Internal(FText* TextToSet, const FText& NewText)
+void FYapBit::RecacheSpeakingTime()
 {
-	*TextToSet = NewText;
-
-	RecalculateText(TextToSet);
+	//RecalculateTextWordCount(MatureDialogueText, CachedMatureWordCount);
+	//RecalculateTextWordCount(SafeDialogueText, CachedSafeWordCount);
 }
-#endif
 
-#if WITH_EDITOR
-void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime, UObject* NewAudio)
+void FYapBit::RecalculateAudioTime(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime)
 {
-	AudioAsset = NewAudio;
-
 	const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetBrokerClass();
 	
 	if (BrokerClass.IsNull())
@@ -329,7 +402,7 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 	
 	UYapBroker* BrokerCDO = BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 
-	float NewCachedTime = BrokerCDO->GetAudioAssetDuration(NewAudio);
+	float NewCachedTime = BrokerCDO->GetAudioAssetDuration(AudioAsset.LoadSynchronous());
 
 	if (NewCachedTime > 0)
 	{
@@ -340,49 +413,50 @@ void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset
 		CachedTime.Reset();
 	}
 }
-#endif
 
-const UYapCharacter* FYapBit::GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings) const
+void FYapBit::RecalculateTextWordCount(FText& Text, float& CachedWordCount)
 {
-	if (IsValid(CharacterPtr))
+	int32 WordCount = -1;
+
+	if (UYapProjectSettings::CacheFragmentWordCount())
 	{
-		return CharacterPtr;
-	}
-	
-	if (CharacterAsset.IsNull())
-	{
-#if WITH_EDITOR
-		if (IsValid(GEditor->PlayWorld) && Warnings >= EYapWarnings::Show)
+		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+
+		if (IsValid(Broker))
 		{
-			UE_LOG(LogYap, Error, TEXT("Fragment is missing a UYapCharacter!"));
+			WordCount = Broker->CalculateWordCount(Text);
 		}
+	}
+
+	if (WordCount < 0)
+	{
+		UE_LOG(LogYap, Error, TEXT("Could not calculate word count!"));
+	}
+
+	CachedWordCount = WordCount;
+}
+
 #endif
-		return nullptr;
-	}
-	
-	if (CharacterAsset.IsValid())
-	{
-		CharacterPtr = CharacterAsset.Get();
-		return CharacterPtr;
-	}
-
-	if (GEngine->GetCurrentPlayWorld())
-	{
-		CharacterPtr = CharacterAsset.LoadSynchronous();
-
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
 
 #if WITH_EDITOR
-		FNotificationInfo NotificationInfo(FText::Format(LOCTEXT("SyncLoadingWarning_Title", "Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())));
-		NotificationInfo.ExpireDuration = 5.0f;
-		NotificationInfo.Image = FAppStyle::GetBrush("Icons.WarningWithColor");
-		NotificationInfo.SubText = FText::Format(LOCTEXT("SyncLoadingWarning_Description", "Loading asset: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()));
-		FSlateNotificationManager::Get().AddNotification(NotificationInfo);
-#endif
-	}
-
-	// We get what we get. Nullptr in editor until the separate preload system finishes async loading it; sync loaded asset in play.
-	return CharacterPtr;
+void FYapBit::SetMatureDialogueAudioAsset(UObject* NewAudio)
+{
+	SetDialogueAudioAsset_Internal(MatureAudioAsset, NewAudio);
 }
+#endif
+
+#if WITH_EDITOR
+void FYapBit::SetSafeDialogueAudioAsset(UObject* NewAudio)
+{
+	SetDialogueAudioAsset_Internal(SafeAudioAsset, NewAudio);
+}
+#endif
+
+#if WITH_EDITOR
+void FYapBit::SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, UObject* NewAudio)
+{
+	AudioAsset = NewAudio;
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE

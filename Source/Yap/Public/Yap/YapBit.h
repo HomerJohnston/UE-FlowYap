@@ -6,15 +6,54 @@
 #include "YapLog.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
+#include "YapGlobals.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Enums/YapWarnings.h"
 #include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "YapBit.generated.h"
 
+struct FStreamableHandle;
 class UYapCharacter;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
+
+#define LOCTEXT_NAMESPACE "Yap"
+
+USTRUCT(BlueprintType)
+struct YAP_API FYapText
+{
+#if WITH_EDITOR
+	friend class SFlowGraphNode_YapFragmentWidget;
+#endif
+	
+	GENERATED_BODY()
+
+private:
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	FText Txt;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	int32 WordCnt = 0;
+
+public:
+	void Set(const FText& InText);
+
+	const FText& Get() const { return Txt; }
+
+	int32 WordCount() const { return WordCnt; }
+
+	void operator=(const FYapText& Other)
+	{
+		Txt = Other.Txt;
+		WordCnt = Other.WordCnt;
+	}
+	
+	void operator=(const FText& NewText)
+	{
+		Set(NewText);
+	}
+};
 
 USTRUCT(BlueprintType)
 struct YAP_API FYapBit
@@ -40,19 +79,19 @@ protected:
 	
 	/**  */
 	UPROPERTY()
-	FText MatureTitleText;
+	FYapText MatureTitleText;
 
 	/**  */
 	UPROPERTY()
-	FText SafeTitleText;
+	FYapText SafeTitleText;
 	
 	/**  */
 	UPROPERTY()
-	FText MatureDialogueText;
+	FYapText MatureDialogueText;
 
 	/**  */
 	UPROPERTY()
-	FText SafeDialogueText;
+	FYapText SafeDialogueText;
 	
 	/**  */
 	UPROPERTY()
@@ -78,24 +117,9 @@ protected:
 	UPROPERTY()
 	TOptional<bool> AutoAdvance;
 	
-	// --------------------------------------------------------------------------------------------
-	// SERIALIZED STATE FROM EDITOR
-protected:
 	UPROPERTY()
 	float ManualTime = 0;
 	
-	UPROPERTY()
-	int32 CachedMatureWordCount = 0;
-	
-	UPROPERTY()
-	int32 CachedSafeWordCount = 0;
-	
-	UPROPERTY()
-	TOptional<float> CachedMatureAudioTime;
-	
-	UPROPERTY()
-	TOptional<float> CachedSafeAudioTime;
-
 	/** Indicates whether child-safe data is available in this bit or not */
 	UPROPERTY()
 	bool bNeedsChildSafeData = false;
@@ -108,17 +132,11 @@ protected:
 	// --------------------------------------------------------------------------------------------
 	// STATE
 protected:
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UYapCharacter> Speaker;
+	TSharedPtr<FStreamableHandle> SpeakerHandle;
 	
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UYapCharacter> DirectedAt;
+	TSharedPtr<FStreamableHandle> DirectedAtHandle;
 
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UObject> MatureAudio;
-	
-	UPROPERTY(Transient)
-	mutable TObjectPtr<UObject> SafeAudio;
+	TSharedPtr<FStreamableHandle> AudioAssetHandle;
 
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
@@ -127,15 +145,19 @@ public:
 	
 	const TSoftObjectPtr<UYapCharacter> GetDirectedAtAsset() const { return DirectedAtAsset; }
 
-	const UYapCharacter* GetSpeaker(EYapWarnings Warnings = EYapWarnings::Show) const;
+	const UYapCharacter* GetSpeaker(EYapWarnings Warnings = EYapWarnings::Show); // Non-const because of async loading handle
 
-	const UYapCharacter* GetDirectedAt() const;
+	const UYapCharacter* GetDirectedAt(); // Non-const because of async loading handle
+	
+private:
+	const UYapCharacter* GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle, EYapWarnings Warnings = EYapWarnings::Show);
+
+public:
+	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
+	const FText& GetDialogueText(EYapMaturitySetting MaturitySetting) const;
 
 	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
-	const FText& GetDialogueText(EYapMaturitySetting/* = EYapMaturitySetting::Unspecified*/) const;
-
-	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
-	const FText& GetTitleText(EYapMaturitySetting/* = EYapMaturitySetting::Unspecified*/) const;
+	const FText& GetTitleText(EYapMaturitySetting MaturitySetting) const;
 
 	template<class T>
 	const TSoftObjectPtr<T> GetMatureDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureAudioAsset->GetPathName()); }
@@ -144,12 +166,12 @@ public:
 	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeAudioAsset->GetPathName()); }
 	
 	template<class T>
-	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
 
 	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 
-	bool HasAudioAsset() { return !MatureAudioAsset.IsNull(); }
+	bool HasAudioAsset(EYapMaturitySetting MaturitySetting) const { return MaturitySetting == EYapMaturitySetting::Mature ? !MatureAudioAsset.IsNull() : !SafeAudioAsset.IsNull(); }
 
 	FGameplayTag GetMoodTag() const { return MoodTag; }
 
@@ -158,30 +180,25 @@ public:
 
 	bool GetAutoAdvance(const UFlowNode_YapDialogue* Owner) const;
 	
-	TOptional<bool> GetSkippableSetting() const { return Skippable; }
-	
-	TOptional<bool>& GetSkippableSetting() { return Skippable; }
-
-	TOptional<bool> GetAutoAdvanceSetting() const { return AutoAdvance; }
-	
-	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
-	
 	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
 	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-	
-	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+
+	bool IsTimeModeNone() const { return TimeMode == EYapTimeMode::None; }
 	
 	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
 	
 	bool NeedsChildSafeData() const { return bNeedsChildSafeData; };
 
+public:
+	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
+	
 protected:
 	TOptional<float> GetManualTime() const { return ManualTime; }
 
-	float GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+	TOptional<float> GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
 
-	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
@@ -191,94 +208,74 @@ public:
 #if WITH_EDITOR
 public:
 	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
-
 	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 
-	void SetTitleText(FText* TextToSet, const FText& NewText);
+	void SetMatureTitleText(const FText& NewText);
+	void SetSafeTitleText(const FText& NewText);
 
-	void SetTextData(FText* TextToSet, const FText& NewText);
-
-	void RecalculateText();
-
-	void RecalculateText(FText* TextToCalculate);
+	void SetMatureDialogueText(const FText& NewText);
+	void SetSafeDialogueText(const FText& NewText);
 	
 	void SetMatureDialogueAudioAsset(UObject* NewAudio);
-	
 	void SetSafeDialogueAudioAsset(UObject* NewAudio);
 	
 	void SetMoodTag(const FGameplayTag& NewValue) { MoodTag = NewValue; };
-
-	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
 
 	void SetTimeModeSetting(EYapTimeMode NewValue) { TimeMode = NewValue; }
 	
 	void SetManualTime(float NewValue) { ManualTime = NewValue; }
 
+	TOptional<bool> GetSkippableSetting() const { return Skippable; }
+	TOptional<bool>& GetSkippableSetting() { return Skippable; }
+	TOptional<bool> GetAutoAdvanceSetting() const { return AutoAdvance; }
+	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
+	
+	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
+
 private:
-	void SetDialogueText_Internal(FText* Text, const FText& InText);
+	void SetTextData_Internal(FYapText& TextToSet, const FText& NewText);
 
-	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime, UObject* NewAudio);
+	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, UObject* NewAudio);
+	
+	void RecacheSpeakingTime();
+
+	void RecalculateTextWordCount(FText& Text, float& CachedTime);
+
+	void RecalculateAudioTime(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime);
 #endif
-
-	const UYapCharacter* GetCharacterAsset_Internal(TSoftObjectPtr<UYapCharacter> CharacterAsset, TObjectPtr<UYapCharacter>& CharacterPtr, EYapWarnings Warnings = EYapWarnings::Show) const;
 };
 
 template <class T>
-const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
+const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting)
 {
 	ResolveMaturitySetting(MaturitySetting);
 
-	const TSoftObjectPtr<UObject>& PreferredAsset = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudioAsset : SafeAudioAsset;
-	const TSoftObjectPtr<UObject>& SecondaryAsset = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudioAsset : MatureAudioAsset;
-
+	const TSoftObjectPtr<UObject>& Asset = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudioAsset : SafeAudioAsset;
+	
 	// Asset is unset. Return nothing.
-	if (PreferredAsset.IsNull() && SecondaryAsset.IsNull())
+	if (Asset.IsNull())
 	{
 		return nullptr;
 	}
-	
-	TObjectPtr<UObject>& PreferredAudio = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudio : SafeAudio; 
-	TObjectPtr<UObject>& SecondaryAudio = MaturitySetting == EYapMaturitySetting::Mature ? SafeAudio : MatureAudio; 
 
-	if (PreferredAsset.IsValid())
-	{
-		return PreferredAsset.Get();
-	}
-
-	if (PreferredAsset.IsPending())
-	{
 #if WITH_EDITOR
-		if (GEditor->PlayWorld)
+	if (Asset.IsPending())
+	{
+		// This is a bit of a dumb hack.
+		if (GEditor->PlayWorld && (GEditor->PlayWorld->WorldType == EWorldType::Game || GEditor->PlayWorld->WorldType == EWorldType::PIE))
 		{
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
+
+			Yap::PostNotificationInfo_Warning
+			(
+				LOCTEXT("SyncLoadAudioWarning_Title", "Sync Loading Audio"),
+				LOCTEXT("SyncLoadAudioWarning_Description", "Synchronously loading dialogue audio asset.")
+			);
 		}
+	}
 #endif
-		PreferredAudio = PreferredAsset.LoadSynchronous();
-		return PreferredAudio;
-	}
 
-	// Don't allow falling back to child-safe data if it doesn't make sense to
-	if (MaturitySetting == EYapMaturitySetting::Mature && !bNeedsChildSafeData)
-	{
-		return nullptr;
-	}
-	
-	if (SecondaryAsset.IsValid())
-	{
-		return SecondaryAsset.Get();
-	}
-
-	if (SecondaryAsset.IsPending())
-	{
-#if WITH_EDITOR
-		if (GEditor->PlayWorld)
-		{
-			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
-		}
-#endif
-		SecondaryAudio = SecondaryAsset.LoadSynchronous();
-		return SecondaryAudio;	
-	}
-
-	return nullptr;
+	return Asset.LoadSynchronous();
 }
+
+#undef LOCTEXT_NAMESPACE
