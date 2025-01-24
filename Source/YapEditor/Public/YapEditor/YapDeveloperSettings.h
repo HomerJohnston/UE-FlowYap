@@ -5,6 +5,9 @@
 
 #include "YapDeveloperSettings.generated.h"
 
+class UFontFace;
+class UFont;
+
 #define LOCTEXT_NAMESPACE "YapEditor"
 
 UCLASS(Config = "EditorPerProjectUserSettings")
@@ -30,12 +33,17 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Development")
 	bool bCloseAndReopenAssetsOnLiveCoding = false;
 
+	UPROPERTY(Config, EditAnywhere, Category = "Settings")
+	FSlateFontInfo GraphDialogueFont;
+
 public:
 	static float GetConditionDetailsWidth() { return Get().ConditionDetailsWidth; }
 	
 	static float GetConditionDetailsHeight() { return Get().ConditionDetailsHeight; }
 
 	static float GetPortraitBorderAlpha() { return Get().PortraitBorderAlpha; }
+
+	static const FSlateFontInfo& GetGraphDialogueFont() { return Get().GraphDialogueFont; }
 
 	static bool GetCloseAndReopenAssetsOnLiveCoding() { return Get().bCloseAndReopenAssetsOnLiveCoding; }
 	
@@ -45,7 +53,6 @@ public:
 	FText GetSectionText() const override { return LOCTEXT("DeveloperSettings", "Developer Settings"); }
 	
 	FText GetSectionDescription() const override { return LOCTEXT("YapDeveloperSettingsDescription", "Local user settings for Yap"); }
-	
 };
 
 #undef LOCTEXT_NAMESPACE

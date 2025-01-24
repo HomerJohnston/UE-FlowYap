@@ -9,4 +9,5 @@ enum class EYapErrorLevel : uint8
 	OK,
 	Warning,
 	Error,
+	Unknown
 };

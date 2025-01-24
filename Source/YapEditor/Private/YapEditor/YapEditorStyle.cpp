@@ -114,7 +114,7 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	// FONTS
 	// ============================================================================================
-	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	10); // TODO font settings in project editor settings
+	YAP_DEFINE_FONT(Font_DialogueText,		"Normal",	10);
 	YAP_DEFINE_FONT(Font_TitleText,			"Italic",	10);
 	YAP_DEFINE_FONT(Font_NodeHeader,		"Bold",		15);
 	YAP_DEFINE_FONT(Font_SectionHeader,		"Bold",		12);
@@ -125,6 +125,9 @@ void FYapEditorStyle::Initialize()
 	YAP_LOAD_FONT(Font_OpenSans_Regular, "Fonts/OpenSans-Regular.ttf", 10);
 	YAP_LOAD_FONT(Font_NotoSans_Regular, "Fonts/NotoSans-Regular.ttf", 10);
 	YAP_LOAD_FONT(Font_NotoSans_SemiBold, "Fonts/NotoSans-SemiBold.ttf", 10);
+	
+	YAP_LOAD_FONT(Font_BeVietnam_Light, "Fonts/BeVietnam-Light.ttf", 10);
+	YAP_LOAD_FONT(Font_BeVietnam_Regular, "Fonts/BeVietnam-Regular.ttf", 10);
 
 	// ============================================================================================
 	// BRUSHES - PNGs
@@ -336,7 +339,7 @@ void FYapEditorStyle::Initialize()
 	// ============================================================================================
 	
 	YAP_DEFINE_STYLE(FTextBlockStyle, TextBlockStyle_DialogueText, GetParentStyle()->GetWidgetStyle<FTextBlockStyle>("NormalText"),
-		.SetFont(Font_NotoSans_Regular)
+		.SetFont(Font_DialogueText)
 		.SetColorAndOpacity(FSlateColor::UseForeground())
 		.SetFontSize(10)
 	);

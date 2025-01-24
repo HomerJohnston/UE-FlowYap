@@ -90,6 +90,10 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
 
+	/** Controls how missing audio fields are handled. */ // TODO make error not package
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
+	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
+	
 	/** If set, dialogue will be non-skippable by default and must play for its entire duration. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	bool bForcedDialogueDuration = false;
@@ -123,10 +127,6 @@ protected:
 	float FragmentPaddingSliderMax = 2.0;
 		
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
-	/** Controls how missing audio fields are handled. */ // TODO make it not package
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
 
 	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
 	UPROPERTY(Config, EditAnywhere, Category = "Editor")

@@ -139,6 +139,26 @@ void FYapBit::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const
 	}
 }
 
+bool FYapBit::HasAudioAsset(EYapMaturitySetting MaturitySetting) const
+{
+	if (MaturitySetting == EYapMaturitySetting::Mature)
+	{
+		return !MatureAudioAsset.IsNull();
+	}
+
+	if (MaturitySetting == EYapMaturitySetting::ChildSafe)
+	{
+		return !SafeAudioAsset.IsNull();
+	}
+
+	if (MaturitySetting == EYapMaturitySetting::Unspecified)
+	{
+		return !MatureAudioAsset.IsNull() || !SafeAudioAsset.IsNull();
+	}
+
+	return false;
+}
+
 bool FYapBit::GetSkippable(const UFlowNode_YapDialogue* Owner) const
 {
 	return Skippable.Get(Owner->GetSkippable());
@@ -377,6 +397,21 @@ void FYapBit::SetSafeDialogueText(const FText& NewText)
 #endif
 
 #if WITH_EDITOR
+bool FYapBit::HasDialogueTextForMaturity(EYapMaturitySetting MaturitySetting) const
+{
+	if (MaturitySetting == EYapMaturitySetting::Mature)
+	{
+		return !MatureDialogueText.Get().IsEmpty();
+	}
+
+	if (MaturitySetting == EYapMaturitySetting::ChildSafe)
+	{
+		return !SafeDialogueText.Get().IsEmpty();
+	}
+
+	return false;
+}
+
 void FYapBit::SetTextData_Internal(FYapText& TextToSet, const FText& NewText)
 {
 	TextToSet.Set(NewText);

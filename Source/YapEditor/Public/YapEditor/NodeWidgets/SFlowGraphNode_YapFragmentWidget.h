@@ -70,6 +70,7 @@ protected:
 	bool NeedsChildSafeData() const;
 	bool HasAnyChildSafeData() const;
 	bool HasCompleteChildSafeData() const;
+	bool HasCompleteChildSafeTextData() const;
 	
 	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
@@ -83,13 +84,16 @@ protected:
 
 	TSharedPtr<SBox> SpeakerSelectionContainer;
 	
-	TSharedPtr<SButton> TextExpanderButton;
-
 	TSharedPtr<SWidget> ChildSafeCheckBox;
 
 	bool bChildSafeCheckBoxHovered = false;
 
 	EYapMaturitySetting GetDisplayMaturitySetting() const;
+
+	static FSlateFontInfo DialogueTextFont;
+
+	float CachedAudioTime = -1;
+	TWeakObjectPtr<UObject> CachedAudioAssetPtr = nullptr;
 	
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
@@ -149,6 +153,7 @@ protected:
 	TSharedRef<SWidget>	MakeTimeSettingRow(EYapTimeMode TimeMode, EYapMaturitySetting MaturitySetting);
 
 	FSlateColor ButtonColor_TimeSettingButton() const;
+	EVisibility Visibility_AudioSettingsButton() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 

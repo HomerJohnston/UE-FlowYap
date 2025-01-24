@@ -7,7 +7,6 @@
 #include "PropertyCustomizationHelpers.h"
 #include "SAssetDropTarget.h"
 #include "SLevelOfDetailBranchNode.h"
-#include "Framework/Notifications/NotificationManager.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/YapCharacter.h"
@@ -31,12 +30,14 @@
 #include "YapEditor/NodeWidgets/SYapButtonPopup.h"
 #include "YapEditor/Testing/SYapPropertyMenuAssetPicker.h"
 #include "Templates/FunctionFwd.h"
-#include "Widgets/Notifications/SNotificationList.h"
 #include "Yap/YapSubsystem.h"
 #include "Yap/Enums/YapErrorLevel.h"
 #include "YapEditor/YapDeveloperSettings.h"
 #include "Framework/MultiBox/SToolBarButtonBlock.h"
+#include "YapEditor/YapLogEditor.h"
 #include "YapEditor/Helpers/ProgressionSettingWidget.h"
+
+FSlateFontInfo SFlowGraphNode_YapFragmentWidget::DialogueTextFont;
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -65,12 +66,33 @@ bool SFlowGraphNode_YapFragmentWidget::HasCompleteChildSafeData() const
 		return false;
 	}
 
+	// If any one item is set, then both items must be set
+	bool bDialogueTextOK =
+		(Bit.MatureDialogueText.Get().IsEmpty() && Bit.SafeDialogueText.Get().IsEmpty()) ? true : (!Bit.MatureDialogueText.Get().IsEmpty() && !Bit.SafeDialogueText.Get().IsEmpty());
+
+	bool bTitleTextOK =
+		(Bit.MatureTitleText.Get().IsEmpty() && Bit.SafeTitleText.Get().IsEmpty()) ? true : (!Bit.MatureTitleText.Get().IsEmpty() && !Bit.SafeTitleText.Get().IsEmpty()); 
+
+	bool bAudioAssetOK =
+		(Bit.MatureAudioAsset.IsNull() && Bit.SafeAudioAsset.IsNull()) ? true : (!Bit.MatureAudioAsset.IsNull() && !Bit.SafeAudioAsset.IsNull());
+
+	return bDialogueTextOK && bTitleTextOK && bAudioAssetOK;
+}
+
+bool SFlowGraphNode_YapFragmentWidget::HasCompleteChildSafeTextData() const
+{
+	const FYapBit& Bit = GetBit();
+
+	if (!HasAnyChildSafeData())
+	{
+		return false;
+	}
+
 	// For all three elements, if the mature text is set, then the safe text must also be set
 	bool bDialogueTextOK = Bit.MatureDialogueText.Get().IsEmpty() ? true : !Bit.SafeDialogueText.Get().IsEmpty();
 	bool bTitleTextOK = Bit.MatureTitleText.Get().IsEmpty() ? true : !Bit.SafeTitleText.Get().IsEmpty(); 
-	bool bAudioAssetOK = Bit.MatureAudioAsset.IsNull() ? true : !Bit.SafeAudioAsset.IsNull();
 
-	return bDialogueTextOK && bTitleTextOK && bAudioAssetOK;
+	return bDialogueTextOK && bTitleTextOK;
 }
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateCentreTextDisplayWidget()
@@ -114,13 +136,17 @@ EYapMaturitySetting SFlowGraphNode_YapFragmentWidget::GetDisplayMaturitySetting(
 	{
 		return UYapSubsystem::GetGameMaturitySetting();
 	}
-	
+
+	return EYapMaturitySetting::Mature;
+
+	/*
 	if (!NeedsChildSafeData())
 	{
 		return EYapMaturitySetting::Mature;
 	}
 	
 	return bChildSafeCheckBoxHovered ? EYapMaturitySetting::ChildSafe : EYapMaturitySetting::Mature;
+	*/
 }
 
 void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex)
@@ -137,6 +163,17 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 		{ EYapTimeMode::TextTime, YapColor::LightYellow },
 		{ EYapTimeMode::ManualTime, YapColor::LightRed },
 	};
+
+	const FSlateFontInfo& DialogueFont = UYapDeveloperSettings::GetGraphDialogueFont();
+
+	if (DialogueFont.HasValidFont())
+	{
+		DialogueTextFont = DialogueFont;
+	}
+	else
+	{
+		DialogueTextFont = YapFonts.Font_DialogueText;
+	}
 	
 	ChildSlot
 	[
@@ -375,8 +412,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 {
 	UFlowNode_YapDialogue* DialogueNode = GetDialogueNode();
 
-	const FYapBit& Bit = GetBit();
-	
 	TSharedRef<SWidget> Box = SNew(SBox)
 	.Padding(0, 0, 32, 4)
 	[
@@ -463,7 +498,8 @@ ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings() c
 void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState)
 {
 	FYapTransactions::BeginModify(LOCTEXT("ChangeChildSafetySettings", "Change child-safety settings"), GetDialogueNode());
-	
+
+	/*
 	if (NeedsChildSafeData() && bCtrlPressed)
 	{
 		if (!HasCompleteChildSafeData())
@@ -477,6 +513,7 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 	}
 	else
 	{
+	*/
 		if (!NeedsChildSafeData())
 		{
 			// Turn on child safety settings
@@ -521,21 +558,24 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 				}
 			}
 		}
+	/*
 	}
-
+	*/
 	FYapTransactions::EndModify();
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsCheckBox() const
 {
+	// Don't need anything. If we have stale data, show a gross yellowy gray icon.
 	if (!NeedsChildSafeData())
 	{
 		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::Button_Unset();
 	}
 
-	if (!HasCompleteChildSafeData())
+	// We need data. If data is incomplete, show an error state.
+	if (!HasCompleteChildSafeTextData())
 	{
-		return GetBit().bIgnoreChildSafeErrors ? YapColor::LightGreen_SemiGlass : YapColor::OrangeRed;
+		return GetBit().bIgnoreChildSafeErrors ? YapColor::LightBlue : YapColor::OrangeRed;
 	}
 	
 	return YapColor::LightBlue_SemiGlass;
@@ -1161,6 +1201,21 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColor_TimeSettingButton() co
 	return TimeModeButtonColors[GetBit().TimeMode];
 }
 
+EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioSettingsButton() const
+{
+	if (UYapProjectSettings::GetMissingAudioBehavior() != EYapMissingAudioErrorLevel::OK)
+	{
+		return EVisibility::Visible;
+	}
+
+	if (GetBit().HasAudioAsset())
+	{
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
 // ================================================================================================
 // DIALOGUE WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -1201,6 +1256,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						SNew(STextBlock)
 						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
+						.Font(DialogueTextFont)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget, MatureDialogueText, SafeDialogueText)
 						.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray, MatureDialogueText, SafeDialogueText)
 					]
@@ -1211,12 +1267,19 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						SNew(STextBlock)
 						.Visibility_Lambda( [this] ()
 						{
-							const FText& Text = GetBit().GetDialogueText(GetDisplayMaturitySetting());
-							return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
+							return GetBit().HasDialogueTextForMaturity(GetDisplayMaturitySetting()) ? EVisibility::Hidden : EVisibility::HitTestInvisible;
 						})
 						.Justification(ETextJustify::Center)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
-						.Text(LOCTEXT("DialogueText_None", "Dialogue Text (None)"))
+						.Text_Lambda( [this] ()
+						{
+							if (!NeedsChildSafeData())
+							{
+								return LOCTEXT("DialogueText_None", "Dialogue Text (None)");
+							}
+							
+							return GetDisplayMaturitySetting() == EYapMaturitySetting::Mature ? LOCTEXT("MatureDialogueText_None", "Mature Dialogue Text (None)") : LOCTEXT("SafeDialogueText_None", "Child-Safe Dialogue Text (None)");
+						})
 						.ColorAndOpacity(YapColor::White_Glass)
 					]
 				]
@@ -1277,6 +1340,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				]
 			]
 		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Top)
+		.HAlign(HAlign_Right)
+		[
+			SNew(SImage)
+			.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_CornerDropdown_Right))
+			.Visibility(this, &SFlowGraphNode_YapFragmentWidget::Visibility_AudioSettingsButton)
+			.ColorAndOpacity(this, &SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioSettingsButton)
+		]
 	]
 	.LowDetail()
 	[
@@ -1322,7 +1394,7 @@ FOptionalSize SFlowGraphNode_YapFragmentWidget::Dialogue_MaxDesiredHeight() cons
 
 FText SFlowGraphNode_YapFragmentWidget::Text_TextDisplayWidget(const FText* MatureText, const FText* SafeText) const
 {
-	return GetBit().GetDialogueText(GetDisplayMaturitySetting());
+	return (GetDisplayMaturitySetting()) == EYapMaturitySetting::Mature ? *MatureText : *SafeText; 
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_DialogueBackground() const
@@ -1421,6 +1493,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 				[
 					SNew(SYapTextPropertyEditableTextBox, DialogueTextProperty)
 					.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
+					.Font(YapFonts.Font_DialogueText)
 					.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &DialogueText)
 					.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetMatureDialogueText)
 					.ForegroundColor(YapColor::White)
@@ -1508,6 +1581,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 					[
 						SNew(SYapTextPropertyEditableTextBox, SafeDialogueTextProperty)
 						.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
+						.Font(YapFonts.Font_DialogueText)
 						.Text(this, &SFlowGraphNode_YapFragmentWidget::Text_EditedText, &SafeDialogueText)
 						.OnTextCommitted(this, &SFlowGraphNode_YapFragmentWidget::OnTextCommitted_EditedText, &FYapBit::SetSafeDialogueText)
 						.ForegroundColor(YapColor::White)
@@ -2367,19 +2441,9 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget(
 
 	if (GetDisplayMaturitySetting() == EYapMaturitySetting::ChildSafe)
 	{
-		if (NeedsChildSafeData())
-		{
-			if (HasCompleteChildSafeData())
-			{
-				Color *= YapColor::LightBlue;
-			}
-			else
-			{
-				Color *= YapColor::OrangeRed;
-			}
-		}
+		Color *= YapColor::LightBlue;
 	}
-
+	
 	return Color;
 }
 
@@ -2607,7 +2671,6 @@ FString SFlowGraphNode_YapFragmentWidget::ObjectPath_AudioAsset() const
 	return Asset->GetPathName();
 }
 
-
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const
 {
 	if (GetAudioAssetErrorLevel(*Asset) > EYapErrorLevel::OK)
@@ -2639,15 +2702,11 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioSettingsButto
 			Color = YapColor::Red;
 			break;
 		}
-	}
-	
-	if (!TextExpanderButton->IsHovered())
-	{
-		Color *= YapColor::LightGray;
-	}
-	else if (TextExpanderButton->IsPressed())
-	{
-		Color *= YapColor::LightGray;
+		case EYapErrorLevel::Unknown:
+		{
+			Color = YapColor::Error;
+			break;
+		}
 	}
 	
 	return Color;
@@ -2659,74 +2718,78 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetFragmentAudioErrorLevel() co
 	const TSoftObjectPtr<UObject>& MatureAsset = GetBit().GetMatureDialogueAudioAsset_SoftPtr<UObject>();
 	const TSoftObjectPtr<UObject>& SafeAsset = GetBit().GetSafeDialogueAudioAsset_SoftPtr<UObject>();
 
-	EYapErrorLevel ErrorLevel = GetAudioAssetErrorLevel(MatureAsset);
-
-	if (ErrorLevel < EYapErrorLevel::Error && NeedsChildSafeData())
+	// If we need child-safe data and if any audio is set, we need both set
+	if (NeedsChildSafeData())
 	{
-		// See if the other audio asset raises the error level any further
-		ErrorLevel = FMath::Max(ErrorLevel, GetAudioAssetErrorLevel(SafeAsset));
+		if ((!MatureAsset.IsNull() || !SafeAsset.IsNull()) && (MatureAsset.IsNull() || SafeAsset.IsNull()))
+		{
+			return EYapErrorLevel::Error;
+		}
 	}
+
+	// We should never allow dialogue to only contain child-safe content; child-safe content is the special case
+	if (MatureAsset.IsNull() && !SafeAsset.IsNull())
+	{
+		return EYapErrorLevel::Unknown;
+	}
+	
+	// Determine the error level based on project settings (does the project want all fragments to have audio?)
+	EYapErrorLevel ErrorLevel = GetAudioAssetErrorLevel(MatureAsset);
 
 	return ErrorLevel;
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const
 {
-	FLinearColor Color;
-
 	EYapErrorLevel ErrorLevel = GetAudioAssetErrorLevel(*Asset);
 
 	switch (ErrorLevel)
 	{
 		case EYapErrorLevel::OK:
 		{
-			Color = YapColor::DarkGray;
-			break;
+			return YapColor::DarkGray;
 		}
 		case EYapErrorLevel::Warning:
 		{
-			Color = YapColor::Orange;
-			break;
+			return YapColor::Orange;
 		}
 		case EYapErrorLevel::Error:
 		{
-			Color = YapColor::Red;
-			break;
+			return YapColor::Red;
+		}
+		case EYapErrorLevel::Unknown:
+		{
+			return YapColor::Error; 
+		}
+		default:
+		{
+			return YapColor::Noir;
 		}
 	}
-	
-	return Color;
 }
 
 EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const
 {
-	EYapMissingAudioErrorLevel MissingAudioBehavior = UYapProjectSettings::GetMissingAudioBehavior();
-
+	// If asset isn't loaded, it's a mystery!!!!
+	if (Asset.IsPending())
+	{
+		return EYapErrorLevel::Unknown;
+	}
+	
 	// If we have an asset all we need to do is check if it's the correct class type. Always return an error if it's an improper type.
-	if (!Asset.IsNull())
+	if (Asset.IsValid())
 	{
 		const TArray<TSoftClassPtr<UObject>>& AllowedAssetClasses = UYapProjectSettings::GetAudioAssetClasses();
 
-		/*
-		if (AllowedAssetClasses.ContainsByPredicate(&Test))
-		{
-			return EYapErrorLevel::OK;
-		}
-		*/
 		if (AllowedAssetClasses.ContainsByPredicate( [Asset] (const TSoftClassPtr<UObject>& Class)
 		{
-			return Asset.LoadSynchronous()->IsA(Class.LoadSynchronous());
-
-			/*
-			if (Asset.IsNull())
+			if (Class.IsPending())
 			{
-				return false;
+				UE_LOG(LogYapEditor, Warning, TEXT("Synchronously loading audio asset class"));
 			}
 			
-			return Asset->GetClass()->IsChildOf(Class.LoadSynchronous());
-			*/
-			
-		} )) // TODO async loading??
+			return Asset->IsA(Class.LoadSynchronous()); // TODO verify this works?
+		}))
 		{
 			return EYapErrorLevel::OK;
 		}
@@ -2736,14 +2799,10 @@ EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetAudioAssetErrorLevel(const T
 		}
 	}
 
-	// We know that we don't have any audio asset set now. If the dialogue is set to use audio time but does NOT have an audio asset, we either indicate an error (prevent packaging) or indicate a warning (allow packaging) 
-	if (
-		(GetBit().TimeMode == EYapTimeMode::AudioTime)
-		||
-		(GetBit().TimeMode == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::AudioTime)
-		||
-		(GetBit().GetTimeMode(GetDisplayMaturitySetting()) == EYapTimeMode::AudioTime)
-	) // TODO handle edge case of only having child-safe asset and no mature asset
+	EYapMissingAudioErrorLevel MissingAudioBehavior = UYapProjectSettings::GetMissingAudioBehavior();
+
+	// We don't have any audio asset set. If the dialogue is set to use audio time but does NOT have an audio asset, we either indicate an error (prevent packaging) or indicate a warning (allow packaging) 
+	if ((GetBit().TimeMode == EYapTimeMode::AudioTime) || (GetBit().TimeMode == EYapTimeMode::Default && UYapProjectSettings::GetDefaultTimeModeSetting() == EYapTimeMode::AudioTime))
 	{
 		switch (MissingAudioBehavior)
 		{

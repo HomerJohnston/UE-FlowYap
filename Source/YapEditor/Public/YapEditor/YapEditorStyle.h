@@ -134,6 +134,9 @@ struct FYapFonts
 	FSlateFontInfo Font_OpenSans_Regular;
 	FSlateFontInfo Font_NotoSans_Regular;
 	FSlateFontInfo Font_NotoSans_SemiBold;
+
+	FSlateFontInfo Font_BeVietnam_Light;
+	FSlateFontInfo Font_BeVietnam_Regular;
 };
 
 extern FYapFonts YapFonts;

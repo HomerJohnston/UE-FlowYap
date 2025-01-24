@@ -125,6 +125,7 @@ protected:
 	bool bNeedsChildSafeData = false;
 
 #if WITH_EDITORONLY_DATA
+	// This is currently not in use. Still considering if I should use it or not.
 	UPROPERTY(EditAnywhere)
 	bool bIgnoreChildSafeErrors = false;
 #endif
@@ -155,7 +156,7 @@ private:
 public:
 	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
 	const FText& GetDialogueText(EYapMaturitySetting MaturitySetting) const;
-
+	
 	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
 	const FText& GetTitleText(EYapMaturitySetting MaturitySetting) const;
 
@@ -171,7 +172,7 @@ public:
 	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
 
-	bool HasAudioAsset(EYapMaturitySetting MaturitySetting) const { return MaturitySetting == EYapMaturitySetting::Mature ? !MatureAudioAsset.IsNull() : !SafeAudioAsset.IsNull(); }
+	bool HasAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
 	FGameplayTag GetMoodTag() const { return MoodTag; }
 
@@ -231,6 +232,8 @@ public:
 	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
 	
 	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
+
+	bool HasDialogueTextForMaturity(EYapMaturitySetting MaturitySetting) const;
 
 private:
 	void SetTextData_Internal(FYapText& TextToSet, const FText& NewText);

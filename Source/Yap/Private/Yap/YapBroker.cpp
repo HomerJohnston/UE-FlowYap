@@ -126,7 +126,7 @@ float UYapBroker::GetAudioAssetDuration(const UObject* AudioAsset) const
 	{
 		if (Class.IsPending())
 		{
-			UE_LOG(LogYap, Warning, TEXT("Async loading audio class asset - this should not happen!"));
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading audio class asset - this should not happen!"));
 		}
 		
 		if (AudioAsset->IsA(Class.LoadSynchronous()))
