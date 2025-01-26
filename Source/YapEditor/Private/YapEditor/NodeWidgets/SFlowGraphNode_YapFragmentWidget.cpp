@@ -428,17 +428,21 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
-		.Padding(6, 0, 0, 0)
+		.Padding(6, -8, 0, -8)
 		.AutoWidth()
 		[
-			// Unused spot. Could have a button here if I really need one but it's nice to have some dead grab space here and there.
 			SNew(SBox)
 			.WidthOverride(20)
-			.HeightOverride(20)
+			[
+				SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &ThisClass::OnTextCommitted_FragmentActivationLimit))
+				.ActivationCount(this, &ThisClass::GetFragmentActivationCount)
+				.ActivationLimit(this, &ThisClass::GetFragmentActivationLimit)
+				.FontHeight(10)
+			]
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
-		.Padding(5, 0, 0, 0)
+		.Padding(6, 0, 0, 0)
 		[
 			SAssignNew(ConditionsScrollBox, SYapConditionsScrollBox)
 			.DialogueNode(DialogueNode)
@@ -863,6 +867,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							]
 						]
 					]
+					/*
 					+ SVerticalBox::Slot()
 					[
 						SNew(SBox)
@@ -883,6 +888,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							]
 						]
 					]
+					*/
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					.HAlign(HAlign_Center)

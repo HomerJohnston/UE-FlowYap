@@ -353,7 +353,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		.HAlign(HAlign_Left)
 		.VAlign(VAlign_Center)
 		.AutoWidth()
-		.Padding(-10, -5, 14, -7)
+		.Padding(-10, -8, 14, -8)
 		[
 			SNew(SLevelOfDetailBranchNode)
 			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
