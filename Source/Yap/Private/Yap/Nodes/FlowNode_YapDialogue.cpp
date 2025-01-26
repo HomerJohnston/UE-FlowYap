@@ -204,7 +204,7 @@ void UFlowNode_YapDialogue::InvalidateFragmentTags()
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
 
-		Fragment.InvalidateFragmentTag();
+		Fragment.InvalidateFragmentTag(this);
 	}
 }
 #endif
@@ -300,7 +300,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 			TriggerOutput(StartPin.PinName, false);
 		}
 
-		TOptional<float> Time = Fragment.GetBitMutable().GetTime(UYapSubsystem::GetGameMaturitySetting());
+		TOptional<float> Time = Fragment.GetBit().GetTime(UYapSubsystem::GetGameMaturitySetting());
 
 		if (!Time.IsSet())
 		{

@@ -10,7 +10,7 @@
 #include "ImageUtils.h"
 #include "Styling/SlateStyleMacros.h"
 #include "Styling/SlateStyleRegistry.h"
-#include "Yap/YapGlobals.h"
+#include "Yap/Globals/YapFileUtilities.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapDeveloperSettings.h"
 #include "YapEditor/YapEditorEvents.h"
@@ -30,7 +30,7 @@ FYapStyles YapStyles;
 
 /** Loads a TTF from disk */
 #define YAP_LOAD_FONT(NAME, RESOURCE_PATH, SIZE)\
-	YapFonts.NAME = FSlateFontInfo(Yap::GetResourcesFolder() / RESOURCE_PATH, SIZE);\
+	YapFonts.NAME = FSlateFontInfo(Yap::FileUtilities::GetResourcesFolder() / RESOURCE_PATH, SIZE);\
 	FSlateFontInfo& NAME = YapFonts.NAME
 
 /** Define a new brush */
@@ -306,6 +306,21 @@ void FYapEditorStyle::Initialize()
 		.SetHoveredForeground(YapColor::Gray_SemiTrans)
 		.SetPressedForeground(YapColor::DarkGray)
 	);
+
+	YAP_DEFINE_STYLE(FButtonStyle, ButtonStyle_TagButton, FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton"),
+		.SetNormalPadding(FMargin(0,0,2,0))
+		.SetPressedPadding(FMargin(0,0,2,0));
+	);
+	
+	// ============================================================================================
+	// COMBO BUTTON STYLES
+	// ============================================================================================
+
+	YAP_DEFINE_STYLE(FComboButtonStyle, ComboButtonStyle_YapGameplayTagTypedPicker, FAppStyle::Get().GetWidgetStyle<FComboButtonStyle>("ComboButton"),
+		.SetButtonStyle(ButtonStyle_TagButton)
+		.SetDownArrowPadding(FMargin(0, 2, 0, 0))
+		.SetDownArrowAlignment(VAlign_Top)
+		);
 	
 	// ============================================================================================
 	// CHECKBOX STYLES

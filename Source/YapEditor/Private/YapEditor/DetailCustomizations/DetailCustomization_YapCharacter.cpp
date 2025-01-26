@@ -6,14 +6,12 @@
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
-#include "ISettingsModule.h"
-#include "SSimpleButton.h"
 #include "Yap/YapCharacter.h"
-#include "Yap/YapGlobals.h"
-#include "Yap/YapLog.h"
+#include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
+#include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/SlateWidgets/SYapHyperlink.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -109,7 +107,7 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 				[
 					SNew(SYapHyperlink)
 					.Text(LOCTEXT("CharacterPortraits_OpenProjectSettings", "Project Settings"))
-					.OnNavigate_Lambda( [] () { Yap::OpenProjectSettings(); } )
+					.OnNavigate_Lambda( [] () { Yap::EditorFuncs::OpenProjectSettings(); } )
 				]
 			]
 		]

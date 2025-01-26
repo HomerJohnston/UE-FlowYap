@@ -5,12 +5,10 @@
 
 #if WITH_EDITOR
 #include "GameplayTagsManager.h"
-#include "Interfaces/IPluginManager.h"
-#include "Yap/YapGlobals.h"
 #endif
 #include "Yap/Enums/YapDialogueProgressionFlags.h"
-#include "Yap/Enums/YapMaturitySetting.h"
 #include "Yap/Enums/YapMissingAudioErrorLevel.h"
+#include "Yap/Globals/YapFileUtilities.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -64,9 +62,9 @@ FString UYapProjectSettings::GetMoodTagIconPath(FGameplayTag Key, FString FileEx
 	
 	if (Get().MoodTagIconPath.Path == "")
 	{		
-		static FString ResourcesDir = Yap::GetPluginFolder();
+		static FString ResourcesDir = Yap::FileUtilities::GetPluginFolder();
 		
-		return Yap::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodTags/{0}.{1}"), { KeyString, FileExtension });
+		return Yap::FileUtilities::GetResourcesFolder() / FString::Format(TEXT("DefaultMoodTags/{0}.{1}"), { KeyString, FileExtension });
 	}
 	
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
@@ -127,7 +125,7 @@ const FString& UYapProjectSettings::GetMoodTagIconPath()
 	{
 		if (Get().MoodTagIconPath.Path == "")
 		{
-			CachedPath = Yap::GetResourcesFolder() / TEXT("DefaultMoodTags");
+			CachedPath = Yap::FileUtilities::GetResourcesFolder() / TEXT("DefaultMoodTags");
 		}
 		else
 		{

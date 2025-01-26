@@ -40,6 +40,13 @@ enum class EYapFragmentControlsDirection : uint8
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
+	SLATE_DECLARE_WIDGET(SFlowGraphNode_YapFragmentWidget, SCompoundWidget)
+
+	SLATE_BEGIN_ARGS(SFlowGraphNode_YapFragmentWidget)
+	{
+		
+	}
+		SLATE_END_ARGS()
 	// ------------------------------------------
 	// SETTINGS
 	TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
@@ -101,11 +108,8 @@ public:
 	// ------------------------------------------
 	// CONSTRUCTION
 public:
-	SLATE_USER_ARGS(SFlowGraphNode_YapFragmentWidget){}
-	SLATE_END_ARGS()
-
 	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
-
+	
 	// ------------------------------------------
 	// WIDGETS
 protected:
@@ -154,6 +158,7 @@ protected:
 
 	FSlateColor ButtonColor_TimeSettingButton() const;
 	EVisibility Visibility_AudioSettingsButton() const;
+	EVisibility Visibility_DialogueErrorState() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 
@@ -226,7 +231,8 @@ protected:
 
 	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;
 	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
-	
+
+	EVisibility Visibility_TitleTextErrorState() const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateTitleTextDisplayWidget();
 

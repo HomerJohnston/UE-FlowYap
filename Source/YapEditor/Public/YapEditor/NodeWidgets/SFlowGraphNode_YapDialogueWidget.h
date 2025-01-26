@@ -115,6 +115,8 @@ protected:
 	FOptionalSize GetMaxNodeWidth() const;
 	FOptionalSize GetMaxTitleWidth() const;
 
+	void OnDialogueTagChanged(FGameplayTag NewTag);
+	
 public:
 	virtual bool UseLowDetail() const { return false; };
 

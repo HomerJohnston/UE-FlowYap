@@ -1,6 +1,7 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
+/*
 #include "Yap/YapGlobals.h"
 
 #include "Framework/Notifications/NotificationManager.h"
@@ -46,4 +47,12 @@ void Yap::PostNotificationInfo_Warning(FText Title, FText Description, float Dur
 }
 #endif
 
+#if WITH_EDITOR
+FName Yap::GetIniFile()
+{
+	return FName("YapGameplayTags.ini");
+}
+#endif
+
 #undef LOCTEXT_NAMESPACE
+*/

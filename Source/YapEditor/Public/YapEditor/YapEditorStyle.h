@@ -100,8 +100,11 @@ struct FYapStyles
 	FName ButtonStyle_SpeakerPopup;
 	FName ButtonStyle_TimeSetting;
 	FName ButtonStyle_TimeSettingOpener;
+	FName ButtonStyle_TagButton;
 
 	FName CheckBoxStyle_Skippable;
+	
+	FName ComboButtonStyle_YapGameplayTagTypedPicker;
 	
 	FName EditableTextBoxStyle_Dialogue;
 	FName EditableTextBoxStyle_TitleText;
@@ -118,6 +121,7 @@ struct FYapStyles
 	FName TextBlockStyle_NodeHeader;
 	FName TextBlockStyle_NodeSequencing;
 	FName TextBlockStyle_TitleText;
+
 };
 
 struct FYapFonts

@@ -6,7 +6,7 @@
 #include "YapLog.h"
 #include "YapTimeMode.h"
 #include "GameplayTagContainer.h"
-#include "YapGlobals.h"
+#include "Yap/Globals/YapEditorWarning.h"
 #include "Enums/YapMaturitySetting.h"
 #include "Enums/YapWarnings.h"
 #include "Yap/Enums/YapDialogueProgressionFlags.h"
@@ -37,8 +37,10 @@ private:
 	int32 WordCnt = 0;
 
 public:
+#if WITH_EDITOR
 	void Set(const FText& InText);
-
+#endif
+	
 	const FText& Get() const { return Txt; }
 
 	int32 WordCount() const { return WordCnt; }
@@ -51,7 +53,11 @@ public:
 	
 	void operator=(const FText& NewText)
 	{
+#if WITH_EDITOR
 		Set(NewText);
+#else
+		checkNoEntry()
+#endif
 	}
 };
 
@@ -167,7 +173,7 @@ public:
 	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeAudioAsset->GetPathName()); }
 	
 	template<class T>
-	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
+	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
 	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
 	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
@@ -192,14 +198,14 @@ public:
 
 public:
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 	
 protected:
 	TOptional<float> GetManualTime() const { return ManualTime; }
 
-	TOptional<float> GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
+	TOptional<float> GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
-	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified);
+	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
 
 public:
 	FYapBit& operator=(const FYapBitReplacement& Replacement);
@@ -249,7 +255,7 @@ private:
 };
 
 template <class T>
-const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting)
+const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 {
 	ResolveMaturitySetting(MaturitySetting);
 
@@ -269,7 +275,7 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting)
 		{
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
 
-			Yap::PostNotificationInfo_Warning
+			Yap::Editor::PostNotificationInfo_Warning
 			(
 				LOCTEXT("SyncLoadAudioWarning_Title", "Sync Loading Audio"),
 				LOCTEXT("SyncLoadAudioWarning_Description", "Synchronously loading dialogue audio asset.")

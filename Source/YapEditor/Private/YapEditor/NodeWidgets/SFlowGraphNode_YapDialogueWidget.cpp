@@ -31,6 +31,7 @@
 #include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
 #include "YapEditor/NodeWidgets/SYapGraphPinExec.h"
 #include "YapEditor/SlateWidgets/SGameplayTagComboFiltered.h"
+#include "YapEditor/SlateWidgets/SYapGameplayTagTypedPicker.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -156,6 +157,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag(FGameplayTag Gam
 
 	GetFlowYapDialogueNodeMutable()->DialogueTag = GameplayTag;
 
+	// 
 	GetFlowYapDialogueNodeMutable()->InvalidateFragmentTags();
 
 	FYapTransactions::EndModify();
@@ -267,11 +269,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 			.HighDetail()
 			[
-				SNew(SGameplayTagComboFiltered)
+				SNew(SYapGameplayTagTypedPicker)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
 				.Filter(UYapProjectSettings::GetDialogueTagsParent().ToString())
-				.OnTagChanged(TDelegate<void(const FGameplayTag)>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag))
-				.ToolTipText(LOCTEXT("DialogueTag", "Dialogue tag"))	
+				.OnTagChanged(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag)
+				.ToolTipText(LOCTEXT("DialogueTag", "Dialogue tag"))
+				.Asset(GetFlowYapDialogueNodeMutable()->GetFlowAsset())
 			]
 		]
 		+ SHorizontalBox::Slot()

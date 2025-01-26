@@ -3,11 +3,8 @@
 
 #include "Yap/YapBit.h"
 
-#include "Framework/Notifications/NotificationManager.h"
-#include "Widgets/Notifications/SNotificationList.h"
 #include "Yap/YapBitReplacement.h"
 #include "Yap/YapCharacter.h"
-#include "Yap/YapGlobals.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
@@ -21,6 +18,7 @@ HANDLE = FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath())
 // --------------------------------------------------------------------------------------------
 // PUBLIC API
 
+#if WITH_EDITOR
 void FYapText::Set(const FText& InText)
 {
 	Txt = InText;
@@ -50,6 +48,7 @@ void FYapText::Set(const FText& InText)
 
 	WordCnt = NewWordCount;
 }
+#endif
 
 FYapBit::FYapBit()
 {
@@ -75,14 +74,6 @@ const UYapCharacter* FYapBit::GetCharacter_Internal(const TSoftObjectPtr<UYapCha
 	if (CharacterAsset.IsPending())
 	{
 		UE_LOG(LogYap, Warning, TEXT("Synchronously loading character: %s"), *CharacterAsset->GetName());
-
-#if WITH_EDITOR
-		Yap::PostNotificationInfo_Warning
-		(
-			FText::Format(LOCTEXT("SyncLoadingWarning_Title", "Yap - Synchronously loaded {0}."), FText::FromString(CharacterAsset->GetName())),
-			FText::Format(LOCTEXT("SyncLoadingWarning_Description", "Loading asset: {0}\nThis may cause a hitch. This can happen if you try to play a dialogue asset immediately after loading a flow asset. You should try to load the flow asset before it is needed."), FText::FromString(CharacterAsset->GetName()))
-		);
-#endif
 
 		Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.LoadSynchronous());
 	}
@@ -198,7 +189,7 @@ EYapTimeMode FYapBit::GetTimeMode(EYapMaturitySetting MaturitySetting) const
 	return EffectiveTimeMode;
 }
 
-TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting)
+TOptional<float> FYapBit::GetTime(EYapMaturitySetting MaturitySetting) const
 {
 	// TODO clamp minimums from project settings
 	
@@ -270,7 +261,7 @@ void FYapBit::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 // --------------------------------------------------------------------------------------------
 // Protected
 
-TOptional<float> FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting)
+TOptional<float> FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting) const
 {
 	ResolveMaturitySetting(MaturitySetting);
 
@@ -285,7 +276,7 @@ TOptional<float> FYapBit::GetTextTime(EYapMaturitySetting MaturitySetting)
 	return FMath::Max(WordCount * SecondsPerWord, Min);
 }
 
-TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting)
+TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting) const
 {
 	if (AudioAssetHandle.IsValid() && AudioAssetHandle->IsLoadingInProgress())
 	{

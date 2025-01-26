@@ -53,6 +53,9 @@ struct FYapData_OnDialogueNodeEntered
 
 	UPROPERTY(BlueprintReadOnly)
 	const UFlowNode_YapDialogue* DialogueNode;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag DialogueTag;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -65,6 +68,9 @@ struct FYapData_OnDialogueNodeExited
 
 	UPROPERTY(BlueprintReadOnly)
 	const UFlowNode_YapDialogue* DialogueNode;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag DialogueTag;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -77,6 +83,9 @@ struct FYapData_OnDialogueNodeBypassed
 	
 	UPROPERTY(BlueprintReadOnly)
 	const UFlowNode_YapDialogue* DialogueNode;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag DialogueTag;
 };
 
 // ------------------------------------------------------------------------------------------------

@@ -143,7 +143,7 @@ public:
 
 	void ResetStartPin() { bShowOnStartPin = false; }
 	
-	void InvalidateFragmentTag();
+	void InvalidateFragmentTag(UFlowNode_YapDialogue* OwnerNode);
 
 	// TODO implement this
 	bool GetBitReplaced() const { return false; };

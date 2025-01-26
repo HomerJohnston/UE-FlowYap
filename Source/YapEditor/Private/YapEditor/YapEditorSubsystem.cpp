@@ -7,7 +7,6 @@
 #include "GameplayTagsManager.h"
 #include "ILiveCodingModule.h"
 #include "YapEditor/YapColors.h"
-#include "ImageUtils.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Yap/YapCharacter.h"
@@ -15,8 +14,6 @@
 #include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "Engine/Texture2D.h"
-#include "Yap/YapGlobals.h"
-#include "Yap/YapSubsystem.h"
 #include "YapEditor/YapDeveloperSettings.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"

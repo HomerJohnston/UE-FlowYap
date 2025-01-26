@@ -10,6 +10,7 @@
 #include "SGameplayTagPicker.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/YapProjectSettings.h"
+#include "Yap/Globals/YapFileUtilities.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"
@@ -260,8 +261,6 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 
 	FString DefaultMoodTagsParentString = "Yap.Mood";
 	
-	FName IniFile = "YapGameplayTags.ini";
-
 	// Remove any tags that should not be present
 	for (FGameplayTag ExistingTag : ProjectSettings->GetMoodTags())// DefaultTags.CreateIterator(); It; ++It)
 	{
@@ -303,7 +302,7 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_ResetDefaultMoodTags()
 
 		if (!ExistingTag.IsValid())
 		{
-			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(DefaultTagFullString, "", IniFile);
+			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(DefaultTagFullString, "", Yap::FileUtilities::GetTagConfigFileName());
 		}
 	}
 

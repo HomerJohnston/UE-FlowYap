@@ -3,7 +3,6 @@
 
 #include "Yap/YapFragment.h"
 
-#include "GameplayTagsManager.h"
 #include "Yap/YapCondition.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapSubsystem.h"
@@ -133,7 +132,9 @@ void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHan
 		}
 	}
 }
+#endif
 
+#if WITH_EDITOR
 TArray<FFlowPin> FYapFragment::GetOutputPins() const
 {
 	TArray<FFlowPin> OutPins;
@@ -155,8 +156,10 @@ TArray<FFlowPin> FYapFragment::GetOutputPins() const
 	
 	return OutPins;
 }
+#endif
 
-void FYapFragment::InvalidateFragmentTag()
+#if WITH_EDITOR
+void FYapFragment::InvalidateFragmentTag(UFlowNode_YapDialogue* OwnerNode)
 {
 	FragmentTag = FGameplayTag::EmptyTag;
 }

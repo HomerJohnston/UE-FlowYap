@@ -64,13 +64,13 @@ public:
 
 	YAPEDITOR_API SGameplayTagComboFiltered();
 
-	YAPEDITOR_API FSlateColor ColorAndOpacity_TagIcon() const;
+	FSlateColor ColorAndOpacity_TagIcon() const;
 	EVisibility Visibility_Text() const;
 	void Construct(const FArguments& InArgs);
 
 private:
 
-	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	
 	bool ShowClearButton() const;
 	FText GetText() const;
