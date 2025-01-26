@@ -111,12 +111,15 @@ protected:
 	int32 GetDialogueActivationLimit() const;
 	void OnTextCommitted_DialogueActivationLimit(const FText& Text, ETextCommit::Type Arg);
 	FGameplayTag Value_DialogueTag() const;
-	void OnTagChanged_DialogueTag(FGameplayTag GameplayTag);
+	void OnTagChanged_DialogueTag(FGameplayTag NewDialogueTag);
+
+public:
+	void OnTagChanged_DialogueTag_PostEdit(TArray<TPair<FString, FString>>);
+
+protected:
 	FOptionalSize GetMaxNodeWidth() const;
 	FOptionalSize GetMaxTitleWidth() const;
 
-	void OnDialogueTagChanged(FGameplayTag NewTag);
-	
 public:
 	virtual bool UseLowDetail() const { return false; };
 

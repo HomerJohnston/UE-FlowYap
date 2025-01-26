@@ -12,4 +12,6 @@ namespace Yap::EditorFuncs
 	void PostNotificationInfo_Warning(FText Title, FText Description, float Duration = 6.0f);
 
 	bool SaveAsset(UObject* Asset);
+
+	TArray<FAssetIdentifier> FindTagReferences(FName TagName);
 }

@@ -10,7 +10,6 @@ class SGameplayTagPicker;
 enum class EYapGameplayTagTypedPickerResponse : uint8
 {
 	Unspecified,
-	Cancel,
 	DeleteOldTag,
 	RedirectOldTag,
 };
@@ -91,15 +90,15 @@ protected:
 	
 	void OnTagSelected(const TArray<FGameplayTagContainer>& TagContainers);
 
-	void DeleteTagFromINI();
-	
 	void ChangeTag(const FString& NewTagString);
+	
+	void PostChangeTag(FString OldTagString, FString NewTagString);
 
 	bool VerifyNewTagString(const FString& NewTagString) const;
 	
-	FReply RequestTagRedirect(const FString& NewTagString, EYapGameplayTagTypedPickerResponse& Response) const;
+	void RequestTagRedirect(const FString& NewTagString, const FString& OldTagString, EYapGameplayTagTypedPickerResponse& Response) const;
 
-	void RequestTagDeletion(const FString& NewTagString, EYapGameplayTagTypedPickerResponse& Response) const;
+	void RequestTagDeletion(const FString& NewTagString, const FString& OldTagString, EYapGameplayTagTypedPickerResponse& Response) const;
 	
 protected:
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;

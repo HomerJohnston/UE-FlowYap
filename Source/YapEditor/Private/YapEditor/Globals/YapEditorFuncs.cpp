@@ -2,8 +2,11 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #include "YapEditor/Globals/YapEditorFuncs.h"
+
+#include "FileHelpers.h"
 #include "YapEditor/YapDeveloperSettings.h"
 #include "ISettingsModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "UObject/SavePackage.h"
 #include "Widgets/Notifications/SNotificationList.h"
@@ -47,15 +50,26 @@ bool Yap::EditorFuncs::SaveAsset(UObject* Asset)
 		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 		SaveArgs.SaveFlags = SAVE_NoError;
 	}
-	
-	const bool bSucceeded = UPackage::SavePackage(Package, nullptr, *PackageFileName, SaveArgs);
+
+	const bool bSucceeded = UEditorLoadingAndSavingUtils::SavePackages( {Package}, false );
 
 	if (!bSucceeded)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Package '%s' wasn't saved!"), *PackageName)
+		UE_LOG(LogTemp, Warning, TEXT("Package '%s' wasn't saved!"), *PackageName)
 		return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Package '%s' was successfully saved"), *PackageName)
 	return true;
+}
+
+TArray<FAssetIdentifier> Yap::EditorFuncs::FindTagReferences(FName TagName)
+{
+	// Verify references
+	FAssetIdentifier TagId = FAssetIdentifier(FGameplayTag::StaticStruct(), TagName);
+	TArray<FAssetIdentifier> Referencers;
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	AssetRegistryModule.Get().GetReferencers(TagId, Referencers, UE::AssetRegistry::EDependencyCategory::SearchableName);
+
+	return Referencers;
 }
