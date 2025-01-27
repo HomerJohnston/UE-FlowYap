@@ -26,8 +26,16 @@ public:
 	UYapCharacter();
 
 protected:
-	/** Avatar icons to use in dialogue UI, the "calm" value can be considered as default */ // TODO add EditFixedSize and build details customization with a button to reset the list to match project settings
-	UPROPERTY(EditAnywhere, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow))
+	/** If set, the character will use a single portrait texture for all moods. */
+	UPROPERTY(EditAnywhere)
+	bool bUseSinglePortrait = false;
+
+	/** Portrait texture to use. */
+	UPROPERTY(EditAnywhere, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow, EditCondition = "bUseSinglePortrait", EditConditionHides))
+	TObjectPtr<UTexture2D> Portrait;
+	
+	/** Avatar icons to use in dialogue UI */
+	UPROPERTY(EditAnywhere, EditFixedSize, meta=(ReadOnlyKeys, ForceInlineRow, EditCondition = "!bUseSinglePortrait", EditConditionHides))
 	TMap<FName, TObjectPtr<UTexture2D>> Portraits;
 	
 public:

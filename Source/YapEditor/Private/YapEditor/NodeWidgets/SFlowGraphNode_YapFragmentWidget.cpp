@@ -2341,7 +2341,10 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetSpeaker(), GetBit().GetMoodTag());
+	const UYapCharacter* Speaker = GetBitMutable().GetSpeaker();
+	const FGameplayTag& MoodTag = GetBit().GetMoodTag();
+	
+	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -2355,7 +2358,10 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetSpeaker(), GetBit().GetMoodTag());
+	const UYapCharacter* Speaker = GetBitMutable().GetSpeaker();
+	const FGameplayTag& MoodTag = GetBit().GetMoodTag();
+	
+	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
 	
 	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }

@@ -20,6 +20,11 @@ const TMap<FName, TObjectPtr<UTexture2D>>& UYapCharacter::GetPortraits() const
 
 const UTexture2D* UYapCharacter::GetPortraitTexture(const FGameplayTag& MoodTag) const
 {
+	if (bUseSinglePortrait)
+	{
+		return Portrait;
+	}
+	
 	FGameplayTag MoodTagToFind = MoodTag.IsValid() ? MoodTag : UYapProjectSettings::GetDefaultMoodTag();
 
 	const TObjectPtr<UTexture2D>* TexturePtr = Portraits.Find(MoodTagToFind.GetTagName());

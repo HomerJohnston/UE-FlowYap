@@ -32,6 +32,8 @@ public:
 
 	void OnClicked_RefreshMoodTagsButton() const;
 
+	TSharedPtr<IPropertyHandle> bUseSinglePortraitProperty;
+	TSharedPtr<IPropertyHandle> PortraitProperty;
 	TSharedPtr<IPropertyHandle> PortraitsProperty;
 
 	const TMap<FName, TObjectPtr<UTexture2D>>& GetPortraitsMap() const;

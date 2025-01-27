@@ -20,6 +20,8 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 {
 	TArray<TWeakObjectPtr<UObject>> Objects;
 
+	bUseSinglePortraitProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, bUseSinglePortrait));
+	PortraitProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portrait));
 	PortraitsProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UYapCharacter, Portraits));
 
 	DetailBuilder.GetObjectsBeingCustomized(Objects);
@@ -51,14 +53,25 @@ void FDetailCustomization_YapCharacter::CustomizeDetails(IDetailLayoutBuilder& D
 	});
 	
 	IDetailCategoryBuilder& CharacterCategory = DetailBuilder.EditCategory("YapCharacter");
-	
+
+	bUseSinglePortraitProperty->MarkHiddenByCustomization();
+	PortraitProperty->MarkHiddenByCustomization();
 	PortraitsProperty->MarkHiddenByCustomization();
 
+	CharacterCategory.AddProperty(bUseSinglePortraitProperty);
+	CharacterCategory.AddProperty(PortraitProperty);
 	CharacterCategory.AddProperty(PortraitsProperty);
 
 	FDetailWidgetRow X = CharacterCategory.AddCustomRow(LOCTEXT("MoodTags", "Mood Tags"))
 	[
 		SNew(SVerticalBox)
+		.Visibility_Lambda( [this] ()
+		{
+			bool bUseSinglePortrait;
+			bUseSinglePortraitProperty->GetValue(bUseSinglePortrait);
+
+			return bUseSinglePortrait ? EVisibility::Collapsed : EVisibility::Visible;
+		})
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.HAlign(HAlign_Center)
