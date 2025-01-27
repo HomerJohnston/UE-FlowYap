@@ -15,6 +15,9 @@ struct YAP_API FYapPromptHandle
 {
 	GENERATED_BODY()
 
+	// ------------------------------------------
+	// STATE
+
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UFlowNode_YapDialogue> DialogueNode;
@@ -25,6 +28,15 @@ protected:
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess, IgnoreForMemberInitializationTest))
 	FGuid Guid;
 	
+	// ------------------------------------------
+	// PUBLIC API - Your game should use these
+
+public:
+	void RunPrompt(UObject* WorldContextObject);
+
+	// ------------------------------------------
+	// YAP API - These are called by Yap classes
+
 public:
 	FYapPromptHandle();
 
@@ -34,8 +46,6 @@ public:
 	
 	bool IsValid() { return Guid.IsValid(); }
 	
-	void RunPrompt(UObject* WorldContextObject);
-
 	UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
 
 	uint8 GetFragmentIndex() const { return FragmentIndex; }

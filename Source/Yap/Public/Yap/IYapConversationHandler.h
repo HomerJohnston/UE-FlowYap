@@ -254,110 +254,113 @@ class IYapConversationHandler
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Conversation Opened")
-	void K2_OnConversationOpened(FYapData_OnConversationOpened Data);
+	void K2_OnConversationOpened(FYapData_OnConversationOpened In);
 	
 	/** Code to run when a conversation closes. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Conversation Closed")
-	void K2_OnConversationClosed(FYapData_OnConversationClosed Data);
+	void K2_OnConversationClosed(FYapData_OnConversationClosed In);
 
+	/** Code to run when a dialogue node is first entered. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Entered")
-	void K2_OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered Data);
+	void K2_OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered In);
 	
+	/** Code to run when a dialogue node is finally exited. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Exited")
-	void K2_OnDialogueNodeExited(FYapData_OnDialogueNodeExited Data);
+	void K2_OnDialogueNodeExited(FYapData_OnDialogueNodeExited In);
 
+	/** Code to run when a dialogue node runs its bypass output. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Bypassed")
-	void K2_OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed Data);
+	void K2_OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed In);
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Speaking Begins")
-	void K2_OnSpeakingBegins(FYapData_OnSpeakingBegins Data);
+	void K2_OnSpeakingBegins(FYapData_OnSpeakingBegins In);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Speaking Ends")
-	void K2_OnSpeakingEnds(FYapData_OnSpeakingEnds Data);
+	void K2_OnSpeakingEnds(FYapData_OnSpeakingEnds In);
 
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Padding Time Over")
-	void K2_OnPaddingTimeOver(FYapData_OnPaddingTimeOver Data);
+	void K2_OnPaddingTimeOver(FYapData_OnPaddingTimeOver In);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
-	void K2_AddPlayerPrompt(FYapData_AddPlayerPrompt Data);
+	void K2_AddPlayerPrompt(FYapData_AddPlayerPrompt In);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
-	void K2_AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data);
+	void K2_AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded In);
 
 	/** Code to run when a player prompt is ran. Do NOT call Parent when overriding. */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Player Prompt Selected")
-	void K2_OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Data);
+	void K2_OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected In);
 	
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
-	virtual void OnConversationOpened(FYapData_OnConversationOpened Data)
+	virtual void OnConversationOpened(FYapData_OnConversationOpened Event)
 	{
-		K2_OnConversationOpened(Data);
+		K2_OnConversationOpened(Event);
 	};
 	
 	/** Code to run when a conversation ends. Do NOT call Super when overriding. */
-	virtual void OnConversationClosed(FYapData_OnConversationClosed Data)
+	virtual void OnConversationClosed(FYapData_OnConversationClosed Event)
 	{
-		K2_OnConversationClosed(Data);
+		K2_OnConversationClosed(Event);
 	};
 
 	/** Code to run when first entering a dialogue node, before any speaking begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered Data)
+	virtual void OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered Event)
 	{
-		K2_OnDialogueNodeEntered(Data);
+		K2_OnDialogueNodeEntered(Event);
 	}
 
 	/** Code to run when finishing a dialogue node. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeExited(FYapData_OnDialogueNodeExited Data)
+	virtual void OnDialogueNodeExited(FYapData_OnDialogueNodeExited Event)
 	{
-		K2_OnDialogueNodeExited(Data);
+		K2_OnDialogueNodeExited(Event);
 	}
 
 	/** Code to run when exiting a dialogue node through the bypass pin. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed Data)
+	virtual void OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed Event)
 	{
-		K2_OnDialogueNodeBypassed(Data);
+		K2_OnDialogueNodeBypassed(Event);
 	}	
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnSpeakingBegins(FYapData_OnSpeakingBegins Data)
+	virtual void OnSpeakingBegins(FYapData_OnSpeakingBegins Event)
 	{
-		K2_OnSpeakingBegins(Data);
+		K2_OnSpeakingBegins(Event);
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
-	virtual void OnSpeakingEnds(FYapData_OnSpeakingEnds Data)
+	virtual void OnSpeakingEnds(FYapData_OnSpeakingEnds Event)
 	{
-		K2_OnSpeakingEnds(Data);
+		K2_OnSpeakingEnds(Event);
 	}
 	
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Super when overriding. */
-	virtual void OnPaddingTimeOver(FYapData_OnPaddingTimeOver Data)
+	virtual void OnPaddingTimeOver(FYapData_OnPaddingTimeOver Event)
 	{
-		K2_OnPaddingTimeOver(Data);
+		K2_OnPaddingTimeOver(Event);
 	}
 	
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Super when overriding. */
-	virtual void AddPlayerPrompt(FYapData_AddPlayerPrompt Data)
+	virtual void AddPlayerPrompt(FYapData_AddPlayerPrompt Event)
 	{
-		K2_AddPlayerPrompt(Data);
+		K2_AddPlayerPrompt(Event);
 	}
 	
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Super when overriding. */
-	virtual void AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Data)
+	virtual void AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Event)
 	{
-		K2_AfterPlayerPromptsAdded(Data);
+		K2_AfterPlayerPromptsAdded(Event);
 	}
 
 	/** Code to run when a player prompt is ran. Do NOT call Super when overriding. */
-	virtual void OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Data)
+	virtual void OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Event)
 	{
-		K2_OnPlayerPromptSelected(Data);
+		K2_OnPlayerPromptSelected(Event);
 	}
 };
 

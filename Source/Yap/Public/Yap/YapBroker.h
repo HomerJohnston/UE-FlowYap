@@ -35,7 +35,7 @@ private:
 	// is overridden, it will supersede. This is "backwards" compared to normal BNE's but if you're
 	// overriding this class in C++ you won't want to override further in BP.
 	static TOptional<bool> bImplemented_Initialize;
-	static TOptional<bool> bImplemented_UseMatureDialogue;
+	static TOptional<bool> bImplemented_GetMaturitySetting;
 	static TOptional<bool> bImplemented_GetPlaybackSpeed;
 	static TOptional<bool> bImplemented_GetAudioAssetDuration;
 #if WITH_EDITOR
@@ -46,7 +46,7 @@ private:
 	// We want to log errors, but not spam the log on tick, only on the first occurrence.
 	// I also want to make sure the errors log each time PIE runs, not just once.
 	static bool bWarned_Initialize;
-	static bool bWarned_UseMatureDialogue;
+	static bool bWarned_GetMaturitySetting;
 	static bool bWarned_GetPlaybackSpeed;
 	static bool bWarned_GetAudioAssetDuration;
 #if WITH_EDITOR
@@ -62,16 +62,19 @@ protected:
 	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	 * 
 	* Use this to do any desired initialization, such as creating a Dialogue UI instance if you aren't creating one already elsewhere. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Initialize")
 	void K2_Initialize();
 	
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	 * 
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */
-	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Use Mature Dialogue")
-	EYapMaturitySetting K2_UseMatureDialogue() const;
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Get Maturity Setting")
+	EYapMaturitySetting K2_GetMaturitySetting() const;
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	 * 
 	 * Use this to modify speaking time by a scalar multiplier. Does NOT affect anything when fragments are using audio duration! */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Get Playback Speed")
 	float K2_GetPlaybackSpeed() const;
@@ -79,6 +82,7 @@ protected:
 	// - - - - - TEXT ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
+	 * 
 	 * Provides a word count estimate of a given piece of FText. A default implementation of this function exists. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Calculate Word Count")
 	int32 K2_CalculateWordCount(const FText& Text) const;
@@ -86,12 +90,14 @@ protected:
 	// - - - - - AUDIO ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** Overriding this is required if you use 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Parent when overriding.
+	 * 
 	 * Use this to cast to your project's audio type(s) and return their duration length in seconds. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Get Dialogue Audio Duration")
 	float K2_GetAudioAssetDuration(const UObject* AudioAsset) const;
 
 #if WITH_EDITOR
 	/** Overriding this is required if you use 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Parent when overriding.
+	 * 
 	 * Use this to cast to your project's audio type(s) and initiate playback in editor. */
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Play Dialogue Audio In Editor")
 	bool K2_PreviewAudioAsset(const UObject* AudioAsset) const;
@@ -111,7 +117,7 @@ public:
 	
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to read your game's user settings (e.g. "Enable Mature Content") and determine if mature language is permitted. */
-	virtual EYapMaturitySetting UseMatureDialogue() const;
+	virtual EYapMaturitySetting GetMaturitySetting() const;
 
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to modify speaking time by a scalar multiplier. Does NOT affect anything when fragments are using audio duration! */

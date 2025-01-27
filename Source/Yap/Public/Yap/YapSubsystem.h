@@ -84,9 +84,71 @@ public:
 	
 	// ------------------------------------------
 	// STATE
+	
 protected:
 	static TWeakObjectPtr<UWorld> World;
+	
+	// TODO I should have a queue system???... otherwise I'll have odd race conditions if there are multiple conversation requests!
+	//UPROPERTY(Transient)
+	//TArray<FName> ConversationQueue;
+	
+	/** The current active conversation. */
+	UPROPERTY(Transient)
+	FYapActiveConversation ActiveConversation;
 
+	/** All registered conversation handlers. It is assumed developers will only have one or two of these at a time, no need for fast lookup. */
+	UPROPERTY(Transient)
+	TArray<UObject*> ConversationHandlers;
+
+	/** The broker object. Active only during play. Editor work uses the CDO instead. */
+	UPROPERTY(Transient)
+	TObjectPtr<UYapBroker> Broker;
+	
+	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, UFlowNode_YapDialogue*> TaggedFragments;
+
+	/** Stores overrides of bit replacements. Currently, can only store one at a time per fragment; new assignments simply replace the old one. */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, FYapBitReplacement> BitReplacements;
+
+	/** All registered character components. */
+	UPROPERTY(Transient)
+	TMap<FGameplayTag, TWeakObjectPtr<UYapCharacterComponent>> YapCharacterComponents;
+
+	/** Helper to ensure that multiple character components are never registered for the same actor. */
+	UPROPERTY(Transient)
+	TSet<TObjectPtr<AActor>> RegisteredYapCharacterActors;
+
+	// Running dialogue instances. Since only one fragment of a dialogue node can be running at any time, we don't need handles to map to individual fragments.
+	UPROPERTY(Transient)
+	TMap<TObjectPtr<UFlowNode_YapDialogue>, FYapDialogueHandle> DialogueHandles;
+
+	static bool bGetGameMaturitySettingWarningIssued;
+	
+	// ------------------------------------------
+	// PUBLIC API - Your game should use these
+	
+public:
+	/** Register a conversation handler. Conversation handlers will receive yap dialogue events. Must implement IYapConversationHandler either in C++ or BP. */
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	void RegisterConversationHandler(UObject* NewHandler);
+
+	/** Unregister a conversation handler. */
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	void UnregisterConversationHandler(UObject* RemovedHandler);
+	
+	/** Given a character identity tag, find the character component in the world. */
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	UYapCharacterComponent* FindCharacterComponent(FGameplayTag CharacterTag);
+
+	// TODO I want a custom K2 node for this with IsValid outputs automatically
+	//UFUNCTION(BlueprintCallable, Category = "Yap")
+	//AActor* FindCharacterActor(FGameplayTag CharacterTag);
+	
+	// ------------------------------------------
+	// YAP API - These are called by Yap classes
+	
 public:
 	static const TWeakObjectPtr<UWorld> GetStaticWorld()
 	{
@@ -103,71 +165,11 @@ public:
 		return nullptr;
 	}
 	
-protected:
-	// TODO I should have a queue system???... otherwise I'll have odd race conditions on multiple conversation requests
-	//UPROPERTY(Transient)
-	//TArray<FName> ConversationQueue;
-	
-	/**  */
-	UPROPERTY(Transient)
-	FYapActiveConversation ActiveConversation;
-
-	/**  */
-	UPROPERTY(Transient)
-	TArray<UObject*> ConversationHandlers;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UYapBroker> Broker;
-	
-	/** Stores the tag of a fragment and the owning dialogue node where that fragment can be found */
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, UFlowNode_YapDialogue*> TaggedFragments;
-
-	/** Stores overrides of bit replacements. Can only store one at a time, new assignments simply replace the old one. */
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, FYapBitReplacement> BitReplacements;
-
-	/**  */
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, TWeakObjectPtr<UYapCharacterComponent>> YapCharacterComponents;
-
-	/**  */
-	UPROPERTY(Transient)
-	TSet<TObjectPtr<AActor>> RegisteredYapCharacterActors;
-
-	UPROPERTY(Transient)
-	TSubclassOf<UObject> BrokerClass;
-
-	// Running dialogue instances. Since only one fragment of a dialogue node can be running at any time, we don't need handles to map to individual fragments.
-	UPROPERTY(Transient)
-	TMap<TObjectPtr<UFlowNode_YapDialogue>, FYapDialogueHandle> DialogueHandles;
-
-	static bool bGetGameMaturitySettingWarningIssued;
-	
-	// ------------------------------------------
-	// PUBLIC API
 public:
-	/** When a conversation starts */
-	UFUNCTION(BlueprintCallable)
-	void RegisterConversationHandler(UObject* NewHandler);
-
-	/**  */
-	UFUNCTION(BlueprintCallable)
-	void UnregisterConversationHandler(UObject* RemovedHandler);
-
-	UFUNCTION(BlueprintCallable)
-	UYapCharacterComponent* GetYapCharacter(const FGameplayTag& CharacterTag);
-
-	UFUNCTION(BlueprintCallable, DisplayName = "Get Maturity Setting")
-	EYapMaturitySetting K2_GetMaturitySetting() { return GetGameMaturitySetting(); };
-
 	static UYapBroker* GetBroker();
 	
 	static EYapMaturitySetting GetGameMaturitySetting();
 
-	// ------------------------------------------
-	// YAP API - These are called by Yap classes
-public:
 	/**  */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
 
@@ -196,10 +198,10 @@ protected:
 	/**  */
 	void BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
 	
-	/**  */
-	UFUNCTION(BlueprintCallable)
+	/** The prompt handle will call this function, passing in itself. */
 	void RunPrompt(const FYapPromptHandle& Handle);
 
+	/**  */
 	UFUNCTION(BlueprintCallable)
 	void SkipDialogue(const FYapPromptHandle& Handle);
 	
@@ -214,6 +216,7 @@ public:
 	/**  */
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	/**  */
 	void Deinitialize() override;
 	
 protected:

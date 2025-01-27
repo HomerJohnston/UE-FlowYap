@@ -107,6 +107,7 @@ protected:
 	UPROPERTY()
 	TSoftObjectPtr<UObject> SafeAudioAsset;
 
+	// TODO - what about sending multiple mood tags? Or some other way to specify more arbitrary data? UPropertyBag???
 	/**  */
 	UPROPERTY()
 	FGameplayTag MoodTag;

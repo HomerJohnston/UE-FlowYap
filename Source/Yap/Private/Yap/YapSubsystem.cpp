@@ -80,7 +80,7 @@ void UYapSubsystem::UnregisterConversationHandler(UObject* RemovedHandler)
 	ConversationHandlers.Remove(RemovedHandler);
 }
 
-UYapCharacterComponent* UYapSubsystem::GetYapCharacter(const FGameplayTag& CharacterTag)
+UYapCharacterComponent* UYapSubsystem::FindCharacterComponent(FGameplayTag CharacterTag)
 {
 	TWeakObjectPtr<UYapCharacterComponent>* CharacterComponentPtr = YapCharacterComponents.Find(CharacterTag);
 
@@ -117,7 +117,7 @@ EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
 
 		if (ensureMsgf(IsValid(Broker), TEXT("No broker set in project settings! Defaulting to mature.")))
 		{
-			MaturitySetting = Broker->UseMatureDialogue();
+			MaturitySetting = Broker->GetMaturitySetting();
 		}
 		else
 		{
@@ -367,8 +367,7 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ActiveConversation.OnConversationCloses.BindUObject(this, &UYapSubsystem::OnConversationCloses_Internal);
 
 	// TODO handle null unset values
-	// TODO deprecate the text calculator class? everything done in the broker now
-	BrokerClass = UYapProjectSettings::GetBrokerClass().LoadSynchronous();
+	TSubclassOf<UYapBroker> BrokerClass = UYapProjectSettings::GetBrokerClass().LoadSynchronous();
 
 	if (BrokerClass)
 	{

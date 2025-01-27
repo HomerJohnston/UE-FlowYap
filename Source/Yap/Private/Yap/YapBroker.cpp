@@ -14,7 +14,7 @@
 #define LOCTEXT_NAMESPACE "Yap"
 
 TOptional<bool> UYapBroker::bImplemented_Initialize = false;
-TOptional<bool> UYapBroker::bImplemented_UseMatureDialogue = false;
+TOptional<bool> UYapBroker::bImplemented_GetMaturitySetting = false;
 TOptional<bool> UYapBroker::bImplemented_GetPlaybackSpeed = false;
 TOptional<bool> UYapBroker::bImplemented_GetAudioAssetDuration = false;
 #if WITH_EDITOR
@@ -22,7 +22,7 @@ TOptional<bool> UYapBroker::bImplemented_PreviewAudioAsset = false;
 #endif
 
 bool UYapBroker::bWarned_Initialize = false;
-bool UYapBroker::bWarned_UseMatureDialogue = false;
+bool UYapBroker::bWarned_GetMaturitySetting = false;
 bool UYapBroker::bWarned_GetPlaybackSpeed = false;
 bool UYapBroker::bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
@@ -42,11 +42,11 @@ void UYapBroker::Initialize()
 	YAP_CALL_K2(Initialize, false);
 }
 
-EYapMaturitySetting UYapBroker::UseMatureDialogue() const
+EYapMaturitySetting UYapBroker::GetMaturitySetting() const
 {
 	bool bSuppressDefaultMatureWarning = !UYapProjectSettings::GetSuppressBrokerWarnings();
 
-	EYapMaturitySetting MaturitySetting = YAP_CALL_K2(UseMatureDialogue, bSuppressDefaultMatureWarning);
+	EYapMaturitySetting MaturitySetting = YAP_CALL_K2(GetMaturitySetting, bSuppressDefaultMatureWarning);
 
 	if (MaturitySetting == EYapMaturitySetting::Unspecified)
 	{
@@ -225,14 +225,14 @@ bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 void UYapBroker::Initialize_Internal()
 {
 	bWarned_Initialize = false;
-	bWarned_UseMatureDialogue = false;
+	bWarned_GetMaturitySetting = false;
 	bWarned_GetAudioAssetDuration = false;
 #if WITH_EDITOR
 	bWarned_PreviewAudioAsset = false;
 #endif // WITH_EDITOR
 	
 	bImplemented_Initialize = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_Initialize));
-	bImplemented_UseMatureDialogue = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_UseMatureDialogue));
+	bImplemented_GetMaturitySetting = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetMaturitySetting));
 	bImplemented_GetAudioAssetDuration = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_GetAudioAssetDuration));
 #if WITH_EDITOR
 	bImplemented_PreviewAudioAsset = GetClass()->IsFunctionImplementedInScript(GET_FUNCTION_NAME_CHECKED(UYapBroker, K2_PreviewAudioAsset));
