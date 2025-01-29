@@ -73,9 +73,8 @@ const UYapCharacter* FYapBit::GetCharacter_Internal(const TSoftObjectPtr<UYapCha
 
 	if (CharacterAsset.IsPending())
 	{
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loading character: %s"), *CharacterAsset->GetName());
-
 		Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.LoadSynchronous());
+		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
 	}
 
 	return CharacterAsset.Get();
@@ -294,12 +293,13 @@ TOptional<float> FYapBit::GetAudioTime(EYapMaturitySetting MaturitySetting) cons
 	UYapBroker* Broker = nullptr;
 
 #if WITH_EDITOR
-	if (GEditor->PlayWorld)
+	if (GEditor && GEditor->IsPlayingSessionInEditor())
 	{
 		Broker = UYapSubsystem::GetBroker();
 	}
 	else
 	{
+		// This is running at editor time only
 		const TSoftClassPtr<UYapBroker>& BrokerClass = UYapProjectSettings::GetBrokerClass();
 	
 		if (BrokerClass.IsNull())
