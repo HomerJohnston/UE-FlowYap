@@ -20,6 +20,7 @@ struct FYapBitReplacement;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
+// TODO: URGENT: I need a property customization on this type to cache the word count.
 USTRUCT(BlueprintType)
 struct YAP_API FYapText
 {
@@ -28,9 +29,9 @@ struct YAP_API FYapText
 #endif
 	
 	GENERATED_BODY()
-
+	
 private:
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	FText Txt;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
@@ -92,7 +93,7 @@ protected:
 	FYapText SafeTitleText;
 	
 	/**  */
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FYapText MatureDialogueText;
 
 	/**  */
@@ -243,8 +244,6 @@ public:
 	bool HasDialogueTextForMaturity(EYapMaturitySetting MaturitySetting) const;
 
 private:
-	void SetTextData_Internal(FYapText& TextToSet, const FText& NewText);
-
 	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, UObject* NewAudio);
 	
 	void RecacheSpeakingTime();

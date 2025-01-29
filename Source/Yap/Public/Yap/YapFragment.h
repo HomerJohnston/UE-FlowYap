@@ -35,7 +35,7 @@ protected:
 	UPROPERTY(Instanced)
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
-	UPROPERTY(meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, meta = (ShowOnlyInnerProperties))
 	FYapBit Bit;
 
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */

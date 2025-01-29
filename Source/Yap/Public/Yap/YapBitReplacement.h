@@ -34,9 +34,12 @@ struct FYapBitReplacement
 	UPROPERTY(EditAnywhere)
 	TOptional<FYapText> SafeTitleText;
 
-	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapText> MatureDialogueText;
+	bool bOverrideMatureDialogueText;
+	
+	/**  */
+	UPROPERTY(EditAnywhere, meta = (EditCondition = "bOverrideMatureDialogueText", EditConditionHides))
+	FYapText MatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
@@ -68,17 +71,17 @@ inline FYapBitReplacement::FYapBitReplacement()
 	SpeakerAsset.Reset();
 	DirectedAtAsset.Reset();
 
-	// TODO investigate this more, why is FText TOptional crashing if I don't do this?
-	//MatureTitleText.
+	// TODO investigate this more, why is FText TOptional crashing if I don't do this? x 4
+	//MatureTitleText->Set(FText::GetEmpty());
 	MatureTitleText.Reset();
 
-	//SafeTitleText = FText::GetEmpty();
+	//SafeTitleText->Set(FText::GetEmpty());
 	SafeTitleText.Reset();
 
-	//MatureDialogueText = FText::GetEmpty();
-	MatureDialogueText.Reset();
+	//MatureDialogueText->Set(FText::GetEmpty());
+	//MatureDialogueText.Reset();
 	
-	//SafeDialogueText = FText::GetEmpty();
+	//SafeDialogueText->Set(FText::GetEmpty());
 	SafeDialogueText.Reset();
 	
 	MatureAudioAsset.Reset();

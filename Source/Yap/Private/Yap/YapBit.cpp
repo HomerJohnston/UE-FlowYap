@@ -22,7 +22,7 @@ HANDLE = FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath())
 void FYapText::Set(const FText& InText)
 {
 	Txt = InText;
-	
+
 	int32 NewWordCount = -1;
 
 	if (Txt.IsEmptyOrWhitespace())
@@ -337,7 +337,13 @@ FYapBit& FYapBit::operator=(const FYapBitReplacement& Replacement)
 	FLOWYAP_REPLACE(SpeakerAsset);
 	FLOWYAP_REPLACE(DirectedAtAsset);
 	FLOWYAP_REPLACE(MatureTitleText);
-	FLOWYAP_REPLACE(MatureDialogueText);
+
+	if (Replacement.bOverrideMatureDialogueText)
+	{
+		MatureDialogueText = Replacement.MatureDialogueText;
+	}
+	
+	//FLOWYAP_REPLACE(MatureDialogueText);
 	FLOWYAP_REPLACE(SafeTitleText);
 	FLOWYAP_REPLACE(SafeDialogueText);
 	FLOWYAP_REPLACE(MatureAudioAsset);
@@ -378,12 +384,12 @@ void FYapBit::SetSafeTitleText(const FText& NewText)
 
 void FYapBit::SetMatureDialogueText(const FText& NewText)
 {
-	SetTextData_Internal(MatureDialogueText, NewText);
+	MatureDialogueText.Set(NewText);
 }
 
 void FYapBit::SetSafeDialogueText(const FText& NewText)
 {
-	SetTextData_Internal(SafeDialogueText, NewText);
+	SafeDialogueText.Set(NewText);
 }
 #endif
 
@@ -401,11 +407,6 @@ bool FYapBit::HasDialogueTextForMaturity(EYapMaturitySetting MaturitySetting) co
 	}
 
 	return false;
-}
-
-void FYapBit::SetTextData_Internal(FYapText& TextToSet, const FText& NewText)
-{
-	TextToSet.Set(NewText);
 }
 
 void FYapBit::RecacheSpeakingTime()

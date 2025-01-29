@@ -1503,8 +1503,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 	FText& DialogueText = Bit.MatureDialogueText.Txt;
 	FText& TitleText = Bit.MatureTitleText.Txt;
 	
-	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText));
-	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText));
+	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText, GetDialogueNode()));
+	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText, GetDialogueNode()));
 
 	TSoftObjectPtr<UObject>& AudioAsset = Bit.MatureAudioAsset;
 	
@@ -1594,8 +1594,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 		FText& SafeDialogueText = Bit.SafeDialogueText.Txt;
 		FText& SafeTitleText = Bit.SafeTitleText.Txt;
 		
-		TSharedRef<IEditableTextProperty> SafeDialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeDialogueText));
-		TSharedRef<IEditableTextProperty> SafeTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeTitleText));
+		TSharedRef<IEditableTextProperty> SafeDialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeDialogueText, GetDialogueNode()));
+		TSharedRef<IEditableTextProperty> SafeTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(SafeTitleText, GetDialogueNode()));
 
 		TSoftObjectPtr<UObject>& SafeAudioAsset = Bit.SafeAudioAsset;
 
