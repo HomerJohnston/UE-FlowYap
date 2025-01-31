@@ -71,8 +71,21 @@ const UYapCharacter* FYapBit::GetCharacter_Internal(const TSoftObjectPtr<UYapCha
 		return nullptr;
 	}
 
-	if (CharacterAsset.IsPending())
+	if (CharacterAsset.IsValid())
 	{
+		return CharacterAsset.Get();
+	}
+	
+	// If we're mid-game, force a sync load
+	TWeakObjectPtr<UWorld> World = UYapSubsystem::GetStaticWorld();
+	
+	if (World.IsValid() && World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE)
+	{
+		if (Handle->IsLoadingInProgress())
+		{
+			UE_LOG(LogYap, Warning, TEXT("Interrupting async load to get yap character asset"));
+		}
+		
 		Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.LoadSynchronous());
 		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
 	}

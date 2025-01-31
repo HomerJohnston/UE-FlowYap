@@ -50,7 +50,7 @@ protected:
 
 	FDelegateHandle FragmentTagFilterDelegateHandle;
 
-	TMap<TObjectKey<UTexture2D>, FSlateBrush> CharacterPortraitBrushes;
+	TMap<TObjectKey<UTexture2D>, TSharedPtr<FSlateImageBrush>> CharacterPortraitBrushes;
 
 	FGameplayTagContainer CachedMoodTags;
 
@@ -73,7 +73,7 @@ public:
 
 	const FSlateBrush* GetMoodTagBrush(FGameplayTag Name);
 
-	static const FSlateBrush* GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
+	static TSharedPtr<FSlateImageBrush> GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;

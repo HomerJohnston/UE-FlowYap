@@ -29,6 +29,7 @@ struct FYapBrushes
 	FName Icon_Delete;
 	FName Icon_DownArrow;
 	FName Icon_Edit;
+	FName Icon_IDTag;
 
 	FName Icon_LocalLimit;
 

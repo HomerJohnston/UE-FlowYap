@@ -93,43 +93,56 @@ const FSlateBrush* UYapEditorSubsystem::GetMoodTagBrush(FGameplayTag Name)
 	return Brush ? Brush->Get() : FYapEditorStyle::GetImageBrush(YapBrushes.Icon_MoodTag_Missing);
 }
 
-const FSlateBrush* UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag)
+TSharedPtr<FSlateImageBrush> UYapEditorSubsystem::GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag)
 {
+	static int32 iii = 0;
+	
 	if (!IsValid(Character))
 	{
 		return nullptr;
 	}
-	
+
+	// The character only has hard refs to its portrait textures. Its textures will always be loaded.
 	const UTexture2D* Texture = Character->GetPortraitTexture(MoodTag);
 
-	// Load the default missing portrait
-	if (!IsValid(Texture))
+	if (!Texture)
 	{
-		if (!IsValid(Get()->MissingPortraitTexture))
+		if (UYapProjectSettings::GetMissingPortraitTextureAsset().IsNull())
 		{
-			Get()->MissingPortraitTexture = UYapProjectSettings::GetMissingPortraitTextureAsset().LoadSynchronous();
+			return nullptr;
 		}
 
-		Texture = Get()->MissingPortraitTexture;
+		if (UYapProjectSettings::GetMissingPortraitTextureAsset().IsValid())
+		{
+			Texture = Get()->MissingPortraitTexture = UYapProjectSettings::GetMissingPortraitTextureAsset().Get();
+		}
+		else
+		{
+			Texture = Get()->MissingPortraitTexture = UYapProjectSettings::GetMissingPortraitTextureAsset().LoadSynchronous();
+		}
 	}
 	
-	FSlateBrush* PortraitBrush = Get()->CharacterPortraitBrushes.Find(Texture);
+	TSharedPtr<FSlateImageBrush>* PortraitBrushPtr = Get()->CharacterPortraitBrushes.Find(Texture);
 
-	if (PortraitBrush)
+	if (PortraitBrushPtr)
 	{
 		// TODO: somehow check if it is out of date
-		return PortraitBrush;
+		return *PortraitBrushPtr;
 	}
 
-	FSlateBrush NewPortraitBrush;
+	TSharedPtr<FSlateImageBrush> NewPortraitBrush = MakeShared<FSlateImageBrush>((UObject*)Texture, FVector2D(128, 128));
 
+	Get()->CharacterPortraitBrushes.Add(Texture, NewPortraitBrush);
+	
+	/*
 	NewPortraitBrush.ImageSize = FVector2D(128, 128);
 	NewPortraitBrush.SetResourceObject(const_cast<UTexture2D*>(Texture)); // TODO make sure this is safe and that there isn't a better system
 	NewPortraitBrush.SetUVRegion(FBox2D(FVector2D(0,0), FVector2D(1,1)));
 	NewPortraitBrush.DrawAs = ESlateBrushDrawType::Box;
 	NewPortraitBrush.Margin = 0;
+	*/
 
-	return &Get()->CharacterPortraitBrushes.Add(Texture, NewPortraitBrush);
+	return NewPortraitBrush;
 }
 
 void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)

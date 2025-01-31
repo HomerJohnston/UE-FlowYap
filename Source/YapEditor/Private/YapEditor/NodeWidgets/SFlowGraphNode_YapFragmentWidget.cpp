@@ -712,15 +712,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetDirectedAt(), FGameplayTag::EmptyTag);
+	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetBitMutable().GetDirectedAt(), FGameplayTag::EmptyTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
-		return PortraitBrush;
+		return PortraitBrush.Get();
 	}
 	else
 	{
-		return nullptr;
+		return FYapEditorStyle::GetImageBrush(YapBrushes.None);
 	}
 }
 
@@ -867,28 +867,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 							]
 						]
 					]
-					/*
-					+ SVerticalBox::Slot()
-					[
-						SNew(SBox)
-						.WidthOverride(22)
-						.HeightOverride(24)
-						.HAlign(HAlign_Center)
-						.VAlign(VAlign_Center)
-						.Padding(-2, -2, -2, -2)
-						[
-							SNew(SLevelOfDetailBranchNode)
-							.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
-							.HighDetail()
-							[
-								SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &ThisClass::OnTextCommitted_FragmentActivationLimit))
-								.ActivationCount(this, &ThisClass::GetFragmentActivationCount)
-								.ActivationLimit(this, &ThisClass::GetFragmentActivationLimit)
-								.FontHeight(10)	
-							]
-						]
-					]
-					*/
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					.HAlign(HAlign_Center)
@@ -2319,7 +2297,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 		[
 			SNew(SImage)
 			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-			.Image(this, &ThisClass::Image_SpeakerImage)
+			//.Image(this, &ThisClass::Image_SpeakerImage)
 		]
 	];
 }
@@ -2344,15 +2322,15 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 	const UYapCharacter* Speaker = GetBitMutable().GetSpeaker();
 	const FGameplayTag& MoodTag = GetBit().GetMoodTag();
 	
-	const FSlateBrush* PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
+	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
-		return PortraitBrush;
+		return PortraitBrush.Get();
 	}
 	else
 	{
-		return nullptr;
+		return FYapEditorStyle::GetImageBrush(YapBrushes.None);
 	}
 }
 
@@ -2361,8 +2339,13 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning(
 	const UYapCharacter* Speaker = GetBitMutable().GetSpeaker();
 	const FGameplayTag& MoodTag = GetBit().GetMoodTag();
 	
-	const FSlateBrush* Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
-	
+	const TSharedPtr<FSlateImageBrush> Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
+
+	if (!Brush.IsValid())
+	{
+		return EVisibility::Visible;
+	}
+
 	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
 }
 
