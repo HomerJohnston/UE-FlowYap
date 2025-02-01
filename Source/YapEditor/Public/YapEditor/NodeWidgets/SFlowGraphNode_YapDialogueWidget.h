@@ -207,6 +207,8 @@ public:
 	UFlowNode_YapDialogue* GetFlowYapDialogueNodeMutable();
 	
 	const UFlowNode_YapDialogue* GetFlowYapDialogueNode() const;
+	const UFlowGraphNode_YapDialogue* GetFlowGraphNode_YapDialogue() const;
+	UFlowGraphNode_YapDialogue* GetFlowGraphNode_YapDialogueMutable();
 	
 	TOptional<uint8> GetFocusedFragmentIndex() { return FocusedFragmentIndex; };
 

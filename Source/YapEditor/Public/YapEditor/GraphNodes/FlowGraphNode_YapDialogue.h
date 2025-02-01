@@ -31,7 +31,7 @@ public:
 
 	bool ShowPaletteIconOnNode() const override;
 
-	UFlowNode_YapDialogue* GetFlowYapNode() const;
+	UFlowNode_YapDialogue* GetYapDialogueNode() const;
 
 	FLinearColor GetNodeBodyTintColor() const override;
 
@@ -44,7 +44,18 @@ public:
 
 	void RecalculateTextOnAllFragments();
 
-	void InitializeInstance() override;
+	void PostPlacedNewNode() override;
+	
+	void PostPasteNode() override;
+
+	void RandomizeDialogueTag();
+	
+	void GenerateFragmentTags();
+	
+	void GenerateFragmentTag(uint8 FragmentIndex);
+
+	void AddFragment(int32 InsertionIndex = INDEX_NONE);
+
 };
 
 #undef LOCTEXT_NAMESPACE

@@ -1238,6 +1238,12 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 
 	const FText* MatureDialogueText = &GetBitConst().MatureDialogueText.Txt;
 	const FText* SafeDialogueText = &GetBitConst().SafeDialogueText.Txt;
+
+	FNumberFormattingOptions Args;
+	Args.UseGrouping = false;
+	Args.MinimumIntegralDigits = 3;
+
+	const FText FragmentIndexText = FText::AsNumber(FragmentIndex, &Args);
 	
 	TSharedRef<SWidget> Widget = SNew(SLevelOfDetailBranchNode)
 	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
@@ -1367,6 +1373,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 			.BorderImage(FAppStyle::GetBrush("MarqueeSelection"))
 			.Visibility(this, &ThisClass::Visibility_DialogueErrorState)
 			.BorderBackgroundColor(YapColor::Red)
+		]
+		+ SOverlay::Slot()
+		.VAlign(VAlign_Bottom)
+		.HAlign(HAlign_Right)
+		.Padding(4)
+		[
+			SNew(STextBlock)
+			.ColorAndOpacity(YapColor::DimGray)
+			.Text(FragmentIndexText)
 		]
 	]
 	.LowDetail()

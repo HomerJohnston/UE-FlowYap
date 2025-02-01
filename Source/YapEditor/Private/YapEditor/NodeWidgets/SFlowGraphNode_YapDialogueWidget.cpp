@@ -344,6 +344,18 @@ void SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged()
 // ------------------------------------------------------------------------------------------------
 TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedPtr<SNodeTitle> NodeTitle)
 {
+	// TODO this duplicates code from YapBroker
+	UFlowAsset* FlowAsset = GetFlowGraphNode_YapDialogue()->GetFlowAsset();
+	
+	FString Path = FPackageName::GetLongPackagePath(GetFlowGraphNode_YapDialogue()->GetFlowAsset()->GetPackage()->GetName());
+	Path.RemoveFromStart("/Game/");
+			
+	FString AssetName = FlowAsset->GetName();
+			
+	FString ProjectParentTag = UYapProjectSettings::GetDialogueTagsParent().GetTagName().ToString();
+			
+	FString Filter = ProjectParentTag + "." + Path / AssetName;
+
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
 	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
@@ -397,7 +409,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			[
 				SNew(SYapGameplayTagTypedPicker)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
-				.Filter(UYapProjectSettings::GetDialogueTagsParent().ToString())
+				.Filter(Filter) // TODO extra safety if things are unset
 				.OnTagChanged(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag)
 				.ToolTipText(LOCTEXT("DialogueTag", "Dialogue tag"))
 				.Asset(GetFlowYapDialogueNodeMutable()->GetFlowAsset())
@@ -690,7 +702,7 @@ FReply SFlowGraphNode_YapDialogueWidget::OnClicked_FragmentSeparator(uint8 Index
 {
 	FYapTransactions::BeginModify(LOCTEXT("AddFragment", "Add fragment"), GetFlowYapDialogueNodeMutable());
 
-	GetFlowYapDialogueNodeMutable()->AddFragment(Index);
+	GetFlowGraphNode_YapDialogueMutable()->AddFragment(Index);
 
 	UpdateGraphNode();
 
@@ -970,8 +982,8 @@ EVisibility SFlowGraphNode_YapDialogueWidget::Visibility_BottomAddFragmentButton
 FReply SFlowGraphNode_YapDialogueWidget::OnClicked_BottomAddFragmentButton()
 {
 	FYapTransactions::BeginModify(LOCTEXT("AddFragment", "Add fragment"), GetFlowYapDialogueNodeMutable());
-	
-	GetFlowYapDialogueNodeMutable()->AddFragment();
+
+	GetFlowGraphNode_YapDialogueMutable()->AddFragment(GetFlowYapDialogueNode()->GetNumFragments());
 
 	UpdateGraphNode();
 
@@ -1117,6 +1129,16 @@ UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogueNodeM
 const UFlowNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowYapDialogueNode() const
 {
 	return Cast<UFlowNode_YapDialogue>(FlowGraphNode->GetFlowNodeBase());
+}
+
+const UFlowGraphNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowGraphNode_YapDialogue() const
+{
+	return Cast<UFlowGraphNode_YapDialogue>(GraphNode);
+}
+
+UFlowGraphNode_YapDialogue* SFlowGraphNode_YapDialogueWidget::GetFlowGraphNode_YapDialogueMutable()
+{
+	return Cast<UFlowGraphNode_YapDialogue>(GraphNode);
 }
 
 // ------------------------------------------------------------------------------------------------

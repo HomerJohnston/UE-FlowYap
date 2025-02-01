@@ -3,10 +3,13 @@
 
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 
+#include "GameplayTagsEditorModule.h"
 #include "Graph/FlowGraph.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
 #include "UObject/ObjectSaveContext.h"
+#include "Yap/YapProjectSettings.h"
+#include "Yap/Globals/YapFileUtilities.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapDialogueNodeCommands.h"
@@ -15,6 +18,7 @@
 #include "YapEditor/YapLogEditor.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/YapTransactions.h"
+#include "YapEditor/Globals/YapTagHelpers.h"
 #include "YapEditor/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -41,7 +45,7 @@ bool UFlowGraphNode_YapDialogue::ShowPaletteIconOnNode() const
 	return true;
 }
 
-UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetFlowYapNode() const
+UFlowNode_YapDialogue* UFlowGraphNode_YapDialogue::GetYapDialogueNode() const
 {
 	return Cast<UFlowNode_YapDialogue>(GetFlowNodeBase());
 }
@@ -60,7 +64,7 @@ void UFlowGraphNode_YapDialogue::PreSave(FObjectPreSaveContext SaveContext)
 {
 	Super::PreSave(SaveContext);
 
-	UFlowNode_YapDialogue* Node = GetFlowYapNode();
+	UFlowNode_YapDialogue* Node = GetYapDialogueNode();
 
 	TMap<FYapFragment*, TArray<FName>> FragmentOptionalPins;
 	FragmentOptionalPins.Reserve(Node->GetNumFragments());
@@ -122,7 +126,7 @@ void UFlowGraphNode_YapDialogue::RecalculateTextOnAllFragments()
 	{
 		if (UFlowGraphNode_YapDialogue* DialogeGraphNode = Cast<UFlowGraphNode_YapDialogue>(Node))
 		{
-			UFlowNode_YapDialogue* DialogueNode2 = DialogeGraphNode->GetFlowYapNode();
+			UFlowNode_YapDialogue* DialogueNode2 = DialogeGraphNode->GetYapDialogueNode();
 			DialogueNode2->Modify();
 
 			for (FYapFragment& Fragment : DialogueNode2->GetFragmentsMutable())
@@ -134,9 +138,117 @@ void UFlowGraphNode_YapDialogue::RecalculateTextOnAllFragments()
 	}
 }
 
-void UFlowGraphNode_YapDialogue::InitializeInstance()
+void UFlowGraphNode_YapDialogue::PostPlacedNewNode()
 {
-	Super::InitializeInstance();
+	Super::PostPlacedNewNode();
+	
+	RandomizeDialogueTag();
+	//GenerateFragmentTags();
+}
+
+void UFlowGraphNode_YapDialogue::PostPasteNode()
+{
+	Super::PostPasteNode();
+
+	GetYapDialogueNode()->DialogueTag = FGameplayTag::EmptyTag;
+	GetYapDialogueNode()->InvalidateFragmentTags();
+	
+	RandomizeDialogueTag();
+}
+
+void UFlowGraphNode_YapDialogue::RandomizeDialogueTag()
+{
+	if (IsTemplate())
+	{
+		return;
+	}
+	
+	if (!GetYapDialogueNode()->GetDialogueTag().IsValid() && true /* // TODO UYapProjectSettings::GetGenerateDialogueNodeTags()*/)
+	{
+		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+
+		FName Tag = Broker->GenerateDialogueNodeTag(GetYapDialogueNode());
+
+		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(Tag);
+
+		if (!Node)
+		{
+			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag.ToString(), "Auto Generated", Yap::FileUtilities::GetTagConfigFileName());
+			Node = UGameplayTagsManager::Get().FindTagNode(Tag);
+		}
+
+		if (Node)
+		{
+			GetYapDialogueNode()->DialogueTag = Node->GetCompleteTag();
+		}
+	}
+}
+
+void UFlowGraphNode_YapDialogue::GenerateFragmentTags()
+{
+	const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+	
+	for (uint8 i = 0; i < GetYapDialogueNode()->GetNumFragments(); ++i)
+	{
+		GenerateFragmentTag(i);
+	}
+}
+
+void UFlowGraphNode_YapDialogue::GenerateFragmentTag(uint8 FragmentIndex)
+{
+	const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
+	
+	FName Tag;
+	
+	if (Broker->GenerateFragmentTag(GetYapDialogueNode(), FragmentIndex, Tag))
+	{
+		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(Tag);
+
+		if (!Node)
+		{
+			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag.ToString(), "Auto Generated", Yap::FileUtilities::GetTagConfigFileName());
+			Node = UGameplayTagsManager::Get().FindTagNode(Tag);
+		}
+
+		if (Node)
+		{
+			GetYapDialogueNode()->GetFragmentsMutable()[FragmentIndex].FragmentTag = Node->GetCompleteTag();
+		}
+	}
+}
+
+void UFlowGraphNode_YapDialogue::AddFragment(int32 InsertionIndex)
+{
+	if (GetYapDialogueNode()->Fragments.Num() >= 255)
+	{
+		// TODO nicer logging
+		UE_LOG(LogYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
+		return;
+	}
+
+	if (InsertionIndex == INDEX_NONE)
+	{
+		InsertionIndex = GetYapDialogueNode()->Fragments.Num();
+	}
+
+	FYapFragment NewFragment;
+	uint8 CopyFragmentIndex = InsertionIndex == 0 ? InsertionIndex : InsertionIndex - 1;
+
+	if (GetYapDialogueNode()->Fragments.IsValidIndex(CopyFragmentIndex))
+	{
+		const FYapFragment& PreviousFragment = GetYapDialogueNode()->GetFragmentByIndex(CopyFragmentIndex);
+		NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
+		NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
+	}
+
+	GetYapDialogueNode()->Fragments.Insert(NewFragment, InsertionIndex);
+
+	GetYapDialogueNode()->UpdateFragmentIndices();
+
+	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
+	(void)GetYapDialogueNode()->OnReconstructionRequested.ExecuteIfBound();
+
+	//GenerateFragmentTag(InsertionIndex);
 }
 
 #undef LOCTEXT_NAMESPACE

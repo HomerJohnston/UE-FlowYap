@@ -58,6 +58,7 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
 	friend class SYapConditionDetailsViewWidget;
+	friend class UFlowGraphNode_YapDialogue;
 #endif
 
 	friend class UYapSubsystem;
@@ -102,6 +103,10 @@ protected:
 	UPROPERTY()
 	TArray<FYapFragment> Fragments;
 
+	/** Unique node ID for audio system. */
+	UPROPERTY()
+	FName AudioID;
+	
 	// ============================================================================================
 	// STATE
 	// ============================================================================================
@@ -123,7 +128,7 @@ protected:
 
 	UPROPERTY(Transient)
 	FTimerHandle PaddingTimerHandle;
-	
+
 #if WITH_EDITORONLY_DATA
 	/** When was the current running fragment started? */ 
 	double FragmentStartedTime = -1;
@@ -243,7 +248,6 @@ public:
 private:
 	FYapFragment& GetFragmentByIndexMutable(uint8 Index);
 	
-	
 	void RemoveFragment(int32 Index);
 
 	FText GetNodeTitle() const override;
@@ -267,8 +271,6 @@ private:
 	void CycleFragmentSequencingMode();
 	
 	void DeleteFragmentByIndex(int16 DeleteIndex);
-	
-	void AddFragment(int32 InsertionIndex = INDEX_NONE);
 	
 	void UpdateFragmentIndices();
 
@@ -296,7 +298,7 @@ public:
 	FText GetNodeToolTip() const override { return FText::GetEmpty(); };
 
 	void PostLoad() override;
-
+	
 	void PreloadContent() override;
 #endif // WITH_EDITOR
 };

@@ -4,6 +4,7 @@
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #include "GameplayTagsManager.h"
+#include "GameplayTagsModule.h"
 #include "Yap/YapBit.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapProjectSettings.h"
@@ -590,38 +591,6 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 
 	UpdateFragmentIndices();
 	
-	(void)OnReconstructionRequested.ExecuteIfBound();
-}
-
-void UFlowNode_YapDialogue::AddFragment(int32 InsertionIndex)
-{
-	if (Fragments.Num() >= 255)
-	{
-		// TODO nicer logging
-		UE_LOG(LogYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
-		return;
-	}
-
-	if (InsertionIndex == INDEX_NONE)
-	{
-		InsertionIndex = Fragments.Num();
-	}
-
-	FYapFragment NewFragment;
-	uint8 CopyFragmentIndex = InsertionIndex == 0 ? InsertionIndex : InsertionIndex - 1;
-
-	if (Fragments.IsValidIndex(CopyFragmentIndex))
-	{
-		const FYapFragment& PreviousFragment = GetFragmentByIndex(CopyFragmentIndex);
-		NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
-		NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
-	}
-	
-	Fragments.Insert(NewFragment, InsertionIndex);
-
-	UpdateFragmentIndices();
-
-	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
 	(void)OnReconstructionRequested.ExecuteIfBound();
 }
 

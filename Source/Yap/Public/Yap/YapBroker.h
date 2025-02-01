@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "FlowAsset.h"
 #include "YapLog.h"
+#include "Nodes/FlowNode_YapDialogue.h"
 
 #include "YapBroker.generated.h"
 
@@ -54,12 +56,12 @@ private:
 #endif
 	
 	// ================================================================================================
-	// BLUEPRINT
+	// BLUEPRINT OVERRIDABLE FUNCTIONS
 	// ================================================================================================
 
 protected:
 	
-	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	// - - - - - GAME FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
 	 * 
@@ -79,7 +81,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Get Playback Speed")
 	float K2_GetPlaybackSpeed() const;
 	
-	// - - - - - TEXT ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	// - - - - - EDITOR FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** OPTIONAL FUNCTION - Do NOT call Parent when overriding.
 	 * 
@@ -87,8 +89,13 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Calculate Word Count")
 	int32 K2_CalculateWordCount(const FText& Text) const;
 
-	// - - - - - AUDIO ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+	/** OPTIONAL FUNCTION - Do NOT call Super when overriding - rarely needed, overridable through C++ only.
+	 * 
+	 * Use this to read your game's settings (e.g. text playback speed) and determine the duration a dialogue should run for.
+	 * The default implementation of this function will use your project setting TextWordsPerMinute multiplied by GetPlaybackSpeed. */
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Calculate Word Count")
+	float K2_CalculateTextTime(int32 WordCount, int32 CharCount) const;
+	
 	/** Overriding this is required if you use 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Parent when overriding.
 	 * 
 	 * Use this to cast to your project's audio type(s) and return their duration length in seconds. */
@@ -104,12 +111,12 @@ protected:
 #endif
 	
 	// ============================================================================================
-	// C++ OVERRIDES
+	// C++ OVERRIDABLE FUNCTIONS (DO NOT OVERRIDE THESE IF YOU ARE USING A BLUEPRINT BROKER!)
 	// ============================================================================================
 	
 public:
 
-	// - - - - - GENERAL UTILITY FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	// - - - - - GAME FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Use this to do any desired initialization, such as creating a Dialogue UI instance if you aren't creating one already elsewhere. */
@@ -123,7 +130,7 @@ public:
 	 * Use this to modify speaking time by a scalar multiplier. Does NOT affect anything when fragments are using audio duration! */
 	virtual float GetPlaybackSpeed() const;
 	
-	// - - - - - TEXT ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	// - - - - - EDITOR FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** OPTIONAL FUNCTION - Do NOT call Super when overriding.
 	 * Provides a word count estimate of a given piece of FText. A default implementation of this function exists. */
@@ -134,25 +141,38 @@ public:
 	 * The default implementation of this function will use your project setting TextWordsPerMinute multiplied by GetPlaybackSpeed. */
 	virtual float CalculateTextTime(int32 WordCount, int32 CharCount) const;
 	
-	// - - - - - AUDIO ASSET MANAGEMENT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	
 	/** Overriding this is required for 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Super when overriding.
 	 * Use this to cast to your project's audio type(s) and return their duration length in seconds. */
 	virtual float GetAudioAssetDuration(const UObject* AudioAsset) const;
 
 #if WITH_EDITOR
+public:
 	/** Overriding this is required for 3rd party audio (Wwise, FMOD, etc.) - Do NOT call Super when overriding.
 	 * Use this to cast to your project's audio type(s) and initiate playback in editor. */
 	virtual bool PreviewAudioAsset(const UObject* AudioAsset) const;
+
+	FName GenerateDialogueNodeTag(const UFlowNode_YapDialogue* InNode) const;
+
+private:
+	virtual FName GenerateRandomDialogueNodeTag() const;
+
+public:
+	bool GenerateFragmentTag(const UFlowNode_YapDialogue* Node, int32 FragmentIndex, FName& Result) const;
+
+private:
+	virtual FName GenerateRandomFragmentTag() const;
+	
 #endif
 	
 	// ============================================================================================
 	// INTERNAL FUNCTIONS (USED BY YAP)
 	// ============================================================================================
-		
+public:
 	void Initialize_Internal();
 	
 #if WITH_EDITOR
+public:
+
 	bool PreviewAudioAsset_Internal(const UObject* AudioAsset) const;
 	
 	bool ImplementsPreviewAudioAsset_Internal() const;

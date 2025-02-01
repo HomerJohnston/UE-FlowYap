@@ -49,7 +49,7 @@ protected:
 	const FSlateBrush* TODOBorderImage() const;
 
 	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
-
+	
 	void ProcessDialogueTagsCategoryProperty(IDetailCategoryBuilder& Category, TSharedPtr<IPropertyHandle> Property);
 
 	void ProcessMoodTagsProperty(IDetailCategoryBuilder& Category, TSharedPtr<IPropertyHandle> Property);
@@ -63,6 +63,8 @@ protected:
 	FReply OnClicked_OpenMoodTagsManager();
 
 	FReply OnClicked_OpenDialogueTagsManager();
+
+	FReply OnClicked_CleanupDialogueTags();
 
 	FReply OnClicked_RefreshMoodTagIcons();
 	

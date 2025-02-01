@@ -14,6 +14,7 @@
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"
+#include "YapEditor/Globals/YapEditorFuncs.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -238,12 +239,25 @@ void FDetailCustomization_YapProjectSettings::ProcessDialogueTagsCategoryPropert
 		]
 		.ValueContent()
 		[
-			SNew(SButton)
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
-			.ToolTipText(LOCTEXT("OpenTagsManager", "Open tags manager"))
-			.Text(LOCTEXT("EditDialogueTags", "Edit dialogue tags"))
-			.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManager)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			[
+				SNew(SButton)
+				.VAlign(VAlign_Center)
+				.HAlign(HAlign_Center)
+				.ToolTipText(LOCTEXT("EditDialogueTags_ToolTip", "Opens the tag manager"))
+				.Text(LOCTEXT("EditDialogueTags_Button", "Edit dialogue tags"))
+				.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManager)
+			]
+			+ SVerticalBox::Slot()
+			[
+				SNew(SButton)
+				.VAlign(VAlign_Center)
+				.HAlign(HAlign_Center)
+				.ToolTipText(LOCTEXT("CleanupUnusedDialogueTags_ToolTip", "Finds and deletes unused tags - make sure all assets have been saved first!"))
+				.Text(LOCTEXT("CleanupUnusedDialogueTags_Button", "Cleanup unused tags"))
+				.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags)
+			]
 		];
 	}
 }
@@ -354,6 +368,62 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManage
 
 	UE::GameplayTags::Editor::OpenGameplayTagManager(Args);
 
+	return FReply::Handled();
+}
+
+FReply FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags()
+{
+	if (!UYapProjectSettings::GetDialogueTagsParent().IsValid())
+	{
+		// TODO logging
+		return FReply::Handled();
+	}
+	
+	TSharedPtr<FGameplayTagNode> DialogueTagsNode = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::GetDialogueTagsParent());
+
+	TArray<TSharedPtr<FGameplayTagNode>> ParentNodes = { DialogueTagsNode };
+
+	TArray<FName> LeafNodeNames; // I can't store raw leaf nodes because for some reason the gameplay tags manager invalidates them all after I remove one? 
+
+	while (ParentNodes.Num() > 0)
+	{
+		TSharedPtr<FGameplayTagNode> Node = ParentNodes.Pop();
+
+		TArray<TSharedPtr<FGameplayTagNode>> ChildNodes = Node->GetChildTagNodes();
+
+		if (ChildNodes.Num() == 0)
+		{
+			LeafNodeNames.Add(Node->GetCompleteTagName());
+		}
+		else
+		{
+			ParentNodes.Append(ChildNodes);
+		}
+	}
+
+	UE_LOG(LogYap, Display, TEXT("Found %d dialogue nodes to check"), LeafNodeNames.Num());
+	int32 EraseCount = 0;
+	
+	for (auto It = LeafNodeNames.CreateIterator(); It; ++It)
+	{
+		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(*It);
+
+		if (!Node.IsValid() || Node->GetSimpleTagName() == NAME_None)
+		{
+			continue;
+		}
+		
+		TArray<FAssetIdentifier> References = Yap::EditorFuncs::FindTagReferences(Node->GetCompleteTag().GetTagName());
+
+		if (References.Num() == 0)
+		{
+			IGameplayTagsEditorModule::Get().DeleteTagFromINI(Node);
+			EraseCount++;
+		}
+	}
+
+	UE_LOG(LogYap, Display, TEXT("Erased %d tag nodes"), EraseCount);
+	
 	return FReply::Handled();
 }
 

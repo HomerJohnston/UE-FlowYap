@@ -27,6 +27,7 @@ public:
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
 	friend class SFlowGraphNode_YapFragmentWidget;
+	friend class UFlowGraphNode_YapDialogue;
 #endif
 	
 	// ==========================================
