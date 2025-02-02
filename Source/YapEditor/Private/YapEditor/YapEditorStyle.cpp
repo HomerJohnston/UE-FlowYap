@@ -151,6 +151,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_ManualAdvance,				"Icon_ManualAdvance", ".svg",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Reset_Small,				"Icon_Reset_Small", ".svg",				FVector2f(16, 16));
 	
+	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Icon_IDTag,						"Icon_IDTag", ".png",					FMargin(0.5, 0.5, 0.0, 0.0));
+	
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_SharpSquare,				"Border_Sharp", ".png",					FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_DeburredSquare,			"Border_Deburred", ".png",				FMargin(4.0/8.0));
 	YAP_DEFINE_BRUSH(FSlateBorderBrush, 		Border_RoundedSquare,			"Border_Rounded", ".png",				FMargin(4.0/8.0));

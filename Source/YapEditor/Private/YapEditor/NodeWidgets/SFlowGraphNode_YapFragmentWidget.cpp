@@ -1225,6 +1225,78 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_DialogueErrorState() co
 	return EVisibility::Collapsed;
 }
 
+// TODO code duplication with UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments()
+bool CheckAudioAssetUsesAudioID(const UFlowNode_YapDialogue* Node, int32 FragmentIndex, TSoftObjectPtr<UObject> Asset, bool& bCorrectMatch)
+{
+	int32 AudioIDLen = Node->GetAudioID().Len();
+	int32 FragmentIDLen = 3; // TODO magic number move this to project settings or some other constant
+	
+	FRegexPattern RegexActual(FString::Format(TEXT("[a-zA-Z]{{0}}-\\d{{1}}"), {AudioIDLen, FragmentIDLen}));
+	FRegexMatcher RegexMatcher(RegexActual, *Asset.ToString());
+
+	if (RegexMatcher.FindNext())
+	{
+		FString ID = RegexMatcher.GetCaptureGroup(0);
+
+		FString AudioID = ID.LeftChop(FragmentIDLen + 1);
+				
+		int32 IDInt = FCString::Atoi(*ID.RightChop(AudioIDLen + 1));
+
+		if (AudioID == Node->GetAudioID() && IDInt - 1 == FragmentIndex)
+		{
+			bCorrectMatch = true;
+		}
+		else
+		{
+			bCorrectMatch = false;
+		}
+		
+		return true;
+	}
+
+	return false;
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioID() const
+{
+	TSoftObjectPtr<UObject> MatureAudioAsset = GetFragment().GetBit().GetMatureDialogueAudioAsset_SoftPtr<UObject>();
+	TSoftObjectPtr<UObject> SafeAudioAsset = GetFragment().GetBit().GetSafeDialogueAudioAsset_SoftPtr<UObject>();
+
+	bool bHasAudio = false;
+	
+	if (!MatureAudioAsset.IsNull())
+	{
+		bool bCorrectMatch;
+		
+		if (CheckAudioAssetUsesAudioID(GetDialogueNode(), FragmentIndex, MatureAudioAsset, bCorrectMatch))
+		{
+			if (bCorrectMatch)
+			{
+				bHasAudio = true;
+			}
+			else
+			{
+				return YapColor::Red;
+			}
+		}
+	}
+
+	if (bHasAudio && NeedsChildSafeData() && !SafeAudioAsset.IsNull())
+	{
+		bool bCorrectMatch;
+		
+		if (CheckAudioAssetUsesAudioID(GetDialogueNode(), FragmentIndex, SafeAudioAsset, bCorrectMatch))
+		{
+			if (!bCorrectMatch)
+			{
+				return YapColor::Red;
+			}
+		}
+	}
+
+	return (bHasAudio || FragmentOverlay->IsHovered()) ? YapColor::Gray : YapColor::DarkGray; 
+}
+
 // ================================================================================================
 // DIALOGUE WIDGET
 // ------------------------------------------------------------------------------------------------
@@ -1243,7 +1315,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 	Args.UseGrouping = false;
 	Args.MinimumIntegralDigits = 3;
 
-	const FText FragmentIndexText = FText::AsNumber(FragmentIndex, &Args);
+	const FString FragmentIndexText = FText::AsNumber(FragmentIndex + 1, &Args).ToString();
+	UFlowNode_YapDialogue* DialogueNode = GetDialogueNode();
 	
 	TSharedRef<SWidget> Widget = SNew(SLevelOfDetailBranchNode)
 	.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
@@ -1266,7 +1339,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				[
 					SNew(SOverlay)
 					+ SOverlay::Slot()
-					.Padding(2, 2, 2, 2)
+					.Padding(4, 0, 4, 2)
 					[
 						SNew(STextBlock)
 						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
@@ -1367,7 +1440,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Fill)
 		.HAlign(HAlign_Fill)
-		.Padding(-1)
+		.Padding(-2)
 		[
 			SNew(SBorder)
 			.BorderImage(FAppStyle::GetBrush("MarqueeSelection"))
@@ -1377,11 +1450,17 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Bottom)
 		.HAlign(HAlign_Right)
-		.Padding(4)
+		.Padding(0)
 		[
-			SNew(STextBlock)
-			.ColorAndOpacity(YapColor::DimGray)
-			.Text(FragmentIndexText)
+			SNew(SBorder)
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_IDTag))
+			.BorderBackgroundColor(YapColor::Noir)
+			.Padding(4)
+			[
+				SNew(STextBlock)
+				.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_AudioID)
+				.Text_Lambda( [FragmentIndexText, DialogueNode] () { return FText::AsCultureInvariant(DialogueNode->GetAudioID() + "-" + FragmentIndexText); } )
+			]
 		]
 	]
 	.LowDetail()
@@ -2423,6 +2502,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidg
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()
+		.Padding(4, 0)
 		[
 			SNew(STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_TitleText)

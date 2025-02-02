@@ -85,6 +85,16 @@ const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses(
 	return Get().DefaultAssetAudioClasses;
 }
 
+const FString UYapProjectSettings::GetAudioAssetRootFolder()
+{
+	if (Get().AudioAssetRootFolder.Path.IsEmpty())
+	{
+		return "";
+	}
+	
+	return /*FPaths::ProjectContentDir() / */Get().AudioAssetRootFolder.Path;
+}
+
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -96,10 +106,11 @@ void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent
 
 	// TODO better variable names please
 	FName one = PropertyChangedEvent.PropertyChain.GetHead()->GetValue()->GetFName();
-	FName two = PropertyChangedEvent.PropertyChain.GetTail()->GetValue()->GetFName();
 	
 	if (one == GET_MEMBER_NAME_CHECKED(ThisClass, MoodTagIconPath))
 	{
+		FName two = PropertyChangedEvent.PropertyChain.GetTail()->GetValue()->GetFName();
+
 		if (two == "Path")
 		{
 			FString ProjectDir = FPaths::ProjectDir();

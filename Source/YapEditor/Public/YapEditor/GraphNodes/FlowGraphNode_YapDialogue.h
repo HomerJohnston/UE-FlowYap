@@ -44,16 +44,16 @@ public:
 
 	void RecalculateTextOnAllFragments();
 
+	void AutoAssignAudioOnAllNodes();
+	
+	void AutoAssignAudioOnAllFragments();
+	
 	void PostPlacedNewNode() override;
 	
 	void PostPasteNode() override;
 
-	void RandomizeDialogueTag();
+	void RandomizeAudioID();
 	
-	void GenerateFragmentTags();
-	
-	void GenerateFragmentTag(uint8 FragmentIndex);
-
 	void AddFragment(int32 InsertionIndex = INDEX_NONE);
 
 };

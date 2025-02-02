@@ -20,6 +20,8 @@ public:
 	FYapDialogueNodeCommands();
 
 	TSharedPtr<FUICommandInfo> RecalculateText;
+	TSharedPtr<FUICommandInfo> AutoAssignAudio;
+	TSharedPtr<FUICommandInfo> AutoAssignAudioOnAll;
 
 	void RegisterCommands() override;
 };

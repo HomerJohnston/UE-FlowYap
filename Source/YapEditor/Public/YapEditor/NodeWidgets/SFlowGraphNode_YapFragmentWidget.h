@@ -159,6 +159,7 @@ protected:
 	FSlateColor ButtonColor_TimeSettingButton() const;
 	EVisibility Visibility_AudioSettingsButton() const;
 	EVisibility Visibility_DialogueErrorState() const;
+	FSlateColor ColorAndOpacity_AudioID() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
 

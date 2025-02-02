@@ -104,8 +104,8 @@ protected:
 	TArray<FYapFragment> Fragments;
 
 	/** Unique node ID for audio system. */
-	UPROPERTY()
-	FName AudioID;
+	UPROPERTY(EditAnywhere)
+	FString AudioID;
 	
 	// ============================================================================================
 	// STATE
@@ -180,6 +180,8 @@ public:
 	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
 
 	bool Skip(int32 FragmentIndex);
+
+	FString GetAudioID() const { return AudioID; }
 	
 protected:
 	bool ActivationLimitsMet() const;

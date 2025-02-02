@@ -4,6 +4,8 @@
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 
 #include "GameplayTagsEditorModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Graph/FlowGraph.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
@@ -36,7 +38,8 @@ TSharedPtr<SGraphNode> UFlowGraphNode_YapDialogue::CreateVisualWidget()
 
 	Commands = MakeShared<FUICommandList>();
 	Commands->MapAction(FYapDialogueNodeCommands::Get().RecalculateText, FExecuteAction::CreateUObject(this, &UFlowGraphNode_YapDialogue::RecalculateTextOnAllFragments));
-	
+	Commands->MapAction(FYapDialogueNodeCommands::Get().AutoAssignAudio, FExecuteAction::CreateUObject(this, &UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments));
+	Commands->MapAction(FYapDialogueNodeCommands::Get().AutoAssignAudioOnAll, FExecuteAction::CreateUObject(this, &UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllNodes));
 	return SNew(SFlowGraphNode_YapDialogueWidget, this);
 }
 
@@ -113,6 +116,8 @@ void UFlowGraphNode_YapDialogue::GetNodeContextMenuActions(class UToolMenu* Menu
 	{
 		FToolMenuSection& Section = Menu->AddSection("Yap", LOCTEXT("Yap", "Yap"));
 		Section.AddMenuEntryWithCommandList(DialogeNodeCommands.RecalculateText, Commands);
+		Section.AddMenuEntryWithCommandList(DialogeNodeCommands.AutoAssignAudio, Commands);
+		Section.AddMenuEntryWithCommandList(DialogeNodeCommands.AutoAssignAudioOnAll, Commands);
 	}
 }
 
@@ -132,18 +137,143 @@ void UFlowGraphNode_YapDialogue::RecalculateTextOnAllFragments()
 			for (FYapFragment& Fragment : DialogueNode2->GetFragmentsMutable())
 			{
 				// TODO
-				//Fragment.GetBitMutable().RecacheSpeakingTime();
+				// Fragment.GetBitMutable().RecacheSpeakingTime();
 			}
 		}
 	}
+}
+
+void UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllNodes()
+{
+	{
+		FYapTransactions::BeginModify(INVTEXT("TODO"), GetFlowAsset());
+
+		{
+			TArray<UFlowGraphNode_YapDialogue*> Nodes;
+			GetFlowAsset()->GetGraph()->GetNodesOfClass(Nodes);
+
+			for (UFlowGraphNode_YapDialogue* Node : Nodes)
+			{
+				Node->AutoAssignAudioOnAllFragments();
+			}
+		}
+		
+		FYapTransactions::EndModify();
+	}
+}
+
+void UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments()
+{
+	FYapTransactions::BeginModify(INVTEXT("TODO"), GetFlowAsset());
+
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	TArray<FAssetData> DependencyAssetData;
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	FString RootFolder = "/Game" / UYapProjectSettings::GetAudioAssetRootFolder();
+
+	if (RootFolder.IsEmpty())
+	{
+		// TODO log warning
+		return;
+	}
+	
+	TArray<FAssetData> AssetDatas;
+	AssetRegistry.GetAssetsByPath(FName(RootFolder), AssetDatas, true);
+
+	int32 AudioIDLen = GetYapDialogueNode()->GetAudioID().Len();
+	int32 FragmentIDLen = 3; // TODO magic number move this to project settings or some other constant
+	
+	// Matches AAA-555 and allows for the start or end to be end of string or a non-alphanumeric
+	FRegexPattern Regex(FString::Format(TEXT("(^| |[^a-zA-Z\\d\\s:])[a-zA-Z]{{0}}-\\d{{1}}([^a-zA-Z\\d\\s:]| |$)"), {AudioIDLen, FragmentIDLen} ));
+	
+	// Matches AAA-555 specifically
+	FRegexPattern RegexActual(FString::Format(TEXT("[a-zA-Z]{{0}}-\\d{{1}}"), {AudioIDLen, FragmentIDLen}));
+	
+	TMap<FString, TArray<FAssetData>> AudioAssetData;
+	
+	for (const FAssetData& AssetData : AssetDatas)
+	{
+		FString ObjectPathString = AssetData.GetObjectPathString();
+		
+		FRegexMatcher Matcher(Regex, *ObjectPathString);
+		
+		if (Matcher.FindNext())
+		{
+			FRegexMatcher ID(RegexActual, Matcher.GetCaptureGroup(0));
+
+			if (ID.FindNext())
+			{
+				FString AudioID(ID.GetCaptureGroup(0));
+
+				TArray<FAssetData>& Datas = AudioAssetData.FindOrAdd(AudioID);
+				Datas.Add(AssetData);
+			}
+		}
+	}
+	
+	for (uint8 FragmentIndex = 0; FragmentIndex < GetYapDialogueNode()->GetNumFragments(); ++FragmentIndex)
+	{
+		FYapFragment& Fragment = GetYapDialogueNode()->Fragments[FragmentIndex];
+
+		FNumberFormattingOptions Args;
+		Args.UseGrouping = false;
+		Args.MinimumIntegralDigits = 3; // TODO magic number move this to project settings or some other constant
+		
+		FString AudioID = GetYapDialogueNode()->GetAudioID() + "-" + (FText::AsNumber(FragmentIndex + 1, &Args)).ToString();
+
+		TArray<FAssetData>* Datas = AudioAssetData.Find(AudioID);
+
+		if (Datas)
+		{
+			UE_LOG(LogYap, Display, TEXT("Assigning X"));
+
+			bool bAssignedMature = false;
+			bool bAssignedChildSafe = false;
+			
+			for (const FAssetData& Data : *Datas)
+			{
+				FRegexPattern ChildSafe(FString::Format(TEXT("[a-zA-Z]{{0}}-\\d{{1}}-PG"), {AudioIDLen, FragmentIDLen}));
+				FRegexMatcher ChildSafeMatch(ChildSafe, Data.GetObjectPathString());
+
+				if (ChildSafeMatch.FindNext())
+				{
+					if (bAssignedChildSafe)
+					{
+						UE_LOG(LogYap, Error, TEXT("Found multiple child-safe audio assets for %s"), *AudioID);
+					}
+					else
+					{
+						GetYapDialogueNode()->Modify();
+						Fragment.Bit.SetSafeDialogueAudioAsset(Data.GetAsset());
+						bAssignedChildSafe = true;
+					}
+				}
+				else
+				{
+					if (bAssignedMature)
+					{
+						UE_LOG(LogYap, Error, TEXT("Found multiple mature audio assets for %s"), *AudioID);
+					}
+					else
+					{
+						GetYapDialogueNode()->Modify();
+						Fragment.Bit.SetMatureDialogueAudioAsset(Data.GetAsset());
+						bAssignedMature = true;
+					}
+				}	
+			}
+		}
+	}
+	
+	FYapTransactions::EndModify();
 }
 
 void UFlowGraphNode_YapDialogue::PostPlacedNewNode()
 {
 	Super::PostPlacedNewNode();
 	
-	RandomizeDialogueTag();
-	//GenerateFragmentTags();
+	RandomizeAudioID();
 }
 
 void UFlowGraphNode_YapDialogue::PostPasteNode()
@@ -153,10 +283,10 @@ void UFlowGraphNode_YapDialogue::PostPasteNode()
 	GetYapDialogueNode()->DialogueTag = FGameplayTag::EmptyTag;
 	GetYapDialogueNode()->InvalidateFragmentTags();
 	
-	RandomizeDialogueTag();
+	RandomizeAudioID();
 }
 
-void UFlowGraphNode_YapDialogue::RandomizeDialogueTag()
+void UFlowGraphNode_YapDialogue::RandomizeAudioID()
 {
 	if (IsTemplate())
 	{
@@ -167,53 +297,9 @@ void UFlowGraphNode_YapDialogue::RandomizeDialogueTag()
 	{
 		const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
 
-		FName Tag = Broker->GenerateDialogueNodeTag(GetYapDialogueNode());
+		FString Tag = Broker->GenerateDialogueAudioID(GetYapDialogueNode());
 
-		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(Tag);
-
-		if (!Node)
-		{
-			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag.ToString(), "Auto Generated", Yap::FileUtilities::GetTagConfigFileName());
-			Node = UGameplayTagsManager::Get().FindTagNode(Tag);
-		}
-
-		if (Node)
-		{
-			GetYapDialogueNode()->DialogueTag = Node->GetCompleteTag();
-		}
-	}
-}
-
-void UFlowGraphNode_YapDialogue::GenerateFragmentTags()
-{
-	const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
-	
-	for (uint8 i = 0; i < GetYapDialogueNode()->GetNumFragments(); ++i)
-	{
-		GenerateFragmentTag(i);
-	}
-}
-
-void UFlowGraphNode_YapDialogue::GenerateFragmentTag(uint8 FragmentIndex)
-{
-	const UYapBroker* Broker = UYapProjectSettings::GetEditorBrokerDefault();
-	
-	FName Tag;
-	
-	if (Broker->GenerateFragmentTag(GetYapDialogueNode(), FragmentIndex, Tag))
-	{
-		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(Tag);
-
-		if (!Node)
-		{
-			IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(Tag.ToString(), "Auto Generated", Yap::FileUtilities::GetTagConfigFileName());
-			Node = UGameplayTagsManager::Get().FindTagNode(Tag);
-		}
-
-		if (Node)
-		{
-			GetYapDialogueNode()->GetFragmentsMutable()[FragmentIndex].FragmentTag = Node->GetCompleteTag();
-		}
+		GetYapDialogueNode()->AudioID = Tag;
 	}
 }
 
@@ -247,8 +333,6 @@ void UFlowGraphNode_YapDialogue::AddFragment(int32 InsertionIndex)
 
 	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
 	(void)GetYapDialogueNode()->OnReconstructionRequested.ExecuteIfBound();
-
-	//GenerateFragmentTag(InsertionIndex);
 }
 
 #undef LOCTEXT_NAMESPACE

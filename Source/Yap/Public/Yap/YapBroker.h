@@ -151,16 +151,10 @@ public:
 	 * Use this to cast to your project's audio type(s) and initiate playback in editor. */
 	virtual bool PreviewAudioAsset(const UObject* AudioAsset) const;
 
-	FName GenerateDialogueNodeTag(const UFlowNode_YapDialogue* InNode) const;
+	FString GenerateDialogueAudioID(const UFlowNode_YapDialogue* InNode) const;
 
 private:
-	virtual FName GenerateRandomDialogueNodeTag() const;
-
-public:
-	bool GenerateFragmentTag(const UFlowNode_YapDialogue* Node, int32 FragmentIndex, FName& Result) const;
-
-private:
-	virtual FName GenerateRandomFragmentTag() const;
+	virtual FString GenerateRandomDialogueAudioID() const;
 	
 #endif
 	

@@ -3,18 +3,13 @@
 
 #include "YapEditor/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 
-#include "FlowEditorStyle.h"
 #include "GameplayTagsEditorModule.h"
-#include "ILiveCodingModule.h"
 #include "NodeFactory.h"
-#include "PropertyCustomizationHelpers.h"
 #include "SGraphPanel.h"
 #include "SLevelOfDetailBranchNode.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
-#include "Widgets/Text/SInlineEditableTextBlock.h"
-#include "Yap/YapBit.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
@@ -26,14 +21,12 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "YapEditor/YapEditorEvents.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/Helpers/ProgressionSettingWidget.h"
 #include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
 #include "YapEditor/NodeWidgets/SYapGraphPinExec.h"
-#include "YapEditor/SlateWidgets/SGameplayTagComboFiltered.h"
 #include "YapEditor/SlateWidgets/SYapGameplayTagTypedPicker.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -399,7 +392,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 		]
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Right)
-		.Padding(2,0,7,0)
+		.Padding(2,0,5,0)
 		.AutoWidth()
 		.VAlign(VAlign_Fill)
 		[

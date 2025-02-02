@@ -8,6 +8,7 @@
 #include "Yap/YapLog.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapBase.h"
 #include "YapEditor/YapLogEditor.h"
+#include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -43,6 +44,11 @@ FYapScopedTransaction::FYapScopedTransaction(FName InEvent, const FText& Transac
 {
 	GEngine->BeginTransaction(TEXT("Yap"), TransactionText, Object);
 
+	if (UFlowGraphNode_YapDialogue* FGN_YD = Cast<UFlowGraphNode_YapDialogue>(Object))
+	{
+		PrimaryObject = FGN_YD;
+	}
+	
 	if (Object)
 	{
 		Object->Modify();

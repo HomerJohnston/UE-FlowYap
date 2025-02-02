@@ -228,57 +228,49 @@ bool UYapBroker::PreviewAudioAsset(const UObject* AudioAsset) const
 #endif
 
 #if WITH_EDITOR
-FName UYapBroker::GenerateDialogueNodeTag(const UFlowNode_YapDialogue* InNode) const
+FString UYapBroker::GenerateDialogueAudioID(const UFlowNode_YapDialogue* InNode) const
 {
 	UFlowAsset* FlowAsset = InNode->GetFlowAsset();
 
 	// Find all existing tags
-	TSet<FName> ExistingTags;
+	TSet<FString> ExistingAudioIDs;
 	
 	for (auto&[GUID, Node] : FlowAsset->GetNodes())
 	{
 		if (UFlowNode_YapDialogue* DialogueNode = Cast<UFlowNode_YapDialogue>(Node))
 		{
-			if (DialogueNode->GetDialogueTag().IsValid())
+			if (!DialogueNode->GetAudioID().IsEmpty())
 			{
-				ExistingTags.Add(DialogueNode->GetDialogueTag().GetTagName());
+				ExistingAudioIDs.Add(DialogueNode->GetAudioID());
 			}
 		}
 	}
 
 	if (!UYapProjectSettings::GetDialogueTagsParent().IsValid()) // TODO i should completely prevent this system from working if the parent tag isn't set
 	{
-		return NAME_None;
+		return "";
 	}
 	
-	FString Path = FPackageName::GetLongPackagePath(FlowAsset->GetPackage()->GetName());
-	Path.RemoveFromStart("/Game/");
-	FString AssetName = FlowAsset->GetName();
-	
-	FString ProjectParentTag = UYapProjectSettings::GetDialogueTagsParent().GetTagName().ToString();
-			
 	// Generate a new tag, making sure it isn't already in use in the graph by another dialogue node
-	FName NewGUID = NAME_None;
+	FString NewID;
+	
 	int32 Safety = 0;
 	do 
 	{
 		if (Safety > 1000)
 		{
 			UE_LOG(LogYap, Error, TEXT("Failed to generate a unique dialogue tag after 1000 iterations!"));
-			NewGUID = NAME_None;
-			break;
+			return "";
 		}
 		
-		NewGUID = GenerateRandomDialogueNodeTag();
-
-		NewGUID = FName(ProjectParentTag + "." + Path / AssetName + "." + NewGUID.ToString());
+		NewID = GenerateRandomDialogueAudioID();
 		
-	} while (ExistingTags.Contains(NewGUID));
+	} while (ExistingAudioIDs.Contains(NewID));
 
-	return NewGUID;
+	return NewID;
 }
 
-FName UYapBroker::GenerateRandomDialogueNodeTag() const
+FString UYapBroker::GenerateRandomDialogueAudioID() const
 {
 	// TArray<char> AlphaNumerics {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H',/*'I',*/'J','K','L','M','N',/*'O',*/'P','Q','R','S','T','U','V','W','X','Y','Z'};
 	TArray<char> AlphaNumerics {'A','B','C','D','E','F','G','H',/*'I',*/'J','K','L','M','N',/*'O',*/'P','Q','R','S','T','U','V','W','X','Y','Z'};
@@ -294,7 +286,7 @@ FName UYapBroker::GenerateRandomDialogueNodeTag() const
 		String += AlphaNumerics[RandIndex];
 	}
 
-	return FName(String);
+	return String;
 }
 
 void GetFragmentID(const UFlowNode_YapDialogue* Node, const FString& DialogueTagString, int32& ID, int32 Index)
@@ -310,141 +302,6 @@ void GetFragmentID(const UFlowNode_YapDialogue* Node, const FString& DialogueTag
 	{
 		ID = FCString::Atoi(*PreviousTagString);
 	}
-}
-
-bool UYapBroker::GenerateFragmentTag(const UFlowNode_YapDialogue* Node, int32 FragmentIndex, FName& Result) const
-{
-	// Find all existing tags
-	TSet<FName> ExistingTags;
-	
-	for (const FYapFragment& Fragment : Node->GetFragments())
-	{
-		if (Fragment.GetFragmentTag().IsValid())
-		{
-			ExistingTags.Add(Fragment.GetFragmentTag().GetTagName());
-		}
-	}
-	
-	if (!Node->GetDialogueTag().IsValid()) // TODO i should completely prevent this system from working if the parent tag isn't set
-	{			
-		return false;
-	}
-	
-	FString ParentTag = Node->GetDialogueTag().ToString();
-	
-	// Generate a new tag, making sure it isn't already in use in the graph by another dialogue node
-	FName NewGUID = NAME_None;
-	int32 Safety = 0;
-	do 
-	{
-		if (Safety > 1000)
-		{
-			UE_LOG(LogYap, Error, TEXT("Failed to generate a unique dialogue tag after 1000 iterations!"));
-			NewGUID = NAME_None;
-			break;
-		}
-		
-		NewGUID = GenerateRandomFragmentTag();
-		NewGUID = FName(ParentTag + "." + NewGUID.ToString());
-	} while (ExistingTags.Contains(NewGUID));
-
-	Result = NewGUID;
-	return true;
-	
-	/*
-	
-	if (!ensure(IsValid(Node) && FragmentIndex >= 0 && FragmentIndex <= Node->GetNumFragments() + 1))
-	{
-		return false;
-	}
-
-	// Get existing surrounding fragment IDs
-	int32 PreviousFragmentID = INDEX_NONE;
-	int32 NewFragmentID = INDEX_NONE;
-	int32 NextFragmentID = INDEX_NONE;
-
-	FString DialogueTagString = Node->GetDialogueTag().ToString();
-
-	if (FragmentIndex > 0)
-	{
-		GetFragmentID(Node, DialogueTagString, PreviousFragmentID, FragmentIndex - 1);
-	}
-
-	if (FragmentIndex < Node->GetNumFragments() - 1)
-	{
-		GetFragmentID(Node, DialogueTagString, NextFragmentID, FragmentIndex + 1);
-	}
-
-	// Inserting the first fragment ever
-	if (FragmentIndex == 0 && Node->GetNumFragments() == 1)
-	{
-		NewFragmentID = 0;
-	}
-
-	// Adding a new fragment at the end
-	else if (FragmentIndex == Node->GetNumFragments() - 1)
-	{
-		if (PreviousFragmentID != INDEX_NONE)
-		{
-			NewFragmentID = 10 * ((PreviousFragmentID / 10) + 1);
-		}
-	}
-
-	// Inserting a fragment anywhere else
-	else
-	{
-		// We can't autogenerate a tag if either surrounding tag is not automatically sequenced
-		if (PreviousFragmentID == INDEX_NONE || NextFragmentID == INDEX_NONE || PreviousFragmentID > NextFragmentID)
-		{
-			return false;
-		}
-
-		// We can't autogenerate a tag if the next fragment is the next subsequence number (developer will have to manually intervene here)
-		if (NextFragmentID - PreviousFragmentID <= 1)
-		{
-			return false;
-		}
-
-		// Figure out whether to increment the sequence number or the subsequence number
-		if ((NextFragmentID / 10) - (PreviousFragmentID / 10) > 1)
-		{
-			NewFragmentID = 10 * ((PreviousFragmentID / 10) + 1);
-		}
-		else
-		{
-			NewFragmentID = PreviousFragmentID + 1;
-		}
-	}
-
-	FNumberFormattingOptions Format;
-	Format.MinimumIntegralDigits = 3;
-	Format.UseGrouping = false;
-
-	FString TagString = FText::AsNumber(NewFragmentID, &Format).ToString();
-
-	Result = FName(TagString);
-	
-	return true;
-	
-	*/
-}
-
-FName UYapBroker::GenerateRandomFragmentTag() const
-{
-	TArray<char> AlphaNumerics {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};//'G','H',/*'I',*/'J','K','L','M','N',/*'O',*/'P','Q','R','S','T','U','V','W','X','Y','Z'};
-
-	const uint8 Size = 3;
-
-	FString String;
-	String.Reserve(Size);
-	
-	for (uint8 i = 0; i < Size; ++i)
-	{
-		uint8 RandIndex = FMath::RandHelper(AlphaNumerics.Num());
-		String += AlphaNumerics[RandIndex];
-	}
-
-	return FName(String);
 }
 
 #endif
