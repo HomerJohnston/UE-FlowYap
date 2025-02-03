@@ -579,20 +579,14 @@ void SFlowGraphNode_YapFragmentWidget::OnCheckStateChanged_MaturitySettings(EChe
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsCheckBox() const
 {
-	// Don't need anything. If we have stale data, show a gross yellowy gray icon.
-	if (!NeedsChildSafeData())
+	if (NeedsChildSafeData())
 	{
-		return HasAnyChildSafeData() ? YapColor::YellowGray_SemiGlass : YapColor::Button_Unset();
+		return HasCompleteChildSafeData() ? YapColor::LightBlue : YapColor::Red;
 	}
-
-	/*
-	// We need data. If data is incomplete, show an error state.
-	if (!HasCompleteChildSafeTextData())
+	else
 	{
-		return GetBit().bIgnoreChildSafeErrors ? YapColor::LightBlue : YapColor::OrangeRed;
-	}*/
-	
-	return YapColor::LightBlue;
+		return HasAnyChildSafeData() ? YapColor::YellowGray : YapColor::Button_Unset();
+	}
 }
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage() const
@@ -1294,7 +1288,14 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioID() const
 		}
 	}
 
-	return (bHasAudio || FragmentOverlay->IsHovered()) ? YapColor::Gray : YapColor::DarkGray; 
+	FLinearColor Color = bHasAudio ? YapColor::LightBlue : YapColor::DimGray;
+
+	if (!FragmentOverlay->IsHovered())
+	{
+		Color *= YapColor::LightGray;
+	}
+
+	return Color;
 }
 
 // ================================================================================================
