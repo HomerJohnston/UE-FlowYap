@@ -3,21 +3,17 @@
 
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 
-#include "GameplayTagsEditorModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
-#include "Graph/FlowGraph.h"
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
 #include "UObject/ObjectSaveContext.h"
 #include "Yap/YapProjectSettings.h"
-#include "Yap/Globals/YapFileUtilities.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapDialogueNodeCommands.h"
 #include "YapEditor/YapEditorEventBus.h"
 #include "YapEditor/YapEditorEvents.h"
-#include "YapEditor/YapLogEditor.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/YapTransactions.h"
 #include "YapEditor/Globals/YapTagHelpers.h"
@@ -305,10 +301,9 @@ void UFlowGraphNode_YapDialogue::RandomizeAudioID()
 
 void UFlowGraphNode_YapDialogue::AddFragment(int32 InsertionIndex)
 {
-	if (GetYapDialogueNode()->Fragments.Num() >= 255)
+	if (GetYapDialogueNode()->Fragments.Num() >= 99)
 	{
-		// TODO nicer logging
-		UE_LOG(LogYap, Warning, TEXT("Yap is currently hard-coded to prevent more than 256 fragments per dialogeue node, sorry!"));
+		Yap::Editor::PostNotificationInfo_Warning(LOCTEXT("MaxFragmentLimitWarning_Title", "Maximum fragment limit reached!"), LOCTEXT("MaxFragmentLimitWarning_Description", "There is a limit of 99 fragments per node."));
 		return;
 	}
 
@@ -333,6 +328,40 @@ void UFlowGraphNode_YapDialogue::AddFragment(int32 InsertionIndex)
 
 	//GetGraphNode()->ReconstructNode(); // TODO This works nicer but crashes because of pin connections. I might not need full reconstruction if I change how my multi-fragment nodes work.
 	(void)GetYapDialogueNode()->OnReconstructionRequested.ExecuteIfBound();
+}
+
+inline void UFlowGraphNode_YapDialogue::DestroyNode()
+{
+	TArray<FGameplayTag> GameplayTags = GatherAllGameplayTags();
+
+	for (FGameplayTag& Tag : GameplayTags)
+	{
+		UYapEditorSubsystem::AddTagPendingDeletion(Tag);
+	}
+	
+	Super::DestroyNode();
+}
+
+TArray<FGameplayTag> UFlowGraphNode_YapDialogue::GatherAllGameplayTags()
+{
+	TArray<FGameplayTag> GameplayTags;
+
+	const UFlowNode_YapDialogue* Node = GetYapDialogueNode();
+	
+	if (Node->GetDialogueTag().IsValid())
+	{
+		GameplayTags.Add(GetYapDialogueNode()->GetDialogueTag());
+	}
+
+	for (const FYapFragment& Fragment : Node->GetFragments())
+	{
+		if (Fragment.GetFragmentTag().IsValid())
+		{
+			GameplayTags.Add(Fragment.GetFragmentTag());
+		}
+	}
+
+	return GameplayTags;
 }
 
 #undef LOCTEXT_NAMESPACE

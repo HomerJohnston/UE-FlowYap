@@ -71,6 +71,10 @@ protected:
 	FText ToolTipText_DefaultMoodTags() const;
 
 	bool IsTagPropertySet(TSharedPtr<IPropertyHandle> TagPropertyHandle) const;
+
+private:
+	FText GetDeletedTagsText(const TArray<FName>& TagNamesToDelete);
 };
+
 
 #undef LOCTEXT_NAMESPACE

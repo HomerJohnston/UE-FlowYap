@@ -245,11 +245,6 @@ FString UYapBroker::GenerateDialogueAudioID(const UFlowNode_YapDialogue* InNode)
 			}
 		}
 	}
-
-	if (!UYapProjectSettings::GetDialogueTagsParent().IsValid()) // TODO i should completely prevent this system from working if the parent tag isn't set
-	{
-		return "";
-	}
 	
 	// Generate a new tag, making sure it isn't already in use in the graph by another dialogue node
 	FString NewID;
@@ -288,22 +283,6 @@ FString UYapBroker::GenerateRandomDialogueAudioID() const
 
 	return String;
 }
-
-void GetFragmentID(const UFlowNode_YapDialogue* Node, const FString& DialogueTagString, int32& ID, int32 Index)
-{
-	FString PreviousTagString = Node->GetFragments()[Index].GetFragmentTag().ToString();
-
-	if (PreviousTagString.StartsWith(DialogueTagString))
-	{
-		PreviousTagString = PreviousTagString.RightChop(DialogueTagString.Len() + 1); // chop off the parent tag and the .
-	}
-
-	if (PreviousTagString.IsNumeric())
-	{
-		ID = FCString::Atoi(*PreviousTagString);
-	}
-}
-
 #endif
 
 void UYapBroker::Initialize_Internal()

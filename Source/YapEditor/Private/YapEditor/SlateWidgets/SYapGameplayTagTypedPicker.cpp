@@ -10,8 +10,10 @@
 #include "YapEditor/YapColors.h"
 #include "YapEditor/YapEditorEvents.h"
 #include "YapEditor/YapEditorStyle.h"
+#include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/YapTransactions.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
+#include "YapEditor/Globals/YapTagHelpers.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -239,20 +241,8 @@ void SYapGameplayTagTypedPicker::ChangeTag(const FString& NewTagString)
 		return;
 	}
 
-	// ---- PROBLEM: the stupid asset system doesn't update references immediately upon saving package for some reason?? I need to call a timer to finish off this function.
-	// ---- This causes two issues: 1) I can't transact all of it in one shot, 2) I can't as intelligently inform the user what's going on and what their options are before doing it
-	// Current order of operation:
-	// Start a transaction
-	// Make the new tag if it doesn't already exist
-	// Set the property to the new tag
-	// End the first transaction
-	// Save the asset
-	// ... delay
-	// Check if the tag is still referenced, if so, offer to set up a redirect, if not, offer to delete the old tag
-	
-	FText EmptyTagText = LOCTEXT("Tag_None", "<None>");
-	FText NewTagText = NewTagString.IsEmpty() ? EmptyTagText : FText::FromString(NewTagString);
-
+	FGameplayTag OldTag = Tag.Get();
+	FGameplayTag NewTag;
 	FString OldTagString = (Tag.Get().IsValid()) ? Tag.Get().ToString() : "";
 	
 	{
@@ -260,80 +250,23 @@ void SYapGameplayTagTypedPicker::ChangeTag(const FString& NewTagString)
 
 		if (!NewTagString.IsEmpty())
 		{
-			FGameplayTag NewTagSource = UGameplayTagsManager::Get().RequestGameplayTag(FName(NewTagString), false);
-
-			if (!NewTagSource.IsValid())
-			{
-				IGameplayTagsEditorModule::Get().AddNewGameplayTagToINI(NewTagString, "", Yap::FileUtilities::GetTagConfigFileName());
-			}
-
-			TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(*NewTagString);
-			(void)OnTagChanged.ExecuteIfBound(Node->GetCompleteTag());
+			NewTag = Yap::Tags::GetOrAddTag(NewTagString);
+			(void)OnTagChanged.ExecuteIfBound(NewTag);
 		}
 		else
 		{
 			(void)OnTagChanged.ExecuteIfBound(FGameplayTag::EmptyTag);
 		}
 	}
-
-	Yap::EditorFuncs::SaveAsset(Asset.Get());
-
-	FTimerHandle DummyHandle;
-	FTimerDelegate Delegate = FTimerDelegate::CreateRaw(this, &ThisClass::PostChangeTag, OldTagString, NewTagString);
-	GEditor->GetTimerManager()->SetTimer(DummyHandle, Delegate, 0.1, false); // SHOOT ME FOR THIS
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void SYapGameplayTagTypedPicker::PostChangeTag(FString OldTagString, FString NewTagString)
-{
-	EYapGameplayTagTypedPickerResponse UserChoice = EYapGameplayTagTypedPickerResponse::Unspecified;
-
-	TArray<FAssetIdentifier> References = Yap::EditorFuncs::FindTagReferences(FName(OldTagString));
-
-	if (References.Num() == 0)
-	{
-		RequestTagDeletion(NewTagString, OldTagString, UserChoice);
-	}
-	else
-	{
-		RequestTagRedirect(NewTagString, OldTagString, UserChoice);
-	}
 	
-	switch (UserChoice)
+	if (OldTag.IsValid() && NewTag.IsValid())
 	{
-		case EYapGameplayTagTypedPickerResponse::RedirectOldTag:
-		{
-			IGameplayTagsEditorModule& Module = IGameplayTagsEditorModule::Get();
-
-			if (!Module.RenameTagInINI(OldTagString, NewTagString))
-			{
-				Yap::EditorFuncs::PostNotificationInfo_Warning(LOCTEXT("GameplayTagRedirectFailure_Title", "Failed to Redirect Tag"), LOCTEXT("GameplayTagRedirectFailure_Description", "Unknown error"));
-			}
-
-			return;
-		}
-		case EYapGameplayTagTypedPickerResponse::DeleteOldTag:
-		{
-			TSharedPtr<FGameplayTagNode> OldTagNode = UGameplayTagsManager::Get().FindTagNode(Tag.Get());
-
-			if (!OldTagNode.IsValid())
-			{
-				Yap::EditorFuncs::PostNotificationInfo_Warning(LOCTEXT("GameplayTagDeleteFailure_InvalidNode_Title", "Failed to Delete Tag"), LOCTEXT("GameplayTagDeleteFailure_InvalidNode_Description", "Old tag node was not found"));
-				return;
-			}
-
-			if (!IGameplayTagsEditorModule::Get().DeleteTagFromINI(OldTagNode))
-			{
-				Yap::EditorFuncs::PostNotificationInfo_Warning(LOCTEXT("GameplayTagDeleteFailure_Title", "Failed to Delete Tag"), LOCTEXT("GameplayTagDeleteFailure_Description", "Unknown error"));
-			}
-			
-			return;
-		}
-		default:
-		{
-			return;
-		}
+		Yap::Tags::RedirectTags({{OldTag, NewTag}}, true);
+	}
+	else if (OldTag.IsValid() && !NewTag.IsValid())
+	{
+		// We will watch the old tag to see if it stops being used and can be removed
+		UYapEditorSubsystem::AddTagPendingDeletion(OldTag);
 	}
 }
 
@@ -350,80 +283,6 @@ bool SYapGameplayTagTypedPicker::VerifyNewTagString(const FString& NewTagString)
 	}
 	
 	return true;
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void SYapGameplayTagTypedPicker::RequestTagRedirect(const FString& NewTagString, const FString& OldTagString, EYapGameplayTagTypedPickerResponse& Response) const
-{
-	// We can't redirect to or from an empty tag!
-	if (NewTagString.IsEmpty() || OldTagString.IsEmpty())
-	{
-		return;
-	}
-	
-	FText EmptyTagText = LOCTEXT("Tag_None", "<None>");
-	
-	FText NewTagText = NewTagString.IsEmpty() ? EmptyTagText : FText::FromString(NewTagString);
-	FText OldTagText = OldTagString.IsEmpty() ? EmptyTagText : FText::FromString(OldTagString);
-
-	FText RedirectText = FText::Format(LOCTEXT("DeleteOldTag_Prompt", "{0}\n\nWould you like to add a redirect from this old tag to the new one?\n\n*** This will require an editor restart! ***"), OldTagText);
-	FText TitleText = LOCTEXT("RedirectTagPrompt_Title", "Redirect Old Gameplay Tag?");
-
-	EAppReturnType::Type RequestRedirectResponse = FMessageDialog::Open(EAppMsgType::YesNo, RedirectText, TitleText);
-
-	switch (RequestRedirectResponse)
-	{
-		case EAppReturnType::Yes:
-		{			
-			Response = EYapGameplayTagTypedPickerResponse::RedirectOldTag;
-			return;
-		}
-		default:
-		{
-			return;
-		}
-	}
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void SYapGameplayTagTypedPicker::RequestTagDeletion(const FString& NewTagString, const FString& OldTagString, EYapGameplayTagTypedPickerResponse& Response) const
-{
-	// We can't delete an empty tag!
-	if (OldTagString.IsEmpty())
-	{
-		return;
-	}
-
-	FText EmptyTagText = LOCTEXT("Tag_None", "<None>");
-	
-	FText NewTagText = NewTagString.IsEmpty() ? EmptyTagText : FText::FromString(NewTagString);
-
-	FText RedirectText = FText::Format(LOCTEXT("DeleteOldTag_Prompt", "{0}\n\nThis tag isn't referenced anywhere anymore. Would you like to delete it?"), FText::FromString(OldTagString));
-	FText TitleText = LOCTEXT("DeleteTagPrompt_Title", "Delete Old Gameplay Tag?");
-
-	EAppReturnType::Type RequestRedirectResponse = FMessageDialog::Open(EAppMsgType::YesNo, RedirectText, TitleText);
-	
-	FGameplayTag OldTag = Tag.Get();
-	
-	switch (RequestRedirectResponse)
-	{
-		case EAppReturnType::Yes:
-		{
-			Response = EYapGameplayTagTypedPickerResponse::DeleteOldTag;
-			return;
-		}
-		default:
-		{
-			return;
-		}
-	}
-}
-
-void SYapGameplayTagTypedPicker::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
-{
-	
 }
 
 #undef LOCTEXT_NAMESPACE

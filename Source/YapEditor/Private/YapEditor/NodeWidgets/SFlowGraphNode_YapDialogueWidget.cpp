@@ -22,6 +22,7 @@
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
+#include "YapEditor/Globals/YapTagHelpers.h"
 #include "YapEditor/Helpers/ProgressionSettingWidget.h"
 #include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
 #include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
@@ -209,7 +210,7 @@ void SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag_PostEdit(TArray<
 			continue;
 		}
 		
-		TArray<FAssetIdentifier> References = Yap::EditorFuncs::FindTagReferences(FName(OldTagString));
+		TArray<FAssetIdentifier> References = Yap::Tags::FindTagReferences(FName(OldTagString));
 
 		if (References.Num() == 0)
 		{
@@ -342,12 +343,13 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	
 	FString Path = FPackageName::GetLongPackagePath(GetFlowGraphNode_YapDialogue()->GetFlowAsset()->GetPackage()->GetName());
 	Path.RemoveFromStart("/Game/");
-			
+	Path.ReplaceCharInline('/', '.');
+	
 	FString AssetName = FlowAsset->GetName();
 			
 	FString ProjectParentTag = UYapProjectSettings::GetDialogueTagsParent().GetTagName().ToString();
 			
-	FString Filter = ProjectParentTag + "." + Path / AssetName;
+	FString GameplayTagFilter = ProjectParentTag + "." + Path + "." + AssetName;
 
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
@@ -402,7 +404,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			[
 				SNew(SYapGameplayTagTypedPicker)
 				.Tag(TAttribute<FGameplayTag>::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::Value_DialogueTag))
-				.Filter(Filter) // TODO extra safety if things are unset
+				.Filter(GameplayTagFilter) // TODO extra safety if things are unset
 				.OnTagChanged(this, &SFlowGraphNode_YapDialogueWidget::OnTagChanged_DialogueTag)
 				.ToolTipText(LOCTEXT("DialogueTag", "Dialogue tag"))
 				.Asset(GetFlowYapDialogueNodeMutable()->GetFlowAsset())

@@ -15,6 +15,7 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
+#include "YapEditor/Globals/YapTagHelpers.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -106,35 +107,6 @@ void FDetailCustomization_YapProjectSettings::ProcessMoodTagsProperty(IDetailCat
 		float TagLineHeight = 15.0; // This is the height of a single tag name in pixels
 		float LineHeightPercentage = 18.0 / TagLineHeight; // Desired row height divided by actual height
 		float TotalHeight = FMath::RoundFromZero(DefaultMoodTags.Num() * TagLineHeight * LineHeightPercentage + VerticalPadding * 2.0);
-
-		TSharedRef<SButton> Button = SNew(SButton)
-		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
-		.IsEnabled(this, &FDetailCustomization_YapProjectSettings::IsTagPropertySet, Property)
-		.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenMoodTagsManager)
-		.VAlign(VAlign_Fill)
-		.HAlign(HAlign_Fill)
-		//.Text(LOCTEXT("EditMoodTags", "Edit mood tags"))
-		.ToolTipText(LOCTEXT("OpenTagsManager_ToolTip", "Click to edit mood tags"))
-		.ContentPadding(FMargin(0, 0, 0, -2))
-		[
-			SNew(SBox)
-			.MaxDesiredHeight(TotalHeight)
-			[
-				SNew(SScrollBox)
-				+ SScrollBox::Slot()
-				[
-					SNew(SBorder)
-					.BorderImage(this, &FDetailCustomization_YapProjectSettings::TODOBorderImage)
-					.BorderBackgroundColor(YapColor::DarkGray_Glass)
-					.Padding(4, 2, 4, 2)
-					[
-						SNew(STextBlock)
-						.Text(this, &FDetailCustomization_YapProjectSettings::GetMoodTags)
-						.LineHeightPercentage(LineHeightPercentage)
-					]
-				]
-			]
-		];
 		
 		Category.AddCustomRow(LOCTEXT("MoodTags_Header", "Mood Tags"))
 		.NameContent()
@@ -228,6 +200,8 @@ void FDetailCustomization_YapProjectSettings::ProcessMoodTagsProperty(IDetailCat
 
 void FDetailCustomization_YapProjectSettings::ProcessDialogueTagsCategoryProperty(IDetailCategoryBuilder& Category, TSharedPtr<IPropertyHandle> Property)
 {
+	float VerticalPadding = 3.0;
+	
 	if (Property->GetProperty()->GetFName() == GET_MEMBER_NAME_CHECKED(UYapProjectSettings, DialogueTagsParent))
 	{
 		Category.AddCustomRow(LOCTEXT("DialogueTags_Header", "Dialogue Tags"))
@@ -241,6 +215,7 @@ void FDetailCustomization_YapProjectSettings::ProcessDialogueTagsCategoryPropert
 		[
 			SNew(SVerticalBox)
 			+ SVerticalBox::Slot()
+			.Padding(0, VerticalPadding)
 			[
 				SNew(SButton)
 				.VAlign(VAlign_Center)
@@ -250,11 +225,12 @@ void FDetailCustomization_YapProjectSettings::ProcessDialogueTagsCategoryPropert
 				.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManager)
 			]
 			+ SVerticalBox::Slot()
+			.Padding(0, VerticalPadding)
 			[
 				SNew(SButton)
 				.VAlign(VAlign_Center)
 				.HAlign(HAlign_Center)
-				.ToolTipText(LOCTEXT("CleanupUnusedDialogueTags_ToolTip", "Finds and deletes unused tags - make sure all assets have been saved first!"))
+				.ToolTipText(LOCTEXT("CleanupUnusedDialogueTags_ToolTip", "Finds and deletes unused tags under the Dialogue Tags Parent - make sure all assets have been saved first!"))
 				.Text(LOCTEXT("CleanupUnusedDialogueTags_Button", "Cleanup unused tags"))
 				.OnClicked(this, &FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags)
 			]
@@ -373,9 +349,14 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_OpenDialogueTagsManage
 
 FReply FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags()
 {
+	// If the dialogue tags parent is unset, don't do anything
 	if (!UYapProjectSettings::GetDialogueTagsParent().IsValid())
 	{
-		// TODO logging
+		FText TitleText = LOCTEXT("MissingDialogueTagParentSetting_Title", "Missing Dialogue Tags Parent");
+		FText DescriptionText = LOCTEXT("MissingDialogueTagParentSetting_Description", "No dialogue tags parent is set - cannot clean up tags, aborting!");		
+
+		Yap::EditorFuncs::PostNotificationInfo_Warning(TitleText, DescriptionText);
+		
 		return FReply::Handled();
 	}
 	
@@ -383,7 +364,7 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags()
 
 	TArray<TSharedPtr<FGameplayTagNode>> ParentNodes = { DialogueTagsNode };
 
-	TArray<FName> LeafNodeNames; // I can't store raw leaf nodes because for some reason the gameplay tags manager invalidates them all after I remove one? 
+	TArray<FName> NodeNames; // I can't store raw leaf nodes because for some reason the gameplay tags manager invalidates them all after I remove one? 
 
 	while (ParentNodes.Num() > 0)
 	{
@@ -391,20 +372,21 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags()
 
 		TArray<TSharedPtr<FGameplayTagNode>> ChildNodes = Node->GetChildTagNodes();
 
-		if (ChildNodes.Num() == 0)
+		if (Node->IsExplicitTag() && !Node->GetAllSourceNames().Contains(FGameplayTagSource::GetNativeName()))
 		{
-			LeafNodeNames.Add(Node->GetCompleteTagName());
+			NodeNames.Add(Node->GetCompleteTagName());
 		}
-		else
+		
+		if (ChildNodes.Num() > 0)
 		{
 			ParentNodes.Append(ChildNodes);
 		}
 	}
 
-	UE_LOG(LogYap, Display, TEXT("Found %d dialogue nodes to check"), LeafNodeNames.Num());
-	int32 EraseCount = 0;
+	TArray<FName> TagNamesToDelete; // Don't store raw FGameplayTagNodes because they all get destroyed every time the tag tree changes...
+	TagNamesToDelete.Reserve(NodeNames.Num());
 	
-	for (auto It = LeafNodeNames.CreateIterator(); It; ++It)
+	for (auto It = NodeNames.CreateIterator(); It; ++It)
 	{
 		TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(*It);
 
@@ -413,16 +395,32 @@ FReply FDetailCustomization_YapProjectSettings::OnClicked_CleanupDialogueTags()
 			continue;
 		}
 		
-		TArray<FAssetIdentifier> References = Yap::EditorFuncs::FindTagReferences(Node->GetCompleteTag().GetTagName());
+		TArray<FAssetIdentifier> References = Yap::Tags::FindTagReferences(Node->GetCompleteTag().GetTagName());
 
 		if (References.Num() == 0)
 		{
-			IGameplayTagsEditorModule::Get().DeleteTagFromINI(Node);
-			EraseCount++;
+			TagNamesToDelete.Add(Node->GetCompleteTagName());
 		}
 	}
 
-	UE_LOG(LogYap, Display, TEXT("Erased %d tag nodes"), EraseCount);
+	FText TitleText = LOCTEXT("DeleteGameplayTags_Title", "Delete Gameplay Tags");
+	FText DescriptionText = FText::Format(LOCTEXT("DeleteGameplayTags_Description", "Would you like to delete the following tags?\n\n{0}\n\nNote: this operation is slow; if you have hundreds of obsolete tags, the editor may freeze for a minute."), GetDeletedTagsText(TagNamesToDelete));
+
+	EAppReturnType::Type Choice = FMessageDialog::Open(EAppMsgType::YesNo, DescriptionText, TitleText);
+
+	if (Choice == EAppReturnType::Yes)
+	{
+		int32 EraseCount = 0;
+
+		for (FName TagName : TagNamesToDelete)
+		{
+			TSharedPtr<FGameplayTagNode> Node = UGameplayTagsManager::Get().FindTagNode(TagName);
+			IGameplayTagsEditorModule::Get().DeleteTagFromINI(Node);
+			EraseCount++;
+		}
+
+		UE_LOG(LogYap, Display, TEXT("Erased %d tag nodes"), EraseCount);
+	}
 	
 	return FReply::Handled();
 }
@@ -471,6 +469,44 @@ bool FDetailCustomization_YapProjectSettings::IsTagPropertySet(TSharedPtr<IPrope
 	const FGameplayTag* Tag = reinterpret_cast<const FGameplayTag*>(RawData[0]);
 
 	return Tag->IsValid();
+}
+
+FText FDetailCustomization_YapProjectSettings::GetDeletedTagsText(const TArray<FName>& TagNamesToDelete)
+{
+	FString TagNameList;
+
+	int32 Count = 0;
+
+	FText AppendCountText = FText::GetEmpty();
+	
+	for (FName TagName : TagNamesToDelete)
+	{
+		TagNameList += TagName.ToString();
+
+		if (Count < TagNamesToDelete.Num() - 1)
+		{
+			TagNameList += "\n";
+		}
+		
+		++Count;
+		
+		if (Count >= 10)
+		{
+			AppendCountText = FText::Format(LOCTEXT("TagsToDelete_MoreCount", "... and {0} {0}|plural(one=more,other=more)"), FText::AsNumber(TagNamesToDelete.Num() - Count));
+			break;
+		}
+	}
+
+	FText TagNameListText = FText::FromString(TagNameList);// FText::Format(LOCTEXT("", "{0}"), FText::FromString(TagNameList));
+
+	if (AppendCountText.IsEmpty())
+	{
+		return TagNameListText;
+	}
+	else
+	{
+		return FText::Format(INVTEXT("{0}{1}"), TagNameListText, AppendCountText);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

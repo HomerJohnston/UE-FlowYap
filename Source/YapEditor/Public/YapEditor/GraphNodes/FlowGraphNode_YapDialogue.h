@@ -40,6 +40,7 @@ public:
 public:
 	void PreSave(FObjectPreSaveContext SaveContext) override;
 
+	
 	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 
 	void RecalculateTextOnAllFragments();
@@ -51,11 +52,14 @@ public:
 	void PostPlacedNewNode() override;
 	
 	void PostPasteNode() override;
-
+	
 	void RandomizeAudioID();
 	
 	void AddFragment(int32 InsertionIndex = INDEX_NONE);
 
+	void DestroyNode() override;
+
+	TArray<FGameplayTag> GatherAllGameplayTags();
 };
 
 #undef LOCTEXT_NAMESPACE

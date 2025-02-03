@@ -2619,14 +2619,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentTagWidget()
 		.OnTagChanged(OnTagChanged)
 		.ToolTipText(LOCTEXT("FragmentTag_ToolTip", "Fragment tag"))
 		.Asset(GetDialogueNode()->GetFlowAsset());
-
-	/*
-	return SNew(SGameplayTagComboFiltered)
-	.Tag(TagAttribute)
-	.Filter(FilterString)
-	.OnTagChanged(OnTagChanged)
-	.ToolTipText(LOCTEXT("FragmentTag_ToolTip", "Fragment tag"));
-	*/
 }
 
 FGameplayTag SFlowGraphNode_YapFragmentWidget::Value_FragmentTag() const

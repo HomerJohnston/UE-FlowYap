@@ -61,15 +61,3 @@ bool Yap::EditorFuncs::SaveAsset(UObject* Asset)
 
 	return true;
 }
-
-TArray<FAssetIdentifier> Yap::EditorFuncs::FindTagReferences(FName TagName)
-{
-	// Verify references
-	FAssetIdentifier TagId = FAssetIdentifier(FGameplayTag::StaticStruct(), TagName);
-	TArray<FAssetIdentifier> Referencers;
-
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	AssetRegistryModule.Get().GetReferencers(TagId, Referencers, UE::AssetRegistry::EDependencyCategory::SearchableName);
-
-	return Referencers;
-}

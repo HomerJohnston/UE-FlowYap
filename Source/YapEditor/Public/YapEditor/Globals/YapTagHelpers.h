@@ -2,7 +2,10 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
+
 #include "GameplayTagContainer.h"
+
+struct FAssetIdentifier;
 
 namespace Yap
 {
@@ -10,20 +13,28 @@ namespace Yap
 
 	namespace  Tags
 	{
+		/**  */
+		FString GetFilteredSubTag(const FString& Filter, const FGameplayTag& PropertyTag);
 
-		static FString GetFilteredSubTag(const FString& Filter, const FGameplayTag& PropertyTag)
-		{
-			return PropertyTag.ToString().RightChop(Filter.Len() + 1); // +1 for the '.' TODO check if last char is actually a . or not
-		}
-	
-		static FString GetFilteredSubTag(const FGameplayTag& ParentContainer, const FGameplayTag& PropertyTag)
-		{
-			if (ParentContainer.IsValid() && ParentContainer != FGameplayTag::EmptyTag && PropertyTag.MatchesTag(ParentContainer))
-			{
-				return GetFilteredSubTag(ParentContainer.ToString(), PropertyTag);
-			}
+		/**  */
+		FString GetFilteredSubTag(const FGameplayTag& ParentContainer, const FGameplayTag& PropertyTag);
 
-			return PropertyTag.ToString();
-		}	
+		/**  */
+		const FGameplayTag& GetOrAddTag(FString NewTagString, FString Comment = "");
+
+		void ParseChangedTag(FString OldTagString, FString NewTagString);
+		
+		/** Erases tags over two (three) editor ticks. First ongoing tick assumes an asset is finishing up a transaction, then next tick it can be saved, then tick after that the tags can be safely deleted. */
+		void DeleteTags(TArray<FGameplayTag> TagsToErase, bool bShowPrompt = false, TWeakObjectPtr<UObject> Asset = nullptr);
+
+		/**  */
+		void RedirectTags(TArray<TPair<FGameplayTag, FGameplayTag>> Redirects, bool bShowPrompt = false, TWeakObjectPtr<UObject> Asset = nullptr);
+
+		
+		/**  */
+		void RedirectTags(TArray<TPair<FString, FString>> Redirects, bool bShowPrompt = false, TWeakObjectPtr<UObject> Asset = nullptr);
+		
+		/**  */
+		TArray<FAssetIdentifier> FindTagReferences(FName TagName);
 	}
 }

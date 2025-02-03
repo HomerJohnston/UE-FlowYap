@@ -14,17 +14,6 @@ struct FYapFragment;
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-struct FCheckBoxStyles
-{
-	// Generic check boxes
-	FCheckBoxStyle ToggleButtonCheckBox_White;
-	FCheckBoxStyle ToggleButtonCheckBox_Transparent;
-
-	// Custom check boxes
-	FCheckBoxStyle ToggleButtonCheckBox_PlayerPrompt;
-	FCheckBoxStyle ToggleButtonCheckBox_DialogueInterrupt;
-};
-
 UCLASS()
 class UYapEditorSubsystem : public UEditorSubsystem, public FTickableEditorObject
 {
@@ -60,6 +49,10 @@ protected:
 	TObjectPtr<UTexture2D> MissingPortraitTexture;
 
 	TWeakObjectPtr<UAudioComponent> PreviewSoundComponent;
+
+	/** Some functions of Yap will remove tags from use. In such cases, I can't delete the tags until assets are saved. I will merely place the tags here and then attempt to delete them after assets are saved. */
+	TArray<FGameplayTag> TagsPendingDeletion;
+	
 public:
 	void UpdateMoodTagBrushesIfRequired();
 
@@ -76,9 +69,14 @@ public:
 	static TSharedPtr<FSlateImageBrush> GetCharacterPortraitBrush(const UYapCharacter* Character, const FGameplayTag& MoodTag);
 
 public:
+		
 	void Initialize(FSubsystemCollectionBase& Collection) override;
 	
 	void Deinitialize() override;
+
+	void OnObjectPresave(UObject* Object, FObjectPreSaveContext Context);
+
+	void CleanupDialogueTags();
 	
 	FYapInputTracker* GetInputTracker();
 
@@ -104,6 +102,10 @@ public:
 	static bool GetMoodTagsDirty();
 
 	TStatId GetStatId() const override;
+
+	static void AddTagPendingDeletion(FGameplayTag Tag);
+
+	static void RemoveTagPendingDeletion(FGameplayTag Tag);
 	
 	void OnPatchComplete();
 	

@@ -14,7 +14,9 @@
 #include "Yap/YapProjectSettings.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "Engine/Texture2D.h"
+#include "UObject/ObjectSaveContext.h"
 #include "YapEditor/YapDeveloperSettings.h"
+#include "YapEditor/Globals/YapTagHelpers.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -172,6 +174,8 @@ void UYapEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		OnPatchCompleteHandle = LiveCoding->GetOnPatchCompleteDelegate().AddUObject(this, &UYapEditorSubsystem::OnPatchComplete);
 	}
 #endif
+
+	FCoreUObjectDelegates::OnObjectPreSave.AddUObject(this, &ThisClass::OnObjectPresave);
 }
 
 void UYapEditorSubsystem::Deinitialize()
@@ -182,6 +186,28 @@ void UYapEditorSubsystem::Deinitialize()
 	}
 
 	Super::Deinitialize();
+}
+
+void UYapEditorSubsystem::OnObjectPresave(UObject* Object, FObjectPreSaveContext Context)
+{
+	if (Object->IsA(UFlowAsset::StaticClass()))
+	{
+		CleanupDialogueTags();
+	}
+}
+
+void UYapEditorSubsystem::CleanupDialogueTags()
+{
+	for (auto It = TagsPendingDeletion.CreateIterator(); It; ++It)
+	{
+		const FGameplayTag& Tag = *It;
+		if (UGameplayTagsManager::Get().FindTagNode(Tag.GetTagName()) == nullptr)
+		{
+			It.RemoveCurrentSwap();
+		}
+	}
+	
+	Yap::Tags::DeleteTags(TagsPendingDeletion);
 }
 
 FYapInputTracker* UYapEditorSubsystem::GetInputTracker()
@@ -308,6 +334,23 @@ TStatId UYapEditorSubsystem::UYapEditorSubsystem::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UYapEditorSubsystem, STATGROUP_Tickables);
 }
+
+void UYapEditorSubsystem::AddTagPendingDeletion(FGameplayTag Tag)
+{	
+	Get()->TagsPendingDeletion.AddUnique(Tag);
+
+	// To avoid any noticeable issues, arbitrarily limit this feature to tracking 100 dead tags. If the list ever grows larger than this, it will require a manual cleanup run.
+	if (Get()->TagsPendingDeletion.Num() > 100)
+	{
+		Get()->TagsPendingDeletion.RemoveAt(0, EAllowShrinking::No);
+	}
+}
+
+void UYapEditorSubsystem::RemoveTagPendingDeletion(FGameplayTag Tag)
+{
+	Get()->TagsPendingDeletion.Remove(Tag);
+}
+
 
 void UYapEditorSubsystem::OnPatchComplete()
 {
