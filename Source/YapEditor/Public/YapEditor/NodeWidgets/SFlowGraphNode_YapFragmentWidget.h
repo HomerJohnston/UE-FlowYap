@@ -101,6 +101,8 @@ protected:
 
 	float CachedAudioTime = -1;
 	TWeakObjectPtr<UObject> CachedAudioAssetPtr = nullptr;
+
+	bool bShowCommentControls = false;
 	
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
@@ -173,7 +175,17 @@ protected:
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
 
 	TSharedRef<SWidget> BuildDialogueEditors_ExpandedEditor(float Width);
+
+	TSharedRef<SWidget> BuildDialogueEditor_SingleSide(const FText& Title, const FText& DialogueTextHint, const FText& TitleTextHint, float Width, FMargin Padding, FText& DialogueText, FText& TitleText, TSoftObjectPtr<UObject>& AudioAsset);
+
+	TSharedRef<SWidget> BuildLocalizationCommentEditors(FString* CommentString, FString* FlagsString);
+
+	TSharedRef<SWidget> BuildSingleCommentEditor(TAttribute<FString> String, FText HintText, FString* Target);
+
 	TSharedRef<SWidget> BuildTimeSettings_ExpandedEditor(float Width);
+
+	TSharedRef<SWidget> BuildTimeSettings_SingleSide(float Width, FMargin Padding, EYapMaturitySetting MaturitySetting);
+	
 	TSharedRef<SWidget> BuildPaddingSettings_ExpandedEditor(float Width);
 	
 	// ------------------------------------------
@@ -251,7 +263,7 @@ protected:
 
 	void				OnValueUpdated_ManualTime(float NewValue);
 	void				OnValueCommitted_ManualTime(float NewValue, ETextCommit::Type CommitType);
-	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
+	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint, EYapMaturitySetting MaturitySetting) const;
 	FSlateColor			ButtonColorAndOpacity_PaddingButton() const;
 	FSlateColor			ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 

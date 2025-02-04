@@ -1,5 +1,4 @@
-// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
-// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -16,9 +15,11 @@
 #include "HAL/PlatformCrt.h"
 #include "Input/Reply.h"
 #include "Internationalization/Text.h"
+#include "Internationalization/TextPackageNamespaceUtil.h"
 #include "Layout/Visibility.h"
 #include "Misc/Attribute.h"
 #include "Misc/Optional.h"
+#include "Misc/TextFilter.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
 #include "Styling/ISlateStyle.h"
@@ -35,7 +36,6 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/SWidget.h"
 #include "Widgets/Views/SListView.h"
-#include "YapEditor/YapEditorStyle.h"
 
 class SComboButton;
 class SEditableTextBox;
@@ -48,21 +48,88 @@ struct FFocusEvent;
 struct FGeometry;
 struct FSlateBrush;
 
-#define LOCTEXT_NAMESPACE "YapEditor"
+/** A widget that can be used for editing the string table referenced for FText instances */
+class YAPEDITOR_API SYapTextPropertyEditableStringTableReference : public SCompoundWidget
+{
+	SLATE_BEGIN_ARGS(SYapTextPropertyEditableStringTableReference)
+		: _ComboStyle(&FCoreStyle::Get().GetWidgetStyle<FComboBoxStyle>("ComboBox"))
+		, _ButtonStyle(&FAppStyle::Get().GetWidgetStyle<FButtonStyle>("SimpleButton"))
+		, _AllowUnlink(false)
+		{}
+		/** The styling of the combobox */
+		SLATE_STYLE_ARGUMENT(FComboBoxStyle, ComboStyle)
+		/** The styling of the button */
+		SLATE_STYLE_ARGUMENT(FButtonStyle, ButtonStyle)
+		/** Font for comboboxes */
+		SLATE_ARGUMENT(FSlateFontInfo, Font)
+		/** Should we show an "unlink" button? */
+		SLATE_ARGUMENT(bool, AllowUnlink)
+	SLATE_END_ARGS()
+
+public:
+	void Construct(const FArguments& Arguments, const TSharedRef<IEditableTextProperty>& InEditableTextProperty);
+
+private:
+	struct FAvailableStringTable
+	{
+		FName TableId;
+		FText DisplayName;
+	};
+
+	void GetTableIdAndKey(FName& OutTableId, FString& OutKey) const;
+	void SetTableIdAndKey(const FName InTableId, const FString& InKey);
+
+	void OnOptionsFilterTextChanged(const FText& InNewText);
+	void OnKeysFilterTextChanged(const FText& InNewText);
+
+	TSharedRef<SWidget> OnGetStringTableComboOptions();
+	TSharedRef<class ITableRow> OnGenerateStringTableComboOption(TSharedPtr<FAvailableStringTable> InItem, const TSharedRef<class STableViewBase>& OwnerTable);
+	TSharedRef<SWidget> OnGetStringTableKeyOptions();
+	TSharedRef<class ITableRow> OnGenerateStringTableKeyOption(TSharedPtr<FString> InItem, const TSharedRef<class STableViewBase>& OwnerTable);
+
+	void OnStringTableComboChanged(TSharedPtr<FAvailableStringTable> NewSelection, ESelectInfo::Type SelectInfo);
+	void UpdateStringTableComboOptions();
+	FText GetStringTableComboContent() const;
+	FText GetStringTableComboToolTip() const;
+
+	void OnKeyComboChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo);
+	void UpdateStringTableKeyOptions();
+	FText GetKeyComboContent() const;
+	FText GetKeyComboToolTip() const;
+
+	bool IsUnlinkEnabled() const;
+	FReply OnUnlinkClicked();
+
+	TSharedPtr<IEditableTextProperty> EditableTextProperty;
+
+	using FOptionTextFilter = TTextFilter< TSharedPtr<FAvailableStringTable> >;
+	TSharedPtr<FOptionTextFilter> OptionTextFilter;
+	TSharedPtr<SSearchBox> OptionsSearchBox;
+
+	using FKeyTextFilter = TTextFilter< TSharedPtr<FString> >;
+	TSharedPtr<FKeyTextFilter> KeyTextFilter;
+	TSharedPtr<SSearchBox> KeysSearchBox;
+
+	TSharedPtr<SComboButton> StringTableOptionsCombo;
+	TSharedPtr<SListView<TSharedPtr<FAvailableStringTable>>> StringTableOptionsList;
+	TSharedPtr<SComboButton> StringTableKeysCombo;
+	TSharedPtr<SListView<TSharedPtr<FString>>> StringTableKeysList;
+
+	TArray<TSharedPtr<FAvailableStringTable>> StringTableComboOptions;
+	TArray<TSharedPtr<FString>> KeyComboOptions;
+};
 
 /** A widget that can be used for editing FText instances */
-class SYapTextPropertyEditableTextBox : public SCompoundWidget
+class YAPEDITOR_API SYapTextPropertyEditableTextBox : public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SYapTextPropertyEditableTextBox)
-		: _Style(&FYapEditorStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>(YapStyles.EditableTextBoxStyle_Dialogue))
+		: _Style(&FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox"))
 		, _Font()
 		, _ForegroundColor()
 		, _WrapTextAt(0.0f)
 		, _AutoWrapText(false)
 		, _MinDesiredWidth()
 		, _MaxDesiredHeight(300.0f)
-		, _Text()
-		, _OnTextCommitted()
 		{}
 		/** The styling of the textbox */
 		SLATE_STYLE_ARGUMENT(FEditableTextBoxStyle, Style)
@@ -78,12 +145,11 @@ class SYapTextPropertyEditableTextBox : public SCompoundWidget
 		SLATE_ATTRIBUTE(FOptionalSize, MinDesiredWidth)
 		/** When specified, will report the MaxDesiredHeight if smaller than the content's desired height */
 		SLATE_ATTRIBUTE(FOptionalSize, MaxDesiredHeight)
-		/**  */
-		SLATE_ATTRIBUTE(FText, Text)
-		/**  */
-		SLATE_EVENT(FOnTextCommitted, OnTextCommitted)
+		/** Hint text to display when empty */
+		SLATE_ARGUMENT(FText, HintText)
+		
 	SLATE_END_ARGS()
-	
+
 public:
 	void Construct(const FArguments& Arguments, const TSharedRef<IEditableTextProperty>& InEditableTextProperty);
 	virtual bool SupportsKeyboardFocus() const override;
@@ -136,13 +202,7 @@ private:
 
 	TSharedPtr<SEditableTextBox> KeyEditableTextBox;
 
-	TAttribute<FText> BoundText;
-	
 	bool bIsMultiLine = false;
 
 	static FText MultipleValuesText;
-
-	bool bChanged = false;
 };
-
-#undef LOCTEXT_NAMESPACE

@@ -136,6 +136,15 @@ protected:
 	// This is currently not in use. Still considering if I should use it or not.
 	UPROPERTY(EditAnywhere)
 	bool bIgnoreChildSafeErrors = false;
+
+	UPROPERTY()
+	FString LocalizationComments;
+
+	UPROPERTY()
+	FString LocalizationFlags;
+
+	UPROPERTY()
+	FString StageDirections;
 #endif
 	
 	// --------------------------------------------------------------------------------------------

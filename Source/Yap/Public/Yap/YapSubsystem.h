@@ -173,7 +173,7 @@ public:
 	/**  */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
 
-protected:
+protected:  // TODO should some of these be public?
 	/**  */
 	void RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode);
 
@@ -197,9 +197,10 @@ protected:
 
 	/**  */
 	void BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
-	
+
+public:
 	/** The prompt handle will call this function, passing in itself. */
-	void RunPrompt(const FYapPromptHandle& Handle);
+	static bool RunPrompt(const FYapPromptHandle& Handle);
 
 	/**  */
 	UFUNCTION(BlueprintCallable)

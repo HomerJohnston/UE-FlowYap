@@ -309,22 +309,24 @@ void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerD
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>(Data);
 }
 
-void UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
+bool UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 {
 	// TODO handle invalid handles gracefully
 	Handle.GetDialogueNode()->RunPrompt(Handle.GetFragmentIndex());
 
 	FGameplayTag ConversationName;
 
-	if (ActiveConversation.FlowAsset == Handle.GetDialogueNode()->GetFlowAsset())
+	if (Get()->ActiveConversation.FlowAsset == Handle.GetDialogueNode()->GetFlowAsset())
 	{
-		ConversationName = ActiveConversation.Conversation.GetValue();
+		ConversationName = Get()->ActiveConversation.Conversation.GetValue();
 	}
 	
 	FYapData_OnPlayerPromptSelected Data;
 	Data.Conversation = ConversationName;
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPlayerPromptSelected, &IYapConversationHandler::Execute_K2_OnPlayerPromptSelected>(Data);
+	Get()->BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPlayerPromptSelected, &IYapConversationHandler::Execute_K2_OnPlayerPromptSelected>(Data);
+
+	return true;
 }
 
 void UYapSubsystem::SkipDialogue(const FYapPromptHandle& Handle)

@@ -45,6 +45,7 @@ struct FYapBrushes
 	FName Icon_AutoAdvance;
 	FName Icon_ManualAdvance;
 	FName Icon_Reset_Small;
+	FName Icon_Notes;
 	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
@@ -122,7 +123,6 @@ struct FYapStyles
 	FName TextBlockStyle_NodeHeader;
 	FName TextBlockStyle_NodeSequencing;
 	FName TextBlockStyle_TitleText;
-
 };
 
 struct FYapFonts

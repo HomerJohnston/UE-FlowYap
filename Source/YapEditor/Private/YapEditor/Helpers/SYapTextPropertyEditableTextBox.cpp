@@ -1,14 +1,574 @@
-// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
-// This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "YapEditor/Helpers/SYapTextPropertyEditableTextBox.h"
-
-#include "SSimpleComboButton.h"
+#include "AssetRegistry/AssetData.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SGridPanel.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
+#include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SComboButton.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SSearchBox.h"
+#include "Styling/AppStyle.h"
+#include "Misc/PackageName.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Internationalization/StringTable.h"
+#include "Internationalization/StringTableCore.h"
+#include "Internationalization/StringTableRegistry.h"
+#include "Styling/StyleColors.h"
+#include "Widgets/Layout/SLinkedBox.h"
+#include "SSimpleComboButton.h"
 
-#define LOCTEXT_NAMESPACE "YapEditor"
+#define LOCTEXT_NAMESPACE "SYapTextPropertyEditableTextBox"
 
 FText SYapTextPropertyEditableTextBox::MultipleValuesText(NSLOCTEXT("PropertyEditor", "MultipleValues", "Multiple Values"));
+
+#if USE_STABLE_LOCALIZATION_KEYS
+
+#endif // USE_STABLE_LOCALIZATION_KEYS
+
+void SYapTextPropertyEditableStringTableReference::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty)
+{
+	EditableTextProperty = InEditableTextProperty;
+
+	OptionTextFilter = MakeShareable(new FOptionTextFilter(FOptionTextFilter::FItemToStringArray::CreateLambda([](const TSharedPtr<FAvailableStringTable>& InItem, OUT TArray< FString >& StringArray) {
+		StringArray.Add(InItem->DisplayName.ToString());
+	})));
+	KeyTextFilter = MakeShareable(new FKeyTextFilter(FKeyTextFilter::FItemToStringArray::CreateLambda([](const TSharedPtr<FString>& InItem, OUT TArray< FString >& StringArray) {
+		StringArray.Add(*InItem);
+	})));
+
+	TSharedRef<SHorizontalBox> HorizontalBox = SNew(SHorizontalBox);
+
+	HorizontalBox->AddSlot()
+		.Padding(0)
+		[
+			SAssignNew(StringTableOptionsCombo, SComboButton)
+			.ComboButtonStyle(&InArgs._ComboStyle->ComboButtonStyle)
+			.ContentPadding(FMargin(4.0, 2.0))
+			.OnGetMenuContent(this, &SYapTextPropertyEditableStringTableReference::OnGetStringTableComboOptions)
+			.OnComboBoxOpened(this, &SYapTextPropertyEditableStringTableReference::UpdateStringTableComboOptions)
+			.CollapseMenuOnParentFocus(true)
+			.ButtonContent()
+			[
+				SNew(STextBlock)
+				.Text(this, &SYapTextPropertyEditableStringTableReference::GetStringTableComboContent)
+				.ToolTipText(this, &SYapTextPropertyEditableStringTableReference::GetStringTableComboToolTip)
+				.Font(InArgs._Font)
+			]
+		];
+
+	HorizontalBox->AddSlot()
+		.Padding(10, 0)
+		[
+			SAssignNew(StringTableKeysCombo, SComboButton)
+			.ComboButtonStyle(&InArgs._ComboStyle->ComboButtonStyle)
+			.ContentPadding(FMargin(4.0, 2.0))
+			.IsEnabled(this, &SYapTextPropertyEditableStringTableReference::IsUnlinkEnabled)
+			.OnGetMenuContent(this, &SYapTextPropertyEditableStringTableReference::OnGetStringTableKeyOptions)
+			.OnComboBoxOpened(this, &SYapTextPropertyEditableStringTableReference::UpdateStringTableKeyOptions)
+			.CollapseMenuOnParentFocus(true)
+			.ButtonContent()
+			[
+				SNew(STextBlock)
+				.Text(this, &SYapTextPropertyEditableStringTableReference::GetKeyComboContent)
+				.ToolTipText(this, &SYapTextPropertyEditableStringTableReference::GetKeyComboToolTip)
+				.Font(InArgs._Font)
+			]
+		];
+
+	if (InArgs._AllowUnlink)
+	{
+		HorizontalBox->AddSlot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(SBox)
+				.HAlign(HAlign_Center)
+				.VAlign(VAlign_Center)
+				.HeightOverride(22)
+				.WidthOverride(22)
+				[
+					SNew(SButton)
+					.ButtonStyle(InArgs._ButtonStyle)
+					.ContentPadding(0)
+					.ToolTipText(LOCTEXT("UnlinkStringTable", "Unlink"))
+					.IsEnabled(this, &SYapTextPropertyEditableStringTableReference::IsUnlinkEnabled)
+					.OnClicked(this, &SYapTextPropertyEditableStringTableReference::OnUnlinkClicked)
+					[
+						SNew(SImage)
+						.Image(FAppStyle::GetBrush("Icons.Delete"))
+						.ColorAndOpacity(FSlateColor::UseForeground())
+					]
+				]
+			];
+	}
+
+	ChildSlot
+	[
+		HorizontalBox
+	];
+}
+
+void SYapTextPropertyEditableStringTableReference::OnOptionsFilterTextChanged(const FText& InNewText)
+{
+	OptionTextFilter->SetRawFilterText(InNewText);
+	OptionsSearchBox->SetError(OptionTextFilter->GetFilterErrorText());
+
+	UpdateStringTableComboOptions();
+}
+
+void SYapTextPropertyEditableStringTableReference::OnKeysFilterTextChanged(const FText& InNewText)
+{
+	KeyTextFilter->SetRawFilterText(InNewText);
+	KeysSearchBox->SetError(KeyTextFilter->GetFilterErrorText());
+
+	UpdateStringTableKeyOptions();
+}
+
+TSharedRef<SWidget> SYapTextPropertyEditableStringTableReference::OnGetStringTableComboOptions()
+{
+	const FComboButtonStyle& ComboButtonStyle = FCoreStyle::Get().GetWidgetStyle< FComboButtonStyle >("ComboButton");
+	return SNew(SBorder)
+		.BorderImage(&ComboButtonStyle.MenuBorderBrush)
+		.Padding(ComboButtonStyle.MenuBorderPadding)
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SAssignNew(OptionsSearchBox, SSearchBox)
+				.OnTextChanged(this, &SYapTextPropertyEditableStringTableReference::OnOptionsFilterTextChanged)
+			]
+			+SVerticalBox::Slot()
+			.AutoHeight()
+			[
+			SNew(SWidgetSwitcher)
+			.WidgetIndex_Lambda([this]() { return StringTableComboOptions.IsEmpty() ? 0 : 1; })
+
+				+SWidgetSwitcher::Slot() // Appears when there are no string tables with keys
+				.Padding(12)
+				[
+					SNew(STextBlock).Text(LOCTEXT("EmptyStringTableList", "No string tables available"))
+				]
+
+				+SWidgetSwitcher::Slot() // Appears when there's a string table with at least a key
+				[
+					SNew(SBox)
+					.Padding(4)
+					.WidthOverride(280)
+					.MaxDesiredHeight(600)
+					[
+						SNew(SVerticalBox)
+						+SVerticalBox::Slot()
+						.FillHeight(1.f)
+						.Padding(0, 5, 0, 0)
+						[
+							SAssignNew(StringTableOptionsList, SListView<TSharedPtr<FAvailableStringTable>>)
+							.ListItemsSource(&StringTableComboOptions)
+							.SelectionMode(ESelectionMode::Single)
+							.OnGenerateRow(this, &SYapTextPropertyEditableStringTableReference::OnGenerateStringTableComboOption)
+							.OnSelectionChanged(this, &SYapTextPropertyEditableStringTableReference::OnStringTableComboChanged)
+						]
+					]
+				]
+			]
+		];
+}
+
+TSharedRef<ITableRow> SYapTextPropertyEditableStringTableReference::OnGenerateStringTableComboOption(TSharedPtr<FAvailableStringTable> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return SNew(STableRow<TSharedPtr<FString>>, OwnerTable)
+		[
+			SNew(STextBlock)
+			.Text(InItem->DisplayName)
+			.ToolTipText(FText::FromName(InItem->TableId))
+		];
+}
+
+TSharedRef<SWidget> SYapTextPropertyEditableStringTableReference::OnGetStringTableKeyOptions()
+{
+	const FComboButtonStyle& ComboButtonStyle = FCoreStyle::Get().GetWidgetStyle< FComboButtonStyle >("ComboButton");
+	return SNew(SBorder)
+		.BorderImage(&ComboButtonStyle.MenuBorderBrush)
+		.Padding(ComboButtonStyle.MenuBorderPadding)
+		[
+			SNew(SBox)
+			.Padding(4)
+			.WidthOverride(280)
+			.MaxDesiredHeight(600)
+			[
+				SNew(SVerticalBox)
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SAssignNew(KeysSearchBox, SSearchBox)
+					.OnTextChanged(this, &SYapTextPropertyEditableStringTableReference::OnKeysFilterTextChanged)
+				]
+				+SVerticalBox::Slot()
+				.FillHeight(1.f)
+				.Padding(0, 5, 0, 0)
+				[
+					SAssignNew(StringTableKeysList, SListView<TSharedPtr<FString>>)
+					.ListItemsSource(&KeyComboOptions)
+					.SelectionMode(ESelectionMode::Single)
+					.OnGenerateRow(this, &SYapTextPropertyEditableStringTableReference::OnGenerateStringTableKeyOption)
+					.OnSelectionChanged(this, &SYapTextPropertyEditableStringTableReference::OnKeyComboChanged)
+				]
+			]
+		];
+}
+
+TSharedRef<ITableRow> SYapTextPropertyEditableStringTableReference::OnGenerateStringTableKeyOption(TSharedPtr<FString> InItem, const TSharedRef<STableViewBase>& OwnerTable)
+{
+	return SNew(STableRow<TSharedPtr<FString>>, OwnerTable)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(*InItem))
+			.ToolTipText(FText::FromString(*InItem))
+		];
+}
+
+void SYapTextPropertyEditableStringTableReference::GetTableIdAndKey(FName& OutTableId, FString& OutKey) const
+{
+	const int32 NumTexts = EditableTextProperty->GetNumTexts();
+	if (NumTexts > 0)
+	{
+		const FText PropertyValue = EditableTextProperty->GetText(0);
+		FTextInspector::GetTableIdAndKey(PropertyValue, OutTableId, OutKey);
+
+		// Verify that all texts are using the same string table and key
+		for (int32 TextIndex = 1; TextIndex < NumTexts; ++TextIndex)
+		{
+			FName TmpTableId;
+			FString TmpKey;
+			if (FTextInspector::GetTableIdAndKey(PropertyValue, TmpTableId, TmpKey) && OutTableId == TmpTableId)
+			{
+				if (!OutKey.Equals(TmpKey, ESearchCase::CaseSensitive))
+				{
+					// Not using the same key - clear the key but keep the table and keep enumerating to verify the table on the remaining texts
+					OutKey.Reset();
+				}
+			}
+			else
+			{
+				// Not using a string table, or using a different string table - clear both table ID and key
+				OutTableId = FName();
+				OutKey.Reset();
+				break;
+			}
+		}
+	}
+}
+
+void SYapTextPropertyEditableStringTableReference::SetTableIdAndKey(const FName InTableId, const FString& InKey)
+{
+	const FText TextToSet = FText::FromStringTable(InTableId, InKey);
+	if (TextToSet.IsFromStringTable())
+	{
+		const int32 NumTexts = EditableTextProperty->GetNumTexts();
+		for (int32 TextIndex = 0; TextIndex < NumTexts; ++TextIndex)
+		{
+			EditableTextProperty->SetText(TextIndex, TextToSet);
+		}
+	}
+}
+
+void SYapTextPropertyEditableStringTableReference::OnStringTableComboChanged(TSharedPtr<FAvailableStringTable> NewSelection, ESelectInfo::Type SelectInfo)
+{
+	// If it's set from code, we did that on purpose
+	if (SelectInfo != ESelectInfo::Direct && NewSelection.IsValid())
+	{
+		// Make sure any selected string table asset is loaded
+		FName TableId = NewSelection->TableId;
+		IStringTableEngineBridge::FullyLoadStringTableAsset(TableId);
+
+		FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(TableId);
+		if (StringTable.IsValid())
+		{
+			// Just use the first key when changing the string table
+			StringTable->EnumerateSourceStrings([&](const FString& InKey, const FString& InSourceString) -> bool
+			{
+				SetTableIdAndKey(TableId, InKey);
+				return false; // stop enumeration
+			});
+
+			StringTableOptionsCombo->SetIsOpen(false);
+
+			OptionsSearchBox->SetText(FText::GetEmpty());
+		}
+	}
+}
+
+void SYapTextPropertyEditableStringTableReference::UpdateStringTableComboOptions()
+{
+	FName CurrentTableId;
+	{
+		FString TmpKey;
+		GetTableIdAndKey(CurrentTableId, TmpKey);
+	}
+
+	TSharedPtr<FAvailableStringTable> SelectedStringTableComboEntry;
+	StringTableComboOptions.Reset();
+
+	// Process assets first (as they may currently be unloaded)
+	{
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(AssetRegistryConstants::ModuleName);
+
+		TArray<FAssetData> StringTableAssets;
+		AssetRegistryModule.Get().GetAssetsByClass(UStringTable::StaticClass()->GetClassPathName(), StringTableAssets);
+
+		for (const FAssetData& StringTableAsset : StringTableAssets)
+		{
+			FName StringTableId = *StringTableAsset.GetObjectPathString();
+			// Only allow string tables assets that have entries to be visible otherwise unexpected behavior happens for the user
+			bool HasEntries = false;
+			FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(StringTableId);
+			if (StringTable.IsValid())
+			{
+				StringTable->EnumerateSourceStrings([&](const FString& InKey, const FString& InSourceString) -> bool
+				{
+					HasEntries = true;
+					return false; // stop enumeration
+				});
+			}
+			else
+			{
+				// Asset is currently unloaded, so just assume it has entries
+				HasEntries = true;
+			}
+
+			if (!HasEntries)
+			{
+				continue; // continue on to the next string table asset
+			}
+
+			TSharedRef<FAvailableStringTable> AvailableStringTableEntry = MakeShared<FAvailableStringTable>();
+			AvailableStringTableEntry->TableId = StringTableId;
+			AvailableStringTableEntry->DisplayName = FText::FromName(StringTableAsset.AssetName);
+			if (StringTableId == CurrentTableId)
+			{
+				SelectedStringTableComboEntry = AvailableStringTableEntry;
+			}
+			if (OptionTextFilter->PassesFilter(AvailableStringTableEntry))
+			{
+				StringTableComboOptions.Add(AvailableStringTableEntry);
+			}
+		}
+	}
+
+	// Process the remaining non-asset string tables now
+	FStringTableRegistry::Get().EnumerateStringTables([&](const FName& InTableId, const FStringTableConstRef& InStringTable) -> bool
+	{
+		const bool bAlreadyAdded = StringTableComboOptions.ContainsByPredicate([InTableId](const TSharedPtr<FAvailableStringTable>& InAvailableStringTable)
+		{
+			return InAvailableStringTable->TableId == InTableId;
+		});
+
+		bool bHasEntries = false;
+		InStringTable->EnumerateSourceStrings([&bHasEntries](const FString& InKey, const FString& InSourceString) -> bool
+		{
+			bHasEntries = true;
+			return false; // stop enumeration
+		});
+
+		if (!bAlreadyAdded && bHasEntries)
+		{
+			TSharedRef<FAvailableStringTable> AvailableStringTableEntry = MakeShared<FAvailableStringTable>();
+			AvailableStringTableEntry->TableId = InTableId;
+			AvailableStringTableEntry->DisplayName = FText::FromName(InTableId);
+			if (InTableId == CurrentTableId)
+			{
+				SelectedStringTableComboEntry = AvailableStringTableEntry;
+			}
+			if (OptionTextFilter->PassesFilter(AvailableStringTableEntry))
+			{
+				StringTableComboOptions.Add(AvailableStringTableEntry);
+			}
+		}
+
+		return true; // continue enumeration
+	});
+
+	StringTableComboOptions.Sort([](const TSharedPtr<FAvailableStringTable>& InOne, const TSharedPtr<FAvailableStringTable>& InTwo)
+	{
+		return InOne->DisplayName.ToString() < InTwo->DisplayName.ToString();
+	});
+
+	StringTableOptionsList->RebuildList();
+
+	if (SelectedStringTableComboEntry.IsValid())
+	{
+		StringTableOptionsList->SetItemSelection(SelectedStringTableComboEntry, true);
+	}
+	else
+	{
+		StringTableOptionsList->ClearSelection();
+	}
+}
+
+FText SYapTextPropertyEditableStringTableReference::GetStringTableComboContent() const
+{
+	FName CurrentTableId;
+	{
+		FString TmpKey;
+		GetTableIdAndKey(CurrentTableId, TmpKey);
+	}
+
+	return FText::FromString(FPackageName::GetLongPackageAssetName(CurrentTableId.ToString()));
+}
+
+FText SYapTextPropertyEditableStringTableReference::GetStringTableComboToolTip() const
+{
+	FName CurrentTableId;
+	{
+		FString TmpKey;
+		GetTableIdAndKey(CurrentTableId, TmpKey);
+	}
+
+	return FText::FromName(CurrentTableId);
+}
+
+void SYapTextPropertyEditableStringTableReference::OnKeyComboChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
+{
+	// If it's set from code, we did that on purpose
+	if (SelectInfo != ESelectInfo::Direct && NewSelection.IsValid())
+	{
+		FName CurrentTableId;
+		{
+			FString TmpKey;
+			GetTableIdAndKey(CurrentTableId, TmpKey);
+		}
+
+		SetTableIdAndKey(CurrentTableId, *NewSelection);
+
+		StringTableKeysCombo->SetIsOpen(false);
+
+		KeysSearchBox->SetText(FText::GetEmpty());
+	}
+}
+
+void SYapTextPropertyEditableStringTableReference::UpdateStringTableKeyOptions()
+{
+	FName CurrentTableId;
+	FString CurrentKey;
+	GetTableIdAndKey(CurrentTableId, CurrentKey);
+
+	TSharedPtr<FString> SelectedKeyComboEntry;
+	KeyComboOptions.Reset();
+
+	if (!CurrentTableId.IsNone())
+	{
+		FStringTableConstPtr StringTable = FStringTableRegistry::Get().FindStringTable(CurrentTableId);
+		if (StringTable.IsValid())
+		{
+			StringTable->EnumerateSourceStrings([&](const FString& InKey, const FString& InSourceString) -> bool
+			{
+				TSharedRef<FString> KeyComboEntry = MakeShared<FString>(InKey);
+				if (InKey.Equals(CurrentKey, ESearchCase::CaseSensitive))
+				{
+					SelectedKeyComboEntry = KeyComboEntry;
+				}
+				if (KeyTextFilter->PassesFilter(KeyComboEntry))
+				{
+					KeyComboOptions.Add(KeyComboEntry);
+				}
+				return true; // continue enumeration
+			});
+		}
+	}
+
+	KeyComboOptions.Sort([](const TSharedPtr<FString>& InOne, const TSharedPtr<FString>& InTwo)
+	{
+		return *InOne < *InTwo;
+	});
+
+	StringTableKeysList->RebuildList();
+
+	if (SelectedKeyComboEntry.IsValid())
+	{
+		StringTableKeysList->SetItemSelection(SelectedKeyComboEntry, true);
+	}
+	else
+	{
+		StringTableKeysList->ClearSelection();
+	}
+}
+
+FText SYapTextPropertyEditableStringTableReference::GetKeyComboContent() const
+{
+	FString CurrentKey;
+	{
+		FName TmpTableId;
+		GetTableIdAndKey(TmpTableId, CurrentKey);
+	}
+
+	if (CurrentKey.IsEmpty())
+	{
+		return LOCTEXT("NoKeyLabel", "No Key");
+	}
+
+	return FText::FromString(MoveTemp(CurrentKey));
+}
+
+FText SYapTextPropertyEditableStringTableReference::GetKeyComboToolTip() const
+{
+	return GetKeyComboContent();
+}
+
+bool SYapTextPropertyEditableStringTableReference::IsUnlinkEnabled() const
+{
+	bool bEnabled = false;
+
+	const int32 NumTexts = EditableTextProperty->GetNumTexts();
+	for (int32 TextIndex = 0; TextIndex < NumTexts; ++TextIndex)
+	{
+		const FText CurrentText = EditableTextProperty->GetText(TextIndex);
+		if (CurrentText.IsFromStringTable())
+		{
+			bEnabled = true;
+			break;
+		}
+	}
+
+	return bEnabled;
+}
+
+FReply SYapTextPropertyEditableStringTableReference::OnUnlinkClicked()
+{
+	const int32 NumTexts = EditableTextProperty->GetNumTexts();
+	for (int32 TextIndex = 0; TextIndex < NumTexts; ++TextIndex)
+	{
+		const FText CurrentText = EditableTextProperty->GetText(TextIndex);
+		if (CurrentText.IsFromStringTable())
+		{
+			// Make a copy of the FText separate from the string table but generate a new stable namespace and key
+			// This prevents problems with properties that disallow empty text (e.g. enum display name)
+			FString NewNamespace;
+			FString NewKey;
+			EditableTextProperty->GetStableTextId(
+				TextIndex,
+				IEditableTextProperty::ETextPropertyEditAction::EditedKey,
+				CurrentText.ToString(),
+				FString(),
+				FString(),
+				NewNamespace,
+				NewKey
+			);
+			
+			EditableTextProperty->SetText(TextIndex, FText::ChangeKey(NewNamespace, NewKey, CurrentText));
+		}
+	}
+
+	return FReply::Handled();
+}
 
 /** Single row in the advanced text settings/localization menu. Has a similar appearance to a details row in the property editor. */
 class STextPropertyEditableOptionRow : public SCompoundWidget
@@ -121,17 +681,9 @@ private:
 void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const TSharedRef<IEditableTextProperty>& InEditableTextProperty)
 {
 	EditableTextProperty = InEditableTextProperty;
-	BoundText = InArgs._Text;
-	
+
 	TSharedPtr<SHorizontalBox> HorizontalBox;
 
-	TSharedPtr<SScrollBar> ScrollBar = SNew(SScrollBar)
-		.RenderOpacity(0.5)
-		.Thickness(4)
-		.Orientation(Orient_Horizontal)
-		.Padding(2)
-		.Style(FYapEditorStyle::Get(), YapStyles.ScrollBarStyle_DialogueBox);
-	
 	const bool bIsPassword = EditableTextProperty->IsPassword();
 	bIsMultiLine = EditableTextProperty->IsMultiLineText();
 	if (bIsMultiLine)
@@ -145,10 +697,11 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 			[
 				SNew(SBox)
 				.MinDesiredWidth(InArgs._MinDesiredWidth)
-				//.MaxDesiredHeight(InArgs._MaxDesiredHeight)
+				.MaxDesiredHeight(InArgs._MaxDesiredHeight)
 				[
 					SAssignNew(MultiLineWidget, SMultiLineEditableTextBox)
 					.Text(this, &SYapTextPropertyEditableTextBox::GetTextValue)
+					.HintText(InArgs._HintText)
 					.ToolTipText(this, &SYapTextPropertyEditableTextBox::GetToolTipText)
 					.Style(InArgs._Style)
 					.Font(InArgs._Font)
@@ -156,14 +709,14 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 					.SelectAllTextWhenFocused(false)
 					.ClearKeyboardFocusOnCommit(false)
 					.OnTextChanged(this, &SYapTextPropertyEditableTextBox::OnTextChanged)
-					.OnTextCommitted(InArgs._OnTextCommitted)
+					.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
 					.SelectAllTextOnCommit(false)
 					.IsReadOnly(this, &SYapTextPropertyEditableTextBox::IsSourceTextReadOnly)
 					.AutoWrapText(InArgs._AutoWrapText)
 					.WrapTextAt(InArgs._WrapTextAt)
 					.ModiferKeyForNewLine(EModifierKey::Shift)
-					.Padding(FMargin(6, 6, 6, 2))
-					.HScrollBar(ScrollBar)
+					.Padding(FMargin(6, 6, 6, 6))
+					//.IsPassword(bIsPassword)
 				]
 			]
 		];
@@ -213,7 +766,7 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 			[
 				SNew(SBox)
 				.WidthOverride(340)
-				.Padding(10)
+				.Padding(1)
 				[
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
@@ -224,7 +777,6 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 						.ContentHAlign(HAlign_Left)
 						[
 							SNew(SCheckBox)
-							.Cursor(EMouseCursor::Default)
 							.IsEnabled(this, &SYapTextPropertyEditableTextBox::IsCultureInvariantFlagEnabled)
 							.IsChecked(this, &SYapTextPropertyEditableTextBox::GetLocalizableCheckState)
 							.OnCheckStateChanged(this, &SYapTextPropertyEditableTextBox::HandleLocalizableCheckStateChanged)
@@ -242,7 +794,7 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 						.Text(LOCTEXT("TextStringTableLabel", "String Table"))
 						.IsEnabled(this, &SYapTextPropertyEditableTextBox::IsTextLocalizable)
 						[
-							SNew(STextPropertyEditableStringTableReference, InEditableTextProperty)
+							SNew(SYapTextPropertyEditableStringTableReference, InEditableTextProperty)
 							.AllowUnlink(true)
 							.Font(PropertyNormalFont)
 							.IsEnabled(this, &SYapTextPropertyEditableTextBox::CanEdit)
@@ -535,8 +1087,6 @@ void SYapTextPropertyEditableTextBox::OnTextChanged(const FText& NewText)
 
 	// Update or clear the error message
 	SetTextError(TextErrorMsg);
-
-	bChanged = true;
 }
 
 void SYapTextPropertyEditableTextBox::OnTextCommitted(const FText& NewText, ETextCommit::Type CommitInfo)

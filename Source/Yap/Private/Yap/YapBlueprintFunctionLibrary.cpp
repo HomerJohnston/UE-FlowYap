@@ -10,6 +10,7 @@
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapLog.h"
 #include "Yap/YapPromptHandle.h"
+#include "Yap/YapSubsystem.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -57,7 +58,7 @@ bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle
 
 bool UYapBlueprintFunctionLibrary::RunPrompt(const FYapPromptHandle& Handle)
 {
-	return false;
+	return UYapSubsystem::RunPrompt(Handle);
 }
 
 void UYapBlueprintFunctionLibrary::InvalidateDialogueHandle(FYapDialogueHandle& Handle)
