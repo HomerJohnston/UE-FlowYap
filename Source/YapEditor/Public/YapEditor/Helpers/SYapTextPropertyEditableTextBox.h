@@ -147,7 +147,8 @@ class YAPEDITOR_API SYapTextPropertyEditableTextBox : public SCompoundWidget
 		SLATE_ATTRIBUTE(FOptionalSize, MaxDesiredHeight)
 		/** Hint text to display when empty */
 		SLATE_ARGUMENT(FText, HintText)
-		
+		/** Object containing the text, to be marked as modified */
+		SLATE_ARGUMENT(TWeakObjectPtr<UObject>, Owner)
 	SLATE_END_ARGS()
 
 public:
@@ -205,4 +206,6 @@ private:
 	bool bIsMultiLine = false;
 
 	static FText MultipleValuesText;
+
+	TWeakObjectPtr<UObject> Owner;
 };

@@ -82,7 +82,7 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 	
 	EYapFragmentState State = GetFragmentState(FragmentIndex);
 
-	bool bPreventSkippingTimers = !GetFragmentByIndex(FragmentIndex).GetBit().GetSkippable(this);
+	bool bPreventSkippingTimers = !GetFragmentByIndex(FragmentIndex).GetSkippable(this->GetSkippable());
 			
 	if (bPreventSkippingTimers && (FragmentTimerHandle.IsValid() || PaddingTimerHandle.IsValid()))
 	{
@@ -181,18 +181,18 @@ bool UFlowNode_YapDialogue::UsesTitleText() const
 
 bool UFlowNode_YapDialogue::GetSkippable() const
 {
-	return bSkippable.Get(UYapProjectSettings::GetDefaultSkippableSetting());
+	return Skippable.Get(UYapProjectSettings::GetDefaultSkippableSetting());
 }
 
 bool UFlowNode_YapDialogue::GetAutoAdvance() const
 {
-	return bAutoAdvance.Get(UYapProjectSettings::GetDefaultAutoAdvanceSetting());
+	return AutoAdvance.Get(UYapProjectSettings::GetDefaultAutoAdvanceSetting());
 }
 
 #if WITH_EDITOR
 TOptional<bool> UFlowNode_YapDialogue::GetSkippableSetting() const
 {
-	return bSkippable;
+	return Skippable;
 }
 #endif
 
@@ -301,7 +301,7 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 			TriggerOutput(StartPin.PinName, false);
 		}
 
-		TOptional<float> Time = Fragment.GetBit().GetTime(UYapSubsystem::GetGameMaturitySetting());
+		TOptional<float> Time = Fragment.GetTime();
 
 		if (!Time.IsSet())
 		{
@@ -376,7 +376,7 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 	
 	FYapFragment& Fragment = Fragments[FragmentIndex];
 	
-	if (Fragment.GetBit().GetAutoAdvance(this))
+	if (Fragment.GetAutoAdvance(this->GetAutoAdvance()))
 	{
 		AdvanceToNextFragment(FragmentIndex);
 	}

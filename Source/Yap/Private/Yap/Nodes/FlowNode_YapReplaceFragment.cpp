@@ -33,12 +33,15 @@ void UFlowNode_YapReplaceFragment::ExecuteInput(const FName& PinName)
 {
 	Super::ExecuteInput(PinName);
 
+	// TODO TODO TODO TODO aaaaaa
+	UE_LOG(LogYap, Warning, TEXT("Replacing fragment - unimplemented!"));
+
 	// TODO is this a bad idea? Can I save the changes to the flow node? Other systems Moth made do it so maybe it's 
 	FYapFragment* Fragment = GetWorld()->GetSubsystem<UYapSubsystem>()->FindTaggedFragment(TargetFragmentTag);
 
 	if (Fragment)
 	{
-		Fragment->ReplaceBit(NewData);
+		//Fragment->ReplaceBit(NewData);
 
 		// TODO should this have settings to control this? Yes probably. There may be times when I want to forcefully flip-flop back and forth.
 		// SignalMode = EFlowSignalMode::PassThrough;

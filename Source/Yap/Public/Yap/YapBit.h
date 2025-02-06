@@ -3,65 +3,21 @@
 
 #pragma once
 
+#include "YapDialogueText.h"
 #include "YapLog.h"
-#include "YapTimeMode.h"
-#include "GameplayTagContainer.h"
 #include "Yap/Globals/YapEditorWarning.h"
-#include "Enums/YapMaturitySetting.h"
-#include "Enums/YapWarnings.h"
 #include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "YapBit.generated.h"
 
 struct FStreamableHandle;
-class UYapCharacter;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
+enum class EYapTimeMode : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
-// TODO: URGENT: I need a property customization on this type to cache the word count.
-USTRUCT(BlueprintType)
-struct YAP_API FYapText
-{
-#if WITH_EDITOR
-	friend class SFlowGraphNode_YapFragmentWidget;
-#endif
-	
-	GENERATED_BODY()
-	
-private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
-	FText Txt;
-
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess))
-	int32 WordCnt = 0;
-
-public:
-#if WITH_EDITOR
-	void Set(const FText& InText);
-#endif
-	
-	const FText& Get() const { return Txt; }
-
-	int32 WordCount() const { return WordCnt; }
-
-	void operator=(const FYapText& Other)
-	{
-		Txt = Other.Txt;
-		WordCnt = Other.WordCnt;
-	}
-	
-	void operator=(const FText& NewText)
-	{
-#if WITH_EDITOR
-		Set(NewText);
-#else
-		checkNoEntry()
-#endif
-	}
-};
-
+/** A 'Bit' is a data container of actual dialogue information to be spoken. Each Fragment contains two bits - one for normal mature dialogue, and one for child-safe dialogue. */
 USTRUCT(BlueprintType)
 struct YAP_API FYapBit
 {
@@ -71,218 +27,141 @@ struct YAP_API FYapBit
 	
 	GENERATED_BODY()
 	
-	FYapBit();
-	
 	// --------------------------------------------------------------------------------------------
 	// SETTINGS
+	// --------------------------------------------------------------------------------------------
 protected:
-	/**  */
-	UPROPERTY()
-	TSoftObjectPtr<UYapCharacter> SpeakerAsset;
-
-	/**  */
-	UPROPERTY()
-	TSoftObjectPtr<UYapCharacter> DirectedAtAsset;
 	
-	/**  */
+	/** Actual text to be spoken/displayed. */
 	UPROPERTY()
-	FYapText MatureTitleText;
+	FYapDialogueText DialogueText;
 
-	/**  */
+	/** Optional title text, this is typically used by player prompts to show different text that the player will select. You can enable it to be included on all Talk nodes in project settings. */
 	UPROPERTY()
-	FYapText SafeTitleText;
+	FText TitleText;
 	
-	/**  */
-	UPROPERTY(EditAnywhere)
-	FYapText MatureDialogueText;
+	/** Speech audio. Any asset. Filter the allowable asset type(s) using project settings. */
+	UPROPERTY()
+	TSoftObjectPtr<UObject> AudioAsset;
 
-	/**  */
-	UPROPERTY()
-	FYapText SafeDialogueText;
-	
-	/**  */
-	UPROPERTY()
-	TSoftObjectPtr<UObject> MatureAudioAsset;
-
-	/**  */
-	UPROPERTY()
-	TSoftObjectPtr<UObject> SafeAudioAsset;
-
-	// TODO - what about sending multiple mood tags? Or some other way to specify more arbitrary data? UPropertyBag???
-	/**  */
-	UPROPERTY()
-	FGameplayTag MoodTag;
-		
-	/**  */
-	UPROPERTY()
-	EYapTimeMode TimeMode = EYapTimeMode::Default;
-
-	/**  */
-	UPROPERTY()
-	TOptional<bool> Skippable;
-	
-	/**  */
-	UPROPERTY()
-	TOptional<bool> AutoAdvance;
-	
+	/** Optional time override. You can use this if you want some dialogue to run for a length of time different than what was automatically calculated from the audio or text data. */
 	UPROPERTY()
 	float ManualTime = 0;
-	
-	/** Indicates whether child-safe data is available in this bit or not */
-	UPROPERTY()
-	bool bNeedsChildSafeData = false;
 
 #if WITH_EDITORONLY_DATA
-	// This is currently not in use. Still considering if I should use it or not.
-	UPROPERTY(EditAnywhere)
-	bool bIgnoreChildSafeErrors = false;
-
+	/** Optional field to type in extra localization comments. For .PO export these will be prepended with a #. symbol.*/
 	UPROPERTY()
-	FString LocalizationComments;
+	FString DialogueLocalizationComments;
 
+	/** Optional field to type in extra localization comments. For .PO export these will be prepended with a #. symbol.*/
 	UPROPERTY()
-	FString LocalizationFlags;
+	FString TitleTextLocalizationComments;
 
+	/** Optional field to type in directions for recording dialogue audio. */
 	UPROPERTY()
 	FString StageDirections;
-#endif
+
+	/** The most recent of these will be exported into .PO files as a #| msgctxt entry. */
+	UPROPERTY()
+	TArray<FString> PreviousMsgctxt;
 	
+	/** The most recent of these will be exported into .PO files as a #| msgid entry. */
+	UPROPERTY()
+	TArray<FString> PreviousMsgid;
+#endif
+
 	// --------------------------------------------------------------------------------------------
 	// STATE
+	// --------------------------------------------------------------------------------------------
 protected:
-	TSharedPtr<FStreamableHandle> SpeakerHandle;
 	
-	TSharedPtr<FStreamableHandle> DirectedAtHandle;
-
+	/** Handle to keep async-loaded audio alive. */
 	TSharedPtr<FStreamableHandle> AudioAssetHandle;
-
+	
 	// --------------------------------------------------------------------------------------------
 	// PUBLIC API
+	// --------------------------------------------------------------------------------------------
 public:
-	const TSoftObjectPtr<UYapCharacter> GetSpeakerAsset() const { return SpeakerAsset; }
 	
-	const TSoftObjectPtr<UYapCharacter> GetDirectedAtAsset() const { return DirectedAtAsset; }
+	/** Getter for dialogue text. */
+	const FText& GetDialogueText() const;
 
-	const UYapCharacter* GetSpeaker(EYapWarnings Warnings = EYapWarnings::Show); // Non-const because of async loading handle
-
-	const UYapCharacter* GetDirectedAt(); // Non-const because of async loading handle
+	bool HasDialogueText() const { return !DialogueText.Get().IsEmpty(); }
 	
-private:
-	const UYapCharacter* GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle, EYapWarnings Warnings = EYapWarnings::Show);
+	/** Getter for title text. */
+	const FText& GetTitleText() const;
 
-public:
-	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
-	const FText& GetDialogueText(EYapMaturitySetting MaturitySetting) const;
-	
-	/** Pass in a maturity setting, or leave as Undetermined and it will ask the subsystem for the current maturity setting. */
-	const FText& GetTitleText(EYapMaturitySetting MaturitySetting) const;
+	bool HasTitleText() const { return !TitleText.IsEmpty(); }
 
+	/** Getter for audio asset, raw access to the soft pointer. */
 	template<class T>
-	const TSoftObjectPtr<T> GetMatureDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(MatureAudioAsset); }
+	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(AudioAsset); }
 
+	/** Getter for audio asset. This function will force a sync-load if the audio asset isn't loaded yet! */
 	template<class T>
-	const TSoftObjectPtr<T> GetSafeDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(SafeAudioAsset); }
-	
-	template<class T>
-	const T* GetAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
+	const T* GetAudioAsset() const;
 
-	/** If the maturity setting is unspecified, read it from either the Yap Subsystem or Project Defaults. */
-	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
+	/** Called by the flow node when it is loaded to async load this bit's audio data. */
+	void AsyncLoadContent(UFlowNode_YapDialogue* OwningContext);
 
-	bool HasAudioAsset(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-
-	FGameplayTag GetMoodTag() const { return MoodTag; }
-
-	/** Gets the evaluated skippable setting to be used for this bit (incorporating project default settings and fallbacks) */
-	bool GetSkippable(const UFlowNode_YapDialogue* Owner) const;
-
-	bool GetAutoAdvance(const UFlowNode_YapDialogue* Owner) const;
-	
-	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
-	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-
-	bool IsTimeModeNone() const { return TimeMode == EYapTimeMode::None; }
-	
-	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
-	
-	bool NeedsChildSafeData() const { return bNeedsChildSafeData; };
-
-public:
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-	
-protected:
-	TOptional<float> GetManualTime() const { return ManualTime; }
-
-	TOptional<float> GetTextTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-
-	TOptional<float> GetAudioTime(EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified) const;
-
-public:
-	FYapBit& operator=(const FYapBitReplacement& Replacement);
+	TOptional<float> GetTime(EYapTimeMode TimeMode) const;
 
 	// --------------------------------------------------------------------------------------------
-	// EDITOR API
+	// INTERNAL API
+	// --------------------------------------------------------------------------------------------
+protected:
+	
+	/** Getter for manual time setting value. */
+	TOptional<float> GetManualTime() const { return ManualTime; }
+
+	/** Calculates the current text time. */
+	TOptional<float> GetTextTime() const;
+
+	/** Gets the current time of the audio asset. */
+	TOptional<float> GetAudioTime() const;
+
 #if WITH_EDITOR
+	// --------------------------------------------------------------------------------------------
+	// EDITOR API
+	// --------------------------------------------------------------------------------------------
 public:
-	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
-	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
+	bool HasAudioAsset() const;
 
-	void SetMatureTitleText(const FText& NewText);
-	void SetSafeTitleText(const FText& NewText);
+	void SetTitleText(const FText& NewText);
 
-	void SetMatureDialogueText(const FText& NewText);
-	void SetSafeDialogueText(const FText& NewText);
+	void SetDialogueText(const FText& NewText);
 	
-	void SetMatureDialogueAudioAsset(UObject* NewAudio);
-	void SetSafeDialogueAudioAsset(UObject* NewAudio);
-	
-	void SetMoodTag(const FGameplayTag& NewValue) { MoodTag = NewValue; };
-
-	void SetTimeModeSetting(EYapTimeMode NewValue) { TimeMode = NewValue; }
+	void SetDialogueAudioAsset(UObject* NewAudio);
 	
 	void SetManualTime(float NewValue) { ManualTime = NewValue; }
 
-	TOptional<bool> GetSkippableSetting() const { return Skippable; }
-	TOptional<bool>& GetSkippableSetting() { return Skippable; }
-	TOptional<bool> GetAutoAdvanceSetting() const { return AutoAdvance; }
-	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
-	
-	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
-
-	bool HasDialogueTextForMaturity(EYapMaturitySetting MaturitySetting) const;
-
 private:
-	void SetDialogueAudioAsset_Internal(TSoftObjectPtr<UObject>& AudioAsset, UObject* NewAudio);
-	
 	void RecacheSpeakingTime();
 
 	void RecalculateTextWordCount(FText& Text, float& CachedTime);
 
-	void RecalculateAudioTime(TSoftObjectPtr<UObject>& AudioAsset, TOptional<float>& CachedTime);
+	void RecalculateAudioTime(TOptional<float>& CachedTime);
+
+	void ClearAllData();
 #endif
 };
 
 template <class T>
-const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
+const T* FYapBit::GetAudioAsset() const
 {
-	ResolveMaturitySetting(MaturitySetting);
-
-	const TSoftObjectPtr<UObject>& Asset = MaturitySetting == EYapMaturitySetting::Mature ? MatureAudioAsset : SafeAudioAsset;
-	
 	// Asset is unset. Return nothing.
-	if (Asset.IsNull())
+	if (AudioAsset.IsNull())
 	{
 		return nullptr;
 	}
 
 #if WITH_EDITOR
-	if (Asset.IsPending())
+	if (AudioAsset.IsPending())
 	{
-		// This is a bit of a dumb hack.
 		if (GEditor->PlayWorld && (GEditor->PlayWorld->WorldType == EWorldType::Game || GEditor->PlayWorld->WorldType == EWorldType::PIE))
 		{
-			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset."))
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading dialogue audio asset. Try loading the flow asset sooner, or putting in a delay before running dialogue."))
 
 			Yap::Editor::PostNotificationInfo_Warning
 			(
@@ -293,7 +172,7 @@ const T* FYapBit::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
 	}
 #endif
 
-	return Asset.LoadSynchronous();
+	return AudioAsset.LoadSynchronous();
 }
 
 #undef LOCTEXT_NAMESPACE

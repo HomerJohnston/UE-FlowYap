@@ -103,7 +103,7 @@ UYapBroker* UYapSubsystem::GetBroker()
 	return Broker;		
 }
 
-EYapMaturitySetting UYapSubsystem::GetGameMaturitySetting()
+EYapMaturitySetting UYapSubsystem::GetCurrentMaturitySetting()
 {
 	EYapMaturitySetting MaturitySetting;
 	
@@ -195,8 +195,9 @@ void UYapSubsystem::CloseConversation()
 
 void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
-	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
-	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit()); // TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
+	// TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
+	FYapFragment& Fragment = const_cast<FYapFragment&>(Dialogue->GetFragmentByIndex(FragmentIndex));
+	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit()); 
 
 	FGameplayTag ConversationName;
 
@@ -205,16 +206,14 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
-
 	FYapData_AddPlayerPrompt Data;
 	Data.Conversation = ConversationName;
 	Data.Handle = FYapPromptHandle(Dialogue, FragmentIndex);
-	Data.DirectedAt = Bit.GetDirectedAt();
-	Data.Speaker = Bit.GetSpeaker();
-	Data.MoodTag = Bit.GetMoodTag();
-	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
-	Data.TitleText = Bit.GetTitleText(MaturitySetting);
+	Data.DirectedAt = Fragment.GetDirectedAt();
+	Data.Speaker = Fragment.GetSpeaker();
+	Data.MoodTag = Fragment.GetMoodTag();
+	Data.DialogueText = Bit.GetDialogueText();
+	Data.TitleText = Bit.GetTitleText();
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>(Data);
 }
@@ -229,23 +228,22 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>(Data);
 }
 
-void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex)
+void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
-	const FYapFragment& Fragment = DialogueNode->GetFragmentByIndex(FragmentIndex);
-	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit()); // TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
+	// TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
+	FYapFragment& Fragment = const_cast<FYapFragment&>(Dialogue->GetFragmentByIndex(FragmentIndex));
+	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit());
 
 	FGameplayTag ConversationName;
 
-	if (ActiveConversation.FlowAsset == DialogueNode->GetFlowAsset())
+	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	bool bSkippable = Bit.GetSkippable(DialogueNode);
+	bool bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
 
-	EYapMaturitySetting MaturitySetting = GetGameMaturitySetting();
-
-	TOptional<float> Time = Bit.GetTime(MaturitySetting);
+	TOptional<float> Time = Fragment.GetTime();
 
 	float EffectiveTime;
 	
@@ -260,14 +258,14 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, 
 
 	FYapData_OnSpeakingBegins Data;
 	Data.Conversation = ConversationName;
-	Data.DialogueHandle = DialogueHandles.Emplace(DialogueNode, {DialogueNode, FragmentIndex, bSkippable});
-	Data.DirectedAt = Bit.GetDirectedAt();
-	Data.Speaker = Bit.GetSpeaker();
-	Data.MoodTag = Bit.GetMoodTag();
-	Data.DialogueText = Bit.GetDialogueText(MaturitySetting);
-	Data.TitleText = Bit.GetTitleText(MaturitySetting);
+	Data.DialogueHandle = DialogueHandles.Emplace(Dialogue, {Dialogue, FragmentIndex, bSkippable});
+	Data.DirectedAt = Fragment.GetDirectedAt();
+	Data.Speaker = Fragment.GetSpeaker();
+	Data.MoodTag = Fragment.GetMoodTag();
+	Data.DialogueText = Bit.GetDialogueText();
+	Data.TitleText = Bit.GetTitleText();
 	Data.DialogueTime = EffectiveTime;
-	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>(MaturitySetting);
+	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingBegins, &IYapConversationHandler::Execute_K2_OnSpeakingBegins>(Data);
 }

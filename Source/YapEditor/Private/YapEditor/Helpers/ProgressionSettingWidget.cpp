@@ -76,4 +76,56 @@ SVerticalBox::FSlot::FSlotArguments MakeFragmentProgressionSettingRow(TOptional<
 	return Slot;
 }
 
+SOverlay::FOverlaySlot::FSlotArguments MakePopupImage(TOptional<bool>* SettingRaw, TAttribute<bool> EvaluatedAttr, FName OffIcon, FName OnIcon)
+{
+	SOverlay::FOverlaySlot::FSlotArguments Slot(SOverlay::Slot());
+
+	Slot
+	[
+		SNew(SImage)
+		.Image_Lambda( [=] ()
+		{			
+			bool bEvaluatedValue = EvaluatedAttr.Get();
+			
+			return FYapEditorStyle::GetImageBrush( bEvaluatedValue ? OnIcon : OffIcon);
+		})
+		.ColorAndOpacity_Lambda( [=] ()
+		{
+			if (!SettingRaw->IsSet())
+			{
+				return YapColor::Button_Unset();
+			}
+			
+			bool bEvaluatedValue = EvaluatedAttr.Get();
+
+			return bEvaluatedValue ? YapColor::LightGreen : YapColor::Orange;  
+		})
+	];
+	
+	return Slot;
+}
+
+TSharedRef<SWidget> MakeProgressionPopupButton(TOptional<bool>* SkippableSettingRaw, TAttribute<bool> SkippableEvaluatedAttr, TOptional<bool>* AutoAdvanceSettingRaw, TAttribute<bool> AutoAdvanceEvaluatedAttr)
+{
+	return SNew(SYapButtonPopup)
+		.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
+		.PopupPlacement(MenuPlacement_RightLeftCenter)
+		.ButtonForegroundColor(YapColor::DarkGray_SemiGlass)
+		.ButtonContentPadding(0)
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		.PopupContentGetter(FPopupContentGetter::CreateLambda( [SkippableSettingRaw, AutoAdvanceSettingRaw] () { return PopupContentGetter_ProgressionSettings(SkippableSettingRaw, AutoAdvanceSettingRaw); }))
+		.ButtonContent()
+		[
+			SNew(SBox)
+			.WidthOverride(16)
+			.HeightOverride(16)
+			[
+				SNew(SOverlay)
+				+ MakePopupImage(SkippableSettingRaw, SkippableEvaluatedAttr, YapBrushes.Icon_NotSkippable, YapBrushes.Icon_Skippable)
+				+ MakePopupImage(AutoAdvanceSettingRaw, AutoAdvanceEvaluatedAttr, YapBrushes.Icon_ManualAdvance, YapBrushes.Icon_AutoAdvance)
+			]
+		];
+}
+
 #undef LOCTEXT_NAMESPACE

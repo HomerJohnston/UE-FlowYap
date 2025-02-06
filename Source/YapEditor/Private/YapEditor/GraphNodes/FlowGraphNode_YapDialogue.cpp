@@ -241,7 +241,7 @@ void UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments()
 					else
 					{
 						GetYapDialogueNode()->Modify();
-						Fragment.Bit.SetSafeDialogueAudioAsset(Data.GetAsset());
+						Fragment.ChildSafeBit.SetDialogueAudioAsset(Data.GetAsset());
 						bAssignedChildSafe = true;
 					}
 				}
@@ -254,7 +254,7 @@ void UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments()
 					else
 					{
 						GetYapDialogueNode()->Modify();
-						Fragment.Bit.SetMatureDialogueAudioAsset(Data.GetAsset());
+						Fragment.MatureBit.SetDialogueAudioAsset(Data.GetAsset());
 						bAssignedMature = true;
 					}
 				}	
@@ -318,8 +318,8 @@ void UFlowGraphNode_YapDialogue::AddFragment(int32 InsertionIndex)
 	if (GetYapDialogueNode()->Fragments.IsValidIndex(CopyFragmentIndex))
 	{
 		const FYapFragment& PreviousFragment = GetYapDialogueNode()->GetFragmentByIndex(CopyFragmentIndex);
-		NewFragment.GetBitMutable().SetSpeaker(PreviousFragment.GetBit().GetSpeakerAsset());
-		NewFragment.GetBitMutable().SetMoodTag(PreviousFragment.GetBit().GetMoodTag());
+		NewFragment.SetSpeaker(PreviousFragment.GetSpeakerAsset());
+		NewFragment.SetMoodTag(PreviousFragment.GetMoodTag());
 	}
 
 	GetYapDialogueNode()->Fragments.Insert(NewFragment, InsertionIndex);

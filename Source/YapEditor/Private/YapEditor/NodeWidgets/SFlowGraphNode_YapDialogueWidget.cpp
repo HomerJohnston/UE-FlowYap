@@ -350,7 +350,18 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 	FString ProjectParentTag = UYapProjectSettings::GetDialogueTagsParent().GetTagName().ToString();
 			
 	FString GameplayTagFilter = ProjectParentTag + "." + Path + "." + AssetName;
-
+	
+	TOptional<bool>* SkippableSettingRaw = &GetFlowYapDialogueNodeMutable()->Skippable;
+	const TAttribute<bool> SkippableEvaluatedAttr = TAttribute<bool>::CreateLambda( [this] ()
+	{
+		return GetFlowYapDialogueNode()->GetSkippable();
+	});
+	TOptional<bool>* AutoAdvanceSettingRaw = &GetFlowYapDialogueNodeMutable()->AutoAdvance;
+	const TAttribute<bool> AutoAdvanceEvaluatedAttr = TAttribute<bool>::CreateLambda( [this] ()
+	{
+		return GetFlowYapDialogueNode()->GetAutoAdvance();
+	});
+	
 	TSharedRef<SWidget> Widget = SNew(SBox)
 	.Visibility_Lambda([]() { return GEditor->PlayWorld == nullptr ? EVisibility::Visible : EVisibility::HitTestInvisible; })
 	.MaxDesiredWidth(this, &SFlowGraphNode_YapDialogueWidget::GetMaxTitleWidth)
@@ -419,7 +430,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.WidthOverride(20)
 			.HAlign(HAlign_Center)
 			[
-				MakeProgressionPopupButton<UFlowNode_YapDialogue, &UFlowNode_YapDialogue::GetSkippable, &UFlowNode_YapDialogue::GetAutoAdvance>(&GetFlowYapDialogueNodeMutable()->bSkippable, &GetFlowYapDialogueNodeMutable()->bAutoAdvance, GetFlowYapDialogueNodeMutable())
+				MakeProgressionPopupButton(SkippableSettingRaw, SkippableEvaluatedAttr, AutoAdvanceSettingRaw, AutoAdvanceEvaluatedAttr)
 			]
 		]
 	];

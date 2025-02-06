@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "YapTimeMode.h"
+#include "Yap/Enums/YapTimeMode.h"
 #include "GameplayTagContainer.h"
 #include "YapLog.h"
 #include "Engine/DeveloperSettings.h"
@@ -278,9 +278,9 @@ public:
 	
 	static float GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
 
-	static bool CacheFragmentWordCount() { return !Get().bPreventCachingWordCount; }
+	static bool CacheFragmentWordCountAutomatically() { return !Get().bPreventCachingWordCount; }
 	
-	static bool CacheFragmentAudioLength() { return !Get().bPreventCachingAudioLength; }
+	static bool CacheFragmentAudioLengthAutomatically() { return !Get().bPreventCachingAudioLength; }
 	
 	static float GetDefaultFragmentPaddingTime() { return Get().DefaultFragmentPaddingTime; }
 	

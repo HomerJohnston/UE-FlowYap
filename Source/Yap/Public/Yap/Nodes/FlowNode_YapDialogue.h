@@ -85,11 +85,11 @@ protected:
 
 	/** Controls if dialogue can be interrupted. */
 	UPROPERTY(BlueprintReadOnly)
-	TOptional<bool> bSkippable;
+	TOptional<bool> Skippable;
 
 	/** Controls if dialogue automatically advances (only applicable if it has a time duration set). */
 	UPROPERTY(BlueprintReadOnly)
-	TOptional<bool> bAutoAdvance;
+	TOptional<bool> AutoAdvance;
 
 	/** Tags can be used to interact with this dialogue node during the game. Dialogue nodes can be looked up and/or modified by UYapSubsystem by their tag. */
 	UPROPERTY(BlueprintReadOnly)

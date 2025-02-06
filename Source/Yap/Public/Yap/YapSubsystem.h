@@ -168,7 +168,7 @@ public:
 public:
 	static UYapBroker* GetBroker();
 	
-	static EYapMaturitySetting GetGameMaturitySetting();
+	static EYapMaturitySetting GetCurrentMaturitySetting();
 
 	/**  */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& FragmentTag);
@@ -190,7 +190,7 @@ protected:  // TODO should some of these be public?
 	void OnFinishedBroadcastingPrompts();
 	
 	/**  */
-	void BroadcastDialogueStart(UFlowNode_YapDialogue* DialogueNode, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
+	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
 	/**  */
 	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin

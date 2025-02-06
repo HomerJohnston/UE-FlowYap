@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include "Nodes/FlowNode_YapDialogue.h"
+#include "GameplayTagContainer.h"
 #include "Yap/YapBit.h"
+#include "Yap/Enums/YapTimeMode.h"
 #include "YapBitReplacement.generated.h"
 
 class UObject;
@@ -28,22 +29,22 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapText> MatureTitleText;
+	TOptional<FYapDialogueText> MatureTitleText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapText> SafeTitleText;
+	TOptional<FYapDialogueText> SafeTitleText;
 
 	UPROPERTY(EditAnywhere)
 	bool bOverrideMatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "bOverrideMatureDialogueText", EditConditionHides))
-	FYapText MatureDialogueText;
+	FYapDialogueText MatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapText> SafeDialogueText;
+	TOptional<FYapDialogueText> SafeDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)

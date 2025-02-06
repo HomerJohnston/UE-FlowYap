@@ -8,9 +8,11 @@
 
 #include "YapFragment.generated.h"
 
+class UYapCharacter;
 class UYapCondition;
 class UFlowNode_YapDialogue;
 struct FFlowPin;
+enum class EYapMaturitySetting : uint8;
 
 USTRUCT(NotBlueprintType)
 struct YAP_API FYapFragment
@@ -36,9 +38,20 @@ protected:
 	UPROPERTY(Instanced)
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
-	UPROPERTY(EditAnywhere, meta = (ShowOnlyInnerProperties))
-	FYapBit Bit;
+	/**  */
+	UPROPERTY()
+	TSoftObjectPtr<UYapCharacter> SpeakerAsset;
 
+	/**  */
+	UPROPERTY()
+	TSoftObjectPtr<UYapCharacter> DirectedAtAsset;
+	
+	UPROPERTY()
+	FYapBit MatureBit;
+
+	UPROPERTY()
+	FYapBit ChildSafeBit;
+	
 	/** How many times is this fragment allowed to broadcast? This count persists only within this flow asset's lifespan (resets every Start). */
 	UPROPERTY()
 	int32 ActivationLimit = 0;
@@ -50,11 +63,31 @@ protected:
 	UPROPERTY()
 	float PaddingToNextFragment = -1;
 	
+	/**  */
+	UPROPERTY()
+	TOptional<bool> Skippable;
+	
+	/**  */
+	UPROPERTY()
+	TOptional<bool> AutoAdvance;
+	
+	/** Indicates whether child-safe data is available in this bit or not */
+	UPROPERTY()
+	bool bEnableChildSafe = false;
+	
 	UPROPERTY()
 	bool bShowOnStartPin = false;
 
 	UPROPERTY()
 	bool bShowOnEndPin = false;
+	
+	/**  */
+	UPROPERTY()
+	FGameplayTag MoodTag; // TODO - what about sending multiple mood tags? Or some other way to specify more arbitrary data? UPropertyBag???
+		
+	/**  */
+	UPROPERTY()
+	EYapTimeMode TimeMode;
 	
 	// ==========================================
 	// STATE
@@ -78,8 +111,22 @@ protected:
 	UPROPERTY()
 	FFlowPin EndPin;
 
+	// ASSET LOADING
+protected:
+	TSharedPtr<FStreamableHandle> SpeakerHandle;
+	
+	TSharedPtr<FStreamableHandle> DirectedAtHandle;
+	
 	// ==========================================
 	// API
+public:
+	const UYapCharacter* GetSpeaker(); // Non-const because of async loading handle
+
+	const UYapCharacter* GetDirectedAt(); // Non-const because of async loading handle
+	
+private:
+	const UYapCharacter* GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle);
+
 public:
 	// TODO I don't think fragments should know where their position is!
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
@@ -90,15 +137,30 @@ public:
 
 	bool IsActivationLimitMet() const { if (ActivationLimit <= 0) return false; return (ActivationCount >= ActivationLimit); }
 	
-	const FYapBit& GetBit() const { return Bit; }
+	const FYapBit& GetBit() const;
 
+	const FYapBit& GetBit(EYapMaturitySetting MaturitySetting) const;
+
+	const FYapBit& GetMatureBit() const { return MatureBit; }
+
+	const FYapBit& GetChildSafeBit() const { return ChildSafeBit; }
+
+	FYapBit& GetMatureBitMutable() { return MatureBit; }
+
+	FYapBit& GetChildSafeBitMutable() { return ChildSafeBit; }
+
+	TOptional<float> GetTime() const;
+	
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting) const;
+	
 	float GetPaddingToNextFragment() const;
 
 	void IncrementActivations();
 
 	const FGameplayTag& GetFragmentTag() const { return FragmentTag; } 
 
-	void ReplaceBit(const FYapBitReplacement& ReplacementBit);
+	// TODO - want to design a better system for this.
+	//void ReplaceBit(EYapMaturitySetting MaturitySetting, const FYapBitReplacement& ReplacementBit);
 
 	const FGuid& GetGuid() const { return Guid; }
 
@@ -108,18 +170,47 @@ public:
 
 	const TArray<UYapCondition*>& GetConditions() const { return Conditions; }
 
+	const TSoftObjectPtr<UYapCharacter>& GetSpeakerAsset() const { return SpeakerAsset; }
+	
+	const TSoftObjectPtr<UYapCharacter>& GetDirectedAtAsset() const { return DirectedAtAsset; }
+
 	FFlowPin GetPromptPin() const;
 
 	FFlowPin GetEndPin() const;
 
 	FFlowPin GetStartPin() const;;
 
+	void ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) const;
+	
+	TOptional<bool> GetSkippableSetting() const { return Skippable; }
+	
+	TOptional<bool>& GetSkippableSetting() { return Skippable; }
+	
+	TOptional<bool> GetAutoAdvanceSetting() const { return AutoAdvance; }
+	
+	TOptional<bool>& GetAutoAdvanceSetting() { return AutoAdvance; }
+	
+	/** Gets the evaluated skippable setting to be used for this fragment (incorporating project default settings and fallbacks) */
+	bool GetSkippable(bool Default) const;
+
+	bool GetAutoAdvance(bool Default) const;
+	
+	/** Gets the evaluated time mode to be used for this bit (incorporating project default settings and fallbacks) */
+	EYapTimeMode GetTimeMode() const;
+	
+	EYapTimeMode GetTimeMode(EYapMaturitySetting MaturitySetting) const;
+
+	FGameplayTag GetMoodTag() const { return MoodTag; }
+
+	bool IsTimeModeNone() const;
+
+	bool HasAudio() const;
+
+
 #if WITH_EDITOR
 public:
-	FYapBit& GetBitMutable() { return Bit; }
-	
-	TWeakObjectPtr<UFlowNode_YapDialogue> Owner;
-	
+	FYapBit& GetBitMutable(EYapMaturitySetting MaturitySetting);
+		
 	void SetIndexInDialogue(uint8 NewValue) { IndexInDialogue = NewValue; }
 
 	FDelegateHandle FragmentTagChildrenFilterDelegateHandle;
@@ -132,8 +223,10 @@ public:
 
 	void ResetGUID() { Guid = FGuid::NewGuid(); };
 
+	/*
 	TArray<FFlowPin> GetOutputPins() const;
-
+	*/
+	
 	FName GetPromptPinName() const { return GetPromptPin().PinName; }
 
 	FName GetEndPinName() const { return GetEndPin().PinName; }
@@ -146,7 +239,21 @@ public:
 	
 	void InvalidateFragmentTag(UFlowNode_YapDialogue* OwnerNode);
 
+	void SetMoodTag(const FGameplayTag& NewValue) { MoodTag = NewValue; };
+
+	void SetTimeModeSetting(EYapTimeMode NewValue) { TimeMode = NewValue; }
+	
+	EYapTimeMode GetTimeModeSetting() const { return TimeMode; }
 	// TODO implement this
 	bool GetBitReplaced() const { return false; };
+#endif
+
+	
+	// --------------------------------------------------------------------------------------------
+	// EDITOR API
+#if WITH_EDITOR
+public:
+	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
+	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 #endif
 };
