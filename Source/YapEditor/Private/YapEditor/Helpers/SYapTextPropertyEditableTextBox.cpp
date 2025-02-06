@@ -277,7 +277,6 @@ void SYapTextPropertyEditableStringTableReference::SetTableIdAndKey(const FName 
 		const int32 NumTexts = EditableTextProperty->GetNumTexts();
 		for (int32 TextIndex = 0; TextIndex < NumTexts; ++TextIndex)
 		{
-			FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 			EditableTextProperty->SetText(TextIndex, TextToSet);
 		}
 	}
@@ -1125,7 +1124,6 @@ void SYapTextPropertyEditableTextBox::OnTextCommitted(const FText& NewText, ETex
 			// Is the new text is empty, just use the empty instance
 			if (NewText.IsEmpty())
 			{
-				FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 				EditableTextProperty->SetText(TextIndex, FText::GetEmpty());
 				continue;
 			}
@@ -1133,7 +1131,6 @@ void SYapTextPropertyEditableTextBox::OnTextCommitted(const FText& NewText, ETex
 			// Maintain culture invariance when editing the text
 			if (PropertyValue.IsCultureInvariant())
 			{
-				FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 				EditableTextProperty->SetText(TextIndex, FText::AsCultureInvariant(NewText.ToString()));
 				continue;
 			}
@@ -1171,7 +1168,6 @@ void SYapTextPropertyEditableTextBox::OnTextCommitted(const FText& NewText, ETex
 			}
 #endif	// USE_STABLE_LOCALIZATION_KEYS
 
-			FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 			EditableTextProperty->SetText(TextIndex, FText::ChangeKey(NewNamespace, NewKey, NewText));
 		}
 	}
@@ -1277,7 +1273,6 @@ void SYapTextPropertyEditableTextBox::OnNamespaceCommitted(const FText& NewText,
 			}
 #endif	// USE_STABLE_LOCALIZATION_KEYS
 
-			FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 			EditableTextProperty->SetText(TextIndex, FText::ChangeKey(NewNamespace, NewKey, PropertyValue));
 		}
 	}
@@ -1391,7 +1386,6 @@ void SYapTextPropertyEditableTextBox::OnKeyCommitted(const FText& NewText, EText
 				NewKey
 				);
 
-			FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 			EditableTextProperty->SetText(TextIndex, FText::ChangeKey(NewNamespace, NewKey, PropertyValue));
 		}
 	}
@@ -1468,7 +1462,6 @@ void SYapTextPropertyEditableTextBox::HandleLocalizableCheckStateChanged(ECheckB
 					NewKey
 					);
 
-				FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
 				EditableTextProperty->SetText(TextIndex, FInternationalization::Get().ForUseOnlyByLocMacroAndGraphNodeTextLiterals_CreateText(*PropertyValue.ToString(), *NewNamespace, *NewKey));
 			}
 		}
@@ -1482,8 +1475,6 @@ void SYapTextPropertyEditableTextBox::HandleLocalizableCheckStateChanged(ECheckB
 			// Clear the identity from any non-culture invariant texts
 			if (!PropertyValue.IsCultureInvariant())
 			{
-				FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), Owner.Get());
-				const FString* TextSource = FTextInspector::GetSourceString(PropertyValue);
 				EditableTextProperty->SetText(TextIndex, FText::AsCultureInvariant(PropertyValue.ToString()));
 			}
 		}

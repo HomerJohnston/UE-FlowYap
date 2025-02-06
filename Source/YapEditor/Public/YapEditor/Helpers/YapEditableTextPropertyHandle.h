@@ -61,6 +61,7 @@ public:
 
     virtual void SetText(const int32 InIndex, const FText& InText) override
     {
+    	FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), YapDialogueNode.Get());
         Text = InText;
     }
 
