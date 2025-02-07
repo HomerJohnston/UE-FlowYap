@@ -1,25 +1,25 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
-#include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
+#include "YapEditor/SlateWidgets/SYapActivationCounterWidget.h"
 
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-FText SActivationCounterWidget::NumeratorText() const
+FText SYapActivationCounterWidget::NumeratorText() const
 {
 	int32 Value = ActivationCount.Get();
 	return FText::AsNumber(Value);
 }
 
-FText SActivationCounterWidget::DenominatorText() const
+FText SYapActivationCounterWidget::DenominatorText() const
 {
 	int32 Value = ActivationLimit.Get();
 	return Value > 0 ? FText::AsNumber(Value) : LOCTEXT("InfinitySymbol", "\x221E");
 }
 
-FSlateColor SActivationCounterWidget::NumeratorColor() const
+FSlateColor SYapActivationCounterWidget::NumeratorColor() const
 {
 	int32 ActivationCountVal = ActivationCount.Get();
 
@@ -38,7 +38,7 @@ FSlateColor SActivationCounterWidget::NumeratorColor() const
 	return ActivationCountVal > 0 ? YapColor::LightGray : YapColor::Button_Unset();
 }
 
-FSlateColor SActivationCounterWidget::DenominatorColor() const
+FSlateColor SYapActivationCounterWidget::DenominatorColor() const
 {
 	if (Denominator->HasKeyboardFocus())
 	{
@@ -55,7 +55,7 @@ FSlateColor SActivationCounterWidget::DenominatorColor() const
 	return ActivationLimitVal > 0 ? YapColor::LightGray : YapColor::Button_Unset();
 }
 
-void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted)
+void SYapActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommitted OnTextCommitted)
 {
 	ActivationCount = InArgs._ActivationCount;
 	ActivationLimit = InArgs._ActivationLimit;
@@ -75,9 +75,9 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			.Padding(0, 0, 0, (FontHeight - 10))
 			[
 				SNew(STextBlock)
-				.Visibility(this, &SActivationCounterWidget::Visibility_UpperElements)
-				.Text(this, &SActivationCounterWidget::NumeratorText)
-				.ColorAndOpacity(this, &SActivationCounterWidget::NumeratorColor)
+				.Visibility(this, &SYapActivationCounterWidget::Visibility_UpperElements)
+				.Text(this, &SYapActivationCounterWidget::NumeratorText)
+				.ColorAndOpacity(this, &SYapActivationCounterWidget::NumeratorColor)
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", FontHeight))
 				.Justification(ETextJustify::Center)
 				.ToolTip(nullptr) // Don't show a tooltip, it's distracting
@@ -88,10 +88,10 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			.Padding(4, 0, 4, 0)
 			[
 				SNew(SSeparator)
-				.Visibility(this, &SActivationCounterWidget::Visibility_UpperElements)
+				.Visibility(this, &SYapActivationCounterWidget::Visibility_UpperElements)
 				.Orientation(Orient_Horizontal)
 				.Thickness(1)
-				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
+				.ColorAndOpacity(this, &SYapActivationCounterWidget::DenominatorColor)
 				.SeparatorImage(FAppStyle::GetBrush("WhiteBrush"))
 			]
 			+ SVerticalBox::Slot()
@@ -101,8 +101,8 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 			[
 				// TODO: SEditableText messes up justification on refresh, why??? STextBlock is ok
 				SAssignNew(Denominator, SEditableText)
-				.Text(this, &SActivationCounterWidget::DenominatorText)
-				.ColorAndOpacity(this, &SActivationCounterWidget::DenominatorColor)
+				.Text(this, &SYapActivationCounterWidget::DenominatorText)
+				.ColorAndOpacity(this, &SYapActivationCounterWidget::DenominatorColor)
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", FontHeight))
 				.Justification(ETextJustify::Center)
 				.OnTextCommitted(OnTextCommitted)
@@ -116,7 +116,7 @@ void SActivationCounterWidget::Construct(const FArguments& InArgs, FOnTextCommit
 	];
 }
 
-EVisibility SActivationCounterWidget::Visibility_UpperElements() const
+EVisibility SYapActivationCounterWidget::Visibility_UpperElements() const
 {
 	if (GEditor->PlayWorld)
 	{

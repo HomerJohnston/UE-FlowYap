@@ -10,7 +10,6 @@
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/DetailCustomizations/DetailCustomization_YapProjectSettings.h"
 #include "YapEditor/DetailCustomizations/DetailCustomization_YapCharacter.h"
-#include "YapEditor/NodeWidgets/GameplayTagFilteredStyle.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
@@ -41,9 +40,6 @@ void FYapEditorModule::StartupModule()
 	});
 	
 	StartupModuleBase();
-
-	// TODO fix this retardation into my style proper
-	FGameplayTagFilteredStyle::Initialize();
 
 	// Force the style to load (for some reason stuff is not initalized on the first call to this otherwise???
 	FYapEditorStyle::Get();

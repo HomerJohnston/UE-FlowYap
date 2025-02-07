@@ -6,7 +6,6 @@
 #include "YapLog.h"
 #include "YapText.h"
 #include "Yap/Globals/YapEditorWarning.h"
-#include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "YapBit.generated.h"
 
@@ -101,10 +100,12 @@ public:
 	template<class T>
 	const TSoftObjectPtr<T> GetDialogueAudioAsset_SoftPtr() const { return TSoftObjectPtr<T>(AudioAsset); }
 
+	bool HasAudioAsset() const;
+
 	/** Getter for audio asset. This function will force a sync-load if the audio asset isn't loaded yet! */
 	template<class T>
 	const T* GetAudioAsset() const;
-
+	
 	/** Called by the flow node when it is loaded to async load this bit's audio data. */
 	void AsyncLoadContent(UFlowNode_YapDialogue* OwningContext);
 
@@ -130,7 +131,6 @@ protected:
 	// EDITOR API
 	// --------------------------------------------------------------------------------------------
 public:
-	bool HasAudioAsset() const;
 
 	void SetTitleText(const FText& NewText);
 

@@ -6,9 +6,7 @@
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Engine/GameViewportClient.h"
 #include "PropertyHandle.h"
-#include "DetailWidgetRow.h"
-#include "IPropertyUtilities.h"
-#include "SYapTextPropertyEditableTextBox.h"
+#include "STextPropertyEditableTextBox.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 

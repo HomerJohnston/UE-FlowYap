@@ -10,11 +10,11 @@
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphSettings.h"
 #include "Graph/FlowGraphUtils.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
 #include "YapEditor/YapInputTracker.h"
-#include "YapEditor/YapLogEditor.h"
+#include "YapEditor/YapEditorLog.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/Globals/YapFileUtilities.h"
 #include "YapEditor/YapTransactions.h"
@@ -24,10 +24,10 @@
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/Globals/YapTagHelpers.h"
 #include "YapEditor/Helpers/ProgressionSettingWidget.h"
-#include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
-#include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
-#include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
-#include "YapEditor/NodeWidgets/SYapGraphPinExec.h"
+#include "YapEditor/SlateWidgets/SYapActivationCounterWidget.h"
+#include "YapEditor/SlateWidgets/SYapConditionDetailsViewWidget.h"
+#include "YapEditor/SlateWidgets/SYapConditionsScrollBox.h"
+#include "YapEditor/SlateWidgets/SYapGraphPinExec.h"
 #include "YapEditor/SlateWidgets/SYapGameplayTagTypedPicker.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
@@ -377,7 +377,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.UseLowDetailSlot(this, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
 			.HighDetail()
 			[
-				SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit))
+				SNew(SYapActivationCounterWidget, FOnTextCommitted::CreateSP(this, &SFlowGraphNode_YapDialogueWidget::OnTextCommitted_DialogueActivationLimit))
 				.ActivationCount(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationCount)
 				.ActivationLimit(this, &SFlowGraphNode_YapDialogueWidget::GetDialogueActivationLimit)
 				.FontHeight(10)

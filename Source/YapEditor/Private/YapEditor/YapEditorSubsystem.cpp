@@ -6,7 +6,7 @@
 #include "GameplayTagsEditorModule.h"
 #include "GameplayTagsManager.h"
 #include "ILiveCodingModule.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "UnrealEdGlobals.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Yap/YapCharacter.h"

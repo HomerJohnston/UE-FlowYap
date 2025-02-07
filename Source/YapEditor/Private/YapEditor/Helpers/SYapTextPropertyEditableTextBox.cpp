@@ -1,13 +1,12 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "YapEditor/Helpers/SYapTextPropertyEditableTextBox.h"
+#include "YapEditor/SlateWidgets/SYapTextPropertyEditableTextBox.h"
 #include "AssetRegistry/AssetData.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SGridPanel.h"
-#include "Widgets/Layout/SUniformGridPanel.h"
 #include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"

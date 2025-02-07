@@ -3,7 +3,7 @@
 
 #include "YapEditor/GraphNodes/FlowGraphNode_YapBase.h"
 
-#include "YapEditor/YapLogEditor.h"
+#include "YapEditor/YapEditorLog.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 

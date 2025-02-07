@@ -4,7 +4,7 @@
 #pragma once
 
 #define LOCTEXT_NAMESPACE "YapEditor"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 
 DECLARE_DELEGATE(FOnOpened)
 DECLARE_DELEGATE_RetVal(TSharedRef<SWidget>, FPopupContentGetter)

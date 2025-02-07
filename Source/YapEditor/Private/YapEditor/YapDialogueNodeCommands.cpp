@@ -5,7 +5,7 @@
 
 #include "Graph/FlowGraphEditor.h"
 #include "Graph/FlowGraphUtils.h"
-#include "YapEditor/YapLogEditor.h"
+#include "YapEditor/YapEditorLog.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"

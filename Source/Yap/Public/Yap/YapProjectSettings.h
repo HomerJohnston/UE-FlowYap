@@ -7,7 +7,6 @@
 #include "GameplayTagContainer.h"
 #include "YapLog.h"
 #include "Engine/DeveloperSettings.h"
-#include "Enums/YapDialogueProgressionFlags.h"
 #include "Yap/YapBroker.h"
 #include "YapProjectSettings.generated.h"
 

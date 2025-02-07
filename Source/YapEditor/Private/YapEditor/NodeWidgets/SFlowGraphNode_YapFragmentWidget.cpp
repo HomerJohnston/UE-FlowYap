@@ -11,7 +11,7 @@
 #include "Widgets/Input/SNumericEntryBox.h"
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/YapCharacter.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapProjectSettings.h"
@@ -23,19 +23,19 @@
 #include "YapEditor/NodeWidgets/SFlowGraphNode_YapDialogueWidget.h"
 #include "Yap/YapBitReplacement.h"
 #include "YapEditor/YapInputTracker.h"
-#include "YapEditor/Helpers/SYapTextPropertyEditableTextBox.h"
+#include "YapEditor/SlateWidgets/SYapTextPropertyEditableTextBox.h"
 #include "YapEditor/Helpers/YapEditableTextPropertyHandle.h"
-#include "YapEditor/NodeWidgets/SActivationCounterWidget.h"
-#include "YapEditor/NodeWidgets/SYapConditionsScrollBox.h"
-#include "YapEditor/NodeWidgets/SYapButtonPopup.h"
-#include "YapEditor/Testing/SYapPropertyMenuAssetPicker.h"
+#include "YapEditor/SlateWidgets/SYapActivationCounterWidget.h"
+#include "YapEditor/SlateWidgets/SYapConditionsScrollBox.h"
+#include "YapEditor/SlateWidgets/SYapButtonPopup.h"
+#include "YapEditor/SlateWidgets/SYapPropertyMenuAssetPicker.h"
 #include "Templates/FunctionFwd.h"
 #include "Yap/YapSubsystem.h"
 #include "Yap/Enums/YapErrorLevel.h"
 #include "YapEditor/YapDeveloperSettings.h"
 #include "Framework/MultiBox/SToolBarButtonBlock.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
-#include "YapEditor/YapLogEditor.h"
+#include "YapEditor/YapEditorLog.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
 #include "YapEditor/Helpers/ProgressionSettingWidget.h"
@@ -437,7 +437,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 			SNew(SBox)
 			.WidthOverride(20)
 			[
-				SNew(SActivationCounterWidget, FOnTextCommitted::CreateSP(this, &ThisClass::OnTextCommitted_FragmentActivationLimit))
+				SNew(SYapActivationCounterWidget, FOnTextCommitted::CreateSP(this, &ThisClass::OnTextCommitted_FragmentActivationLimit))
 				.ActivationCount(this, &ThisClass::GetFragmentActivationCount)
 				.ActivationLimit(this, &ThisClass::GetFragmentActivationLimit)
 				.FontHeight(10)

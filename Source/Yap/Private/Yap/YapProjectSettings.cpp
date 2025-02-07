@@ -6,7 +6,6 @@
 #if WITH_EDITOR
 #include "GameplayTagsManager.h"
 #endif
-#include "Yap/Enums/YapDialogueProgressionFlags.h"
 #include "Yap/Enums/YapMissingAudioErrorLevel.h"
 #include "Yap/Globals/YapFileUtilities.h"
 

@@ -10,6 +10,7 @@ class UFont;
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
+/** Per user settings for Yap, mostly graph appearance settings. */
 UCLASS(Config = "EditorPerProjectUserSettings")
 class UYapDeveloperSettings : public UDeveloperSettings
 {

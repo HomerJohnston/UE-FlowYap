@@ -11,7 +11,7 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-// TODO: update this to new asset definitions system, conditional compilation for 5.5+
+// TODO: update this to new asset definitions system, use conditional compilation for 5.5+
 UCLASS()
 class UAssetFactory_YapCharacter : public UFactory
 {

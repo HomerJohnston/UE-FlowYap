@@ -1,9 +1,9 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
-#include "YapEditor/NodeWidgets/SYapButtonPopup.h"
+#include "YapEditor/SlateWidgets/SYapButtonPopup.h"
 
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"

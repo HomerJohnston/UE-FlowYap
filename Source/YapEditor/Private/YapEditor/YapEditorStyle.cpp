@@ -11,7 +11,7 @@
 #include "Styling/SlateStyleMacros.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Yap/Globals/YapFileUtilities.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapDeveloperSettings.h"
 #include "YapEditor/YapEditorEvents.h"
 

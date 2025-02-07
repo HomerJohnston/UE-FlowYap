@@ -7,7 +7,7 @@
 #include "Engine/Canvas.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "Yap"

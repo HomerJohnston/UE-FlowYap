@@ -1,15 +1,14 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
-#include "YapEditor/NodeWidgets/SYapConditionDetailsViewWidget.h"
+#include "YapEditor/SlateWidgets/SYapConditionDetailsViewWidget.h"
 
 #include "PropertyCustomizationHelpers.h"
 #include "YapEditor/YapDeveloperSettings.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "YapEditor/YapEditorSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 

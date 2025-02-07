@@ -8,7 +8,7 @@
 #include "DetailWidgetRow.h"
 #include "Yap/YapCharacter.h"
 #include "Yap/YapProjectSettings.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapTransactions.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"

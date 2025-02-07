@@ -5,7 +5,7 @@
 
 #include "Yap/YapFragment.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "YapEditor/NodeWidgets/SYapButtonPopup.h"
+#include "YapEditor/SlateWidgets/SYapButtonPopup.h"
 #include "YapEditor/YapEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "YapEditor"

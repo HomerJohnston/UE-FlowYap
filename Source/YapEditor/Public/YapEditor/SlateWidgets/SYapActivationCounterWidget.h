@@ -7,10 +7,10 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
-class SActivationCounterWidget : public SCompoundWidget
+class SYapActivationCounterWidget : public SCompoundWidget
 {
 public:
-	SLATE_USER_ARGS( SActivationCounterWidget )
+	SLATE_USER_ARGS( SYapActivationCounterWidget )
 		: _FontHeight(8) {}
 
 	SLATE_ATTRIBUTE(int32, ActivationCount)

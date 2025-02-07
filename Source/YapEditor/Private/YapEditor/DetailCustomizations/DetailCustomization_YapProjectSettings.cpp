@@ -11,7 +11,7 @@
 #include "YapEditor/YapTransactions.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/Globals/YapFileUtilities.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"

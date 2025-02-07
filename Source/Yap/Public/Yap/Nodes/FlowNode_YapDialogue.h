@@ -5,7 +5,6 @@
 
 #include "Nodes/FlowNode.h"
 #include "Yap/YapFragment.h"
-#include "Yap/Enums/YapDialogueProgressionFlags.h"
 
 #include "FlowNode_YapDialogue.generated.h"
 

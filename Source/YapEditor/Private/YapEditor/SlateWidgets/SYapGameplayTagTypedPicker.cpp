@@ -7,7 +7,7 @@
 #include "Yap/YapLog.h"
 #include "Yap/Globals/YapEditorWarning.h"
 #include "Yap/Globals/YapFileUtilities.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapEditorEvents.h"
 #include "YapEditor/YapEditorStyle.h"
 #include "YapEditor/YapEditorSubsystem.h"

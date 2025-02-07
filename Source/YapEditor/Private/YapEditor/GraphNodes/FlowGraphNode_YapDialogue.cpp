@@ -10,7 +10,7 @@
 #include "UObject/ObjectSaveContext.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
-#include "YapEditor/YapColors.h"
+#include "YapEditor/YapEditorColor.h"
 #include "YapEditor/YapDialogueNodeCommands.h"
 #include "YapEditor/YapEditorEventBus.h"
 #include "YapEditor/YapEditorEvents.h"
