@@ -29,22 +29,22 @@ struct FYapBitReplacement
 
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapDialogueText> MatureTitleText;
+	TOptional<FYapText> MatureTitleText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapDialogueText> SafeTitleText;
+	TOptional<FYapText> SafeTitleText;
 
 	UPROPERTY(EditAnywhere)
 	bool bOverrideMatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "bOverrideMatureDialogueText", EditConditionHides))
-	FYapDialogueText MatureDialogueText;
+	FYapText MatureDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)
-	TOptional<FYapDialogueText> SafeDialogueText;
+	TOptional<FYapText> SafeDialogueText;
 	
 	/**  */
 	UPROPERTY(EditAnywhere)

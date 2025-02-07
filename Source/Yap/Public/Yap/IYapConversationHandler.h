@@ -52,7 +52,7 @@ struct FYapData_OnDialogueNodeEntered
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
-	const UFlowNode_YapDialogue* DialogueNode;
+	TObjectPtr<const UFlowNode_YapDialogue> DialogueNode;
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
@@ -67,7 +67,7 @@ struct FYapData_OnDialogueNodeExited
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
-	const UFlowNode_YapDialogue* DialogueNode;
+	TObjectPtr<const UFlowNode_YapDialogue> DialogueNode = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
@@ -82,7 +82,7 @@ struct FYapData_OnDialogueNodeBypassed
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadOnly)
-	const UFlowNode_YapDialogue* DialogueNode;
+	TObjectPtr<const UFlowNode_YapDialogue> DialogueNode = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag DialogueTag;
@@ -106,7 +106,7 @@ struct FYapData_OnSpeakingBegins
 
 	/** Who is being speaked towards. */
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<const UYapCharacter> DirectedAt;
+	TObjectPtr<const UYapCharacter> DirectedAt = nullptr;
 
 	/** Who is speaking. */
 	UPROPERTY(BlueprintReadOnly)
@@ -167,7 +167,8 @@ struct FYapData_OnPaddingTimeOver
 	FGameplayTag Conversation;
 	
 	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
-	UPROPERTY(BlueprintReadOnly)FYapDialogueHandle DialogueHandle;
+	UPROPERTY(BlueprintReadOnly)
+	FYapDialogueHandle DialogueHandle;
 };
 
 // ------------------------------------------------------------------------------------------------

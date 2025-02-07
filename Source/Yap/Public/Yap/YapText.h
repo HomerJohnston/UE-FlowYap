@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "YapDialogueText.generated.h"
+#include "YapText.generated.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
 USTRUCT(BlueprintType)
-struct YAP_API FYapDialogueText
+struct YAP_API FYapText
 {
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapFragmentWidget;
@@ -48,7 +48,7 @@ public:
 	void Clear();
 #endif
 
-	void operator=(const FYapDialogueText& Other)
+	void operator=(const FYapText& Other)
 	{
 		Text = Other.Text;
 		WordCount = Other.WordCount;

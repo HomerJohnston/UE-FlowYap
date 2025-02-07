@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="glyphicons-basic"
+   viewBox="0 0 32 32"
+   version="1.1"
+   sodipodi:docname="Icon_Lock.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="20.925941"
+     inkscape:cx="36.342451"
+     inkscape:cy="32.591126"
+     inkscape:window-width="5120"
+     inkscape:window-height="2089"
+     inkscape:window-x="1192"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="glyphicons-basic" />
+  <path
+     id="lock"
+     d="M 28.000001,10.666667 H 26.666667 V 6.6666664 A 6.6745067,6.6745067 0 0 0 20,-3.518251e-7 H 12 A 6.6745067,6.6745067 0 0 0 5.333333,6.6666664 V 10.666667 H 3.9999998 A 2.6745468,2.6745468 0 0 0 1.333333,13.333333 V 29.333334 A 2.6745468,2.6745468 0 0 0 3.9999998,32 H 28.000001 a 2.6745468,2.6745468 0 0 0 2.666666,-2.666666 V 13.333333 A 2.6745468,2.6745468 0 0 0 28.000001,10.666667 Z M 17.333333,22.296799 V 26 a 0.66666667,0.66666667 0 0 1 -0.666666,0.666667 H 15.333333 A 0.66666667,0.66666667 0 0 1 14.666666,26 v -3.703201 a 2.6666667,2.6666667 0 1 1 2.666667,0 z M 21.333332,10.666667 H 10.666667 V 6.6666664 A 1.3513067,1.3513067 0 0 1 12,5.3333331 h 8 a 1.3513067,1.3513067 0 0 1 1.333332,1.3333333 z"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:1.33334" />
+</svg>

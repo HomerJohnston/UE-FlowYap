@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "YapDialogueText.h"
 #include "YapLog.h"
+#include "YapText.h"
 #include "Yap/Globals/YapEditorWarning.h"
 #include "Yap/Enums/YapDialogueProgressionFlags.h"
 
@@ -34,11 +34,11 @@ protected:
 	
 	/** Actual text to be spoken/displayed. */
 	UPROPERTY()
-	FYapDialogueText DialogueText;
+	FYapText DialogueText;
 
 	/** Optional title text, this is typically used by player prompts to show different text that the player will select. You can enable it to be included on all Talk nodes in project settings. */
 	UPROPERTY()
-	FText TitleText;
+	FYapText TitleText;
 	
 	/** Speech audio. Any asset. Filter the allowable asset type(s) using project settings. */
 	UPROPERTY()
@@ -49,6 +49,10 @@ protected:
 	float ManualTime = 0;
 
 #if WITH_EDITORONLY_DATA
+	/** Whether the dialogue data of this bit can be edited. Dialogue should be locked after exporting a .PO file for translators to make it harder to accidentally edit source text. */
+	UPROPERTY()
+	bool bLocked = false;
+	
 	/** Optional field to type in extra localization comments. For .PO export these will be prepended with a #. symbol.*/
 	UPROPERTY()
 	FString DialogueLocalizationComments;
@@ -91,7 +95,7 @@ public:
 	/** Getter for title text. */
 	const FText& GetTitleText() const;
 
-	bool HasTitleText() const { return !TitleText.IsEmpty(); }
+	bool HasTitleText() const { return !TitleText.Get().IsEmpty(); }
 
 	/** Getter for audio asset, raw access to the soft pointer. */
 	template<class T>

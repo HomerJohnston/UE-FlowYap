@@ -714,6 +714,7 @@ void SYapTextPropertyEditableTextBox::Construct(const FArguments& InArgs, const 
 					.OnTextCommitted(this, &SYapTextPropertyEditableTextBox::OnTextCommitted)
 					.SelectAllTextOnCommit(false)
 					.IsReadOnly(this, &SYapTextPropertyEditableTextBox::IsSourceTextReadOnly)
+					.IsEnabled_Lambda( [this] () { return !IsSourceTextReadOnly(); } )
 					.AutoWrapText(InArgs._AutoWrapText)
 					.WrapTextAt(InArgs._WrapTextAt)
 					.ModiferKeyForNewLine(EModifierKey::Shift)

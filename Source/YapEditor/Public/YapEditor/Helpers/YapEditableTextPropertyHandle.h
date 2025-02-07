@@ -16,7 +16,7 @@
 class FYapEditableTextPropertyHandle : public IEditableTextProperty
 {
 public:
-    FYapEditableTextPropertyHandle(FText& InText, UObject* InYapDialogueNode)
+    FYapEditableTextPropertyHandle(FYapText& InText, UObject* InYapDialogueNode)
         : Text(InText)
 		, YapDialogueNode(InYapDialogueNode)
     {
@@ -41,12 +41,12 @@ public:
 
     virtual bool IsDefaultValue() const override
     {
-        return Text.IsEmpty();
+        return Text.Get().IsEmpty();
     }
 
     virtual FText GetToolTipText() const override
     {
-        return Text; // TODO
+        return Text.Get(); // TODO
     }
 
     virtual int32 GetNumTexts() const override
@@ -56,7 +56,7 @@ public:
 
     virtual FText GetText(const int32 InIndex) const override
     {
-        return Text;
+        return Text.Get();
     }
 
     virtual void SetText(const int32 InIndex, const FText& InText) override
@@ -113,7 +113,7 @@ public:
 #endif // USE_STABLE_LOCALIZATION_KEYS
 
 private:
-    FText& Text;
+    FYapText& Text;
 
 	TWeakObjectPtr<UObject> YapDialogueNode;
 	

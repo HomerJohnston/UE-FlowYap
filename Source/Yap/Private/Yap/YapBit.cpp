@@ -24,7 +24,7 @@ const FText& FYapBit::GetDialogueText() const
 
 const FText& FYapBit::GetTitleText() const
 {
-	return TitleText;
+	return TitleText.Get();
 }
 
 // --------------------------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
-#include "Yap/YapDialogueText.h"
+#include "Yap/YapText.h"
 
 #include "Yap/YapProjectSettings.h"
 
 #if WITH_EDITOR
-void FYapDialogueText::Set(const FText& InText)
+void FYapText::Set(const FText& InText)
 {
 	Text = InText;
 
@@ -19,7 +19,7 @@ void FYapDialogueText::Set(const FText& InText)
 #endif
 
 #if WITH_EDITOR
-void FYapDialogueText::UpdateInternalWordCount()
+void FYapText::UpdateInternalWordCount()
 {
 	int32 NewWordCount = -1;
 
@@ -44,7 +44,7 @@ void FYapDialogueText::UpdateInternalWordCount()
 	WordCount = NewWordCount;
 }
 
-void FYapDialogueText::Clear()
+void FYapText::Clear()
 {
 	Text = FText::GetEmpty();
 	WordCount = 0;

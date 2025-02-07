@@ -146,9 +146,9 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 	{
 		{ EYapTimeMode::None, YapColor::OrangeRed },
 		{ EYapTimeMode::Default, YapColor::Green },
-		{ EYapTimeMode::AudioTime, YapColor::LightBlue },
-		{ EYapTimeMode::TextTime, YapColor::LightYellow },
-		{ EYapTimeMode::ManualTime, YapColor::LightRed },
+		{ EYapTimeMode::AudioTime, YapColor::Blue },
+		{ EYapTimeMode::TextTime, YapColor::Yellow },
+		{ EYapTimeMode::ManualTime, YapColor::Red },
 	};
 
 	const FSlateFontInfo& DialogueFont = UYapDeveloperSettings::GetGraphDialogueFont();
@@ -1578,8 +1578,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditors_Expan
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_SingleSide(const FText& Title, const FText& DialogueTextHint, const FText& TitleTextHint, float Width, FMargin Padding, FYapBit& Bit)
 {
-	FText& DialogueText = Bit.DialogueText.Text;
-	FText& TitleText = Bit.TitleText;
+	FYapText& DialogueText = Bit.DialogueText;
+	FYapText& TitleText = Bit.TitleText;
 		
 	TSoftObjectPtr<UObject>& AudioAsset = Bit.AudioAsset;
 	FString& StageDirections = Bit.StageDirections;
@@ -1587,9 +1587,15 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 	FString& DialogueLocalizationComments = Bit.DialogueLocalizationComments;
 	FString& TitleTextLocalizationComments = Bit.TitleTextLocalizationComments;
 
-	TSharedRef<IEditableTextProperty> SafeDialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText, GetDialogueNode()));
-	TSharedRef<IEditableTextProperty> SafeTitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText, GetDialogueNode()));
+	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText, GetDialogueNode()));
+	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText, GetDialogueNode()));
 
+	auto DialogueCommentAttribute = TAttribute<FString>::CreateLambda( [DialogueLocalizationComments] () { return *DialogueLocalizationComments; });
+	FText DialogueCommentText = LOCTEXT("POComment_HintText", "Comments for translators...");
+	
+	auto TitleTextCommentAttribute = TAttribute<FString>::CreateLambda( [TitleTextLocalizationComments] () { return *TitleTextLocalizationComments; });
+	FText TitleTextCommentText = LOCTEXT("POComment_HintText", "Comments for translators...");
+	
 	auto StageDirectionsAttribute = TAttribute<FString>::CreateLambda( [StageDirections] () { return *StageDirections; });
 	FText StageDirectionsText = LOCTEXT("StageDirections_HintText", "Stage directions...");
 	
@@ -1614,7 +1620,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 			.HeightOverride(66) // Fits ~4 lines of text
 			.VAlign(VAlign_Fill)
 			[
-				SNew(SYapTextPropertyEditableTextBox, SafeDialogueTextProperty)
+				SNew(SYapTextPropertyEditableTextBox, DialogueTextProperty)
 				.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_Dialogue)
 				.Owner(GetDialogueNode())
 				.HintText(DialogueTextHint)
@@ -1632,7 +1638,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 			.Visibility(EVisibility::Visible) // TODO project settings to disable localization metadata
 			.Padding(0, 0, 28, 0)
 			[
-				BuildLocalizationCommentEditors(&DialogueLocalizationComments)
+					BuildCommentEditor(DialogueCommentAttribute, &DialogueLocalizationComments, LOCTEXT("POComment_HintText", "Comments for translators..."))
 			]
 		]
 		+ SVerticalBox::Slot()
@@ -1643,7 +1649,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 			.Visibility(GetDialogueNode()->UsesTitleText() ? EVisibility::Visible : EVisibility::Collapsed)
 			+ SVerticalBox::Slot()
 			[
-				SNew(SYapTextPropertyEditableTextBox, SafeTitleTextProperty)
+				SNew(SYapTextPropertyEditableTextBox, TitleTextProperty)
 				.Style(FYapEditorStyle::Get(), YapStyles.EditableTextBoxStyle_TitleText)
 				.Owner(GetDialogueNode())
 				.HintText(TitleTextHint)
@@ -1658,7 +1664,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 				.Visibility(EVisibility::Visible) // TODO project settings to disable localization metadata
 				.Padding(0, 0, 28, 0)
 				[
-					BuildLocalizationCommentEditors(&TitleTextLocalizationComments)
+					BuildCommentEditor(TitleTextCommentAttribute, &TitleTextLocalizationComments, LOCTEXT("POComment_HintText", "Comments for translators..."))
 				]
 			]
 		]
@@ -1705,20 +1711,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 				]
 			]
 		]
-	];
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildLocalizationCommentEditors(FString* CommentString)
-{
-	auto CommentAttribute = TAttribute<FString>::CreateLambda( [CommentString] () { return *CommentString; });
-	FText CommentText = LOCTEXT("POComment_HintText", "Comments for translators...");
-	
-	return SNew(SVerticalBox)
-	+ SVerticalBox::Slot()
-	.AutoHeight()
-	.Padding(0, 2, 0, 0)
-	[
-		BuildCommentEditor(CommentAttribute, CommentString, CommentText)
 	];
 }
 
@@ -2529,7 +2521,7 @@ FText SFlowGraphNode_YapFragmentWidget::Text_EditedText(FText* Text) const
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const
 {
 	// TODO Label is not currently used, remove it eventually or put it back
-	
+
 	const FText Unset = LOCTEXT("NoTextWarning_ToolTip", "\u26A0 No text \u26A0");// 26A0 Warning sign
 	
 	if (NeedsChildSafeData())
@@ -2652,7 +2644,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ButtonColorAndOpacity_PaddingButto
 {
 	if (GetFragment().PaddingToNextFragment < 0)
 	{
-		return YapColor::LightGreen;
+		return YapColor::Green;
 	}
 	
 	return YapColor::DarkGray;
