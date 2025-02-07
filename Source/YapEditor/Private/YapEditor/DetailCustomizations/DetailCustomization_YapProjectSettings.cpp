@@ -66,12 +66,15 @@ const FSlateBrush* FDetailCustomization_YapProjectSettings::TODOBorderImage() co
 
 void CustomSortYapProjectSettingsCategories(const TMap<FName, IDetailCategoryBuilder*>&  AllCategoryMap )
 {
-	(*AllCategoryMap.Find(FName("Core")))->SetSortOrder(0);
-	(*AllCategoryMap.Find(FName("Mood Tags")))->SetSortOrder(1);
-	(*AllCategoryMap.Find(FName("Dialogue Tags")))->SetSortOrder(2);
-	(*AllCategoryMap.Find(FName("Dialogue Playback")))->SetSortOrder(3);
-	(*AllCategoryMap.Find(FName("Editor")))->SetSortOrder(4);
-	(*AllCategoryMap.Find(FName("Flow Graph Appearance")))->SetSortOrder(5);
+	int i = 0;
+	(*AllCategoryMap.Find(FName("Core")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Mood Tags")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Dialogue Tags")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Dialogue Playback")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Editor")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Audio")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Flow Graph Appearance")))->SetSortOrder(i++);
+	(*AllCategoryMap.Find(FName("Error Handling")))->SetSortOrder(i++);
 }
 
 void FDetailCustomization_YapProjectSettings::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)

@@ -144,11 +144,11 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 
 	TimeModeButtonColors =
 	{
-		{ EYapTimeMode::None, YapColor::OrangeRed },
+		{ EYapTimeMode::None, YapColor::Red },
 		{ EYapTimeMode::Default, YapColor::Green },
-		{ EYapTimeMode::AudioTime, YapColor::Blue },
-		{ EYapTimeMode::TextTime, YapColor::Yellow },
-		{ EYapTimeMode::ManualTime, YapColor::Red },
+		{ EYapTimeMode::AudioTime, YapColor::Cyan },
+		{ EYapTimeMode::TextTime, YapColor::LightBlue },
+		{ EYapTimeMode::ManualTime, YapColor::Orange },
 	};
 
 	const FSlateFontInfo& DialogueFont = UYapDeveloperSettings::GetGraphDialogueFont();
@@ -1587,8 +1587,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 	FString& DialogueLocalizationComments = Bit.DialogueLocalizationComments;
 	FString& TitleTextLocalizationComments = Bit.TitleTextLocalizationComments;
 
-	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText, GetDialogueNode()));
-	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText, GetDialogueNode()));
+	TSharedRef<IEditableTextProperty> DialogueTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(DialogueText, Owner->GetFlowGraphNode_YapDialogueMutable()));
+	TSharedRef<IEditableTextProperty> TitleTextProperty = MakeShareable(new FYapEditableTextPropertyHandle(TitleText, Owner->GetFlowGraphNode_YapDialogueMutable()));
 
 	auto DialogueCommentAttribute = TAttribute<FString>::CreateLambda( [DialogueLocalizationComments] () { return *DialogueLocalizationComments; });
 	FText DialogueCommentText = LOCTEXT("POComment_HintText", "Comments for translators...");

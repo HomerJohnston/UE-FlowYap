@@ -8,115 +8,46 @@
 #include "PropertyHandle.h"
 #include "STextPropertyEditableTextBox.h"
 
+struct FYapText;
+class UFlowGraphNode;
+
 #define LOCTEXT_NAMESPACE "YapEditor"
 
 /** Allows STextPropertyEditableTextBox to edit a property handle */
 class FYapEditableTextPropertyHandle : public IEditableTextProperty
 {
+private:
+	/** The actual text being edited */
+	FYapText& Text;
+
+	/** Graph node. Used to find the dialogue node as well as the flow asset. */
+	UFlowGraphNode* FlowGraphNode_YapDialogue;
+
 public:
-    FYapEditableTextPropertyHandle(FYapText& InText, UObject* InYapDialogueNode)
-        : Text(InText)
-		, YapDialogueNode(InYapDialogueNode)
-    {
-        static const FName NAME_MaxLength = "MaxLength";
-    }
+    FYapEditableTextPropertyHandle(FYapText& InText, UFlowGraphNode* InYapDialogueNode);
 
-    virtual bool IsMultiLineText() const override
-    {
-        return true; // TODO make this a project setting???
-    }
+    bool IsMultiLineText() const override;
 
-    virtual bool IsPassword() const override
-    {
-        return false;
-    }
+    bool IsPassword() const override;
 
-    virtual bool IsReadOnly() const override
-    {
-        return false; // TODO make dialogue elements lockable?
-        //return !PropertyHandle->IsValidHandle() || PropertyHandle->IsEditConst();
-    }
+    bool IsReadOnly() const override;
 
-    virtual bool IsDefaultValue() const override
-    {
-        return Text.Get().IsEmpty();
-    }
+    bool IsDefaultValue() const override;
 
-    virtual FText GetToolTipText() const override
-    {
-        return Text.Get(); // TODO
-    }
+    FText GetToolTipText() const override;
 
-    virtual int32 GetNumTexts() const override
-    {
-        return 1;
-    }
+    int32 GetNumTexts() const override;
 
-    virtual FText GetText(const int32 InIndex) const override
-    {
-        return Text.Get();
-    }
+    FText GetText(const int32 InIndex) const override;
 
-    virtual void SetText(const int32 InIndex, const FText& InText) override
-    {
-    	FYapScopedTransaction Transaction("TODO", LOCTEXT("EditTextProperties", "Edit Text Properties"), YapDialogueNode.Get());
-        Text = InText;
-    }
+    void SetText(const int32 InIndex, const FText& InText) override;
 
-    virtual bool IsValidText(const FText& InText, FText& OutErrorMsg) const override
-    {
-        return true;
-    }
+    bool IsValidText(const FText& InText, FText& OutErrorMsg) const override;
 
 #if USE_STABLE_LOCALIZATION_KEYS
-    virtual void GetStableTextId(const int32 InIndex, const ETextPropertyEditAction InEditAction, const FString& InTextSource, const FString& InProposedNamespace, const FString& InProposedKey, FString& OutStableNamespace, FString& OutStableKey) const override
-    {
-    	check(InIndex == 0);
-    	StaticStableTextId(YapDialogueNode.Get(), InEditAction, InTextSource, InProposedNamespace, InProposedKey, OutStableNamespace, OutStableKey);
-        /*
-        if (PropertyHandle->IsValidHandle())
-        {
-            static const FName NAME_UniqueIdWhenEditedOnDefault  = "UniqueIdWhenEditedOnDefault";
-            static const FName NAME_UniqueIdWhenEditedOnInstance = "UniqueIdWhenEditedOnInstance";
-
-            UPackage* PropertyPackage = nullptr;
-            bool bForceUniqueId = false;
-
-            // We can't query if this property handle is under an object or an external struct, so try and get the objects first before falling back to using the packages
-            // Note: We want to use the object where possible so that we can tell if we're editing a CDO/archetype or an instance
-            {
-                TArray<UObject*> PropertyObjects;
-                PropertyHandle->GetOuterObjects(PropertyObjects);
-
-                if (PropertyObjects.IsValidIndex(InIndex))
-                {
-                    PropertyPackage = PropertyObjects[InIndex]->GetPackage();
-                    bForceUniqueId = PropertyHandle->HasMetaData(PropertyObjects[InIndex]->HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject) ? NAME_UniqueIdWhenEditedOnDefault : NAME_UniqueIdWhenEditedOnInstance);
-                }
-            }
-            if (!PropertyPackage || PropertyPackage == GetTransientPackage())
-            {
-                TArray<UPackage*> PropertyPackages;
-                PropertyHandle->GetOuterPackages(PropertyPackages);
-
-                check(PropertyPackages.IsValidIndex(InIndex));
-                PropertyPackage = PropertyPackages[InIndex];
-            }
-
-            ensureAlwaysMsgf(PropertyPackage, TEXT("A package must be available for key stabilization to work correctly. Did you forget to set the package on a FStructOnScope?"));
-            StaticStableTextId(PropertyPackage, InEditAction, InTextSource, InProposedNamespace, bForceUniqueId ? FString() : InProposedKey, OutStableNamespace, OutStableKey);
-        }
-        */
-    }
+    void GetStableTextId(const int32 InIndex, const ETextPropertyEditAction InEditAction, const FString& InTextSource, const FString& InProposedNamespace, const FString& InProposedKey, FString& OutStableNamespace, FString& OutStableKey) const override;
 #endif // USE_STABLE_LOCALIZATION_KEYS
 
-private:
-    FYapText& Text;
-
-	TWeakObjectPtr<UObject> YapDialogueNode;
-	
-    /** The maximum length of the value that can be edited, or <=0 for unlimited */
-    int32 MaxLength = 0;
 };
 
 #undef LOCTEXT_NAMESPACE

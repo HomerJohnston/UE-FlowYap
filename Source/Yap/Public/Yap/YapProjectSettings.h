@@ -3,17 +3,17 @@
 
 #pragma once
 
-#include "Yap/Enums/YapTimeMode.h"
-#include "GameplayTagContainer.h"
-#include "YapLog.h"
 #include "Engine/DeveloperSettings.h"
+#include "GameplayTagContainer.h"
+#include "Yap/Enums/YapTimeMode.h"
 #include "Yap/YapBroker.h"
+#include "YapLog.h"
+
 #include "YapProjectSettings.generated.h"
 
-enum class EYapDialogueProgressionFlags : uint8;
 class UYapBroker;
+enum class EYapDialogueProgressionFlags : uint8;
 enum class EYapMaturitySetting : uint8;
-class UYapConversationHandler;
 enum class EYapMissingAudioErrorLevel : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -23,9 +23,6 @@ enum class EYap_TagFilter : uint8
 	Conditions,
 	Prompts,
 };
-
-#define YAP_BGETTER(VAR) static bool Get##VAR() { return Get()-> b##VAR; }
-#define YAP_GETTER(TYPE, VAR) static TYPE Get##VAR() { return Get()-> VAR; }
 
 UCLASS(Config = Game, DefaultConfig, DisplayName = "Yap")
 class YAP_API UYapProjectSettings : public UDeveloperSettings
@@ -37,7 +34,7 @@ class YAP_API UYapProjectSettings : public UDeveloperSettings
 #endif
 	
 	// ============================================================================================
-	// CONSTRUCTION
+	// CONSTRUCTION / GETTER
 	// ============================================================================================
 public:
 	UYapProjectSettings();
@@ -59,18 +56,30 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapBroker> BrokerClass = nullptr;
 	
-	/** What type of classes are allowable to use for dialogue assets (sounds). If unset, defaults to Unreal's USoundBase. */
+	/** What type of classes are allowable to use for dialogue assets (sounds). */
 	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowAbstract))
-	TArray<TSoftClassPtr<UObject>> OverrideAudioAssetClasses;
+	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
 
-#if WITH_EDITORONLY_DATA
-	// Do not expose this for editing; only hard-coded
-	UPROPERTY() 
-	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
-	
-	/** Where to look for audio assets. Audio assets must be placed into a subfolder matching the flow asset name. Developer is responsible to give every flow asset a unique name! */
+#if WITH_EDITORONLY_DATA	
+	/** Where to look for audio assets when auto-assigning audio to dialogue. Audio must be placed into a folder path matching the flow asset folder path, and into a subfolder matching the flow asset name.
+	 *
+	 * Example:
+	 * Content\Flows*\E1L1\TalkWithWally.uasset
+	 * Content\Audio*\E1L1\TalkWithWally\SpeechAudio123.uasset
+	 *
+	 * In the above example, the starred Flows and Audio folders would be set as the two root folders. */
 	UPROPERTY(Config, EditAnywhere, Category = "Audio")
-	FDirectoryPath AudioAssetRootFolder;
+	FDirectoryPath AudioAssetsRootFolder;
+	
+	/** Where to look for flow assets when auto-assigning audio to dialogue. Audio must be placed into a folder path matching the flow asset folder path, and into a subfolder matching the flow asset name.
+	 *
+	 * Example:
+	 * Content\Flows*\E1L1\TalkWithWally.uasset
+	 * Content\Audio*\E1L1\TalkWithWally\SpeechAudio123.uasset
+	 *
+	 * In the above example, the starred Flows and Audio folders would be set as the two root folders. */
+	UPROPERTY(Config, EditAnywhere, Category = "Audio")
+	FDirectoryPath FlowAssetsRootFolder;
 #endif
 	
 	// - - - - - MOOD TAGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -109,7 +118,7 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01))
 	float DefaultFragmentPaddingTime = 0.25f;
 
-	/** Controls how fast dialogue plays. Only useful for word-based playtime. */
+	/** Controls how fast dialogue plays. Only useful for text-based speaking time. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 1, ClampMax = 1000, UIMin = 60, UIMax = 180, Delta = 5))
 	int32 TextWordsPerMinute = 120;
 
@@ -121,14 +130,10 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 5.0, Delta = 0.1))
 	float MinimumAutoAudioTimeLength = 0.5;
 
-	/** Total minimum speaking time (overrides both auto length minimums above). Should be fairly low; intended mostly to only handle accidental "0" time values. */
+	/** Total minimum speaking time for any fragment. Should be fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	float MinimumFragmentTime = 0.25;
+	float MinimumSpeakingTime = 0.25;
 
-	/** Controls the scaling of the small padding time indicator on each fragment. */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
-	float FragmentPaddingSliderMax = 2.0;
-		
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
@@ -153,25 +158,14 @@ protected:
 
 #if WITH_EDITORONLY_DATA
 protected:
+	/**  */
 	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
-	// A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it
+	/** A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it */
 	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
 #endif
 
-	/** If set, you will not be warned when Yap is using default broker functions. Turn this on if you do not need to customize your broker. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	bool bSuppressBrokerWarnings = false;
-
-	/** Default texture to use for missing character portraits. */
-	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
-
 #if WITH_EDITORONLY_DATA
-	/** TODO - currently unused */
-	UPROPERTY(Config/*, EditAnywhere, Category = "Settings"*/)
-	FString DefaultTextNamespace = "Yap";
-
 	/** Adjusts the width of all dialogue nodes in graph grid units (16 px). */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance", meta = (ClampMin = -6, ClampMax = +100, UIMin = -6, UIMax = 20, Delta = 1))
 	int32 DialogueWidthAdjustment = 0;
@@ -196,6 +190,14 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
 	bool bPreventDialogueTextWrapping = true;
 #endif
+
+	/** If set, you will not be warned when Yap is using default broker functions. Turn this on if you do not need to customize your broker. */
+	UPROPERTY(Config, EditAnywhere, Category = "Error Handling")
+	bool bSuppressBrokerWarnings = false;
+
+	/** Default texture to use for missing character portraits. */
+	UPROPERTY(Config, EditAnywhere, Category = "Error Handling")
+	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
 
 	// ------------------------------------------
 	// UObject overrides
@@ -265,7 +267,7 @@ public:
 	static const FString GetAudioAssetRootFolder();
 #endif
 
-	static bool HasCustomAudioAssetClasses() { return Get().OverrideAudioAssetClasses.Num() > 0; };
+	static bool HasCustomAudioAssetClasses() { return Get().AudioAssetClasses.Num() > 0; };
 	
 	static bool GetShowTitleTextOnTalkNodes() { return Get().bShowTitleTextOnTalkNodes; }
 
@@ -275,7 +277,7 @@ public:
 	
 	static float GetMinimumAutoAudioTimeLength() { return Get().MinimumAutoAudioTimeLength; }
 	
-	static float GetMinimumFragmentTime() { return Get().MinimumFragmentTime; }
+	static float GetMinimumFragmentTime() { return Get().MinimumSpeakingTime; }
 
 	static bool CacheFragmentWordCountAutomatically() { return !Get().bPreventCachingWordCount; }
 	

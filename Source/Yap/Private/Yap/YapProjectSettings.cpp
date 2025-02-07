@@ -34,9 +34,7 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-#if WITH_EDITOR
-	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
-#endif
+	AudioAssetClasses = { USoundBase::StaticClass() };
 	
 	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
 
@@ -76,22 +74,17 @@ FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 
 const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses()
 {
-	if (Get().OverrideAudioAssetClasses.Num() > 0)
-	{
-		return Get().OverrideAudioAssetClasses;
-	}
-
-	return Get().DefaultAssetAudioClasses;
+	return Get().AudioAssetClasses;
 }
 
 const FString UYapProjectSettings::GetAudioAssetRootFolder()
 {
-	if (Get().AudioAssetRootFolder.Path.IsEmpty())
+	if (Get().AudioAssetsRootFolder.Path.IsEmpty())
 	{
 		return "";
 	}
 	
-	return /*FPaths::ProjectContentDir() / */Get().AudioAssetRootFolder.Path;
+	return /*FPaths::ProjectContentDir() / */Get().AudioAssetsRootFolder.Path;
 }
 
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
