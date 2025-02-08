@@ -735,7 +735,14 @@ void UFlowNode_YapDialogue::PreloadContent()
 {
 	for (FYapFragment& Fragment : Fragments)
 	{
+#if WITH_EDITOR
+		if (GetWorld() && GetWorld()->IsPlayInEditor())
+		{
+			Fragment.PreloadContent(this);
+		}
+#else
 		Fragment.PreloadContent(this);
+#endif
 	}	
 }
 #endif

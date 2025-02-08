@@ -13,6 +13,7 @@ struct FStreamableHandle;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
 enum class EYapTimeMode : uint8;
+enum class EYapLoadFlag : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -105,12 +106,12 @@ public:
 	/** Getter for audio asset. This function will force a sync-load if the audio asset isn't loaded yet! */
 	template<class T>
 	const T* GetAudioAsset() const;
-	
-	/** Called by the flow node when it is loaded to async load this bit's audio data. */
-	void AsyncLoadContent(UFlowNode_YapDialogue* OwningContext);
 
+	/** Loads the audio asset. */
+	void LoadContent(EYapLoadFlag LoadFlag) const;
+	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	TOptional<float> GetTime(EYapTimeMode TimeMode) const;
+	TOptional<float> GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) const;
 
 	// --------------------------------------------------------------------------------------------
 	// INTERNAL API
@@ -124,7 +125,7 @@ protected:
 	TOptional<float> GetTextTime() const;
 
 	/** Gets the current time of the audio asset. */
-	TOptional<float> GetAudioTime() const;
+	TOptional<float> GetAudioTime(EYapLoadFlag LoadFlag) const;
 
 #if WITH_EDITOR
 	// --------------------------------------------------------------------------------------------
@@ -150,6 +151,8 @@ private:
 	void ClearAllData();
 #endif
 };
+
+// --------------------------------------------------------------------------------------------
 
 template <class T>
 const T* FYapBit::GetAudioAsset() const

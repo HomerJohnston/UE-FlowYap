@@ -8,6 +8,7 @@
 
 #include "YapFragment.generated.h"
 
+enum class EYapLoadFlag : uint8;
 class UYapCharacter;
 class UYapCondition;
 class UFlowNode_YapDialogue;
@@ -150,9 +151,11 @@ public:
 	FYapBit& GetChildSafeBitMutable() { return ChildSafeBit; }
 
 	TOptional<float> GetTime() const;
-	
-	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting) const;
-	
+
+protected:
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting, EYapLoadFlag LoadFlag) const;
+
+public:
 	float GetPaddingToNextFragment() const;
 
 	void IncrementActivations();

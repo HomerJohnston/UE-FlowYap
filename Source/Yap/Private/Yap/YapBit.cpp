@@ -6,12 +6,9 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
+#include "Yap/Enums/YapLoadFlag.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
-
-#define YAP_ASYNC_LOAD(ASSET, HANDLE)\
-if (ASSET.IsPending())\
-HANDLE = FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath());\
 
 // --------------------------------------------------------------------------------------------
 
@@ -36,7 +33,7 @@ bool FYapBit::HasAudioAsset() const
 
 // --------------------------------------------------------------------------------------------
 
-TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode) const
+TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) const
 {
 	// TODO clamp minimums from project settings?
 	TOptional<float> Time;
@@ -50,7 +47,7 @@ TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode) const
 		}
 		case EYapTimeMode::AudioTime:
 		{
-			Time = GetAudioTime();
+			Time = GetAudioTime(LoadFlag);
 			break;
 		}
 		case EYapTimeMode::TextTime:
@@ -72,9 +69,37 @@ TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode) const
 
 // --------------------------------------------------------------------------------------------
 
-void FYapBit::AsyncLoadContent(UFlowNode_YapDialogue* OwningContext)
+void FYapBit::LoadContent(EYapLoadFlag LoadFlag) const
 {
-	YAP_ASYNC_LOAD(AudioAsset, AudioAssetHandle);
+	if (!AudioAsset.IsPending())
+	{
+		return;
+	}
+	
+	switch (LoadFlag)
+	{
+		case EYapLoadFlag::Sync:
+		{
+			UE_LOG(LogYap, Warning, TEXT("Synchronously loading audio asset. This should not happen during gameplay! Try loading the flow asset sooner, or delaying dialogue.\nAsset: %s"), *AudioAsset->GetPathName());
+			(const_cast<FYapBit*>(this))->AudioAssetHandle = FYapStreamableManager::Get().RequestSyncLoad(AudioAsset.ToSoftObjectPath());
+			break;
+		}
+		case EYapLoadFlag::Async:
+		{
+			(const_cast<FYapBit*>(this))->AudioAssetHandle = FYapStreamableManager::Get().RequestAsyncLoad(AudioAsset.ToSoftObjectPath());
+			break;
+		}
+		case EYapLoadFlag::AsyncEditorOnly:
+		{
+#if WITH_EDITOR
+			if (!GEditor->IsPlaySessionInProgress())
+			{
+				FYapStreamableManager::Get().RequestAsyncLoad(AudioAsset.ToSoftObjectPath());
+			}
+#endif
+			break;
+		}
+	}
 }
 
 // --------------------------------------------------------------------------------------------
@@ -91,15 +116,18 @@ TOptional<float> FYapBit::GetTextTime() const
 
 // --------------------------------------------------------------------------------------------
 
-TOptional<float> FYapBit::GetAudioTime() const
+TOptional<float> FYapBit::GetAudioTime(EYapLoadFlag LoadFlag) const
 {
-	// If it's not loaded yet, nothing we can do. // TODO I need to make sure this can NEVER be called by game code. 
-	if (!AudioAssetHandle || !AudioAssetHandle->GetLoadedAsset())
+	if (AudioAsset.IsNull())
 	{
 		return NullOpt;
 	}
 
-	if (!GetAudioAsset<UObject>())
+	LoadContent(LoadFlag);
+
+	UObject* Asset = AudioAsset.Get();
+
+	if (!IsValid(Asset))
 	{
 		return NullOpt;
 	}

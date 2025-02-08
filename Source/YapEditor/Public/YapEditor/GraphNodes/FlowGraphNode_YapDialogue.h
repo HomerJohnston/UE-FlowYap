@@ -39,7 +39,6 @@ public:
 
 public:
 	void PreSave(FObjectPreSaveContext SaveContext) override;
-
 	
 	void GetNodeContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 

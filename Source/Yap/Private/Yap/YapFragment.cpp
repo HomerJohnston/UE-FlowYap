@@ -8,6 +8,7 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
+#include "Yap/Enums/YapLoadFlag.h"
 #include "Yap/Enums/YapMissingAudioErrorLevel.h"
 
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
@@ -63,11 +64,11 @@ void FYapFragment::PreloadContent(UFlowNode_YapDialogue* OwningContext)
 
 		if (MaturitySetting == EYapMaturitySetting::ChildSafe && bEnableChildSafe)
 		{
-			ChildSafeBit.AsyncLoadContent(OwningContext);
+			ChildSafeBit.LoadContent(EYapLoadFlag::Async);
 		}
 		else
 		{
-			MatureBit.AsyncLoadContent(OwningContext);
+			MatureBit.LoadContent(EYapLoadFlag::Async);
 		}
 		
 	}
@@ -131,12 +132,13 @@ const FYapBit& FYapFragment::GetBit(EYapMaturitySetting MaturitySetting) const
 
 TOptional<float> FYapFragment::GetTime() const
 {
-	return GetTime(UYapSubsystem::GetCurrentMaturitySetting());
+	return GetTime(UYapSubsystem::GetCurrentMaturitySetting(), EYapLoadFlag::Sync);
 }
 
-TOptional<float> FYapFragment::GetTime(EYapMaturitySetting MaturitySetting) const
+TOptional<float> FYapFragment::GetTime(EYapMaturitySetting MaturitySetting, EYapLoadFlag LoadFlag) const
 {
-	return GetBit(MaturitySetting).GetTime(GetTimeMode());
+	EYapTimeMode EffectiveTimeMode = GetTimeMode(MaturitySetting);
+	return GetBit(MaturitySetting).GetTime(EffectiveTimeMode, LoadFlag);
 }
 
 float FYapFragment::GetPaddingToNextFragment() const

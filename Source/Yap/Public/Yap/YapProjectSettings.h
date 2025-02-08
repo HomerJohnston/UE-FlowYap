@@ -56,10 +56,16 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapBroker> BrokerClass = nullptr;
 	
-	/** What type of classes are allowable to use for dialogue assets (sounds). */
+	/** What type of classes are allowable to use for dialogue assets (sounds). If unset, defaults to Unreal's USoundBase. */
 	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowAbstract))
 	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
 
+#if WITH_EDITORONLY_DATA
+	// Do not expose this for editing; only hard-coded
+	UPROPERTY() 
+	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
+#endif
+	
 #if WITH_EDITORONLY_DATA	
 	/** Where to look for audio assets when auto-assigning audio to dialogue. Audio must be placed into a folder path matching the flow asset folder path, and into a subfolder matching the flow asset name.
 	 *

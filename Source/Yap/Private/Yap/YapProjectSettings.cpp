@@ -34,7 +34,7 @@ UYapProjectSettings::UYapProjectSettings()
 	
 	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
-	AudioAssetClasses = { USoundBase::StaticClass() };
+	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
 	
 	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
 
@@ -74,7 +74,12 @@ FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 
 const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses()
 {
-	return Get().AudioAssetClasses;
+	if (Get().AudioAssetClasses.Num() > 0)
+	{
+		return Get().AudioAssetClasses;
+	}
+
+	return Get().DefaultAssetAudioClasses;
 }
 
 const FString UYapProjectSettings::GetAudioAssetRootFolder()

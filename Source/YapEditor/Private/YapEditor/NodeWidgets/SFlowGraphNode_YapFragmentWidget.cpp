@@ -35,6 +35,7 @@
 #include "YapEditor/YapDeveloperSettings.h"
 #include "Framework/MultiBox/SToolBarButtonBlock.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
+#include "Yap/Enums/YapLoadFlag.h"
 #include "YapEditor/YapEditorLog.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
@@ -1143,7 +1144,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_AudioTime(EYapMaturitySetting MaturitySetting) const
 {
-	return GetFragment().GetBit(MaturitySetting).GetAudioTime();
+	return GetFragmentMutable().GetBitMutable(MaturitySetting).GetAudioTime(EYapLoadFlag::AsyncEditorOnly);
 }
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_TextTime(EYapMaturitySetting MaturitySetting) const
@@ -1235,8 +1236,8 @@ bool CheckAudioAssetUsesAudioID(const UFlowNode_YapDialogue* Node, int32 Fragmen
 
 FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioID() const
 {
-	const TSoftObjectPtr<UObject>& MatureAudioAsset = GetFragment().GetMatureBit().GetAudioAsset<UObject>();
-	const TSoftObjectPtr<UObject>& SafeAudioAsset = GetFragment().GetChildSafeBit().GetAudioAsset<UObject>();
+	const TSoftObjectPtr<UObject>& MatureAudioAsset = GetFragment().GetMatureBit().AudioAsset;
+	const TSoftObjectPtr<UObject>& SafeAudioAsset = GetFragment().GetChildSafeBit().AudioAsset;
 
 	bool bHasAudio = false;
 	
@@ -1959,10 +1960,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
 	const float MaxTimeSetting = UYapProjectSettings::GetDialogueTimeSliderMax();
 
-	EYapTimeMode TimeMode = GetFragment().GetTimeMode(GetDisplayMaturitySetting());
-	const FYapBit& Bit = GetFragment().GetBit(GetDisplayMaturitySetting());
-	
-	const TOptional<float> FragmentTimeIn = Bit.GetTime(TimeMode);
+	const TOptional<float> FragmentTimeIn = GetFragment().GetTime(GetDisplayMaturitySetting(), EYapLoadFlag::AsyncEditorOnly);
 
 	if (!FragmentTimeIn.IsSet())
 	{
@@ -2772,11 +2770,7 @@ FText SFlowGraphNode_YapFragmentWidget::ObjectPathText_AudioAsset() const
 
 FString SFlowGraphNode_YapFragmentWidget::ObjectPath_AudioAsset() const
 {
-	const UObject* Asset = GetFragment().GetBit(GetDisplayMaturitySetting()).GetAudioAsset<UObject>();
-
-	if (!Asset) { return ""; }
-
-	return Asset->GetPathName();
+	return GetFragment().GetBit(GetDisplayMaturitySetting()).AudioAsset->GetPathName();
 }
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const
@@ -2823,8 +2817,8 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_AudioSettingsButto
 // TODO handle child safe settings somehow
 EYapErrorLevel SFlowGraphNode_YapFragmentWidget::GetFragmentAudioErrorLevel() const
 {
-	const TSoftObjectPtr<UObject>& MatureAsset = GetFragment().GetMatureBit().GetAudioAsset<UObject>();
-	const TSoftObjectPtr<UObject>& SafeAsset = GetFragment().GetChildSafeBit().GetAudioAsset<UObject>();
+	const TSoftObjectPtr<UObject>& MatureAsset = GetFragment().GetMatureBit().AudioAsset;
+	const TSoftObjectPtr<UObject>& SafeAsset = GetFragment().GetChildSafeBit().AudioAsset;
 
 	// If we need child-safe data and if any audio is set, we need both set
 	if (NeedsChildSafeData())
