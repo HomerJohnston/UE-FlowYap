@@ -8,16 +8,12 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
-#include "Yap/Enums/YapLoadFlag.h"
+#include "Yap/Enums/YapLoadContext.h"
 #include "Yap/Enums/YapMissingAudioErrorLevel.h"
 
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
-
-#define YAP_ASYNC_LOAD(ASSET, HANDLE)\
-if (ASSET.IsPending())\
-HANDLE = FYapStreamableManager::Get().RequestAsyncLoad(ASSET.ToSoftObjectPath());\
 
 FYapFragment::FYapFragment()
 {
@@ -49,42 +45,55 @@ void FYapFragment::ResetOptionalPins()
 	bShowOnEndPin = false;
 }
 
-void FYapFragment::PreloadContent(UFlowNode_YapDialogue* OwningContext)
+void FYapFragment::PreloadContent(EYapMaturitySetting MaturitySetting, EYapLoadContext LoadContext)
 {
-	YAP_ASYNC_LOAD(SpeakerAsset, SpeakerHandle);
+	ResolveMaturitySetting(MaturitySetting);
 	
-	YAP_ASYNC_LOAD(DirectedAtAsset, DirectedAtHandle);
-
-	UWorld* World = OwningContext->GetWorld();
-
-	// TODO I need some way for Yap to act upon the user changing their maturity setting. Broker needs an "OnMaturitySettingChanged" delegate?
-	if (World && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+	switch (LoadContext)
 	{
-		EYapMaturitySetting MaturitySetting = UYapSubsystem::GetCurrentMaturitySetting();
-
-		if (MaturitySetting == EYapMaturitySetting::ChildSafe && bEnableChildSafe)
+		case EYapLoadContext::Async:
 		{
-			ChildSafeBit.LoadContent(EYapLoadFlag::Async);
+			SpeakerHandle = FYapStreamableManager::Get().RequestAsyncLoad(SpeakerAsset.ToSoftObjectPath());;
+			DirectedAtHandle = FYapStreamableManager::Get().RequestAsyncLoad(DirectedAtAsset.ToSoftObjectPath());;
+			break;
 		}
-		else
+		case EYapLoadContext::AsyncEditorOnly:
 		{
-			MatureBit.LoadContent(EYapLoadFlag::Async);
+			FYapStreamableManager::Get().RequestAsyncLoad(SpeakerAsset.ToSoftObjectPath());;
+			FYapStreamableManager::Get().RequestAsyncLoad(DirectedAtAsset.ToSoftObjectPath());;
+			break;
 		}
-		
+		case EYapLoadContext::Sync:
+		{
+			SpeakerHandle = FYapStreamableManager::Get().RequestSyncLoad(SpeakerAsset.ToSoftObjectPath());;
+			DirectedAtHandle = FYapStreamableManager::Get().RequestSyncLoad(DirectedAtAsset.ToSoftObjectPath());;
+			break;
+		}
+	}
+	
+	// TODO I need some way for Yap to act upon the user changing their maturity setting. Broker needs an "OnMaturitySettingChanged" delegate?
+	
+	if (MaturitySetting == EYapMaturitySetting::ChildSafe && bEnableChildSafe)
+	{
+		ChildSafeBit.LoadContent(LoadContext);
+	}
+	else
+	{
+		MatureBit.LoadContent(LoadContext);
 	}
 }
 
-const UYapCharacter* FYapFragment::GetSpeaker()
+const UYapCharacter* FYapFragment::GetSpeaker(EYapLoadContext LoadContext)
 {
-	return GetCharacter_Internal(SpeakerAsset, SpeakerHandle);
+	return GetCharacter_Internal(SpeakerAsset, SpeakerHandle, LoadContext);
 }
 
-const UYapCharacter* FYapFragment::GetDirectedAt()
+const UYapCharacter* FYapFragment::GetDirectedAt(EYapLoadContext LoadContext)
 {
-	return GetCharacter_Internal(DirectedAtAsset, DirectedAtHandle);
+	return GetCharacter_Internal(DirectedAtAsset, DirectedAtHandle, LoadContext);
 }
 
-const UYapCharacter* FYapFragment::GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle)
+const UYapCharacter* FYapFragment::GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle, EYapLoadContext LoadContext)
 {
 	if (CharacterAsset.IsNull())
 	{
@@ -95,19 +104,24 @@ const UYapCharacter* FYapFragment::GetCharacter_Internal(const TSoftObjectPtr<UY
 	{
 		return CharacterAsset.Get();
 	}
-	
-	// If we're mid-game, force a sync load
-	TWeakObjectPtr<UWorld> World = UYapSubsystem::GetStaticWorld();
-	
-	if (World.IsValid() && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
+
+	switch (LoadContext)
 	{
-		if (Handle->IsLoadingInProgress())
+		case EYapLoadContext::Async:
 		{
-			UE_LOG(LogYap, Warning, TEXT("Interrupting async load to get yap character asset"));
+			Handle = FYapStreamableManager::Get().RequestAsyncLoad(CharacterAsset.ToSoftObjectPath());
+			break;
 		}
-		
-		Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.ToSoftObjectPath());
-		UE_LOG(LogYap, Warning, TEXT("Synchronously loaded character: %s"), *CharacterAsset->GetName());
+		case EYapLoadContext::AsyncEditorOnly:
+		{
+			FYapStreamableManager::Get().RequestAsyncLoad(CharacterAsset.ToSoftObjectPath());
+			break;
+		}
+		case EYapLoadContext::Sync:
+		{
+			Handle = FYapStreamableManager::Get().RequestSyncLoad(CharacterAsset.ToSoftObjectPath());
+			break;
+		}
 	}
 
 	return CharacterAsset.Get();
@@ -132,13 +146,13 @@ const FYapBit& FYapFragment::GetBit(EYapMaturitySetting MaturitySetting) const
 
 TOptional<float> FYapFragment::GetTime() const
 {
-	return GetTime(UYapSubsystem::GetCurrentMaturitySetting(), EYapLoadFlag::Sync);
+	return GetTime(UYapSubsystem::GetCurrentMaturitySetting(), EYapLoadContext::Sync);
 }
 
-TOptional<float> FYapFragment::GetTime(EYapMaturitySetting MaturitySetting, EYapLoadFlag LoadFlag) const
+TOptional<float> FYapFragment::GetTime(EYapMaturitySetting MaturitySetting, EYapLoadContext LoadContext) const
 {
 	EYapTimeMode EffectiveTimeMode = GetTimeMode(MaturitySetting);
-	return GetBit(MaturitySetting).GetTime(EffectiveTimeMode, LoadFlag);
+	return GetBit(MaturitySetting).GetTime(EffectiveTimeMode, LoadContext);
 }
 
 float FYapFragment::GetPaddingToNextFragment() const
@@ -221,7 +235,6 @@ void FYapFragment::ResolveMaturitySetting(EYapMaturitySetting& MaturitySetting) 
 		}
 		else
 		{
-			UE_LOG(LogYap, Error, TEXT("UYapSubsystem was invalid in FYapBit::ResolveMaturitySetting. This should not happen! Please contact plugin author. Defaulting to mature."));
 			MaturitySetting = EYapMaturitySetting::Mature;
 		}
 	}
@@ -326,32 +339,6 @@ void FYapFragment::OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHan
 	}
 }
 #endif
-
-/*
-#if WITH_EDITOR
-TArray<FFlowPin> FYapFragment::GetOutputPins() const
-{
-	TArray<FFlowPin> OutPins;
-	
-	if (Owner.IsValid() && Owner->IsPlayerPrompt())
-	{
-		OutPins.Add(PromptPin);
-	}
-	
-	if (UsesEndPin())
-	{
-		OutPins.Add(EndPin);
-	}
-	
-	if (UsesStartPin())
-	{
-		OutPins.Add(StartPin);
-	}
-	
-	return OutPins;
-}
-#endif
-*/
 
 #if WITH_EDITOR
 void FYapFragment::InvalidateFragmentTag(UFlowNode_YapDialogue* OwnerNode)

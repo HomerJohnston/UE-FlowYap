@@ -8,7 +8,7 @@
 
 #include "YapFragment.generated.h"
 
-enum class EYapLoadFlag : uint8;
+enum class EYapLoadContext : uint8;
 class UYapCharacter;
 class UYapCondition;
 class UFlowNode_YapDialogue;
@@ -25,7 +25,7 @@ public:
 	
 	bool CheckConditions() const;
 	void ResetOptionalPins();
-	void PreloadContent(UFlowNode_YapDialogue* OwningContext);
+	void PreloadContent(EYapMaturitySetting MaturitySetting, EYapLoadContext LoadContext);
 
 #if WITH_EDITOR
 	friend class SFlowGraphNode_YapDialogueWidget;
@@ -121,12 +121,12 @@ protected:
 	// ==========================================
 	// API
 public:
-	const UYapCharacter* GetSpeaker(); // Non-const because of async loading handle
+	const UYapCharacter* GetSpeaker(EYapLoadContext LoadContext); // Non-const because of async loading handle
 
-	const UYapCharacter* GetDirectedAt(); // Non-const because of async loading handle
+	const UYapCharacter* GetDirectedAt(EYapLoadContext LoadContext); // Non-const because of async loading handle
 	
 private:
-	const UYapCharacter* GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle);
+	const UYapCharacter* GetCharacter_Internal(const TSoftObjectPtr<UYapCharacter>& CharacterAsset, TSharedPtr<FStreamableHandle>& Handle, EYapLoadContext LoadContext);
 
 public:
 	// TODO I don't think fragments should know where their position is!
@@ -153,7 +153,7 @@ public:
 	TOptional<float> GetTime() const;
 
 protected:
-	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting, EYapLoadFlag LoadFlag) const;
+	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting, EYapLoadContext LoadContext) const;
 
 public:
 	float GetPaddingToNextFragment() const;

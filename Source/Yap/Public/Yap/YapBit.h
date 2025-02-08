@@ -13,7 +13,7 @@ struct FStreamableHandle;
 class UFlowNode_YapDialogue;
 struct FYapBitReplacement;
 enum class EYapTimeMode : uint8;
-enum class EYapLoadFlag : uint8;
+enum class EYapLoadContext : uint8;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -108,10 +108,10 @@ public:
 	const T* GetAudioAsset() const;
 
 	/** Loads the audio asset. */
-	void LoadContent(EYapLoadFlag LoadFlag) const;
+	void LoadContent(EYapLoadContext LoadContext) const;
 	
 	/** Gets the evaluated time duration to be used for this bit (incorporating project default settings and fallbacks) */
-	TOptional<float> GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) const;
+	TOptional<float> GetTime(EYapTimeMode TimeMode, EYapLoadContext LoadContext) const;
 
 	// --------------------------------------------------------------------------------------------
 	// INTERNAL API
@@ -125,7 +125,7 @@ protected:
 	TOptional<float> GetTextTime() const;
 
 	/** Gets the current time of the audio asset. */
-	TOptional<float> GetAudioTime(EYapLoadFlag LoadFlag) const;
+	TOptional<float> GetAudioTime(EYapLoadContext LoadContext) const;
 
 #if WITH_EDITOR
 	// --------------------------------------------------------------------------------------------

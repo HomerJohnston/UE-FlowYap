@@ -35,7 +35,7 @@
 #include "YapEditor/YapDeveloperSettings.h"
 #include "Framework/MultiBox/SToolBarButtonBlock.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
-#include "Yap/Enums/YapLoadFlag.h"
+#include "Yap/Enums/YapLoadContext.h"
 #include "YapEditor/YapEditorLog.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
@@ -681,7 +681,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 			SNew(SYapPropertyMenuAssetPicker)
 			.AllowedClasses({UYapCharacter::StaticClass()})
 			.AllowClear(true)
-			.InitialObject(GetFragmentMutable().GetDirectedAt())
+			.InitialObject(GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly))
 			.OnSet(this, &ThisClass::OnSetNewDirectedAtAsset)
 		]
 	];
@@ -689,7 +689,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Directe
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(GetFragmentMutable().GetDirectedAt(), FGameplayTag::EmptyTag);
+	const UYapCharacter* Character = GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly);
+	
+	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Character, FGameplayTag::EmptyTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -1144,7 +1146,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::MakeTimeSettingRow(EYapTim
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_AudioTime(EYapMaturitySetting MaturitySetting) const
 {
-	return GetFragmentMutable().GetBitMutable(MaturitySetting).GetAudioTime(EYapLoadFlag::AsyncEditorOnly);
+	return GetFragmentMutable().GetBitMutable(MaturitySetting).GetAudioTime(EYapLoadContext::AsyncEditorOnly);
 }
 
 TOptional<float> SFlowGraphNode_YapFragmentWidget::Value_TimeSetting_TextTime(EYapMaturitySetting MaturitySetting) const
@@ -1960,7 +1962,7 @@ TOptional<float> SFlowGraphNode_YapFragmentWidget::FragmentTime_Percent() const
 {
 	const float MaxTimeSetting = UYapProjectSettings::GetDialogueTimeSliderMax();
 
-	const TOptional<float> FragmentTimeIn = GetFragment().GetTime(GetDisplayMaturitySetting(), EYapLoadFlag::AsyncEditorOnly);
+	const TOptional<float> FragmentTimeIn = GetFragment().GetTime(GetDisplayMaturitySetting(), EYapLoadContext::AsyncEditorOnly);
 
 	if (!FragmentTimeIn.IsSet())
 	{
@@ -2291,7 +2293,7 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 
 	int32 FinalHeight = FMath::Max(PortraitSize + 2 * PortraitBorder, MinHeight);
 
-	const UYapCharacter* Character = GetFragmentMutable().GetSpeaker();
+	const UYapCharacter* Character = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
 	
 	return SNew(SOverlay)
 	+ SOverlay::Slot()
@@ -2378,7 +2380,7 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
-	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker();
+	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
 	const FGameplayTag& MoodTag = GetFragment().GetMoodTag();
 	
 	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
@@ -2395,7 +2397,7 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 
 EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
 {
-	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker();
+	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
 	const FGameplayTag& MoodTag = GetFragment().GetMoodTag();
 	
 	const TSharedPtr<FSlateImageBrush> Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);

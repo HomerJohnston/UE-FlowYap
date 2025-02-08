@@ -6,7 +6,7 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapStreamableManager.h"
 #include "Yap/YapSubsystem.h"
-#include "Yap/Enums/YapLoadFlag.h"
+#include "Yap/Enums/YapLoadContext.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -33,7 +33,7 @@ bool FYapBit::HasAudioAsset() const
 
 // --------------------------------------------------------------------------------------------
 
-TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) const
+TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode, EYapLoadContext LoadContext) const
 {
 	// TODO clamp minimums from project settings?
 	TOptional<float> Time;
@@ -47,7 +47,7 @@ TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) 
 		}
 		case EYapTimeMode::AudioTime:
 		{
-			Time = GetAudioTime(LoadFlag);
+			Time = GetAudioTime(LoadContext);
 			break;
 		}
 		case EYapTimeMode::TextTime:
@@ -69,27 +69,27 @@ TOptional<float> FYapBit::GetTime(EYapTimeMode TimeMode, EYapLoadFlag LoadFlag) 
 
 // --------------------------------------------------------------------------------------------
 
-void FYapBit::LoadContent(EYapLoadFlag LoadFlag) const
+void FYapBit::LoadContent(EYapLoadContext LoadContext) const
 {
 	if (!AudioAsset.IsPending())
 	{
 		return;
 	}
 	
-	switch (LoadFlag)
+	switch (LoadContext)
 	{
-		case EYapLoadFlag::Sync:
+		case EYapLoadContext::Sync:
 		{
 			UE_LOG(LogYap, Warning, TEXT("Synchronously loading audio asset. This should not happen during gameplay! Try loading the flow asset sooner, or delaying dialogue.\nAsset: %s"), *AudioAsset->GetPathName());
 			(const_cast<FYapBit*>(this))->AudioAssetHandle = FYapStreamableManager::Get().RequestSyncLoad(AudioAsset.ToSoftObjectPath());
 			break;
 		}
-		case EYapLoadFlag::Async:
+		case EYapLoadContext::Async:
 		{
 			(const_cast<FYapBit*>(this))->AudioAssetHandle = FYapStreamableManager::Get().RequestAsyncLoad(AudioAsset.ToSoftObjectPath());
 			break;
 		}
-		case EYapLoadFlag::AsyncEditorOnly:
+		case EYapLoadContext::AsyncEditorOnly:
 		{
 #if WITH_EDITOR
 			if (!GEditor->IsPlaySessionInProgress())
@@ -116,14 +116,14 @@ TOptional<float> FYapBit::GetTextTime() const
 
 // --------------------------------------------------------------------------------------------
 
-TOptional<float> FYapBit::GetAudioTime(EYapLoadFlag LoadFlag) const
+TOptional<float> FYapBit::GetAudioTime(EYapLoadContext LoadContext) const
 {
 	if (AudioAsset.IsNull())
 	{
 		return NullOpt;
 	}
 
-	LoadContent(LoadFlag);
+	LoadContent(LoadContext);
 
 	UObject* Asset = AudioAsset.Get();
 

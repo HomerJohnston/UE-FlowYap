@@ -13,6 +13,7 @@
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
+#include "Yap/Enums/YapLoadContext.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -209,8 +210,8 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	FYapData_AddPlayerPrompt Data;
 	Data.Conversation = ConversationName;
 	Data.Handle = FYapPromptHandle(Dialogue, FragmentIndex);
-	Data.DirectedAt = Fragment.GetDirectedAt();
-	Data.Speaker = Fragment.GetSpeaker();
+	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
+	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
 	Data.MoodTag = Fragment.GetMoodTag();
 	Data.DialogueText = Bit.GetDialogueText();
 	Data.TitleText = Bit.GetTitleText();
@@ -259,8 +260,8 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	FYapData_OnSpeakingBegins Data;
 	Data.Conversation = ConversationName;
 	Data.DialogueHandle = DialogueHandles.Emplace(Dialogue, {Dialogue, FragmentIndex, bSkippable});
-	Data.DirectedAt = Fragment.GetDirectedAt();
-	Data.Speaker = Fragment.GetSpeaker();
+	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
+	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
 	Data.MoodTag = Fragment.GetMoodTag();
 	Data.DialogueText = Bit.GetDialogueText();
 	Data.TitleText = Bit.GetTitleText();

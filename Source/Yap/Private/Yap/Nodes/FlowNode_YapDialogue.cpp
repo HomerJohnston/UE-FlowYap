@@ -9,6 +9,7 @@
 #include "Yap/YapFragment.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapSubsystem.h"
+#include "Yap/Enums/YapLoadContext.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -733,17 +734,22 @@ void UFlowNode_YapDialogue::PostLoad()
 
 void UFlowNode_YapDialogue::PreloadContent()
 {
+	UWorld* World = GetWorld();
+
+	EYapLoadContext LoadContext = EYapLoadContext::Async;
+	EYapMaturitySetting MaturitySetting = EYapMaturitySetting::Unspecified;
+
+#if WITH_EDITOR
+	if (!World || (World->WorldType != EWorldType::Game && World->WorldType != EWorldType::PIE && World->WorldType != EWorldType::GamePreview))
+	{
+		LoadContext = EYapLoadContext::AsyncEditorOnly;
+	}
+#endif
+
 	for (FYapFragment& Fragment : Fragments)
 	{
-#if WITH_EDITOR
-		if (GetWorld() && GetWorld()->IsPlayInEditor())
-		{
-			Fragment.PreloadContent(this);
-		}
-#else
-		Fragment.PreloadContent(this);
-#endif
-	}	
+		Fragment.PreloadContent(MaturitySetting, LoadContext);
+	}
 }
 #endif
 
