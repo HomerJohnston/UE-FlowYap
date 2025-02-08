@@ -99,7 +99,7 @@ const UYapCharacter* FYapFragment::GetCharacter_Internal(const TSoftObjectPtr<UY
 	// If we're mid-game, force a sync load
 	TWeakObjectPtr<UWorld> World = UYapSubsystem::GetStaticWorld();
 	
-	if (World.IsValid() && World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE)
+	if (World.IsValid() && (World->WorldType == EWorldType::Game || World->WorldType == EWorldType::PIE))
 	{
 		if (Handle->IsLoadingInProgress())
 		{
