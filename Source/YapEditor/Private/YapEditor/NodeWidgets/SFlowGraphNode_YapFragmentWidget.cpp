@@ -823,7 +823,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 								SAssignNew(ChildSafeCheckBox, SCheckBox)
 								.Cursor(EMouseCursor::Default)
 								.Style(FYapEditorStyle::Get(), YapStyles.CheckBoxStyle_Skippable)
-								.Type(ESlateCheckBoxType::ToggleButton)
 								.Padding(FMargin(0, 0))
 								.CheckBoxContentUsesAutoWidth(true)
 								.ToolTip(nullptr) // Don't show a tooltip, it's distracting
@@ -838,9 +837,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 									.VAlign(VAlign_Center)
 									[
 										SNew(SImage)
-										.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_ChildSafeSettingsCheckBox)
-										.DesiredSizeOverride(FVector2D(16, 16))
 										.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_Baby))
+										.DesiredSizeOverride(FVector2D(16, 16))
+										.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_ChildSafeSettingsCheckBox)
 									]
 								]
 							]
@@ -1294,9 +1293,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 	//FMargin TimerSliderPadding = GetDialogueNode()->UsesTitleText() ? FMargin(0, 0, 0, -(TimeSliderSize / 2) - 2) : FMargin(0, 0, 0, -(TimeSliderSize / 2));
 	FMargin TimerSliderPadding = FMargin(0, 0, 0, -(TimeSliderSize / 2) - 2);
 
-	const FText* MatureDialogueText = &GetFragment().GetMatureBit().GetDialogueText();
-	const FText* SafeDialogueText = &GetFragment().GetChildSafeBit().GetDialogueText();
-
 	FNumberFormattingOptions Args;
 	Args.UseGrouping = false;
 	Args.MinimumIntegralDigits = 3;
@@ -1320,7 +1316,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				.Cursor(EMouseCursor::Default)
 				.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
 				.BorderBackgroundColor(FSlateColor::UseForeground())
-				.ToolTipText(this, &ThisClass::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), MatureDialogueText, SafeDialogueText)
+				.ToolTipText(LOCTEXT("DialogueTextDisplayWidget_ToolTipText", "Dialogue text"))
 				.Padding(0)
 				[
 					SNew(SOverlay)
@@ -1331,8 +1327,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
 						.Font(DialogueTextFont)
-						.Text(this, &ThisClass::Text_TextDisplayWidget, MatureDialogueText, SafeDialogueText)
-						.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray, MatureDialogueText, SafeDialogueText)
+						.Text_Lambda( [this] () { return GetFragment().GetDialogueText(GetDisplayMaturitySetting()); } )
+						.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_TextDisplayWidget, YapColor::LightGray)
 					]
 					+ SOverlay::Slot()
 					.VAlign(VAlign_Center)
@@ -1341,7 +1337,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 						SNew(STextBlock)
 						.Visibility_Lambda( [this] ()
 						{
-							return GetFragment().GetBit(GetDisplayMaturitySetting()).HasDialogueText() ? EVisibility::Hidden : EVisibility::HitTestInvisible;
+							const FText& DialogueText =  GetFragment().GetDialogueText(GetDisplayMaturitySetting());
+							return DialogueText.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;
 						})
 						.Justification(ETextJustify::Center)
 						.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_DialogueText)
@@ -1373,7 +1370,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				SNew(SBox)
 				.HeightOverride(2)
 				.Visibility(EVisibility::HitTestInvisible)
-				.ToolTipText(this, &ThisClass::ToolTipText_TextDisplayWidget, LOCTEXT("DialogueText_Header", "Dialogue Text"), MatureDialogueText, SafeDialogueText)
 				[
 					SNew(SProgressBar)
 					.BorderPadding(0)
@@ -1517,19 +1513,31 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Expande
 	.Resizable(false)
 	.SizeRule(SSplitter::SizeToContent)
 	[
-		BuildDialogueEditors_ExpandedEditor(Width)
+		SNew(SBox)
+		.Padding(0, 0, 0, 4)
+		[
+			BuildDialogueEditors_ExpandedEditor(Width)
+		]
 	]
 	+ SSplitter::Slot()
 	.Resizable(false)
 	.SizeRule(SSplitter::SizeToContent)
 	[
-		BuildTimeSettings_ExpandedEditor(Width)
+		SNew(SBox)
+		.Padding(0, 4, 0, 4)
+		[
+			BuildTimeSettings_ExpandedEditor(Width)
+		]
 	]
 	+ SSplitter::Slot()
 	.Resizable(false)
 	.SizeRule(SSplitter::SizeToContent)
 	[
-		BuildPaddingSettings_ExpandedEditor(Width)
+		SNew(SBox)
+		.Padding(0, 4, 0, 0)
+		[
+			BuildPaddingSettings_ExpandedEditor(Width)
+		]
 	];
 }
 
@@ -1646,7 +1654,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 		]
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0, 8, 0, 0)
+		.Padding(0, 12, 0, 0)
 		[
 			SNew(SVerticalBox)
 			.Visibility(GetDialogueNode()->UsesTitleText() ? EVisibility::Visible : EVisibility::Collapsed)
@@ -1673,7 +1681,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::BuildDialogueEditor_Single
 		]
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0, 8, 0, 0)
+		.Padding(0, 12, 0, 0)
 		[
 			SNew(SBox)
 			.Visibility(EVisibility::Visible) // TODO project settings to disable audio
@@ -2456,10 +2464,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWid
 // ------------------------------------------------------------------------------------------------
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidget()
-{
-	const FText* MatureTitleText = &GetFragment().GetMatureBit().GetTitleText();
-	const FText* SafeTitleText = &GetFragment().GetChildSafeBit().GetTitleText();
-	
+{	
 	return SNew(SBorder)
 	.Cursor(EMouseCursor::Default)
 	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
@@ -2473,9 +2478,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidg
 		[
 			SNew(STextBlock)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_TitleText)
-			.Text_Lambda( [MatureTitleText] () { return *MatureTitleText; } )
-			.ToolTipText(this, &ThisClass::ToolTipText_TextDisplayWidget, LOCTEXT("TitleText_ToolTip", "Title text"), MatureTitleText, SafeTitleText)
-			.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_TextDisplayWidget, YapColor::YellowGray, MatureTitleText, SafeTitleText)
+			.Text_Lambda( [this] () { return GetFragment().GetTitleText(GetDisplayMaturitySetting()); } )
+			.ToolTipText(LOCTEXT("TitleTextDisplayWidget_ToolTipText", "Title text"))
+			.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_TextDisplayWidget, YapColor::YellowGray)
 		]
 		+ SOverlay::Slot()
 		.VAlign(VAlign_Center)
@@ -2484,8 +2489,8 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidg
 			SNew(STextBlock)
 			.Visibility_Lambda( [this] ()
 			{
-				const FText& Text = GetFragment().GetBit(GetDisplayMaturitySetting()).GetTitleText();
-				return Text.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
+				const FText& TitleText = GetFragment().GetTitleText(GetDisplayMaturitySetting());
+				return TitleText.IsEmpty() ? EVisibility::HitTestInvisible : EVisibility::Hidden;;
 			})
 			.Justification(ETextJustify::Center)
 			.TextStyle(FYapEditorStyle::Get(), YapStyles.TextBlockStyle_TitleText)
@@ -2518,23 +2523,7 @@ FText SFlowGraphNode_YapFragmentWidget::Text_EditedText(FText* Text) const
 	return *Text;
 }
 
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const
-{
-	// TODO Label is not currently used, remove it eventually or put it back
-
-	const FText Unset = LOCTEXT("NoTextWarning_ToolTip", "\u26A0 No text \u26A0");// 26A0 Warning sign
-	
-	if (NeedsChildSafeData())
-	{
-		return FText::Format(LOCTEXT("DialogueText_ToolTip_Both", "\u2668{1}\n\n\u26F9{2}"), Label, MatureText->IsEmpty() ? Unset : *MatureText, SafeText->IsEmpty() ? Unset : *SafeText);
-	}
-	else
-	{
-		return FText::Format(LOCTEXT("DialogueText_ToolTip_MatureOnly", "\u2756{1}"), Label, MatureText->IsEmpty() ? Unset : *MatureText);
-	}
-}
-
-FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor) const
 {
 	FLinearColor Color = BaseColor;
 

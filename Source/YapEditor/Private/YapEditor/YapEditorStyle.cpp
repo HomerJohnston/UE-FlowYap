@@ -130,7 +130,7 @@ void FYapEditorStyle::Initialize()
 	YAP_LOAD_FONT(Font_BeVietnam_Regular, "Fonts/BeVietnam-Regular.ttf", 10);
 
 	// ============================================================================================
-	// BRUSHES - PNGs
+	// BRUSHES
 	// ============================================================================================
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_AudioTime,					"DialogueNodeIcons/AudioTime", ".png",	FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Baby,						"Icon_Baby", ".svg",					FVector2f(16, 16));
@@ -151,6 +151,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_ManualAdvance,				"Icon_ManualAdvance", ".svg",			FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Reset_Small,				"Icon_Reset_Small", ".svg",				FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Notes,						"Icon_Notes", ".svg",					FVector2f(32, 32));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Reconciled,				"Icon_Reconciled", ".svg",				FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Unreconciled,				"Icon_Unreconciled", ".svg",			FVector2f(16, 16));
 	
 	YAP_DEFINE_BRUSH(FSlateBoxBrush,			Icon_IDTag,						"Icon_IDTag", ".png",					FMargin(0.5, 0.5, 0.0, 0.0));
 	

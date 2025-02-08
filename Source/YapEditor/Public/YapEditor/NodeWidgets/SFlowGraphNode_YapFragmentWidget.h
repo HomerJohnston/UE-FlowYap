@@ -170,11 +170,10 @@ protected:
 
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
 
+
 	TSharedRef<SWidget> BuildDialogueEditors_ExpandedEditor(float Width);
 
 	TSharedRef<SWidget> BuildDialogueEditor_SingleSide(const FText& Title, const FText& DialogueTextHint, const FText& TitleTextHint, float Width, FMargin Padding, FYapBit& Bit);
-
-	TSharedRef<SWidget> BuildLocalizationCommentEditors(FString* CommentString);
 
 	TSharedRef<SWidget> BuildCommentEditor(TAttribute<FString> String, FString* StringProperty, FText HintText);
 
@@ -237,8 +236,7 @@ protected:
 
 	FText Text_EditedText(FText* Text) const;
 
-	FText ToolTipText_TextDisplayWidget(FText Label, const FText* MatureText, const FText* SafeText) const;
-	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor, const FText* MatureText, const FText* SafeText) const;
+	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor) const;
 
 	EVisibility Visibility_TitleTextErrorState() const;
 	// ------------------------------------------

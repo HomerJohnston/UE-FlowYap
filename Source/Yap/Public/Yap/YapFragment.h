@@ -93,6 +93,7 @@ protected:
 	// ==========================================
 	// STATE
 protected:
+
 	UPROPERTY(VisibleAnywhere, meta=(IgnoreForMemberInitializationTest))
 	FGuid Guid;
 	
@@ -137,6 +138,12 @@ public:
 	int32 GetActivationLimit() const { return ActivationLimit; }
 
 	bool IsActivationLimitMet() const { if (ActivationLimit <= 0) return false; return (ActivationCount >= ActivationLimit); }
+
+	const FText& GetDialogueText(EYapMaturitySetting MaturitySetting) const;
+	
+	const FText& GetTitleText(EYapMaturitySetting MaturitySetting) const;
+	
+	const UObject* GetAudioAsset(EYapMaturitySetting MaturitySetting) const;
 	
 	const FYapBit& GetBit() const;
 
@@ -224,11 +231,7 @@ public:
 
 	TArray<TObjectPtr<UYapCondition>>& GetConditionsMutable() { return Conditions; }
 
-	void ResetGUID() { Guid = FGuid::NewGuid(); };
-
-	/*
-	TArray<FFlowPin> GetOutputPins() const;
-	*/
+	void ResetGUID() { Guid = FGuid::NewGuid(); }
 	
 	FName GetPromptPinName() const { return GetPromptPin().PinName; }
 
@@ -257,6 +260,7 @@ public:
 #if WITH_EDITOR
 public:
 	void SetSpeaker(TSoftObjectPtr<UYapCharacter> InCharacter);
+	
 	void SetDirectedAt(TSoftObjectPtr<UYapCharacter> InDirectedAt);
 #endif
 };

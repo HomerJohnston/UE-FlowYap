@@ -47,6 +47,9 @@ struct FYapBrushes
 	FName Icon_Reset_Small;
 	FName Icon_Notes;
 	
+	FName Icon_Reconciled;
+	FName Icon_Unreconciled;
+	
 	FName Border_DeburredSquare;
 	FName Border_RoundedSquare;
 	FName Border_Thick_RoundedSquare;

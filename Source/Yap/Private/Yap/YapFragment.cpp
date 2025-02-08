@@ -127,6 +127,45 @@ const UYapCharacter* FYapFragment::GetCharacter_Internal(const TSoftObjectPtr<UY
 	return CharacterAsset.Get();
 }
 
+const FText& FYapFragment::GetDialogueText(EYapMaturitySetting MaturitySetting) const
+{
+	const FYapBit& Preferredbit = GetBit(MaturitySetting);
+	const FYapBit& SecondaryBit = MatureBit; // Always fall back to the mature bit. Never fall back to the child-safe bit.
+
+	if (Preferredbit.HasDialogueText())
+	{
+		return Preferredbit.GetDialogueText();
+	}
+
+	return SecondaryBit.GetDialogueText();
+}
+
+const FText& FYapFragment::GetTitleText(EYapMaturitySetting MaturitySetting) const
+{
+	const FYapBit& Preferredbit = GetBit(MaturitySetting);
+	const FYapBit& SecondaryBit = MatureBit; // Always fall back to the mature bit. Never fall back to the child-safe bit.
+
+	if (Preferredbit.HasTitleText())
+	{
+		return Preferredbit.GetTitleText();
+	}
+
+	return SecondaryBit.GetTitleText();
+}
+
+const UObject* FYapFragment::GetAudioAsset(EYapMaturitySetting MaturitySetting) const
+{
+	const FYapBit& Preferredbit = GetBit(MaturitySetting);
+	const FYapBit& SecondaryBit = MatureBit; // Always fall back to the mature bit. Never fall back to the child-safe bit.
+
+	if (Preferredbit.HasAudioAsset())
+	{
+		return Preferredbit.GetAudioAsset<UObject>();
+	}
+
+	return SecondaryBit.GetAudioAsset<UObject>();
+}
+
 const FYapBit& FYapFragment::GetBit() const
 {
 	return GetBit(UYapSubsystem::GetCurrentMaturitySetting());
