@@ -63,3 +63,5 @@ public:
 #endif
 	}
 };
+
+#undef LOCTEXT_NAMESPACE
