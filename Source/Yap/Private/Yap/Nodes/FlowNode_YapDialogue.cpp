@@ -6,6 +6,7 @@
 #include "GameplayTagsManager.h"
 #include "GameplayTagsModule.h"
 #include "Yap/YapBit.h"
+#include "Yap/YapCondition.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapSubsystem.h"
@@ -146,6 +147,12 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	FinishedFragments.Empty();
 	RunningFragment = nullptr;
 #endif
+
+	if (!CheckConditions())
+	{
+		TriggerOutput("Bypass", true, EFlowPinActivationType::Default);
+		return;
+	}
 	
 	if (ActivationLimitsMet())
 	{
@@ -173,6 +180,25 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 	{
 		TriggerOutput("Out", true, EFlowPinActivationType::PassThrough);
 	}
+}
+
+bool UFlowNode_YapDialogue::CheckConditions()
+{
+	for (UYapCondition* Condition : Conditions)
+	{
+		if (!IsValid(Condition))
+		{
+			UE_LOG(LogYap, Warning, TEXT("Ignoring null condition. Clean this up!")); // TODO more info
+			continue;
+		}
+
+		if (!Condition->EvaluateCondition_Internal())
+		{
+			return false;
+		}
+	}
+	
+	return true;
 }
 
 bool UFlowNode_YapDialogue::UsesTitleText() const

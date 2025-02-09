@@ -219,6 +219,8 @@ protected:
 	// ============================================================================================
 	
 protected:
+	bool CheckConditions();
+	
 	void BroadcastPrompts();
 
 	void RunPrompt(uint8 Uint8);

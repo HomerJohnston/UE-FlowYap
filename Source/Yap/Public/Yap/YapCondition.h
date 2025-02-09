@@ -18,10 +18,15 @@ class YAP_API UYapCondition : public UObject
 public:
 	bool ImplementsGetWorld() const override { return true; }
 #endif
-	
+
+	// --------------------------------------------------------------------------------------------
+	// SETTINGS
+	// --------------------------------------------------------------------------------------------
+protected:
+
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(EditDefaultsOnly)
-	FString DefaultTitle = "Unnamed Condition";
+	FText DefaultTitle = LOCTEXT("UnnamedYapCondition", "Unnamed Condition");
 
 	UPROPERTY(EditInstanceOnly)
 	TOptional<FString> TitleOverride;
@@ -39,7 +44,18 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	int32 DetailsViewWidth = 400;
 #endif
+
+	// --------------------------------------------------------------------------------------------
+	// STATE
+	// --------------------------------------------------------------------------------------------
+public:
+#if WITH_EDITORONLY_DATA
+	TOptional<bool> LastEvaluation;
+#endif	
 	
+	// --------------------------------------------------------------------------------------------
+	// PUBLIC API
+	// --------------------------------------------------------------------------------------------
 public:
 	UFUNCTION(BlueprintNativeEvent)
 	bool EvaluateCondition() const;
@@ -47,7 +63,7 @@ public:
 #if WITH_EDITOR
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	FString GetTitle() const;
+	FText GetTitle() const;
 
 	UFUNCTION(BlueprintNativeEvent)
 	FLinearColor GetColor() const;
@@ -55,11 +71,14 @@ public:
 	int32 GetDetailsViewHeight() const { return DetailsViewHeight; }
 	
 	int32 GetDetailsViewWidth() const { return DetailsViewWidth; }
-
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
-	TMulticastDelegate<void(FPropertyChangedEvent&)> OnPropertyChanged;
 #endif
+	
+	// --------------------------------------------------------------------------------------------
+	// INTERNAL
+	// --------------------------------------------------------------------------------------------
+public:
+
+	bool EvaluateCondition_Internal();
 };
 
 #undef LOCTEXT_NAMESPACE

@@ -5,28 +5,46 @@
 
 #define LOCTEXT_NAMESPACE "Yap"
 
+// ------------------------------------------------------------------------------------------------
+
 bool UYapCondition::EvaluateCondition_Implementation() const
 {
 	return true;
 }
 
-#if WITH_EDITOR
-inline FString UYapCondition::GetTitle_Implementation() const
-{
-	return TitleOverride.Get(DefaultTitle);
-}
+// ------------------------------------------------------------------------------------------------
 
+#if WITH_EDITOR
+inline FText UYapCondition::GetTitle_Implementation() const
+{
+	if (TitleOverride.IsSet())
+	{
+		return FText::FromString(TitleOverride.GetValue());
+	}
+	
+	return DefaultTitle;
+}
+#endif
+
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 inline FLinearColor UYapCondition::GetColor_Implementation() const
 {
 	return Color;
 }
-
-void UYapCondition::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	OnPropertyChanged.Broadcast(PropertyChangedEvent);
-}
 #endif
 
+// ------------------------------------------------------------------------------------------------
+
 #undef LOCTEXT_NAMESPACE
+bool UYapCondition::EvaluateCondition_Internal()
+{
+#if WITH_EDITOR
+	bool Value = EvaluateCondition();
+	LastEvaluation = Value;
+	return Value;
+#else
+	return EvaluateCondition();
+#endif
+}

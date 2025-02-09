@@ -36,7 +36,7 @@ public:
 	// ==========================================
 	// SETTINGS
 protected:
-	UPROPERTY(Instanced)
+	UPROPERTY()
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 	
 	/**  */

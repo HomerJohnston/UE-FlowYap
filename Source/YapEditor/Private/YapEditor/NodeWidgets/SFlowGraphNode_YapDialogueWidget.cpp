@@ -397,9 +397,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapDialogueWidget::CreateTitleWidget(TSharedP
 			.HighDetail()
 			[
 				SAssignNew(DialogueConditionsScrollBox, SYapConditionsScrollBox)
-				.DialogueNode(GetFlowYapDialogueNodeMutable())
+				.DialogueNode_Lambda( [this] () { return GetFlowYapDialogueNodeMutable(); } )
 				.ConditionsArrayProperty(FindFProperty<FArrayProperty>(UFlowNode_YapDialogue::StaticClass(), GET_MEMBER_NAME_CHECKED(UFlowNode_YapDialogue, Conditions)))
-				.ConditionsContainer(GetFlowYapDialogueNodeMutable())
+				.ConditionsContainer_Lambda( [this] () { return GetFlowYapDialogueNodeMutable(); } )
 				.OnConditionsArrayChanged(this, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
 			]
 		]

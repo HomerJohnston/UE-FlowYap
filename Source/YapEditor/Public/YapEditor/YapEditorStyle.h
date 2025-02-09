@@ -25,6 +25,7 @@ struct FYapBrushes
 	FName Icon_AudioTime;
 	FName Icon_Baby;
 	FName Icon_CornerDropdown_Right;
+	FName Icon_Checkmark;
 	FName Icon_CrossX;
 	FName Icon_Delete;
 	FName Icon_DownArrow;

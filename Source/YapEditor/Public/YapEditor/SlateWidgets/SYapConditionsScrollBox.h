@@ -23,28 +23,31 @@ public:
 		_DialogueNode(nullptr),
 		_FragmentIndex(INDEX_NONE)
 		{}
-		SLATE_ARGUMENT(UFlowNode_YapDialogue*, DialogueNode)
+		SLATE_ATTRIBUTE(UFlowNode_YapDialogue*, DialogueNode)
 		SLATE_ARGUMENT(int32, FragmentIndex)
 		SLATE_EVENT(FOnConditionsArrayChanged, OnConditionsArrayChanged)
 		SLATE_EVENT(FOnConditionDetailsViewBuilt, OnConditionDetailsViewBuilt)
 		SLATE_ARGUMENT(FArrayProperty*, ConditionsArrayProperty)
-		SLATE_ARGUMENT(void*, ConditionsContainer)
+		SLATE_ATTRIBUTE(void*, ConditionsContainer)
 	SLATE_END_ARGS()
 
 	// ------------------------------------------
 	// SLATE INPUTS
 private:
-	TWeakObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
+	TAttribute<UFlowNode_YapDialogue*> DialogueNode = nullptr;
 	int32 FragmentIndex = INDEX_NONE;
 	FOnConditionsArrayChanged OnConditionsArrayChanged;
 	FOnConditionDetailsViewBuilt OnConditionDetailsViewBuilt;
 	FArrayProperty* ConditionsArrayProperty = nullptr;
-	void* ConditionsContainer = nullptr;
-	
+	TAttribute<void*> ConditionsContainer;
+
 	// ------------------------------------------
 	// STATE
 public:	
-	TArray<UYapCondition*>* ConditionsArray = nullptr;
+	TArray<UYapCondition*>* GetConditionsArray();
+
+	const TArray<UYapCondition*>* GetConditionsArray() const;
+	
 	TSharedPtr<SScrollBox> ScrollBox = nullptr;
 	TArray<TSharedPtr<SWidget>> ConditionButtons;
 	TWeakPtr<SYapConditionDetailsViewWidget> EditedConditionWidget;
@@ -89,8 +92,11 @@ protected:
 	
 public:
 	const TSharedPtr<SWidget> GetConditionButton(int32 ConditionIndex) const { return ConditionButtons[ConditionIndex]; };
+
+private:
+	EVisibility Visibility_LastEvaluationIndicator(int32 ConditionIndex) const;
+	
+	FSlateColor ColorAndOpacity_LastEvaluationIndicator(int32 ConditionIndex) const;
 };
-
-
 
 #undef LOCTEXT_NAMESPACE

@@ -408,8 +408,6 @@ void SFlowGraphNode_YapFragmentWidget::OnTextCommitted_FragmentActivationLimit(c
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 {
-	UFlowNode_YapDialogue* DialogueNode = GetDialogueNode();
-
 	TOptional<bool>* SkippableSettingRaw = &GetFragmentMutable().Skippable;
 	const TAttribute<bool> SkippableDefaultAttr = TAttribute<bool>::CreateLambda( [this] () { return GetDialogueNode()->GetSkippable(); });
 	const TAttribute<bool> SkippableEvaluatedAttr = TAttribute<bool>::CreateLambda( [this, SkippableDefaultAttr] ()
@@ -449,10 +447,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateUpperFragmentBar()
 		.Padding(6, 0, 0, 0)
 		[
 			SAssignNew(ConditionsScrollBox, SYapConditionsScrollBox)
-			.DialogueNode(DialogueNode)
+			.DialogueNode_Lambda( [this] () { return GetDialogueNode(); } )
 			.FragmentIndex(FragmentIndex)
 			.ConditionsArrayProperty(FindFProperty<FArrayProperty>(FYapFragment::StaticStruct(), GET_MEMBER_NAME_CHECKED(FYapFragment, Conditions)))
-			.ConditionsContainer(&GetFragmentMutable())
+			.ConditionsContainer_Lambda( [this] () { return &GetFragmentMutable(); } )
 			.OnConditionsArrayChanged(Owner, &SFlowGraphNode_YapDialogueWidget::OnConditionsArrayChanged)
 		]
 		+ SHorizontalBox::Slot()

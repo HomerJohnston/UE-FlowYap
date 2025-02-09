@@ -144,6 +144,8 @@ void FYapEditorStyle::Initialize()
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Tag,						"Icon_Tag", ".svg",						FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_Edit,						"Icon_Edit", ".png",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_CornerDropdown_Right,		"Icon_CornerDropdown_Right", ".svg",	FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Checkmark,					"Icon_Checkmark", ".svg",				FVector2f(16, 16));
+	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_CrossX,					"Icon_CrossX", ".svg",					FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateImageBrush,			Icon_UpArrow,					"Icon_UpArrow", ".png",					FVector2f(8, 8));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_Skippable,					"Icon_Skippable", ".svg",				FVector2f(16, 16));
 	YAP_DEFINE_BRUSH(FSlateVectorImageBrush,	Icon_NotSkippable,				"Icon_NotSkippable", ".svg",			FVector2f(16, 16));

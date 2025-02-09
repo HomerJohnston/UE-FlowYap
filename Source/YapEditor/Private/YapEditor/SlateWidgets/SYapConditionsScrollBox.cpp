@@ -13,6 +13,17 @@
 
 #define LOCTEXT_NAMESPACE "YapEditor"
 
+
+TArray<UYapCondition*>* SYapConditionsScrollBox::GetConditionsArray()
+{
+	return ConditionsArrayProperty->ContainerPtrToValuePtr<TArray<UYapCondition*>>(ConditionsContainer.Get());
+}
+
+const TArray<UYapCondition*>* SYapConditionsScrollBox::GetConditionsArray() const
+{
+	return ConditionsArrayProperty->ContainerPtrToValuePtr<TArray<UYapCondition*>>(ConditionsContainer.Get());
+}
+
 // ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::Construct(const FArguments& InArgs)
 {
@@ -22,7 +33,6 @@ void SYapConditionsScrollBox::Construct(const FArguments& InArgs)
 	OnConditionDetailsViewBuilt = InArgs._OnConditionDetailsViewBuilt;
 	ConditionsArrayProperty = InArgs._ConditionsArrayProperty;
 	ConditionsContainer = InArgs._ConditionsContainer;
-	ConditionsArray = ConditionsArrayProperty->ContainerPtrToValuePtr<TArray<UYapCondition*>>(ConditionsContainer);
 
 	ChildSlot
 	[
@@ -48,7 +58,7 @@ void SYapConditionsScrollBox::RebuildConditionButtons()
 	ScrollBox->ClearChildren();
 	ConditionButtons.Empty();
 	
-	for (int32 i = 0; i < ConditionsArray->Num(); ++i)
+	for (int32 i = 0; i < GetConditionsArray()->Num(); ++i)
 	{
 		TSharedRef<SWidget> Button = CreateConditionButton(i);
 		ConditionButtons.Add(Button);
@@ -91,7 +101,7 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateAddConditionButton()
 // ------------------------------------------------------------------------------------------------
 FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 {
-	if (!DialogueNode.IsValid())
+	if (!DialogueNode.Get())
 	{
 		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
 		return FReply::Handled();
@@ -101,7 +111,7 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 
 	//DestroyConditionDetailsWidget();
 
-	ConditionsArray->Add(nullptr);
+	GetConditionsArray()->Add(nullptr);
 
 	FYapTransactions::EndModify();
 	
@@ -126,17 +136,39 @@ TSharedRef<SWidget> SYapConditionsScrollBox::CreateConditionButton(int32 Conditi
 	.ButtonContentPadding(FMargin(8, 2, 8, 0))
 	.ButtonContent()
 	[
-		SNew(STextBlock)
-		.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
-		.ColorAndOpacity(FSlateColor::UseForeground())
-		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			SNew(STextBlock)
+			.Text(this, &SYapConditionsScrollBox::Text_ConditionButton, ConditionIndex)
+			.ColorAndOpacity(FSlateColor::UseForeground())
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))	
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Fill)
+		.Padding(-8, -2, -8, 0)
+		[
+			SNew(SBox)
+			.WidthOverride(4)
+			.Visibility(this, &SYapConditionsScrollBox::Visibility_LastEvaluationIndicator, ConditionIndex)
+			[
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				[
+					SNew(SImage)
+					.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidWhite))
+					.ColorAndOpacity(this, &SYapConditionsScrollBox::ColorAndOpacity_LastEvaluationIndicator, ConditionIndex)
+				]
+			]
+		]
 	];
 }
 
 TSharedRef<SWidget> SYapConditionsScrollBox::PopupContentGetter(int32 ConditionIndex)
 {
 	return SNew(SYapConditionDetailsViewWidget)
-		.Dialogue(DialogueNode)
+		.Dialogue(DialogueNode.Get())
 		.FragmentIndex(FragmentIndex)
 		.ConditionIndex(ConditionIndex)
 		.OnClickedDelete(this, &SYapConditionsScrollBox::OnClicked_DeleteConditionButton)
@@ -166,18 +198,18 @@ FText SYapConditionsScrollBox::Text_ConditionButton(int32 ConditionIndex) const
 
 	if (Condition)
 	{
-		return FText::FromString(GetCondition(ConditionIndex)->GetTitle());
+		return GetCondition(ConditionIndex)->GetTitle();
 	}
 	else
 	{
-		return FText::FromString("-");
+		return INVTEXT("---");
 	}
 }
 
 // ------------------------------------------------------------------------------------------------
 void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex)
 {
-	if (!DialogueNode.IsValid())
+	if (!DialogueNode.Get())
 	{
 		UE_LOG(LogYap, Warning, TEXT("Dialogue node is null - this should not happen, please inform the plugin author!"))
 		return;
@@ -185,7 +217,7 @@ void SYapConditionsScrollBox::OnClicked_DeleteConditionButton(int ConditionIndex
 	
 	FYapTransactions::BeginModify(LOCTEXT("DeleteYapCondition", "Delete condition"), DialogueNode.Get());
 
-	ConditionsArray->RemoveAt(ConditionIndex);
+	GetConditionsArray()->RemoveAt(ConditionIndex);
 
 	FYapTransactions::EndModify();
 
@@ -221,13 +253,39 @@ TSharedPtr<SWidget> SYapConditionsScrollBox::GetEditedButton(int32 ConditionInde
 // ------------------------------------------------------------------------------------------------
 UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex) const
 {
-	return ConditionsArray->IsValidIndex(ConditionIndex) ? (*ConditionsArray)[ConditionIndex] : nullptr;
+	return GetConditionsArray()->IsValidIndex(ConditionIndex) ? (*GetConditionsArray())[ConditionIndex] : nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------
 UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex)
 {
 	return const_cast<UYapCondition*>(const_cast<const SYapConditionsScrollBox*>(this)->GetCondition(ConditionIndex));
+}
+
+// ------------------------------------------------------------------------------------------------
+
+EVisibility SYapConditionsScrollBox::Visibility_LastEvaluationIndicator(int32 ConditionIndex) const
+{
+	UYapCondition* Condition = GetCondition(ConditionIndex);
+	
+	if (!Condition)
+	{
+		return EVisibility::Collapsed;
+	}
+				
+	return Condition->LastEvaluation.IsSet() ? EVisibility::Visible : EVisibility::Collapsed;
+}
+
+FSlateColor SYapConditionsScrollBox::ColorAndOpacity_LastEvaluationIndicator(int32 ConditionIndex) const
+{
+	UYapCondition* Condition = GetCondition(ConditionIndex);
+	
+	if (!Condition)
+	{
+		return YapColor::Error;
+	}
+
+	return Condition->LastEvaluation.Get(false) ? YapColor::LightGreen : YapColor::OrangeRed;
 }
 
 #undef LOCTEXT_NAMESPACE

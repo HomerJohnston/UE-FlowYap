@@ -128,6 +128,10 @@ struct FYapData_OnSpeakingBegins
 	UPROPERTY(BlueprintReadOnly)
 	float DialogueTime;
 
+	/** Delay after this dialogue completes before carrying on. */
+	UPROPERTY(BlueprintReadOnly)
+	float PaddingTime;
+
 	/** Audio asset, you are responsible to cast to your proper type to use. */
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<const UObject> DialogueAudioAsset;

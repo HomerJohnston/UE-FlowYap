@@ -266,6 +266,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	Data.DialogueText = Bit.GetDialogueText();
 	Data.TitleText = Bit.GetTitleText();
 	Data.DialogueTime = EffectiveTime;
+	Data.PaddingTime = Fragment.GetPaddingToNextFragment(); 
 	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingBegins, &IYapConversationHandler::Execute_K2_OnSpeakingBegins>(Data);
