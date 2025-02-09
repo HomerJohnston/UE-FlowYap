@@ -245,6 +245,11 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	{
 		FYapFragment& Fragment = Fragments[FragmentIndex];
 
+ 		if (!Fragment.CheckConditions())
+ 		{
+ 			continue;
+ 		}
+ 		
 		if (Fragment.IsActivationLimitMet())
 		{
 			continue;
