@@ -1,19 +1,20 @@
-**THIS README AND THE WIKI ARE UNDER CONSTRUCTION**
+**THIS README AND THE WIKI ARE UNDER CONSTRUCTION.**
 
-**YAP IS AN EARLY WORK IN PROGRESS. IT IS NOT PRODUCTION-READY, ALTHOUGH MOST COMMITS WILL BUILD AND RUN.**
-# Yap for FlowGraph
+**YAP IS AN EARLY WORK IN PROGRESS.**
+
+**MOST COMMITS WILL BUILD AND RUN.**
 
 &nbsp;
 
-## Introduction
+# Introduction
 
 Yap is a project-agnostic dialogue engine running on FlowGraph. It is being built by studying games like Monkey Island to try and recreate their capabilties. It is usable via any combination of blueprint or C++, although you will need a C++ project to build this plugin.
 
-Visit the wiki for documentation.
+Visit the wiki for detailed documentation.
 
-## Feature Overview
+# Feature Overview
 
-- Feature-rich dialogue nodes, containing:
+### Dialogue nodes
   - Talk mode or Player Prompt mode
   - Activation limits
   - Configurable entrance conditions
@@ -24,7 +25,7 @@ Visit the wiki for documentation.
   - Individual output pins for player prompt mode
   - Bypass output pin (becomes available if there is a chance of the node or all fragments failing to activate)
 
-Speech fragments each contain:
+### Speech fragments
   - Selectable speaker
   - Selectable focus character (speech "directed at" character)
   - Mood tag
@@ -47,7 +48,7 @@ Speech fragments each contain:
   - Extra field for audio asset to enter stage directions for voice artists
   - Extra optional output pins to run more for when speaking begins and when speaking ends
 
-Other general features:
+### Other general features:
   - Automatic hookup of audio assets to dialogue fragments (requires audio assets to include audio ID string in their name)
   - .PO Exporter for localization (exports a .PO file for all dialogue nodes in a single graph) - IN PROGRESS
   - Uses an interface you can apply to any object in your game to make it respond to dialogue events
@@ -55,7 +56,21 @@ Other general features:
     - Reading maturity settings
     - Reading dialogue playback settings
     - Interacting with 3rd party audio engines like WWise or FMod for editor functionality
+  - Clear indicators on fragments for invalid settings, such as:
+    - Missing child-safe data
+    - Missing or invalid audio asset data
+  - Character assets which can contain one or more portraits (optionally one portrait for each mood tag)
+  - Extensively configurable in project settings
 
 &nbsp;
 
+### The Dialogue Node
+
+![image](https://github.com/user-attachments/assets/939a5f6f-51ce-4b7c-8c49-a77e723a69a2)
+
+&nbsp;
+
+### Graph Sample
+
+![image](https://github.com/user-attachments/assets/d7a6778a-d1c8-4783-b0c0-654495c62f5e)
 
