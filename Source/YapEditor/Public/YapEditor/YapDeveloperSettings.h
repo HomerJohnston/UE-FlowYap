@@ -34,8 +34,9 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Development")
 	bool bCloseAndReopenAssetsOnLiveCoding = false;
 
+	/** Allows the developer to override the dialogue font. Might be useful e.g. for team members with dyslexia. */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings")
-	FSlateFontInfo GraphDialogueFont;
+	FSlateFontInfo GraphDialogueFontUserOverride;
 
 public:
 	static float GetConditionDetailsWidth() { return Get().ConditionDetailsWidth; }
@@ -44,7 +45,7 @@ public:
 
 	static float GetPortraitBorderAlpha() { return Get().PortraitBorderAlpha; }
 
-	static const FSlateFontInfo& GetGraphDialogueFont() { return Get().GraphDialogueFont; }
+	static const FSlateFontInfo& GetGraphDialogueFontUserOverride() { return Get().GraphDialogueFontUserOverride; }
 
 	static bool GetCloseAndReopenAssetsOnLiveCoding() { return Get().bCloseAndReopenAssetsOnLiveCoding; }
 	

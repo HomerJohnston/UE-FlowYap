@@ -56,17 +56,23 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapBroker> BrokerClass = nullptr;
 	
-	/** What type of classes are allowable to use for dialogue assets (sounds). If unset, defaults to Unreal's USoundBase. */
-	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowAbstract))
-	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
-
 #if WITH_EDITORONLY_DATA
 	// Do not expose this for editing; only hard-coded
 	UPROPERTY() 
 	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
 #endif
 	
-#if WITH_EDITORONLY_DATA	
+	// - - - - - AUDIO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#if WITH_EDITORONLY_DATA
+	
+	/** Controls how missing audio fields are handled. */ // TODO make error not package
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", DisplayName = "Missing Audio Handling", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
+	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
+	
+	/** What type of classes are allowable to use for dialogue assets (sounds). If unset, defaults to Unreal's USoundBase. */
+	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowAbstract))
+	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
+
 	/** Where to look for audio assets when auto-assigning audio to dialogue. Audio must be placed into a folder path matching the flow asset folder path, and into a subfolder matching the flow asset name.
 	 *
 	 * Example:
@@ -147,10 +153,6 @@ protected:
 	float MinimumSpeakingTime = 0.25;
 
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	/** Controls how missing audio fields are handled. */ // TODO make error not package
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
 	
 	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
 	UPROPERTY(Config, EditAnywhere, Category = "Editor")
@@ -163,19 +165,8 @@ protected:
 	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Editor")
 	bool bShowTitleTextOnTalkNodes = false;
-
-	// ============================================================================================
-	// STATE
-	// ============================================================================================
-
-#if WITH_EDITORONLY_DATA
-protected:
-	/**  */
-	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
 	
-	/** A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it */
-	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
-#endif
+	// - - - - - GRAPH APPEARANCE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #if WITH_EDITORONLY_DATA
 	/** Adjusts the width of all dialogue nodes in graph grid units (16 px). */
@@ -201,7 +192,13 @@ protected:
 	/** If set, dialogue in the nodes will cut off to the right. This may help if you intend to use lots of multi-line dialogue text. */
 	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
 	bool bPreventDialogueTextWrapping = true;
+	
+	/** Set the default font for dialogue. */
+	UPROPERTY(Config, EditAnywhere, Category = "Flow Graph Appearance")
+	FSlateFontInfo GraphDialogueFont;
 #endif
+
+	// - - - - - ERROR HANDLING - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	/** If set, you will not be warned when Yap is using default broker functions. Turn this on if you do not need to customize your broker. */
 	UPROPERTY(Config, EditAnywhere, Category = "Error Handling")
@@ -210,11 +207,25 @@ protected:
 	/** Default texture to use for missing character portraits. */
 	UPROPERTY(Config, EditAnywhere, Category = "Error Handling")
 	TSoftObjectPtr<UTexture2D> MissingPortraitTexture;
+	
+	// ============================================================================================
+	// STATE
+	// ============================================================================================
+protected:
 
+#if WITH_EDITORONLY_DATA
+	/**  */
+	TMap<EYap_TagFilter, FGameplayTag*> TagContainers;
+	
+	/** A registered property name (FName) will get bound to a map of classes and the type of tag filter to use for it */
+	TMultiMap<FName, TMap<UClass*, EYap_TagFilter>> TagFilterSubscriptions;
+#endif
+	
 	// ------------------------------------------
 	// UObject overrides
-#if WITH_EDITOR
 public:
+
+#if WITH_EDITOR
 	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
@@ -222,8 +233,9 @@ public:
 	
 	// ------------------------------------------
 	// UDeveloperSettings overrides
-#if WITH_EDITOR
 public:
+
+#if WITH_EDITOR
 	static FName CategoryName;
 	
 	FName GetCategoryName() const override { return CategoryName; }
@@ -245,7 +257,6 @@ public:
 	static const FGameplayTag& GetDialogueTagsParent() { return Get().DialogueTagsParent; };
 	
 	static FGameplayTagContainer GetMoodTags();
-
 #endif
 
 	static bool GetSuppressBrokerWarnings() { return Get().bSuppressBrokerWarnings; }
@@ -263,19 +274,8 @@ public:
 	static const TSoftClassPtr<UYapBroker>& GetBrokerClass() { return Get().BrokerClass; }
 
 #if WITH_EDITOR
-	static const UYapBroker* GetEditorBrokerDefault()
-	{ 
-		TSoftClassPtr<UYapBroker> BrokerClass = UYapProjectSettings::GetBrokerClass();
+	static const UYapBroker* GetEditorBrokerDefault();
 
-		if (BrokerClass.IsNull())
-		{
-			UE_LOG(LogYap, Error, TEXT("No broker class set! Set a Yap Broker class in project settings."));
-			return nullptr;
-		}
-
-		return BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
-	}
-	
 	static const TArray<TSoftClassPtr<UObject>>& GetAudioAssetClasses();
 
 	static const FString GetAudioAssetRootFolder();
@@ -322,6 +322,8 @@ public:
 	static void RegisterTagFilter(UObject* ClassSource, FName PropertyName, EYap_TagFilter Filter);
 
 	static FString GetTrimmedGameplayTagString(EYap_TagFilter Filter, const FGameplayTag& PropertyTag);
+
+	static FSlateFontInfo& GetGraphDialogueFont() { return Get().GraphDialogueFont; };
 
 protected:
 	void OnGetCategoriesMetaFromPropertyHandle(TSharedPtr<IPropertyHandle> PropertyHandle, FString& MetaString) const;

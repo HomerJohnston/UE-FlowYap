@@ -66,10 +66,27 @@ FString UYapProjectSettings::GetMoodTagIconPath(FGameplayTag Key, FString FileEx
 	
 	return FPaths::ProjectDir() / FString::Format(TEXT("{0}/{1}.{2}}"), { Get().MoodTagIconPath.Path, KeyString, FileExtension });
 }
+#endif
 
+#if WITH_EDITOR
 FGameplayTagContainer UYapProjectSettings::GetMoodTags()
 {
 	return UGameplayTagsManager::Get().RequestGameplayTagChildren(Get().MoodTagsParent);
+}
+#endif
+
+#if WITH_EDITOR
+const UYapBroker* UYapProjectSettings::GetEditorBrokerDefault()
+{ 
+	TSoftClassPtr<UYapBroker> BrokerClass = UYapProjectSettings::GetBrokerClass();
+
+	if (BrokerClass.IsNull())
+	{
+		UE_LOG(LogYap, Error, TEXT("No broker class set! Set a Yap Broker class in project settings."));
+		return nullptr;
+	}
+
+	return BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 }
 
 const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses()
@@ -81,7 +98,9 @@ const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses(
 
 	return Get().DefaultAssetAudioClasses;
 }
+#endif
 
+#if WITH_EDITOR
 const FString UYapProjectSettings::GetAudioAssetRootFolder()
 {
 	if (Get().AudioAssetsRootFolder.Path.IsEmpty())
@@ -91,12 +110,16 @@ const FString UYapProjectSettings::GetAudioAssetRootFolder()
 	
 	return /*FPaths::ProjectContentDir() / */Get().AudioAssetsRootFolder.Path;
 }
+#endif
 
+#if WITH_EDITOR
 void UYapProjectSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
+#if WITH_EDITOR
 void UYapProjectSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);

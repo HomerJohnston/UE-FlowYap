@@ -152,11 +152,13 @@ void SFlowGraphNode_YapFragmentWidget::Construct(const FArguments& InArgs, SFlow
 		{ EYapTimeMode::ManualTime, YapColor::Orange },
 	};
 
-	const FSlateFontInfo& DialogueFont = UYapDeveloperSettings::GetGraphDialogueFont();
-
-	if (DialogueFont.HasValidFont())
+	if (UYapDeveloperSettings::GetGraphDialogueFontUserOverride().HasValidFont())
 	{
-		DialogueTextFont = DialogueFont;
+		DialogueTextFont = UYapDeveloperSettings::GetGraphDialogueFontUserOverride();
+	}
+	else if (UYapProjectSettings::GetGraphDialogueFont().HasValidFont())
+	{
+		DialogueTextFont = UYapProjectSettings::GetGraphDialogueFont();
 	}
 	else
 	{
@@ -1319,7 +1321,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDialogueDisplayWidge
 				[
 					SNew(SOverlay)
 					+ SOverlay::Slot()
-					.Padding(4, 0, 4, 2)
+					.Padding(4, 4, 4, 2)
 					[
 						SNew(STextBlock)
 						.AutoWrapText_Lambda([] () { return UYapProjectSettings::GetWrapDialogueText(); })
