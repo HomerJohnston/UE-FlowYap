@@ -40,8 +40,7 @@ bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle
 	{
 		//if (Handle.GetSkippable())
 		//{
-			Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
-			return true;
+			return Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
 		//}
 		//else
 		//{

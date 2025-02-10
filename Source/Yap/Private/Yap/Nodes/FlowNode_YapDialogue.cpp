@@ -82,41 +82,32 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 		return true;
 	}
 	
-	EYapFragmentState State = GetFragmentState(FragmentIndex);
-
 	bool bPreventSkippingTimers = !GetFragmentByIndex(FragmentIndex).GetSkippable(this->GetSkippable());
 			
 	if (bPreventSkippingTimers && (FragmentTimerHandle.IsValid() || PaddingTimerHandle.IsValid()))
 	{
 		return false;
 	}
+
+	bool bSkipped = false;
 	
-	switch (State)
+	if (FragmentTimerHandle.IsValid())
 	{
-		case EYapFragmentState::Running:
-		{
-			OnSpeakingComplete(FragmentIndex);
-			// Fallthrough
-		}
-		case EYapFragmentState::InPadding:
-		{
-			OnPaddingComplete(FragmentIndex);
-			break;
-		}
-		case EYapFragmentState::Idle:
-		{
-			UE_LOG(LogYap, Warning, TEXT("Attempted to skip fragment but fragment was not running!"));
-
-			return false;
-		}
-		default:
-		{
-			UE_LOG(LogYap, Warning, TEXT("Attempted to skip fragment but encountered unknown error!"));
-
-			return false;
-		}
+		OnSpeakingComplete(FragmentIndex);
+		bSkipped = true;
 	}
 
+	if (PaddingTimerHandle.IsValid())
+	{
+		OnPaddingComplete(FragmentIndex);
+		bSkipped = true;
+	}
+
+	if (!bSkipped)
+	{
+		return false;
+	}
+	
 	if (FragmentAwaitingManualAdvance == FragmentIndex)
 	{
 		AdvanceToNextFragment(FragmentIndex);

@@ -260,7 +260,7 @@ protected:
 	
 		if (!bHandled)
 		{
-			UE_LOG(LogYap, Error, TEXT("IYapConversationListener and register it to the Yap subsystem."));
+			UE_LOG(LogYap, Error, TEXT("IYapConversationListener and register it to the Yap subsystem.")); // TODO
 		}
 	}
 };

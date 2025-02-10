@@ -247,6 +247,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	}
 
 	bool bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
+	bool bAutoAdvance = Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
 
 	TOptional<float> Time = Fragment.GetTime();
 
@@ -263,7 +264,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 	FYapData_OnSpeakingBegins Data;
 	Data.Conversation = ConversationName;
-	Data.DialogueHandle = DialogueHandles.Emplace(Dialogue, {Dialogue, FragmentIndex, bSkippable});
+	Data.DialogueHandle = DialogueHandles.Emplace(Dialogue, {Dialogue, FragmentIndex, bSkippable, !bAutoAdvance});
 	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
 	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
 	Data.MoodTag = Fragment.GetMoodTag();
