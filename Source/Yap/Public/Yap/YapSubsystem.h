@@ -184,7 +184,7 @@ protected:  // TODO should some of these be public?
 	void CloseConversation(); // Called by Close Conversation node
 
 	/**  */
-	void BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
+	FYapPromptHandle BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
 
 	/**  */
 	void OnFinishedBroadcastingPrompts();

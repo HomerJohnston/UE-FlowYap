@@ -118,7 +118,7 @@ FReply SYapConditionsScrollBox::OnClicked_AddConditionButton()
 	(void)OnConditionsArrayChanged.ExecuteIfBound();
 
 	// The dialogue widget will be rebuilt fully by the dialogue widget (which needs to rebuild to check if Bypass pin enables/disables), no need to rebuild conditions again here.
-	// Leave this existing and ommented out for future reference.
+	// Leave this existing and commented out for future reference.
 	// RebuildConditionButtons();
 	
 	return FReply::Handled();
@@ -259,21 +259,19 @@ UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex) const
 // ------------------------------------------------------------------------------------------------
 UYapCondition* SYapConditionsScrollBox::GetCondition(int32 ConditionIndex)
 {
-	return const_cast<UYapCondition*>(const_cast<const SYapConditionsScrollBox*>(this)->GetCondition(ConditionIndex));
+	return const_cast<const SYapConditionsScrollBox*>(this)->GetCondition(ConditionIndex);
 }
 
 // ------------------------------------------------------------------------------------------------
 
 EVisibility SYapConditionsScrollBox::Visibility_LastEvaluationIndicator(int32 ConditionIndex) const
 {
-	UYapCondition* Condition = GetCondition(ConditionIndex);
-	
-	if (!Condition)
+	if (GEditor->IsPlaySessionInProgress())
 	{
-		return EVisibility::Collapsed;
+		return EVisibility::Visible;
 	}
-				
-	return Condition->LastEvaluation.IsSet() ? EVisibility::Visible : EVisibility::Collapsed;
+
+	return EVisibility::Collapsed;
 }
 
 FSlateColor SYapConditionsScrollBox::ColorAndOpacity_LastEvaluationIndicator(int32 ConditionIndex) const
@@ -285,7 +283,12 @@ FSlateColor SYapConditionsScrollBox::ColorAndOpacity_LastEvaluationIndicator(int
 		return YapColor::Error;
 	}
 
-	return Condition->LastEvaluation.Get(false) ? YapColor::LightGreen : YapColor::OrangeRed;
+	if (Condition->LastEvaluation.IsSet())
+	{
+		return Condition->LastEvaluation.GetValue() ? YapColor::LightGreen : YapColor::OrangeRed;
+	}
+
+	return YapColor::DarkGray;
 }
 
 #undef LOCTEXT_NAMESPACE

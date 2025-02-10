@@ -240,6 +240,7 @@ void UFlowNode_YapDialogue::InvalidateFragmentTags()
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
 	TArray<uint8> BroadcastedFragments;
+	FYapPromptHandle LastHandle;
 	
  	for (uint8 FragmentIndex = 0; FragmentIndex < Fragments.Num(); ++FragmentIndex)
 	{
@@ -255,7 +256,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 			continue;
 		}
 
-		GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPrompt(this, FragmentIndex);
+		LastHandle = GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPrompt(this, FragmentIndex);
  		
 		BroadcastedFragments.Add(FragmentIndex);
 	}
@@ -268,7 +269,10 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	}
 	else if (BroadcastedFragments.Num() == 1)
 	{
-		// TODO - auto select last option as a project setting? Overridable in dialogue node??? Or let game handle this?
+		if (UYapProjectSettings::GetAutoSelectLastPromptSetting())
+		{
+			LastHandle.RunPrompt(this);
+		}
 	}
 }
 
@@ -341,7 +345,6 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 		}
 		else
 		{
-			// TODO: make it possible for dialogue to pause and require pressing "continue" after each dialogue
 			GetWorld()->GetTimerManager().SetTimer(FragmentTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::OnSpeakingComplete, FragmentIndex), Time.GetValue(), false);
 		}
 

@@ -101,6 +101,12 @@ protected:
 	/** Where to look for portrait key icons. If unspecified, will use the default "Plugins/FlowYap/Resources/MoodTags" folder.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Mood Tags")
 	FDirectoryPath MoodTagIconPath;
+	
+	// - - - - - DIALOGUE TAGS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+
+	/** Filters dialogue and fragment tags. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Tags")
+	FGameplayTag DialogueTagsParent;
 
 	// - - - - - DIALOGUE PLAYBACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 	
@@ -108,10 +114,6 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
 
-	/** Controls how missing audio fields are handled. */ // TODO make error not package
-	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
-	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
-	
 	/** If set, dialogue will be non-skippable by default and must play for its entire duration. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	bool bForcedDialogueDuration = false;
@@ -119,6 +121,10 @@ protected:
 	/** If set, dialogue will not auto-advance when its duration finishes and will require advancement by using the Dialogue Handle. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	bool bManualAdvanceOnly = false;
+
+	/** By default, the player prompt node will auto-select the prompt if only one is displayed. This setting prevents that. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
+	bool bPreventAutoSelectLastPrompt = false;
 	
 	/** After each dialogue is finished being spoken, a brief extra pause can be inserted before moving onto the next node. This is the default value. Can be overridden by individual fragments. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (Units = "s", UIMin = 0.0, UIMax = 5.0, Delta = 0.01))
@@ -142,6 +148,10 @@ protected:
 
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	/** Controls how missing audio fields are handled. */ // TODO make error not package
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", DisplayName = "Missing Audio", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
+	EYapMissingAudioErrorLevel MissingAudioErrorLevel;
+	
 	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
 	UPROPERTY(Config, EditAnywhere, Category = "Editor")
 	bool bPreventCachingWordCount = false;
@@ -153,10 +163,6 @@ protected:
 	/** If enabled, will show title text on normal talk nodes as well as player prompt nodes. */
 	UPROPERTY(Config, EditAnywhere, Category = "Editor")
 	bool bShowTitleTextOnTalkNodes = false;
-	
-	/** Filters dialogue and fragment tags. */
-	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Tags")
-	FGameplayTag DialogueTagsParent;
 
 	// ============================================================================================
 	// STATE
@@ -251,7 +257,9 @@ public:
 	static bool GetDefaultSkippableSetting() { return !Get().bForcedDialogueDuration; }
 	
 	static bool GetDefaultAutoAdvanceSetting() { return !Get().bManualAdvanceOnly; }
-		
+
+	static bool GetAutoSelectLastPromptSetting() { return !Get().bPreventAutoSelectLastPrompt; }
+	
 	static const TSoftClassPtr<UYapBroker>& GetBrokerClass() { return Get().BrokerClass; }
 
 #if WITH_EDITOR

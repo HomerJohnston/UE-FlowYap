@@ -194,7 +194,7 @@ void UYapSubsystem::CloseConversation()
 	*/
 }
 
-void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
+FYapPromptHandle UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	// TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
 	FYapFragment& Fragment = const_cast<FYapFragment&>(Dialogue->GetFragmentByIndex(FragmentIndex));
@@ -207,9 +207,11 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
+	FYapPromptHandle Handle(Dialogue, FragmentIndex);
+	
 	FYapData_AddPlayerPrompt Data;
 	Data.Conversation = ConversationName;
-	Data.Handle = FYapPromptHandle(Dialogue, FragmentIndex);
+	Data.Handle = Handle;
 	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
 	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
 	Data.MoodTag = Fragment.GetMoodTag();
@@ -217,6 +219,8 @@ void UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 Fragm
 	Data.TitleText = Bit.GetTitleText();
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>(Data);
+
+	return Handle;
 }
 
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
