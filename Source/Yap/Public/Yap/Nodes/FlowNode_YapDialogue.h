@@ -185,8 +185,6 @@ public:
 protected:
 	bool ActivationLimitsMet() const;
 
-	EYapFragmentState GetFragmentState(int32 FragmentIndex) const;
-	
 #if WITH_EDITOR
 private:
 	TOptional<bool> GetSkippableSetting() const;
