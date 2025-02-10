@@ -56,14 +56,11 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Core")
 	TSoftClassPtr<UYapBroker> BrokerClass = nullptr;
 	
-#if WITH_EDITORONLY_DATA
 	// Do not expose this for editing; only hard-coded
 	UPROPERTY() 
 	TArray<TSoftClassPtr<UObject>> DefaultAssetAudioClasses;
-#endif
 	
-	// - - - - - AUDIO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#if WITH_EDITORONLY_DATA
+	// - - - - - AUDIO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	/** Controls how missing audio fields are handled. */ // TODO make error not package
 	UPROPERTY(Config, EditAnywhere, Category = "Audio", DisplayName = "Missing Audio Handling", meta = (EditCondition = "DefaultTimeModeSetting == EYapTimeMode::AudioTime", EditConditionHides))
@@ -73,6 +70,7 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Audio", meta = (AllowAbstract))
 	TArray<TSoftClassPtr<UObject>> AudioAssetClasses;
 
+#if WITH_EDITORONLY_DATA
 	/** Where to look for audio assets when auto-assigning audio to dialogue. Audio must be placed into a folder path matching the flow asset folder path, and into a subfolder matching the flow asset name.
 	 *
 	 * Example:
@@ -272,17 +270,17 @@ public:
 	static bool GetAutoSelectLastPromptSetting() { return !Get().bPreventAutoSelectLastPrompt; }
 	
 	static const TSoftClassPtr<UYapBroker>& GetBrokerClass() { return Get().BrokerClass; }
+	
+	static const TArray<TSoftClassPtr<UObject>>& GetAudioAssetClasses();
 
 #if WITH_EDITOR
 	static const UYapBroker* GetEditorBrokerDefault();
-
-	static const TArray<TSoftClassPtr<UObject>>& GetAudioAssetClasses();
 
 	static const FString GetAudioAssetRootFolder();
 #endif
 
 	static bool HasCustomAudioAssetClasses() { return Get().AudioAssetClasses.Num() > 0; };
-	
+
 	static bool GetShowTitleTextOnTalkNodes() { return Get().bShowTitleTextOnTalkNodes; }
 
 	static int32 GetTextWordsPerMinute() { return Get().TextWordsPerMinute; }

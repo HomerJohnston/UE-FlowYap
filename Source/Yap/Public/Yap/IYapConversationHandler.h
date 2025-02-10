@@ -126,11 +126,11 @@ struct FYapData_OnSpeakingBegins
 	
 	/** How long this dialogue is expected to play for. */
 	UPROPERTY(BlueprintReadOnly)
-	float DialogueTime;
+	float DialogueTime = 0;
 
 	/** Delay after this dialogue completes before carrying on. */
 	UPROPERTY(BlueprintReadOnly)
-	float PaddingTime;
+	float PaddingTime = 0;
 
 	/** Audio asset, you are responsible to cast to your proper type to use. */
 	UPROPERTY(BlueprintReadOnly)
@@ -155,7 +155,7 @@ struct FYapData_OnSpeakingEnds
 
 	/** How long it is expected to wait before moving on to the next fragment or Flow Graph node. */
 	UPROPERTY(BlueprintReadOnly)
-	float PaddingTime;
+	float PaddingTime = 0;
 };
 
 // ------------------------------------------------------------------------------------------------

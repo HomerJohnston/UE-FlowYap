@@ -36,7 +36,7 @@ struct FYapBitReplacement
 	TOptional<FYapText> SafeTitleText;
 
 	UPROPERTY(EditAnywhere)
-	bool bOverrideMatureDialogueText;
+	bool bOverrideMatureDialogueText = false;
 	
 	/**  */
 	UPROPERTY(EditAnywhere, meta = (EditCondition = "bOverrideMatureDialogueText", EditConditionHides))

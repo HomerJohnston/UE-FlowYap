@@ -19,8 +19,10 @@ class YAP_API UYapCondition_MaturitySetting : public UYapCondition
 
 public:
 	bool EvaluateCondition_Implementation() const override;
-	
+
+#if WITH_EDITOR
 	FLinearColor GetColor_Implementation() const override;
 	
 	FText GetTitle_Implementation() const override;
+#endif
 };

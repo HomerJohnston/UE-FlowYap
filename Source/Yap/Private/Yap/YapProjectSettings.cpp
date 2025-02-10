@@ -31,11 +31,11 @@ UYapProjectSettings::UYapProjectSettings()
 		{ EYap_TagFilter::Prompts, &DialogueTagsParent }
 	};
 #endif
-	
-	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
 
 	DefaultAssetAudioClasses = { USoundBase::StaticClass() };
-	
+
+	DefaultTimeModeSetting = EYapTimeMode::AudioTime;
+
 	MissingAudioErrorLevel = EYapMissingAudioErrorLevel::OK;
 
 	MissingPortraitTexture = FSoftObjectPath("/Yap/T_Avatar_Missing.T_Avatar_Missing");
@@ -88,6 +88,7 @@ const UYapBroker* UYapProjectSettings::GetEditorBrokerDefault()
 
 	return BrokerClass.LoadSynchronous()->GetDefaultObject<UYapBroker>();
 }
+#endif
 
 const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses()
 {
@@ -98,7 +99,6 @@ const TArray<TSoftClassPtr<UObject>>& UYapProjectSettings::GetAudioAssetClasses(
 
 	return Get().DefaultAssetAudioClasses;
 }
-#endif
 
 #if WITH_EDITOR
 const FString UYapProjectSettings::GetAudioAssetRootFolder()
