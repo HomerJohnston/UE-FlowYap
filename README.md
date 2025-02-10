@@ -66,7 +66,9 @@ Visit the wiki for detailed documentation.
 
 ### The Dialogue Node
 
-![image](https://github.com/user-attachments/assets/939a5f6f-51ce-4b7c-8c49-a77e723a69a2)
+![image](https://github.com/user-attachments/assets/ffaffad2-17fd-45e5-ac7d-1dcd64e28756)
+
+![image](https://github.com/user-attachments/assets/368addb2-f0da-49ef-b83d-922131aae046)
 
 &nbsp;
 
