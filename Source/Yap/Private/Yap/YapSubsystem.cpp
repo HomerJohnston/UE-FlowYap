@@ -9,7 +9,7 @@
 #include "Yap/YapBroker.h"
 #include "Yap/YapFragment.h"
 #include "Yap/YapLog.h"
-#include "Yap/IYapConversationHandler.h"
+#include "Yap/Interfaces/IYapConversationHandler.h"
 #include "Yap/YapDialogueHandle.h"
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
@@ -21,11 +21,15 @@
 TWeakObjectPtr<UWorld> UYapSubsystem::World = nullptr;
 bool UYapSubsystem::bGetGameMaturitySettingWarningIssued = false;
 
+// ------------------------------------------------------------------------------------------------
+
 FYapActiveConversation::FYapActiveConversation()
 {
 	FlowAsset = nullptr;
 	Conversation.Reset();
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool FYapActiveConversation::OpenConversation(UFlowAsset* InOwningAsset, const FGameplayTag& InConversation)
 {
@@ -43,6 +47,8 @@ bool FYapActiveConversation::OpenConversation(UFlowAsset* InOwningAsset, const F
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool FYapActiveConversation::CloseConversation()
 {
 	if (Conversation.IsSet())
@@ -58,7 +64,7 @@ bool FYapActiveConversation::CloseConversation()
 	return false;
 }
 
-// ================================================================================================
+// ------------------------------------------------------------------------------------------------
 
 UYapSubsystem::UYapSubsystem()
 {
@@ -76,10 +82,14 @@ void UYapSubsystem::RegisterConversationHandler(UObject* NewHandler)
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::UnregisterConversationHandler(UObject* RemovedHandler)
 {
 	ConversationHandlers.Remove(RemovedHandler);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 UYapCharacterComponent* UYapSubsystem::FindCharacterComponent(FGameplayTag CharacterTag)
 {
@@ -93,6 +103,8 @@ UYapCharacterComponent* UYapSubsystem::FindCharacterComponent(FGameplayTag Chara
 	return nullptr;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 UYapBroker* UYapSubsystem::GetBroker()
 {
 	UYapBroker* Broker = Get()->Broker;
@@ -103,6 +115,8 @@ UYapBroker* UYapSubsystem::GetBroker()
 	
 	return Broker;		
 }
+
+// ------------------------------------------------------------------------------------------------
 
 EYapMaturitySetting UYapSubsystem::GetCurrentMaturitySetting()
 {
@@ -148,6 +162,8 @@ EYapMaturitySetting UYapSubsystem::GetCurrentMaturitySetting()
 	return MaturitySetting;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlowNode_YapDialogue* DialogueNode)
 {
 	if (TaggedFragments.Contains(FragmentTag))
@@ -158,6 +174,8 @@ void UYapSubsystem::RegisterTaggedFragment(const FGameplayTag& FragmentTag, UFlo
 	
 	TaggedFragments.Add(FragmentTag, DialogueNode);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 FYapFragment* UYapSubsystem::FindTaggedFragment(const FGameplayTag& FragmentTag)
 {
@@ -171,10 +189,14 @@ FYapFragment* UYapSubsystem::FindTaggedFragment(const FGameplayTag& FragmentTag)
 	return nullptr;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool UYapSubsystem::OpenConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {
 	return ActiveConversation.OpenConversation(OwningAsset, Conversation);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::CloseConversation()
 {
@@ -193,6 +215,8 @@ void UYapSubsystem::CloseConversation()
 	}
 	*/
 }
+
+// ------------------------------------------------------------------------------------------------
 
 FYapPromptHandle UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
@@ -223,6 +247,8 @@ FYapPromptHandle UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue,
 	return Handle;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
@@ -232,6 +258,8 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>(Data);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
@@ -245,10 +273,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
-
-	bool bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
-	bool bAutoAdvance = Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
-
+	
 	TOptional<float> Time = Fragment.GetTime();
 
 	float EffectiveTime;
@@ -264,7 +289,7 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 
 	FYapData_OnSpeakingBegins Data;
 	Data.Conversation = ConversationName;
-	Data.DialogueHandle = DialogueHandles.Emplace(Dialogue, {Dialogue, FragmentIndex, bSkippable, !bAutoAdvance});
+	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
 	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
 	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
 	Data.MoodTag = Fragment.GetMoodTag();
@@ -273,46 +298,57 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	Data.DialogueTime = EffectiveTime;
 	Data.PaddingTime = Fragment.GetPaddingToNextFragment(); 
 	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
+	Data.bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
+	
+	GuidDialogueMap.Add(Data.DialogueHandleRef, Dialogue);
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingBegins, &IYapConversationHandler::Execute_K2_OnSpeakingBegins>(Data);
 }
 
-void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
+// ------------------------------------------------------------------------------------------------
+
+void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGameplayTag ConversationName;
 
-	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
+	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	FYapDialogueHandle& DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
-
-	const FYapFragment& Fragment = OwnerDialogue->GetFragmentByIndex(FragmentIndex);
+	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 
 	FYapData_OnSpeakingEnds Data;
 	Data.Conversation = ConversationName;
-	Data.DialogueHandle = DialogueHandle;
+	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
 	Data.PaddingTime = Fragment.GetPaddingToNextFragment();
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingEnds, &IYapConversationHandler::Execute_K2_OnSpeakingEnds>(Data);
 }
 
-void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex)
+// ------------------------------------------------------------------------------------------------
+
+void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGameplayTag ConversationName;
+	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
 
-	if (ActiveConversation.FlowAsset == OwnerDialogue->GetFlowAsset())
+	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
 	FYapData_OnPaddingTimeOver Data;
 	Data.Conversation = ConversationName;
-	Data.DialogueHandle = DialogueHandles.FindChecked(OwnerDialogue);
+	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
+	Data.bManualAdvance = !Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>(Data);
+
+	GuidDialogueMap.Remove(Data.DialogueHandleRef);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 {
@@ -334,11 +370,36 @@ bool UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 	return true;
 }
 
-void UYapSubsystem::SkipDialogue(const FYapPromptHandle& Handle)
+// ------------------------------------------------------------------------------------------------
+
+bool UYapSubsystem::SkipDialogue(const FYapDialogueHandleRef& Handle)
 {
 	// TODO handle invalid handles gracefully
-	Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
+	TWeakObjectPtr<UFlowNode_YapDialogue>* DialogueWeak = Get()->GuidDialogueMap.Find(Handle);
+
+	if (DialogueWeak)
+	{
+		return (*DialogueWeak)->SkipCurrent();
+	}
+
+	return false;
 }
+
+// ------------------------------------------------------------------------------------------------
+
+FYapDialogueHandle& UYapSubsystem::GetDialogueHandle(FYapDialogueHandleRef HandleRef)
+{
+	TWeakObjectPtr<UFlowNode_YapDialogue>* DialoguePtr = Get()->GuidDialogueMap.Find(HandleRef);
+	
+	if (DialoguePtr)
+	{
+		return (*DialoguePtr)->GetDialogueHandle();
+	}
+
+	return FYapDialogueHandle::InvalidHandle();
+}
+
+// ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent)
 {
@@ -363,7 +424,7 @@ void UYapSubsystem::UnregisterCharacterComponent(UYapCharacterComponent* YapChar
 	RegisteredYapCharacterActors.Remove(Actor);
 }
 
-// =====================================================================================================
+// ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -385,11 +446,24 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	bGetGameMaturitySettingWarningIssued = false;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::Deinitialize()
 {
 	World = nullptr;
 }
 
+// ------------------------------------------------------------------------------------------------
+
+void UYapSubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	if (IsValid(Broker))
+	{
+		Broker->Initialize_Internal();
+	}
+}
+
+// ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& ConversationName)
 {
@@ -399,6 +473,8 @@ void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& Conversatio
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationOpened, &IYapConversationHandler::Execute_K2_OnConversationOpened>(Data);
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& ConversationName)
 {
 	FYapData_OnConversationClosed Data;
@@ -406,6 +482,8 @@ void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& Conversati
 	
 	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationClosed, &IYapConversationHandler::Execute_K2_OnConversationClosed>(Data);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UYapSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
 {

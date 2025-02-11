@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "YapDialogueHandle.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "YapBlueprintFunctionLibrary.generated.h"
 
-struct FYapDialogueHandle;
-struct FYapPromptHandle;
+struct FYapDialogueHandleRef;
 
 #define LOCTEXT_NAMESPACE "Yap"
 
@@ -31,16 +31,13 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	static float GetSoundLength(USoundBase* Sound);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
-	static bool SkipDialogue(const FYapDialogueHandle& Handle);
+	static bool SkipDialogue(const FYapDialogueHandleRef& Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static bool RunPrompt(const FYapPromptHandle& Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
-	static void InvalidateDialogueHandle(UPARAM(ref) FYapDialogueHandle& Handle);
-	
-	UFUNCTION(BlueprintCallable, Category = "Yap")
-	static void InvalidatePromptHandle(UPARAM(ref) FYapPromptHandle& Handle);
+	static void AddReactor(UPARAM(ref) FYapDialogueHandleRef& HandleRef, UObject* Reactor);
 };
 
 

@@ -74,15 +74,16 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 	return nullptr;
 }
 
-bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
+bool UFlowNode_YapDialogue::SkipCurrent()
 {
-	if (FragmentAwaitingManualAdvance == FragmentIndex)
+	if (bFragmentAwaitingManualAdvance)
 	{
-		AdvanceToNextFragment(FragmentIndex);
+		bFragmentAwaitingManualAdvance = false;
+		AdvanceToNextFragment(RunningFragmentIndex);
 		return true;
 	}
 	
-	bool bPreventSkippingTimers = !GetFragmentByIndex(FragmentIndex).GetSkippable(this->GetSkippable());
+	bool bPreventSkippingTimers = !GetFragmentByIndex(RunningFragmentIndex).GetSkippable(this->GetSkippable());
 			
 	if (bPreventSkippingTimers && (FragmentTimerHandle.IsValid() || PaddingTimerHandle.IsValid()))
 	{
@@ -93,13 +94,13 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 	
 	if (FragmentTimerHandle.IsValid())
 	{
-		OnSpeakingComplete(FragmentIndex);
+		OnSpeakingComplete(RunningFragmentIndex);
 		bSkipped = true;
 	}
 
 	if (PaddingTimerHandle.IsValid())
 	{
-		OnPaddingComplete(FragmentIndex);
+		OnPaddingComplete(RunningFragmentIndex);
 		bSkipped = true;
 	}
 
@@ -108,9 +109,10 @@ bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
 		return false;
 	}
 	
-	if (FragmentAwaitingManualAdvance == FragmentIndex)
+	if (bFragmentAwaitingManualAdvance)
 	{
-		AdvanceToNextFragment(FragmentIndex);
+		bFragmentAwaitingManualAdvance = false;
+		AdvanceToNextFragment(RunningFragmentIndex);
 	}
 
 	return true;
@@ -256,6 +258,7 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 
 	if (BroadcastedFragments.Num() == 0)
 	{
+		RunningFragmentIndex = INDEX_NONE;
 		TriggerOutput(BypassPinName, true);
 	}
 	else if (BroadcastedFragments.Num() == 1)
@@ -273,6 +276,7 @@ void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 	{
 		// TODO log error? This should never happen?
 		
+		RunningFragmentIndex = INDEX_NONE;
 		TriggerOutput(BypassPinName, true);
 	}
 
@@ -298,6 +302,7 @@ void UFlowNode_YapDialogue::FindStartingFragment()
 	
 	if (!bStartedSuccessfully)
 	{
+		RunningFragmentIndex = INDEX_NONE;
 		TriggerOutput(BypassPinName, true);
 	}
 }
@@ -360,6 +365,8 @@ void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastDialogueEnd(this, FragmentIndex);
 
+	DialogueHandle.OnSpeakingEnds();
+	
 	double PaddingTime = Fragments[FragmentIndex].GetPaddingToNextFragment();
 
 	if (Fragment.UsesEndPin())
@@ -396,7 +403,7 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 	RunningFragment = nullptr;
 #endif
 
-	RunningFragmentIndex = INDEX_NONE;
+	DialogueHandle.Invalidate();
 
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastPaddingTimeOver(this, FragmentIndex);
 	
@@ -408,7 +415,7 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 	}
 	else
 	{
-		FragmentAwaitingManualAdvance = FragmentIndex;
+		bFragmentAwaitingManualAdvance = true;
 	}
 }
 
@@ -418,12 +425,14 @@ void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
 
 	if (IsPlayerPrompt())
 	{
+		RunningFragmentIndex = INDEX_NONE;
 		TriggerOutput(Fragment.GetPromptPin().PinName, true);
 	}
 	else
 	{
 		if (TalkSequencing == EYapDialogueTalkSequencing::SelectOne)
 		{
+			RunningFragmentIndex = INDEX_NONE;
 			TriggerOutput(OutputPinName, true);
 		}
 		else
@@ -435,6 +444,7 @@ void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
 				if (!bRanNextFragment && TalkSequencing == EYapDialogueTalkSequencing::RunUntilFailure)
 				{
 					// Whoops, this is the end of the line
+					RunningFragmentIndex = INDEX_NONE;
 					TriggerOutput(OutputPinName, true);
 					return;
 				}
@@ -446,6 +456,7 @@ void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
 			}
 
 			// No more fragments to try and run!
+			RunningFragmentIndex = INDEX_NONE;
 			TriggerOutput(OutputPinName, true);
 		}
 	}
@@ -484,6 +495,8 @@ bool UFlowNode_YapDialogue::TryBroadcastFragment(uint8 FragmentIndex)
 	{
 		return false;
 	}
+
+	DialogueHandle = FYapDialogueHandle(this, FragmentIndex);
 	
 	GetWorld()->GetSubsystem<UYapSubsystem>()->BroadcastDialogueStart(this, FragmentIndex);
 
@@ -688,26 +701,6 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	}
 
 	return true;
-}
-
-EYapFragmentState UFlowNode_YapDialogue::GetFragmentState(int32 FragmentIndex) const
-{
-	if (!Fragments.IsValidIndex(FragmentIndex))
-	{
-		return EYapFragmentState::Undefined;
-	}
-
-	if (RunningFragmentIndex == FragmentIndex)
-	{
-		if (PaddingTimerHandle.IsValid())
-		{
-			return EYapFragmentState::InPadding;
-		}
-		
-		return EYapFragmentState::Running;
-	}
-
-	return EYapFragmentState::Idle;
 }
 
 #if WITH_EDITOR

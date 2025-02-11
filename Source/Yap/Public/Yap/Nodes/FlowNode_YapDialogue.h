@@ -4,7 +4,9 @@
 #pragma once
 
 #include "Nodes/FlowNode.h"
+#include "Yap/YapDialogueHandle.h"
 #include "Yap/YapFragment.h"
+#include "Yap/YapPromptHandle.h"
 
 #include "FlowNode_YapDialogue.generated.h"
 
@@ -60,6 +62,7 @@ class YAP_API UFlowNode_YapDialogue : public UFlowNode
 	friend class UFlowGraphNode_YapDialogue;
 #endif
 
+	// TODO should I get rid of this?
 	friend class UYapSubsystem;
 
 public:
@@ -119,7 +122,7 @@ protected:
 	int32 RunningFragmentIndex = INDEX_NONE;
 	
 	UPROPERTY(Transient)
-	int32 FragmentAwaitingManualAdvance = INDEX_NONE;
+	bool bFragmentAwaitingManualAdvance = false;
 	
 	/** Timer handle, used internally for fragment runs. */
 	UPROPERTY(Transient)
@@ -128,6 +131,12 @@ protected:
 	UPROPERTY(Transient)
 	FTimerHandle PaddingTimerHandle;
 
+	UPROPERTY(Transient)
+	FYapDialogueHandle DialogueHandle;
+
+	UPROPERTY(Transient)
+	FYapPromptHandle PromptHandle;
+	
 #if WITH_EDITORONLY_DATA
 	/** When was the current running fragment started? */ 
 	double FragmentStartedTime = -1;
@@ -178,15 +187,15 @@ public:
 	/** Finds the first fragment on this dialogue containing a tag. */
 	FYapFragment* FindTaggedFragment(const FGameplayTag& Tag);
 
-	bool Skip(int32 FragmentIndex);
-
-	FString GetAudioID() const { return AudioID; }
+	bool SkipCurrent();
 	
+	FString GetAudioID() const { return AudioID; }
+
+	FYapDialogueHandle& GetDialogueHandle() { return DialogueHandle; }
+
 protected:
 	bool ActivationLimitsMet() const;
 
-	EYapFragmentState GetFragmentState(int32 FragmentIndex) const;
-	
 #if WITH_EDITOR
 private:
 	TOptional<bool> GetSkippableSetting() const;

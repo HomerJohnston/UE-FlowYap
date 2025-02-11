@@ -2,6 +2,7 @@
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license. 
 
 #pragma once
+
 #include "GameplayTagContainer.h"
 
 class UYapCharacter;
@@ -102,7 +103,7 @@ struct FYapData_OnSpeakingBegins
 	
 	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
 	UPROPERTY(BlueprintReadOnly)
-	FYapDialogueHandle DialogueHandle;
+	FYapDialogueHandleRef DialogueHandleRef;
 
 	/** Who is being speaked towards. */
 	UPROPERTY(BlueprintReadOnly)
@@ -135,6 +136,10 @@ struct FYapData_OnSpeakingBegins
 	/** Audio asset, you are responsible to cast to your proper type to use. */
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<const UObject> DialogueAudioAsset;
+
+	/** Can this dialogue be skipped? */
+	UPROPERTY(BlueprintReadOnly)
+	bool bSkippable = false;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -151,7 +156,7 @@ struct FYapData_OnSpeakingEnds
 
 	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
 	UPROPERTY(BlueprintReadOnly)
-	FYapDialogueHandle DialogueHandle;
+	FYapDialogueHandleRef DialogueHandleRef;
 
 	/** How long it is expected to wait before moving on to the next fragment or Flow Graph node. */
 	UPROPERTY(BlueprintReadOnly)
@@ -172,7 +177,11 @@ struct FYapData_OnPaddingTimeOver
 	
 	/** Dialogue handle, can be used for interrupting or identifying dialogue. */
 	UPROPERTY(BlueprintReadOnly)
-	FYapDialogueHandle DialogueHandle;
+	FYapDialogueHandleRef DialogueHandleRef;
+
+	/** Will manual advancement be required to progress? */
+	UPROPERTY(BlueprintReadOnly)
+	bool bManualAdvance = false;
 };
 
 // ------------------------------------------------------------------------------------------------

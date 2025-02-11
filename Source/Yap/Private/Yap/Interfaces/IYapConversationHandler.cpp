@@ -1,10 +1,7 @@
 ﻿// Copyright Ghost Pepper Games, Inc. All Rights Reserved.
 // This work is MIT-licensed. Feel free to use it however you wish, within the confines of the MIT license.
 
-#include "Yap/IYapConversationHandler.h"
-
-#include "Yap/YapLog.h"
-#include "Yap/YapProjectSettings.h"
+#include "Yap/Interfaces/IYapConversationHandler.h"
 
 class UYapCharacter;
 

@@ -122,10 +122,11 @@ protected:
 
 	// Running dialogue instances. Since only one fragment of a dialogue node can be running at any time, we don't need handles to map to individual fragments.
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UFlowNode_YapDialogue>, FYapDialogueHandle> DialogueHandles;
+	TMap<FYapDialogueHandleRef, TWeakObjectPtr<UFlowNode_YapDialogue>> GuidDialogueMap;
 
 	static bool bGetGameMaturitySettingWarningIssued;
-	
+
+	static FYapDialogueHandle InvalidHandle;
 	// ------------------------------------------
 	// PUBLIC API - Your game should use these
 	
@@ -193,19 +194,21 @@ protected:  // TODO should some of these be public?
 	void BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 2nd output pin 
 
 	/**  */
-	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
+	void BroadcastDialogueEnd(const UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex); // Called by Dialogue node, 1st output pin
 
 	/**  */
-	void BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* OwnerDialogue, uint8 FragmentIndex);
+	void BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex);
 
 public:
+	// TODO should I make a ref struct for FYapPromptHandle too?
 	/** The prompt handle will call this function, passing in itself. */
 	static bool RunPrompt(const FYapPromptHandle& Handle);
 
 	/**  */
-	UFUNCTION(BlueprintCallable)
-	void SkipDialogue(const FYapPromptHandle& Handle);
-	
+	static bool SkipDialogue(const FYapDialogueHandleRef& Handle);
+
+	static FYapDialogueHandle& GetDialogueHandle(FYapDialogueHandleRef HandleRef);
+
 public:
 	/**  */
 	void RegisterCharacterComponent(UYapCharacterComponent* YapCharacterComponent);
@@ -219,6 +222,9 @@ public:
 
 	/**  */
 	void Deinitialize() override;
+
+	/**  */
+	void OnWorldBeginPlay(UWorld& InWorld) override;
 	
 protected:
 	/**  */
@@ -260,7 +266,7 @@ protected:
 	
 		if (!bHandled)
 		{
-			UE_LOG(LogYap, Error, TEXT("IYapConversationListener and register it to the Yap subsystem.")); // TODO
+			UE_LOG(LogYap, Error, TEXT("No Yap Conversation Listeners are currently registered! You must inherit a class from IYapConversationListeners, implement its functions, and register it to the Yap subsystem."));
 		}
 	}
 };

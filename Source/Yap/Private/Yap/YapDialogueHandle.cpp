@@ -3,23 +3,57 @@
 
 #include "Yap/YapDialogueHandle.h"
 
+#include "Yap/Interfaces/IYapHandleReactor.h"
+
 #define LOCTEXT_NAMESPACE "Yap"
 
-FYapDialogueHandle::FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex, bool bInSkippable, bool bInManualAdvance)
+FYapDialogueHandle FYapDialogueHandle::_InvalidHandle;
+
+FYapDialogueHandle::FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex)
 {
 	DialogueNode = InDialogueNode;
 	FragmentIndex = InFragmentIndex;
-	bSkippable = bInSkippable;
-	bManualAdvance = bInManualAdvance;
 
 	Guid = FGuid::NewGuid();
 }
 
+void FYapDialogueHandle::OnSpeakingEnds() const
+{
+	for (TWeakObjectPtr<UObject> Reactor : Reactors)
+	{
+		if (Reactor.IsValid())
+		{
+			IYapHandleReactor::Execute_K2_OnSpeakingEnds(Reactor.Get());
+		}
+	}
+}
+
 void FYapDialogueHandle::Invalidate()
 {
+	for (TWeakObjectPtr<UObject> Reactor : Reactors)
+	{
+		if (Reactor.IsValid())
+		{
+			IYapHandleReactor::Execute_K2_OnHandleInvalidated(Reactor.Get());
+		}
+	}
+	
 	DialogueNode = nullptr;
 	FragmentIndex = INDEX_NONE;
 	Guid.Invalidate();
+	Reactors.Empty();
+}
+
+void FYapDialogueHandle::AddReactor(UObject* Reactor)
+{
+	if (Reactor->Implements<UYapHandleReactor>())
+	{
+		Reactors.Add(Reactor);
+	}
+	else
+	{
+		
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

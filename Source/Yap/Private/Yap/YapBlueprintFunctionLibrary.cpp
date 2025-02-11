@@ -15,6 +15,8 @@
 
 #define LOCTEXT_NAMESPACE "Yap"
 
+// ------------------------------------------------------------------------------------------------
+
 #if WITH_EDITOR
 void UYapBlueprintFunctionLibrary::PlaySoundInEditor(USoundBase* Sound)
 {
@@ -29,23 +31,23 @@ void UYapBlueprintFunctionLibrary::PlaySoundInEditor(USoundBase* Sound)
 }
 #endif
 
+// ------------------------------------------------------------------------------------------------
+
 float UYapBlueprintFunctionLibrary::GetSoundLength(USoundBase* Sound)
 {
 	return Sound->Duration;
 }
 
-bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle)
+// ------------------------------------------------------------------------------------------------
+
+bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandleRef& Handle)
 {
 	if (Handle.IsValid())
 	{
-		//if (Handle.GetSkippable())
-		//{
-			return Handle.GetDialogueNode()->Skip(Handle.GetFragmentIndex());
-		//}
-		//else
-		//{
-		//	UE_LOG(LogYap, Warning, TEXT("Attempted to skip with a handle that does not permit skipping!"))
-		//}
+		if (!UYapSubsystem::SkipDialogue(Handle))
+		{
+			UE_LOG(LogYap, Display, TEXT("Failed to skip dialogue!"))
+		}
 	}
 	else
 	{
@@ -55,18 +57,28 @@ bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandle& Handle
 	return false;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool UYapBlueprintFunctionLibrary::RunPrompt(const FYapPromptHandle& Handle)
 {
 	return UYapSubsystem::RunPrompt(Handle);
 }
 
-void UYapBlueprintFunctionLibrary::InvalidateDialogueHandle(FYapDialogueHandle& Handle)
+// ------------------------------------------------------------------------------------------------
+
+void UYapBlueprintFunctionLibrary::AddReactor(FYapDialogueHandleRef& HandleRef, UObject* Reactor)
 {
-	Handle.Invalidate();
+	FYapDialogueHandle& Handle = UYapSubsystem::GetDialogueHandle(HandleRef);
+
+	if (Handle.IsValid())
+	{
+		Handle.AddReactor(Reactor);
+	}
+	else
+	{
+		UE_LOG(LogYap, Warning, TEXT("Could not find valid handle to add reactor to!"))
+	}
 }
 
-void UYapBlueprintFunctionLibrary::InvalidatePromptHandle(FYapPromptHandle& Handle)
-{
-	Handle.Invalidate();
-}
+
 #undef LOCTEXT_NAMESPACE
