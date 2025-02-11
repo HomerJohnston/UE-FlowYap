@@ -80,13 +80,7 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 	return nullptr;
 }
 
-<<<<<<< HEAD
 bool UFlowNode_YapDialogue::SkipCurrent()
-=======
-// ------------------------------------------------------------------------------------------------
-
-bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
->>>>>>> origin/main
 {
 	if (bFragmentAwaitingManualAdvance)
 	{
@@ -813,11 +807,7 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
-<<<<<<< HEAD
-=======
 // ------------------------------------------------------------------------------------------------
-
->>>>>>> origin/main
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ToggleNodeType()
 {
