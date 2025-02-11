@@ -50,7 +50,6 @@ Visit the wiki for detailed documentation.
 
 ### Other general features:
   - Automatic hookup of audio assets to dialogue fragments (requires audio assets to include audio ID string in their name)
-  - .PO Exporter for localization (exports a .PO file for all dialogue nodes in a single graph) - IN PROGRESS
   - Uses an interface you can apply to any object in your game to make it respond to dialogue events
   - Uses a "broker" class you can set up to interact with things from your game, such as:
     - Reading maturity settings
@@ -61,6 +60,9 @@ Visit the wiki for detailed documentation.
     - Missing or invalid audio asset data
   - Character assets which can contain one or more portraits (optionally one portrait for each mood tag)
   - Extensively configurable in project settings
+
+### Planned features (current work in progress):
+  - .PO Exporter for localization (exports a .PO file for all dialogue nodes in a single graph) - IN PROGRESS
 
 &nbsp;
 

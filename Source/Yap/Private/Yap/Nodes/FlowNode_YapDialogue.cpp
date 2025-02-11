@@ -17,6 +17,8 @@
 FName UFlowNode_YapDialogue::OutputPinName = FName("Out");
 FName UFlowNode_YapDialogue::BypassPinName = FName("Bypass");
 
+// ------------------------------------------------------------------------------------------------
+
 UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 {
 #if WITH_EDITOR
@@ -48,6 +50,8 @@ UFlowNode_YapDialogue::UFlowNode_YapDialogue()
 #endif
 }
 
+// ------------------------------------------------------------------------------------------------
+
 int16 UFlowNode_YapDialogue::FindFragmentIndex(const FGuid& InFragmentGuid) const
 {
 	for (uint8 i = 0; i < Fragments.Num(); ++i)
@@ -60,6 +64,8 @@ int16 UFlowNode_YapDialogue::FindFragmentIndex(const FGuid& InFragmentGuid) cons
 
 	return INDEX_NONE;
 }
+
+// ------------------------------------------------------------------------------------------------
 
 FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 {
@@ -74,7 +80,13 @@ FYapFragment* UFlowNode_YapDialogue::FindTaggedFragment(const FGameplayTag& Tag)
 	return nullptr;
 }
 
+<<<<<<< HEAD
 bool UFlowNode_YapDialogue::SkipCurrent()
+=======
+// ------------------------------------------------------------------------------------------------
+
+bool UFlowNode_YapDialogue::Skip(int32 FragmentIndex)
+>>>>>>> origin/main
 {
 	if (bFragmentAwaitingManualAdvance)
 	{
@@ -118,6 +130,8 @@ bool UFlowNode_YapDialogue::SkipCurrent()
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UFlowNode_YapDialogue::InitializeInstance()
 {
 	Super::InitializeInstance();
@@ -133,6 +147,8 @@ void UFlowNode_YapDialogue::InitializeInstance()
 	
 	TriggerPreload();
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 {
@@ -163,6 +179,8 @@ void UFlowNode_YapDialogue::ExecuteInput(const FName& PinName)
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 {
 	if (IsPlayerPrompt())
@@ -174,6 +192,8 @@ void UFlowNode_YapDialogue::OnPassThrough_Implementation()
 		TriggerOutput("Out", true, EFlowPinActivationType::PassThrough);
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UFlowNode_YapDialogue::CheckConditions()
 {
@@ -194,20 +214,28 @@ bool UFlowNode_YapDialogue::CheckConditions()
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool UFlowNode_YapDialogue::UsesTitleText() const
 {
 	return IsPlayerPrompt() || UYapProjectSettings::GetShowTitleTextOnTalkNodes();
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UFlowNode_YapDialogue::GetSkippable() const
 {
 	return Skippable.Get(UYapProjectSettings::GetDefaultSkippableSetting());
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool UFlowNode_YapDialogue::GetAutoAdvance() const
 {
 	return AutoAdvance.Get(UYapProjectSettings::GetDefaultAutoAdvanceSetting());
 }
+
+// ------------------------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 TOptional<bool> UFlowNode_YapDialogue::GetSkippableSetting() const
@@ -216,7 +244,7 @@ TOptional<bool> UFlowNode_YapDialogue::GetSkippableSetting() const
 }
 #endif
 
-// ================================================================================================
+// ------------------------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::InvalidateFragmentTags()
@@ -229,6 +257,8 @@ void UFlowNode_YapDialogue::InvalidateFragmentTags()
 	}
 }
 #endif
+
+// ------------------------------------------------------------------------------------------------
 
 void UFlowNode_YapDialogue::BroadcastPrompts()
 {
@@ -270,6 +300,8 @@ void UFlowNode_YapDialogue::BroadcastPrompts()
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 {
 	if (!RunFragment(FragmentIndex))
@@ -283,7 +315,7 @@ void UFlowNode_YapDialogue::RunPrompt(uint8 FragmentIndex)
 	++NodeActivationCount;
 }
 
-// ================================================================================================
+// ------------------------------------------------------------------------------------------------
 
 void UFlowNode_YapDialogue::FindStartingFragment()
 {
@@ -306,6 +338,8 @@ void UFlowNode_YapDialogue::FindStartingFragment()
 		TriggerOutput(BypassPinName, true);
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 {
@@ -352,6 +386,8 @@ bool UFlowNode_YapDialogue::RunFragment(uint8 FragmentIndex)
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 {
 	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
@@ -389,6 +425,8 @@ void UFlowNode_YapDialogue::OnSpeakingComplete(uint8 FragmentIndex)
 #endif
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 {
 	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
@@ -418,6 +456,8 @@ void UFlowNode_YapDialogue::OnPaddingComplete(uint8 FragmentIndex)
 		bFragmentAwaitingManualAdvance = true;
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
 {
@@ -462,6 +502,8 @@ void UFlowNode_YapDialogue::AdvanceToNextFragment(uint8 CurrentFragmentIndex)
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
 bool UFlowNode_YapDialogue::IsBypassPinRequired() const
 {
 	// If there are any conditions, we will need a bypass node in case all conditions are false
@@ -481,6 +523,8 @@ bool UFlowNode_YapDialogue::IsBypassPinRequired() const
 
 	return true;
 }
+
+// ------------------------------------------------------------------------------------------------
 
 bool UFlowNode_YapDialogue::TryBroadcastFragment(uint8 FragmentIndex)
 {
@@ -503,12 +547,16 @@ bool UFlowNode_YapDialogue::TryBroadcastFragment(uint8 FragmentIndex)
 	return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+
 const FYapFragment& UFlowNode_YapDialogue::GetFragmentByIndex(uint8 Index) const
 {
 	check(Fragments.IsValidIndex(Index));
 
 	return Fragments[Index];
 }
+
+// ------------------------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 FYapFragment& UFlowNode_YapDialogue::GetFragmentByIndexMutable(uint8 Index)
@@ -517,17 +565,29 @@ FYapFragment& UFlowNode_YapDialogue::GetFragmentByIndexMutable(uint8 Index)
 
 	return Fragments[Index];
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 TArray<FYapFragment>& UFlowNode_YapDialogue::GetFragmentsMutable()
 {
 	return Fragments;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::RemoveFragment(int32 Index)
 {
 	Fragments.RemoveAt(Index);
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 FText UFlowNode_YapDialogue::GetNodeTitle() const
 {
 	if (IsTemplate())
@@ -537,27 +597,47 @@ FText UFlowNode_YapDialogue::GetNodeTitle() const
 
 	return FText::FromString(" ");
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 bool UFlowNode_YapDialogue::SupportsContextPins() const
 {
 	return true;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 bool UFlowNode_YapDialogue::GetUsesMultipleInputs()
 {
 	return false;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 bool UFlowNode_YapDialogue::GetUsesMultipleOutputs()
 {
 	return true;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 EYapDialogueTalkSequencing UFlowNode_YapDialogue::GetMultipleFragmentSequencing() const
 {
 	return TalkSequencing;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 {
 	TArray<FFlowPin> ContextOutputPins = Super::GetContextOutputs();
@@ -594,7 +674,11 @@ TArray<FFlowPin> UFlowNode_YapDialogue::GetContextOutputs() const
 	
 	return ContextOutputPins;
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 {
 	bool bBypassRequired = IsBypassPinRequired();
@@ -606,7 +690,11 @@ void UFlowNode_YapDialogue::SetNodeActivationLimit(int32 NewValue)
 		(void)OnReconstructionRequested.ExecuteIfBound();
 	}
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 {
 	uint8 AsInt = static_cast<uint8>(TalkSequencing);
@@ -618,7 +706,11 @@ void UFlowNode_YapDialogue::CycleFragmentSequencingMode()
 
 	TalkSequencing = static_cast<EYapDialogueTalkSequencing>(AsInt);
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 {
 	if (!Fragments.IsValidIndex(DeleteIndex))
@@ -632,7 +724,11 @@ void UFlowNode_YapDialogue::DeleteFragmentByIndex(int16 DeleteIndex)
 	
 	(void)OnReconstructionRequested.ExecuteIfBound();
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::UpdateFragmentIndices()
 {
 	for (int i = 0; i < Fragments.Num(); ++i)
@@ -640,7 +736,11 @@ void UFlowNode_YapDialogue::UpdateFragmentIndices()
 		Fragments[i].SetIndexInDialogue(i);
 	}
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 {
 	Fragments.Swap(IndexA, IndexB);
@@ -649,12 +749,20 @@ void UFlowNode_YapDialogue::SwapFragments(uint8 IndexA, uint8 IndexB)
 
 	(void)OnReconstructionRequested.ExecuteIfBound();
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 FString UFlowNode_YapDialogue::GetNodeDescription() const
 {
 	return "";
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, TSharedPtr<FGameplayTagNode>& GameplayTagNode, bool& bArg) const
 {
 	if (GameplayTagNode == nullptr)
@@ -682,6 +790,8 @@ void UFlowNode_YapDialogue::OnFilterGameplayTagChildren(const FString& String, T
 }
 #endif
 
+// ------------------------------------------------------------------------------------------------
+
 bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 {
 	if (GetNodeActivationLimit() > 0 && GetNodeActivationCount() >= GetNodeActivationLimit())
@@ -703,6 +813,11 @@ bool UFlowNode_YapDialogue::ActivationLimitsMet() const
 	return true;
 }
 
+<<<<<<< HEAD
+=======
+// ------------------------------------------------------------------------------------------------
+
+>>>>>>> origin/main
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ToggleNodeType()
 {
@@ -717,6 +832,8 @@ void UFlowNode_YapDialogue::ToggleNodeType()
 }
 #endif
 
+// ------------------------------------------------------------------------------------------------
+
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::ForceReconstruction()
 {
@@ -724,12 +841,16 @@ void UFlowNode_YapDialogue::ForceReconstruction()
 }
 #endif
 
+// ------------------------------------------------------------------------------------------------
+
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+
+// ------------------------------------------------------------------------------------------------
 
 #if WITH_EDITOR
 void UFlowNode_YapDialogue::PostEditImport()
@@ -742,14 +863,22 @@ void UFlowNode_YapDialogue::PostEditImport()
 		Fragment.ResetOptionalPins();
 	}
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::PostLoad()
 {
 	Super::PostLoad();
 	
 	TriggerPreload();
 }
+#endif
 
+// ------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
 void UFlowNode_YapDialogue::PreloadContent()
 {
 	UWorld* World = GetWorld();
@@ -770,5 +899,7 @@ void UFlowNode_YapDialogue::PreloadContent()
 	}
 }
 #endif
+
+// ------------------------------------------------------------------------------------------------
 
 #undef LOCTEXT_NAMESPACE
