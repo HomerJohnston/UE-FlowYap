@@ -60,9 +60,12 @@ Visit the wiki for detailed documentation.
     - Missing or invalid audio asset data
   - Character assets which can contain one or more portraits (optionally one portrait for each mood tag)
   - Extensively configurable in project settings
+  - Relies on normal Unreal localization system (FText for text and localizable assets for audio)
 
-### Planned features (current work in progress):
-  - .PO Exporter for localization (exports a .PO file for all dialogue nodes in a single graph) - IN PROGRESS
+### Planned/Missing features:
+  - .PO Exporter for better localization - Short-term planned (by mid-2025).
+  - Savegame support - Long-term planned. All runtime data in Yap is naturally serialized (UPROPERTY) so this should not be difficult.
+  - Multiplayer features and support - Not currently planned, but may support in the future.
 
 &nbsp;
 
