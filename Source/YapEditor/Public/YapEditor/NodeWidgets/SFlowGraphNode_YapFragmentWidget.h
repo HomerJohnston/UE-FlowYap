@@ -298,7 +298,8 @@ public:
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
 
 	void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
-	
+
+	FSlateColor ColorAndOpacity_FragmentDataIcon() const;
 	TSharedRef<SWidget>	CreateRightFragmentPane();
 
 	TSharedPtr<SBox>	EndPinBox;

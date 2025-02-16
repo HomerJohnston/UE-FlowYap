@@ -14,9 +14,12 @@
 #include "Yap/YapProjectSettings.h"
 #include "Yap/YapPromptHandle.h"
 #include "Yap/Enums/YapLoadContext.h"
+#include "Yap/Interfaces/IYapFreeSpeechHandler.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
+
+#define YAP_BROADCAST_EVT_TARGS(NAME, CPPFUNC, K2FUNC) U##NAME, I##NAME, &I##NAME::CPPFUNC, &I##NAME::K2FUNC
 
 TWeakObjectPtr<UWorld> UYapSubsystem::World = nullptr;
 bool UYapSubsystem::bGetGameMaturitySettingWarningIssued = false;
@@ -70,23 +73,46 @@ UYapSubsystem::UYapSubsystem()
 {
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void UYapSubsystem::RegisterConversationHandler(UObject* NewHandler)
 {
 	if (NewHandler->Implements<UYapConversationHandler>())
 	{
-		ConversationHandlers.AddUnique(NewHandler);
+		Get()->ConversationHandlers.AddUnique(NewHandler);
 	}
 	else
 	{
-		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation handler, but object does not implement the YapConversationHandler interface! [%s]"), *NewHandler->GetName());
+		UE_LOG(LogYap, Error, TEXT("Tried to register a conversation handler, but object does not implement the IYapConversationHandler interface! [%s]"), *NewHandler->GetName());
 	}
 }
 
 // ------------------------------------------------------------------------------------------------
 
-void UYapSubsystem::UnregisterConversationHandler(UObject* RemovedHandler)
+void UYapSubsystem::UnregisterConversationHandler(UObject* HandlerToRemove)
 {
-	ConversationHandlers.Remove(RemovedHandler);
+	Get()->ConversationHandlers.Remove(HandlerToRemove);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+void UYapSubsystem::RegisterFreeSpeechHandler(UObject* NewHandler)
+{
+	if (NewHandler->Implements<UYapFreeSpeechHandler>())
+	{
+		Get()->FreeSpeechHandlers.AddUnique(NewHandler);
+	}
+	else
+	{
+		UE_LOG(LogYap, Error, TEXT("Tried to register a free speech handler, but object does not implement the IYapFreeSpeechHandler interface! [%s]"), *NewHandler->GetName());
+	}
+}
+
+// ------------------------------------------------------------------------------------------------
+
+void UYapSubsystem::UnregisterFreeSpeechHandler(UObject* HandlerToRemove)
+{
+	Get()->FreeSpeechHandlers.Remove(HandlerToRemove);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -193,6 +219,8 @@ FYapFragment* UYapSubsystem::FindTaggedFragment(const FGameplayTag& FragmentTag)
 
 bool UYapSubsystem::OpenConversation(UFlowAsset* OwningAsset, const FGameplayTag& Conversation)
 {
+	// TODO - Queue or nest conversations
+
 	return ActiveConversation.OpenConversation(OwningAsset, Conversation);
 }
 
@@ -232,17 +260,24 @@ FYapPromptHandle UYapSubsystem::BroadcastPrompt(UFlowNode_YapDialogue* Dialogue,
 	}
 
 	FYapPromptHandle Handle(Dialogue, FragmentIndex);
-	
-	FYapData_AddPlayerPrompt Data;
-	Data.Conversation = ConversationName;
-	Data.Handle = Handle;
-	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
-	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
-	Data.MoodTag = Fragment.GetMoodTag();
-	Data.DialogueText = Bit.GetDialogueText();
-	Data.TitleText = Bit.GetTitleText();
-	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::AddPlayerPrompt, &IYapConversationHandler::Execute_K2_AddPlayerPrompt>(Data);
+
+	if (ConversationName.IsValid())
+	{
+		FYapData_ConversationPlayerPromptCreated Data;
+		Data.Conversation = ConversationName;
+		Data.Handle = Handle;
+		Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
+		Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
+		Data.MoodTag = Fragment.GetMoodTag();
+		Data.DialogueText = Bit.GetDialogueText();
+		Data.TitleText = Bit.GetTitleText();
+
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationPlayerPromptCreated, Execute_K2_ConversationPlayerPromptCreated)>(ConversationHandlers, Data);
+	}
+	else
+	{
+		UE_LOG(LogYap, Error, TEXT("Tried to create a player prompt, but there is no active conversation!"));
+	}
 
 	return Handle;
 }
@@ -253,10 +288,17 @@ void UYapSubsystem::OnFinishedBroadcastingPrompts()
 {
 	FGameplayTag ConversationName = ActiveConversation.IsConversationInProgress() ? ActiveConversation.Conversation.GetValue() : FGameplayTag::EmptyTag;
 
-	FYapData_AfterPlayerPromptsAdded Data;
-	Data.Conversation = ConversationName;
+	if (ConversationName.IsValid())
+	{
+		FYapData_ConversationPlayerPromptsReady Data;
+		Data.Conversation = ConversationName;
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::AfterPlayerPromptsAdded, &IYapConversationHandler::Execute_K2_AfterPlayerPromptsAdded>(Data);
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationPlayerPromptsReady, Execute_K2_ConversationPlayerPromptsReady)>(ConversationHandlers, Data);
+	}
+	else
+	{
+		UE_LOG(LogYap, Error, TEXT("Tried to broadcast player prompts created, but there is no active conversation!"));
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -266,7 +308,8 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 	// TODO not sure if there's a clean way to avoid const_cast. The problem is that GetDirectedAt and GetSpeaker (used below) are mutable, because they forcefully load assets.
 	FYapFragment& Fragment = const_cast<FYapFragment&>(Dialogue->GetFragmentByIndex(FragmentIndex));
 	FYapBit& Bit = const_cast<FYapBit&>(Fragment.GetBit());
-
+	FYapDialogueHandleRef DialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
+	GuidDialogueMap.Add(DialogueHandleRef, Dialogue);
 	FGameplayTag ConversationName;
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
@@ -287,22 +330,40 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 		EffectiveTime = UYapProjectSettings::GetMinimumFragmentTime();
 	}
 
-	FYapData_OnSpeakingBegins Data;
-	Data.Conversation = ConversationName;
-	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
-	Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
-	Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
-	Data.MoodTag = Fragment.GetMoodTag();
-	Data.DialogueText = Bit.GetDialogueText();
-	Data.TitleText = Bit.GetTitleText();
-	Data.DialogueTime = EffectiveTime;
-	Data.PaddingTime = Fragment.GetPaddingToNextFragment(); 
-	Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
-	Data.bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
 	
-	GuidDialogueMap.Add(Data.DialogueHandleRef, Dialogue);
+	if (ConversationName.IsValid())
+	{
+		FYapData_ConversationSpeechBegins Data;
+		Data.Conversation = ConversationName;
+		Data.DialogueHandleRef = DialogueHandleRef;
+		Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
+		Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
+		Data.MoodTag = Fragment.GetMoodTag();
+		Data.DialogueText = Bit.GetDialogueText();
+		Data.TitleText = Bit.GetTitleText();
+		Data.DialogueTime = EffectiveTime;
+		Data.PaddingTime = Fragment.GetPaddingToNextFragment(); 
+		Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
+		Data.bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingBegins, &IYapConversationHandler::Execute_K2_OnSpeakingBegins>(Data);
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationSpeechBegins, Execute_K2_ConversationSpeechBegins)>(ConversationHandlers, Data);
+	}
+	else
+	{
+		FYapData_TalkSpeechBegins Data;
+		Data.DialogueHandleRef = DialogueHandleRef;
+		Data.DirectedAt = Fragment.GetDirectedAt(EYapLoadContext::Sync);
+		Data.Speaker = Fragment.GetSpeaker(EYapLoadContext::Sync);
+		Data.MoodTag = Fragment.GetMoodTag();
+		Data.DialogueText = Bit.GetDialogueText();
+		Data.TitleText = Bit.GetTitleText();
+		Data.DialogueTime = EffectiveTime;
+		Data.PaddingTime = Fragment.GetPaddingToNextFragment(); 
+		Data.DialogueAudioAsset = Bit.GetAudioAsset<UObject>();
+		Data.bSkippable = Fragment.GetSkippable(Dialogue->GetSkippable());
+	
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapFreeSpeechHandler, OnTalkSpeechBegins, Execute_K2_TalkSpeechBegins)>(FreeSpeechHandlers, Data);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -310,20 +371,31 @@ void UYapSubsystem::BroadcastDialogueStart(UFlowNode_YapDialogue* Dialogue, uint
 void UYapSubsystem::BroadcastDialogueEnd(const UFlowNode_YapDialogue* Dialogue, uint8 FragmentIndex)
 {
 	FGameplayTag ConversationName;
+	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
+	FYapDialogueHandleRef DialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
-
-	FYapData_OnSpeakingEnds Data;
-	Data.Conversation = ConversationName;
-	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
-	Data.PaddingTime = Fragment.GetPaddingToNextFragment();
+	if (ConversationName.IsValid())
+	{
+		FYapData_ConversationSpeechEnds Data;
+		Data.Conversation = ConversationName;
+		Data.DialogueHandleRef = DialogueHandleRef;
+		Data.PaddingTime = Fragment.GetPaddingToNextFragment();
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnSpeakingEnds, &IYapConversationHandler::Execute_K2_OnSpeakingEnds>(Data);
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationSpeechEnds, Execute_K2_ConversationSpeechEnds)>(ConversationHandlers, Data);
+	}
+	else
+	{
+		FYapData_TalkSpeechEnds Data;
+		Data.DialogueHandleRef = DialogueHandleRef;
+		Data.PaddingTime = Fragment.GetPaddingToNextFragment();
+		
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapFreeSpeechHandler, OnTalkSpeechEnds, Execute_K2_TalkSpeechEnds)>(FreeSpeechHandlers, Data);
+	}	
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -332,40 +404,55 @@ void UYapSubsystem::BroadcastPaddingTimeOver(const UFlowNode_YapDialogue* Dialog
 {
 	FGameplayTag ConversationName;
 	const FYapFragment& Fragment = Dialogue->GetFragmentByIndex(FragmentIndex);
+	FYapDialogueHandleRef DialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
 
 	if (ActiveConversation.FlowAsset == Dialogue->GetFlowAsset())
 	{
 		ConversationName = ActiveConversation.Conversation.GetValue();
 	}
 
-	FYapData_OnPaddingTimeOver Data;
-	Data.Conversation = ConversationName;
-	Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
-	Data.bManualAdvance = !Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
+	if (ConversationName.IsValid())
+	{
+		FYapData_ConversationSpeechPaddingEnds Data;
+		Data.Conversation = ConversationName;
+		Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
+		Data.bManualAdvance = !Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPaddingTimeOver, &IYapConversationHandler::Execute_K2_OnPaddingTimeOver>(Data);
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationSpeechPaddingEnds, Execute_K2_ConversationSpeechPaddingEnds)>(ConversationHandlers, Data);
+	}
+	else
+	{
+		FYapData_TalkSpeechPaddingEnds Data;
+		Data.DialogueHandleRef = FYapDialogueHandleRef(Dialogue->DialogueHandle.GetGuid());
+		Data.bManualAdvance = !Fragment.GetAutoAdvance(Dialogue->GetAutoAdvance());
+		
+		BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapFreeSpeechHandler, OnTalkSpeechPaddingEnds, Execute_K2_TalkSpeechPaddingEnds)>(FreeSpeechHandlers, Data);
+	}
 
-	GuidDialogueMap.Remove(Data.DialogueHandleRef);
+	GuidDialogueMap.Remove(DialogueHandleRef);
 }
 
 // ------------------------------------------------------------------------------------------------
 
 bool UYapSubsystem::RunPrompt(const FYapPromptHandle& Handle)
 {
+	UYapSubsystem* This = Get();
+	check(This);
+	
 	// TODO handle invalid handles gracefully
 	Handle.GetDialogueNode()->RunPrompt(Handle.GetFragmentIndex());
 
 	FGameplayTag ConversationName;
 
-	if (Get()->ActiveConversation.FlowAsset == Handle.GetDialogueNode()->GetFlowAsset())
+	if (This->ActiveConversation.FlowAsset == Handle.GetDialogueNode()->GetFlowAsset())
 	{
-		ConversationName = Get()->ActiveConversation.Conversation.GetValue();
+		ConversationName = This->ActiveConversation.Conversation.GetValue();
 	}
 	
-	FYapData_OnPlayerPromptSelected Data;
+	FYapData_ConversationPlayerPromptChosen Data;
 	Data.Conversation = ConversationName;
 	
-	Get()->BroadcastConversationHandlerFunc<&IYapConversationHandler::OnPlayerPromptSelected, &IYapConversationHandler::Execute_K2_OnPlayerPromptSelected>(Data);
+	This->BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationPlayerPromptChosen, Execute_K2_ConversationPlayerPromptChosen)>(This->ConversationHandlers, Data);
 
 	return true;
 }
@@ -440,7 +527,6 @@ void UYapSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	if (BrokerClass)
 	{
 		Broker = NewObject<UYapBroker>(this, BrokerClass);
-		Broker->Initialize_Internal();
 	}
 
 	bGetGameMaturitySettingWarningIssued = false;
@@ -467,20 +553,20 @@ void UYapSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 void UYapSubsystem::OnConversationOpens_Internal(const FGameplayTag& ConversationName)
 {
-	FYapData_OnConversationOpened Data;
+	FYapData_ConversationChatOpened Data;
 	Data.Conversation = ConversationName;
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationOpened, &IYapConversationHandler::Execute_K2_OnConversationOpened>(Data);
+	BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationChatOpened, Execute_K2_ConversationChatOpened)>(ConversationHandlers, Data);
 }
 
 // ------------------------------------------------------------------------------------------------
 
 void UYapSubsystem::OnConversationCloses_Internal(const FGameplayTag& ConversationName)
 {
-	FYapData_OnConversationClosed Data;
+	FYapData_ConversationChatClosed Data;
 	Data.Conversation = ConversationName;
 	
-	BroadcastConversationHandlerFunc<&IYapConversationHandler::OnConversationClosed, &IYapConversationHandler::Execute_K2_OnConversationClosed>(Data);
+	BroadcastEventHandlerFunc<YAP_BROADCAST_EVT_TARGS(YapConversationHandler, OnConversationChatClosed, Execute_K2_ConversationChatClosed)>(ConversationHandlers, Data);
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -3041,6 +3041,11 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	bChildSafeCheckBoxHovered = ChildSafeCheckBox->IsHovered();
 }
 
+FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_FragmentDataIcon() const
+{
+	return GetFragment().HasData() ? YapColor::LightBlue : YapColor::Transparent;
+}
+
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 {
 	SAssignNew(StartPinBox, SBox)
@@ -3050,24 +3055,39 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 	SAssignNew(EndPinBox, SBox)
 	.WidthOverride(16)
 	.HeightOverride(16);
+
+	bool bIsPlayerPrompt = GetDialogueNode()->IsPlayerPrompt();
 	
 	return SNew(SVerticalBox)
 	+ SVerticalBox::Slot()
 	.HAlign(HAlign_Center)
 	.VAlign(VAlign_Top)
-	.Padding(4, 0, 2, 0)
+	.Padding(4, 0, 2, 4)
 	.AutoHeight()
 	[
 		SAssignNew(PromptOutPinBox, SBox)
+	]
+	+ SVerticalBox::Slot()
+	.HAlign(bIsPlayerPrompt ? HAlign_Right : HAlign_Center)
+	.VAlign(VAlign_Top)
+	//.Padding(3, 0, 2, 0)
+	//.Padding(3, -5, -2, 0)
+	.Padding(bIsPlayerPrompt ? FMargin(3, -5, -2, 0) : FMargin(3, 0, 2, 0))
+	.AutoHeight()
+	[
+		SNew(SImage)
+		.Image(FYapEditorStyle::GetImageBrush(YapBrushes.Icon_FragmentData))
+		.ColorAndOpacity(this, &ThisClass::ColorAndOpacity_FragmentDataIcon)
+		.DesiredSizeOverride(FVector2D(12, 12))
 	]
 	+ SVerticalBox::Slot()
 	[
 		SNew(SSpacer)
 	]
 	+ SVerticalBox::Slot()
-	.HAlign(HAlign_Center)
+	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Bottom)
-	.Padding(4, 0, 2, 0)
+	.Padding(3, 0, 2, 0)
 	.AutoHeight()
 	[
 		SNew(SLevelOfDetailBranchNode)
@@ -3085,9 +3105,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 				.Visibility(this, &ThisClass::Visibility_EnableOnStartPinButton)
 				[
 					SNew(SButton)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton) // TODO custom style
 					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &ThisClass::OnClicked_EnableOnStartPinButton)
-					.ButtonColorAndOpacity(YapColor::Gray_Trans)
+					.ButtonColorAndOpacity(YapColor::DimGray_Trans)
 					.ToolTipText(LOCTEXT("ClickToEnableOnStartPin_Label", "Click to enable 'On Start' Pin"))
 				]
 			]
@@ -3104,9 +3125,9 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 		]
 	]
 	+ SVerticalBox::Slot()
-	.HAlign(HAlign_Center)
+	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Bottom)
-	.Padding(4, 0, 2, 6)
+	.Padding(3, 0, 2, 0)
 	.AutoHeight()
 	[
 		SNew(SLevelOfDetailBranchNode)
@@ -3124,9 +3145,10 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateRightFragmentPane()
 				.Visibility(this, &ThisClass::Visibility_EnableOnEndPinButton)
 				[
 					SNew(SButton)
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HeaderButton) // TODO custom style
 					.Cursor(EMouseCursor::Default)
 					.OnClicked(this, &ThisClass::OnClicked_EnableOnEndPinButton)
-					.ButtonColorAndOpacity(YapColor::Gray_Trans)
+					.ButtonColorAndOpacity(YapColor::DimGray_Trans)
 					.ToolTipText(LOCTEXT("ClickToEnableOnEndPin_Label", "Click to enable 'On End' Pin"))
 				]
 			]

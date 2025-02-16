@@ -47,6 +47,7 @@ struct FYapBrushes
 	FName Icon_ManualAdvance;
 	FName Icon_Reset_Small;
 	FName Icon_Notes;
+	FName Icon_FragmentData;
 	
 	FName Icon_Reconciled;
 	FName Icon_Unreconciled;

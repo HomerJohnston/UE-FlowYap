@@ -8,6 +8,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "YapBlueprintFunctionLibrary.generated.h"
 
+struct FInstancedStruct;
 struct FYapDialogueHandleRef;
 
 #define LOCTEXT_NAMESPACE "Yap"
@@ -38,6 +39,21 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static void AddReactor(UPARAM(ref) FYapDialogueHandleRef& HandleRef, UObject* Reactor);
+
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void RegisterConversationHandler(UObject* NewHandler);
+	
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void RegisterFreeSpeechHandler(UObject* NewHandler);
+	
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void UnregisterConversationHandler(UObject* HandlerToUnregister);
+	
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void UnregisterFreeSpeechHandler(UObject* HandlerToUnregister);
+
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static const FInstancedStruct& GetFragmentData(const FYapDialogueHandleRef& HandleRef);
 };
 
 

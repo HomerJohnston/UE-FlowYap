@@ -80,5 +80,38 @@ void UYapBlueprintFunctionLibrary::AddReactor(FYapDialogueHandleRef& HandleRef, 
 	}
 }
 
+// ------------------------------------------------------------------------------------------------
+
+void UYapBlueprintFunctionLibrary::RegisterConversationHandler(UObject* NewHandler)
+{
+	UYapSubsystem::RegisterConversationHandler(NewHandler);
+}
+
+void UYapBlueprintFunctionLibrary::RegisterFreeSpeechHandler(UObject* NewHandler)
+{
+	UYapSubsystem::RegisterFreeSpeechHandler(NewHandler);
+}
+
+void UYapBlueprintFunctionLibrary::UnregisterConversationHandler(UObject* HandlerToUnregister)
+{
+	UYapSubsystem::UnregisterConversationHandler(HandlerToUnregister);
+}
+
+void UYapBlueprintFunctionLibrary::UnregisterFreeSpeechHandler(UObject* HandlerToUnregister)
+{
+	UYapSubsystem::UnregisterFreeSpeechHandler(HandlerToUnregister);
+}
+
+const FInstancedStruct& UYapBlueprintFunctionLibrary::GetFragmentData(const FYapDialogueHandleRef& HandleRef)
+{
+	const FYapDialogueHandle& Handle = UYapSubsystem::GetDialogueHandle(HandleRef);
+
+	const UFlowNode_YapDialogue* DialogueNode = Handle.GetDialogueNode();
+
+	const FYapFragment& Fragment = DialogueNode->GetFragments()[Handle.GetFragmentIndex()];
+	
+	return Fragment.GetData();
+}
+
 
 #undef LOCTEXT_NAMESPACE

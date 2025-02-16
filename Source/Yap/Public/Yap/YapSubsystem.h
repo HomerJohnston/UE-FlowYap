@@ -96,9 +96,13 @@ protected:
 	UPROPERTY(Transient)
 	FYapActiveConversation ActiveConversation;
 
-	/** All registered conversation handlers. It is assumed developers will only have one or two of these at a time, no need for fast lookup. */
+	/** All registered conversation handlers. It is assumed developers will only have one or two of these at a time, no need for fast lookup. Calling order will be preserved in order of registration. */
 	UPROPERTY(Transient)
-	TArray<UObject*> ConversationHandlers;
+	TArray<TObjectPtr<UObject>> ConversationHandlers;
+
+	/** All registered free speech handlers. It is assumed developers will only have one or two of these at a time, no need for fast lookup. Calling order will be preserved in order of registration. */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UObject>> FreeSpeechHandlers;
 
 	/** The broker object. Active only during play. Editor work uses the CDO instead. */
 	UPROPERTY(Transient)
@@ -132,13 +136,17 @@ protected:
 	
 public:
 	/** Register a conversation handler. Conversation handlers will receive yap dialogue events. Must implement IYapConversationHandler either in C++ or BP. */
-	UFUNCTION(BlueprintCallable, Category = "Yap")
-	void RegisterConversationHandler(UObject* NewHandler);
+	static void RegisterConversationHandler(UObject* NewHandler);
 
 	/** Unregister a conversation handler. */
-	UFUNCTION(BlueprintCallable, Category = "Yap")
-	void UnregisterConversationHandler(UObject* RemovedHandler);
+	static void UnregisterConversationHandler(UObject* HandlerToRemove);
 	
+	/** Register a conversation handler. Conversation handlers will receive yap dialogue events. Must implement IYapConversationHandler either in C++ or BP. */
+	static void RegisterFreeSpeechHandler(UObject* NewHandler);
+
+	/** Register a conversation handler. Conversation handlers will receive yap dialogue events. Must implement IYapConversationHandler either in C++ or BP. */
+	static void UnregisterFreeSpeechHandler(UObject* HandlerToRemove);
+
 	/** Given a character identity tag, find the character component in the world. */
 	UFUNCTION(BlueprintCallable, Category = "Yap")
 	UYapCharacterComponent* FindCharacterComponent(FGameplayTag CharacterTag);
@@ -207,6 +215,9 @@ public:
 	/**  */
 	static bool SkipDialogue(const FYapDialogueHandleRef& Handle);
 
+	/**  */ // TODO: ability to instantly playback/skip through multiple nodes until some sort of target point is hit, maybe a custom node? (imagine skipping an entire cutscene)
+	// static bool SkipDialogueTo(???);
+
 	static FYapDialogueHandle& GetDialogueHandle(FYapDialogueHandleRef HandleRef);
 
 public:
@@ -237,27 +248,27 @@ protected:
 	bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 
 	// Thanks to Blue Man for template help
-	template<auto TFunction, auto TExecFunction, typename... TArgs>
-	void BroadcastConversationHandlerFunc(TArgs&&... Args)
+	template<typename TUInterface, typename TIInterface, auto TFunction, auto TExecFunction, typename... TArgs>
+	void BroadcastEventHandlerFunc(TArray<TObjectPtr<UObject>>& HandlersArray, TArgs&&... Args)
 	{
 		bool bHandled = false;
 	
-		for (int i = 0; i < ConversationHandlers.Num(); ++i)
+		for (int i = 0; i < HandlersArray.Num(); ++i)
 		{
-			UObject* HandlerObj = ConversationHandlers[i];
+			UObject* HandlerObj = HandlersArray[i];
 
 			if (!IsValid(HandlerObj))
 			{
 				continue;
 			}
 		
-			if (IYapConversationHandler* CppInterface = Cast<IYapConversationHandler>(HandlerObj))
+			if (TIInterface* CppInterface = Cast<TIInterface>(HandlerObj))
 			{
 				(CppInterface->*TFunction)(Args...);
 			}
 			else
 			{
-				check(HandlerObj->Implements<UYapConversationHandler>());
+				check(HandlerObj->Implements<TUInterface>());
 				(*TExecFunction)(HandlerObj, Args...);				
 			}
 		

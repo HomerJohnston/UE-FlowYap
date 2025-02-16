@@ -28,7 +28,7 @@ struct YAP_API FYapDialogueHandleRef
 private:
 	UPROPERTY(Transient, meta = (IgnoreForMemberInitializationTest))
 	FGuid Guid;
-
+	
 public:
 	const FGuid& GetGuid() const { return Guid; }
 

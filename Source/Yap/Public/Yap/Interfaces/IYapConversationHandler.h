@@ -15,14 +15,16 @@ struct FYapBit;
 
 #include "IYapConversationHandler.generated.h"
 
+#define LOCTEXT_NAMESPACE "Yap"
+
 // We will pass data into the conversation handlers via structs.
 // This makes it easier for users to (optionally) build blueprint functions which accept the whole chunk of data in one pin.
 
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Conversation Opened")
-struct FYapData_OnConversationOpened
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Chat Opened")
+struct FYapData_ConversationChatOpened
 {
 	GENERATED_BODY()
 
@@ -34,8 +36,8 @@ struct FYapData_OnConversationOpened
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Conversation Closed")
-struct FYapData_OnConversationClosed
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Chat Closed")
+struct FYapData_ConversationChatClosed
 {
 	GENERATED_BODY()
 
@@ -47,8 +49,8 @@ struct FYapData_OnConversationClosed
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Dialogue Node Entered")
-struct FYapData_OnDialogueNodeEntered
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Dialogue Node Entered")
+struct FYapData_ConversationDialogueNodeEntered
 {
 	GENERATED_BODY()
 
@@ -62,8 +64,8 @@ struct FYapData_OnDialogueNodeEntered
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Dialogue Node Exited")
-struct FYapData_OnDialogueNodeExited
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Dialogue Node Exited")
+struct FYapData_ConversationDialogueNodeExited
 {
 	GENERATED_BODY()
 
@@ -77,8 +79,8 @@ struct FYapData_OnDialogueNodeExited
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Dialogue Node Bypassed")
-struct FYapData_OnDialogueNodeBypassed
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Dialogue Node Bypassed")
+struct FYapData_ConversationDialogueNodeBypassed
 {
 	GENERATED_BODY()
 	
@@ -92,8 +94,8 @@ struct FYapData_OnDialogueNodeBypassed
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Speaking Begins")
-struct FYapData_OnSpeakingBegins
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Speech Begins")
+struct FYapData_ConversationSpeechBegins
 {
 	GENERATED_BODY()
 
@@ -145,8 +147,8 @@ struct FYapData_OnSpeakingBegins
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Speaking Ends")
-struct FYapData_OnSpeakingEnds
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Speech Ends")
+struct FYapData_ConversationSpeechEnds
 {
 	GENERATED_BODY()
 
@@ -166,8 +168,8 @@ struct FYapData_OnSpeakingEnds
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Padding Time Over")
-struct FYapData_OnPaddingTimeOver
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Speech Padding Ends")
+struct FYapData_ConversationSpeechPaddingEnds
 {
 	GENERATED_BODY()
 
@@ -187,8 +189,8 @@ struct FYapData_OnPaddingTimeOver
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Add Player Prompt")
-struct FYapData_AddPlayerPrompt
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Player Prompt Created")
+struct FYapData_ConversationPlayerPromptCreated
 {
 	GENERATED_BODY()
 
@@ -224,8 +226,8 @@ struct FYapData_AddPlayerPrompt
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: After Player Prompts Added")
-struct FYapData_AfterPlayerPromptsAdded
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Player Prompts Created")
+struct FYapData_ConversationPlayerPromptsReady
 {
 	GENERATED_BODY()
 
@@ -237,8 +239,8 @@ struct FYapData_AfterPlayerPromptsAdded
 // ------------------------------------------------------------------------------------------------
 
 /** Struct containing all the data for this event. */
-USTRUCT(BlueprintType, DisplayName = "Yap: Player Prompt Selected")
-struct FYapData_OnPlayerPromptSelected
+USTRUCT(BlueprintType, DisplayName = "Yap Conv. Player Prompt Selected")
+struct FYapData_ConversationPlayerPromptChosen
 {
 	GENERATED_BODY()
 
@@ -267,114 +269,115 @@ class IYapConversationHandler
 	
 protected:
 	/** Code to run when a conversation begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Conversation Opened")
-	void K2_OnConversationOpened(FYapData_OnConversationOpened In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Chat Opened")
+	void K2_ConversationChatOpened(FYapData_ConversationChatOpened Data);
 	
 	/** Code to run when a conversation closes. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Conversation Closed")
-	void K2_OnConversationClosed(FYapData_OnConversationClosed In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Chat Closed")
+	void K2_ConversationChatClosed(FYapData_ConversationChatClosed Data);
 
 	/** Code to run when a dialogue node is first entered. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Entered")
-	void K2_OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Dialogue Node Entered")
+	void K2_ConversationDialogueNodeEntered(FYapData_ConversationDialogueNodeEntered Data);
 	
 	/** Code to run when a dialogue node is finally exited. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Exited")
-	void K2_OnDialogueNodeExited(FYapData_OnDialogueNodeExited In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Dialogue Node Exited")
+	void K2_ConversationDialogueNodeExited(FYapData_ConversationDialogueNodeExited Data);
 
 	/** Code to run when a dialogue node runs its bypass output. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Dialogue Node Bypassed")
-	void K2_OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Dialogue Node Bypassed")
+	void K2_ConversationDialogueNodeBypassed(FYapData_ConversationDialogueNodeBypassed Data);
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Speaking Begins")
-	void K2_OnSpeakingBegins(FYapData_OnSpeakingBegins In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Speech Begins")
+	void K2_ConversationSpeechBegins(FYapData_ConversationSpeechBegins Data);
 
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Speaking Ends")
-	void K2_OnSpeakingEnds(FYapData_OnSpeakingEnds In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Speech Ends")
+	void K2_ConversationSpeechEnds(FYapData_ConversationSpeechEnds Data);
 
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Padding Time Over")
-	void K2_OnPaddingTimeOver(FYapData_OnPaddingTimeOver In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Speech Padding Ends")
+	void K2_ConversationSpeechPaddingEnds(FYapData_ConversationSpeechPaddingEnds Data);
 
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Add Player Prompt")
-	void K2_AddPlayerPrompt(FYapData_AddPlayerPrompt In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Player Prompt Created")
+	void K2_ConversationPlayerPromptCreated(FYapData_ConversationPlayerPromptCreated Data);
 
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "After Player Prompts Added")
-	void K2_AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Player Prompts Ready")
+	void K2_ConversationPlayerPromptsReady(FYapData_ConversationPlayerPromptsReady Data);
 
 	/** Code to run when a player prompt is ran. Do NOT call Parent when overriding. */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, DisplayName = "Player Prompt Selected")
-	void K2_OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected In);
+	UFUNCTION(BlueprintImplementableEvent, DisplayName = "Conv. Player Prompt Chosen")
+	void K2_ConversationPlayerPromptChosen(FYapData_ConversationPlayerPromptChosen Data);
 	
 public:
 	/** Code to run when a conversation begins. Do NOT call Super when overriding. */
-	virtual void OnConversationOpened(FYapData_OnConversationOpened Event)
+	virtual void OnConversationChatOpened(FYapData_ConversationChatOpened Data)
 	{
-		K2_OnConversationOpened(Event);
+		K2_ConversationChatOpened(Data);
 	};
 	
 	/** Code to run when a conversation ends. Do NOT call Super when overriding. */
-	virtual void OnConversationClosed(FYapData_OnConversationClosed Event)
+	virtual void OnConversationChatClosed(FYapData_ConversationChatClosed Data)
 	{
-		K2_OnConversationClosed(Event);
+		K2_ConversationChatClosed(Data);
 	};
 
 	/** Code to run when first entering a dialogue node, before any speaking begins. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeEntered(FYapData_OnDialogueNodeEntered Event)
+	virtual void OnConversationDialogueNodeEntered(FYapData_ConversationDialogueNodeEntered Data)
 	{
-		K2_OnDialogueNodeEntered(Event);
+		K2_ConversationDialogueNodeEntered(Data);
 	}
 
 	/** Code to run when finishing a dialogue node. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeExited(FYapData_OnDialogueNodeExited Event)
+	virtual void OnConversationDialogueNodeExited(FYapData_ConversationDialogueNodeExited Data)
 	{
-		K2_OnDialogueNodeExited(Event);
+		K2_ConversationDialogueNodeExited(Data);
 	}
 
 	/** Code to run when exiting a dialogue node through the bypass pin. Do NOT call Super when overriding. */
-	virtual void OnDialogueNodeBypassed(FYapData_OnDialogueNodeBypassed Event)
+	virtual void OnConversationDialogueNodeBypassed(FYapData_ConversationDialogueNodeBypassed Data)
 	{
-		K2_OnDialogueNodeBypassed(Event);
+		K2_ConversationDialogueNodeBypassed(Data);
 	}	
 	
 	/** Code to run when a piece of dialogue (speech) begins. Do NOT call Super when overriding. */
-	virtual void OnSpeakingBegins(FYapData_OnSpeakingBegins Event)
+	virtual void OnConversationSpeechBegins(FYapData_ConversationSpeechBegins Data)
 	{
-		K2_OnSpeakingBegins(Event);
+		K2_ConversationSpeechBegins(Data);
 	}
 	
 	/** Code to run when a piece of dialogue (speech) ends. Do NOT call Super when overriding. */
-	virtual void OnSpeakingEnds(FYapData_OnSpeakingEnds Event)
+	virtual void OnConversationSpeechEnds(FYapData_ConversationSpeechEnds Data)
 	{
-		K2_OnSpeakingEnds(Event);
+		K2_ConversationSpeechEnds(Data);
 	}
 	
 	/** Code to run after the padding time finishes (after dialogue has ended). Do NOT call Super when overriding. */
-	virtual void OnPaddingTimeOver(FYapData_OnPaddingTimeOver Event)
+	virtual void OnConversationSpeechPaddingEnds(FYapData_ConversationSpeechPaddingEnds Data)
 	{
-		K2_OnPaddingTimeOver(Event);
+		K2_ConversationSpeechPaddingEnds(Data);
 	}
 	
 	/** Code to run when a single player prompt entry is emitted (for example, to add a button/text widget to a list). Do NOT call Super when overriding. */
-	virtual void AddPlayerPrompt(FYapData_AddPlayerPrompt Event)
+	virtual void OnConversationPlayerPromptCreated(FYapData_ConversationPlayerPromptCreated Data)
 	{
-		K2_AddPlayerPrompt(Event);
+		K2_ConversationPlayerPromptCreated(Data);
 	}
 	
 	/** Code to run after all player prompt entries have been emitted. Do NOT call Super when overriding. */
-	virtual void AfterPlayerPromptsAdded(FYapData_AfterPlayerPromptsAdded Event)
+	virtual void OnConversationPlayerPromptsReady(FYapData_ConversationPlayerPromptsReady Data)
 	{
-		K2_AfterPlayerPromptsAdded(Event);
+		K2_ConversationPlayerPromptsReady(Data);
 	}
 
 	/** Code to run when a player prompt is ran. Do NOT call Super when overriding. */
-	virtual void OnPlayerPromptSelected(FYapData_OnPlayerPromptSelected Event)
+	virtual void OnConversationPlayerPromptChosen(FYapData_ConversationPlayerPromptChosen Data)
 	{
-		K2_OnPlayerPromptSelected(Event);
+		K2_ConversationPlayerPromptChosen(Data);
 	}
 };
 
+#undef LOCTEXT_NAMESPACE

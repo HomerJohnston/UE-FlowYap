@@ -49,12 +49,20 @@ public class Yap : ModuleRules
 				"Slate",
 				"SlateCore",
 				"DeveloperSettings",
-				
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
-		
+
+		if (Target.Version.MinorVersion < 5)
+		{
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"StructUtils" // This was rolled into engine core in 5.5
+				}
+			);
+		}
+
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{

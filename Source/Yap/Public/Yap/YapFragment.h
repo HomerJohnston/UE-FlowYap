@@ -4,6 +4,7 @@
 #pragma once
 #include "YapBit.h"
 #include "GameplayTagContainer.h"
+#include "InstancedStruct.h"
 #include "Nodes/FlowPin.h"
 
 #include "YapFragment.generated.h"
@@ -84,8 +85,11 @@ protected:
 	
 	/**  */
 	UPROPERTY()
-	FGameplayTag MoodTag; // TODO - what about sending multiple mood tags? Or some other way to specify more arbitrary data? UPropertyBag???
-		
+	FGameplayTag MoodTag;
+
+	UPROPERTY(EditAnywhere)
+	FInstancedStruct Data;
+	
 	/**  */
 	UPROPERTY()
 	EYapTimeMode TimeMode;
@@ -212,10 +216,13 @@ public:
 
 	FGameplayTag GetMoodTag() const { return MoodTag; }
 
+	const FInstancedStruct& GetData() const { return Data; }
+	
 	bool IsTimeModeNone() const;
 
 	bool HasAudio() const;
 
+	bool HasData() const;
 
 #if WITH_EDITOR
 public:

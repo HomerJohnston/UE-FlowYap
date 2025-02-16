@@ -339,6 +339,11 @@ bool FYapFragment::HasAudio() const
 	return MatureBit.HasAudioAsset() || ChildSafeBit.HasAudioAsset();
 }
 
+bool FYapFragment::HasData() const
+{
+	return Data.IsValid();
+}
+
 #if WITH_EDITOR
 
 FYapBit& FYapFragment::GetBitMutable(EYapMaturitySetting MaturitySetting)

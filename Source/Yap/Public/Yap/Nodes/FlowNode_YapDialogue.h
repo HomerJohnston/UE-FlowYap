@@ -101,15 +101,15 @@ protected:
 	UPROPERTY(Instanced, BlueprintReadOnly)
 	TArray<TObjectPtr<UYapCondition>> Conditions;
 
-	/** Actual dialogue contents. */
-	UPROPERTY()
-	TArray<FYapFragment> Fragments;
-
 	/** Unique node ID for audio system. */
 	UPROPERTY(EditAnywhere)
 	FString AudioID;
 	
-	// ============================================================================================
+	/** Actual dialogue contents. */
+	UPROPERTY(EditAnywhere)
+	TArray<FYapFragment> Fragments;
+
+		// ============================================================================================
 	// STATE
 	// ============================================================================================
 	
