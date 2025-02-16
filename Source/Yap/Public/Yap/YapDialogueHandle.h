@@ -7,37 +7,56 @@
 
 #include "YapDialogueHandle.generated.h"
 
+struct FInstancedStruct;
 class UObject;
 class UFlowNode_YapDialogue;
 
 // ================================================================================================
 
-/** Since I can't store the handle in TODO description */
+/** Since I can't store handles in structs by ref, I pass around a simpler version of it containing only the GUID and look up the actual handle (which could become "large" with more data) from the subsystem as needed. */
 USTRUCT(BlueprintType)
 struct YAP_API FYapDialogueHandleRef
 {
 	GENERATED_BODY()
 
+	// ==========================================
+	// CONSTRUCTION
+	// ==========================================
+public:
+	
 	FYapDialogueHandleRef()
 	{
 		Guid.Invalidate();
 	}
 
-	FYapDialogueHandleRef(FGuid InGuid) : Guid(InGuid) {}
+	FYapDialogueHandleRef(FGuid InGuid) : Guid(InGuid)
+	{
+	}
 
+	// ==========================================
+	// STATE
+	// ==========================================
 private:
+	
 	UPROPERTY(Transient, meta = (IgnoreForMemberInitializationTest))
 	FGuid Guid;
-	
+
+	// ==========================================
+	// API
+	// ==========================================
 public:
-	const FGuid& GetGuid() const { return Guid; }
 
 	bool IsValid() const { return Guid.IsValid(); }
+
+	const FGuid& GetGuid() const { return Guid; }
+
+	bool SkipDialogue();
+
+	void AddReactor(UObject* Reactor);
 	
-	bool operator== (const FYapDialogueHandleRef& Other) const
-	{
-		return Guid == Other.Guid;
-	}
+	const TArray<FInstancedStruct>& GetFragmentData();
+	
+	bool operator== (const FYapDialogueHandleRef& Other) const;
 };
 
 FORCEINLINE uint32 GetTypeHash(const FYapDialogueHandleRef& Struct)
@@ -53,17 +72,24 @@ struct YAP_API FYapDialogueHandle
 {
 	GENERATED_BODY()
 
+	// ==========================================
+	// CONSTRUCTION
+	// ==========================================
 public:
+	
 	FYapDialogueHandle() { };
 
 	FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex);
 
 	static FYapDialogueHandle& InvalidHandle() { return _InvalidHandle; }
 
+	// ==========================================
+	// STATE
+	// ==========================================
 private:
+	
 	static FYapDialogueHandle _InvalidHandle;
 	
-private:
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UFlowNode_YapDialogue> DialogueNode = nullptr;
 
@@ -76,13 +102,17 @@ private:
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<UObject>> Reactors; 
 	
+	// ==========================================
+	// API
+	// ==========================================
 public:
+
 	UFlowNode_YapDialogue* GetDialogueNode() const { return DialogueNode; }
 
 	uint8 GetFragmentIndex() const { return FragmentIndex; }
 
 	const FGuid& GetGuid() const { return Guid; }
-
+	
 	void OnSpeakingEnds() const;
 	
 	void Invalidate();
@@ -91,10 +121,7 @@ public:
 
 	void AddReactor(UObject* Reactor);
 	
-	bool operator== (const FYapDialogueHandle& Other) const
-	{
-		return Guid == Other.Guid;
-	}
+	bool operator== (const FYapDialogueHandle& Other) const;
 };
 
 FORCEINLINE uint32 GetTypeHash(const FYapDialogueHandle& Struct)

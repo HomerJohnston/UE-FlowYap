@@ -8,6 +8,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "YapBlueprintFunctionLibrary.generated.h"
 
+class UYapCharacter;
 struct FInstancedStruct;
 struct FYapDialogueHandleRef;
 
@@ -21,6 +22,8 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+public:
+	
 #if WITH_EDITOR
 	/** Built-in simple helper function to play an Unreal sound. */
 	UFUNCTION(BlueprintCallable, Category = "Yap")
@@ -41,6 +44,9 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	static void AddReactor(UPARAM(ref) FYapDialogueHandleRef& HandleRef, UObject* Reactor);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static const TArray<FInstancedStruct>& GetFragmentData(const FYapDialogueHandleRef& HandleRef);
+
+	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static void RegisterConversationHandler(UObject* NewHandler);
 	
 	UFUNCTION(BlueprintCallable, Category = "Yap")
@@ -53,7 +59,10 @@ class YAP_API UYapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	static void UnregisterFreeSpeechHandler(UObject* HandlerToUnregister);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
-	static const FInstancedStruct& GetFragmentData(const FYapDialogueHandleRef& HandleRef);
+	static AActor* FindYapCharacterActor(const UYapCharacter* Character);
+
+	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static void TriggerConversationOpen();
 };
 
 

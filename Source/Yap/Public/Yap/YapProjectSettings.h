@@ -118,6 +118,10 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	EYapTimeMode DefaultTimeModeSetting;
 
+	/** If set, the Open Convo. node will not advance until Yap is notified to continue. Use this if you want to wait for a conversation opening animation. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 2.0, Delta = 0.01))
+	bool bOpenConversationRequiresTrigger = false;
+	
 	/** If set, dialogue will be non-skippable by default and must play for its entire duration. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback")
 	bool bForcedDialogueDuration = false;
@@ -149,6 +153,10 @@ protected:
 	/** Total minimum speaking time for any fragment. Should be fairly low; intended mostly to only handle accidental "0" time values. */
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float MinimumSpeakingTime = 0.25;
+
+	/** When dialogue is set to audo-advance, skip requests will be ignored if the total remaining playback time (speech time + padding time) is less than this. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 2.0, Delta = 0.01))
+	float MinimumSkipTime = 0.15;
 
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
@@ -291,6 +299,10 @@ public:
 	
 	static float GetMinimumFragmentTime() { return Get().MinimumSpeakingTime; }
 
+	static float GetMinimumSkipTime() { return Get().MinimumSkipTime; }
+
+	static bool GetOpenConversationRequiresTrigger() { return Get().bOpenConversationRequiresTrigger; }
+	
 	static bool CacheFragmentWordCountAutomatically() { return !Get().bPreventCachingWordCount; }
 	
 	static bool CacheFragmentAudioLengthAutomatically() { return !Get().bPreventCachingAudioLength; }

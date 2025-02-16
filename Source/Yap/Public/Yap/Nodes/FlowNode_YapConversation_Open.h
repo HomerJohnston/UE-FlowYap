@@ -7,6 +7,7 @@
 
 #include "FlowNode_YapConversation_Open.generated.h"
 
+/** Opens a conversation for this running flow asset. IMPORTANT: All entered dialogue nodes in this flow asset will broadcast inside of this conversation while the conversation is open! */
 UCLASS(NotBlueprintable, meta = (DisplayName = "Yap Conversation Start", Keywords = "yap"))
 class YAP_API UFlowNode_YapConversation_Open : public UFlowNode
 {
@@ -14,17 +15,35 @@ class YAP_API UFlowNode_YapConversation_Open : public UFlowNode
 public:
 	UFlowNode_YapConversation_Open();
 	
+	// ==========================================
+	// SETTINGS
+	// ==========================================
 public:
+
+	/** Optional name for this conversation. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag Conversation;
+	
+	// ==========================================
+	// STATE
+	// ==========================================
+protected:
+	
+	//* Prevents this open conversation node from triggering accidentally. */ 
+	bool bTriggerFlop = false;
 
+	// ==========================================
+	// API
+	// ==========================================
+public:
 	void InitializeInstance() override;
 
-	void IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes);
-	
 	void OnActivate() override;
 
 	void ExecuteInput(const FName& PinName) override;
+
+protected:
+	void OnConversationOpenTrigger();
 	
 #if WITH_EDITOR
 public:

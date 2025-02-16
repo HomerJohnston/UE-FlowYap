@@ -5,6 +5,7 @@
 
 #include "FlowAsset.h"
 #include "Yap/YapLog.h"
+#include "Yap/YapProjectSettings.h"
 #include "Yap/YapSubsystem.h"
 #include "Yap/Nodes/FlowNode_YapConversation_Close.h"
 #include "Yap/Nodes/FlowNode_YapDialogue.h"
@@ -23,51 +24,43 @@ void UFlowNode_YapConversation_Open::InitializeInstance()
 	Super::InitializeInstance();
 
 	TArray<UFlowNode*> ConnectedNodes;
-
-	IterateDownstreamNodes(this, ConnectedNodes);
-}
-
-void UFlowNode_YapConversation_Open::IterateDownstreamNodes(UFlowNode* DownstreamNode, TArray<UFlowNode*>& ConnectedNodes)
-{
-	// TODO determine if I need to do this
-
-	/*
-	for (UFlowNode* ConnectedNode : DownstreamNode->GatherConnectedNodes())
-	{
-		if (ConnectedNode && !ConnectedNodes.Contains(ConnectedNode))
-		{
-			ConnectedNodes.Add(ConnectedNode);
-
-			UFlowNode_YapDialogue* DialogueNode = Cast<UFlowNode_YapDialogue>(ConnectedNode);
-			
-			if (DialogueNode)
-			{
-				DialogueNode->SetConversationName(ConversationName);
-			}
-			
-			if (UFlowNode_YapConversationClose* ConversationClose = Cast<UFlowNode_YapConversationClose>(ConnectedNode))
-			{
-				return;
-			}
-			
-			IterateDownstreamNodes(ConnectedNode, ConnectedNodes);
-		}
-	}
-	*/
 }
 
 void UFlowNode_YapConversation_Open::OnActivate()
 {
-	UE_LOG(LogYap, Verbose, TEXT("Conversation opening: %s"), *Conversation.ToString());
-
+	if (bTriggerFlop)
+	{
+		return;
+	}
+	
 	GetWorld()->GetSubsystem<UYapSubsystem>()->OpenConversation(GetFlowAsset(), Conversation);
+	
+	if (UYapProjectSettings::GetOpenConversationRequiresTrigger())
+	{
+		UYapSubsystem::Get()->ConversationOpenTrigger.AddUObject(this, &ThisClass::OnConversationOpenTrigger);
+		bTriggerFlop = true;
+	}
 }
 
 void UFlowNode_YapConversation_Open::ExecuteInput(const FName& PinName)
 {
 	Super::ExecuteInput(PinName);
 
+	if (!bTriggerFlop)
+	{
+		TriggerFirstOutput(true);
+	}
+}
+
+void UFlowNode_YapConversation_Open::OnConversationOpenTrigger()
+{
+	if (!bTriggerFlop)
+	{
+		return;
+	}
+	
 	TriggerFirstOutput(true);
+	bTriggerFlop = false;
 }
 
 #if WITH_EDITOR

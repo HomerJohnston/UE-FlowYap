@@ -88,7 +88,7 @@ protected:
 	FGameplayTag MoodTag;
 
 	UPROPERTY(EditAnywhere)
-	FInstancedStruct Data;
+	TArray<FInstancedStruct> Data;
 	
 	/**  */
 	UPROPERTY()
@@ -216,7 +216,7 @@ public:
 
 	FGameplayTag GetMoodTag() const { return MoodTag; }
 
-	const FInstancedStruct& GetData() const { return Data; }
+	const TArray<FInstancedStruct>& GetData() const { return Data; }
 	
 	bool IsTimeModeNone() const;
 

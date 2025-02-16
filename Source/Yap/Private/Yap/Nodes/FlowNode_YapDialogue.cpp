@@ -96,6 +96,19 @@ bool UFlowNode_YapDialogue::SkipCurrent()
 		return false;
 	}
 
+	float MinSkipTime = UYapProjectSettings::GetMinimumSkipTime();
+
+	if (MinSkipTime > 0)
+	{
+		float SpeechTimeRemaining = (FragmentTimerHandle.IsValid()) ? GetWorld()->GetTimerManager().GetTimerRemaining(FragmentTimerHandle) : 0.0f;
+		float PaddingTimeRemaining = (PaddingTimerHandle.IsValid()) ? GetWorld()->GetTimerManager().GetTimerRemaining(PaddingTimerHandle) : 0.0f;
+
+		if ((SpeechTimeRemaining + PaddingTimeRemaining) < MinSkipTime)
+		{
+			return false;
+		}
+	}
+	
 	bool bSkipped = false;
 	
 	if (FragmentTimerHandle.IsValid())

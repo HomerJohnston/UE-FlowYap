@@ -119,7 +119,7 @@ void UYapSubsystem::UnregisterFreeSpeechHandler(UObject* HandlerToRemove)
 
 UYapCharacterComponent* UYapSubsystem::FindCharacterComponent(FGameplayTag CharacterTag)
 {
-	TWeakObjectPtr<UYapCharacterComponent>* CharacterComponentPtr = YapCharacterComponents.Find(CharacterTag);
+	TWeakObjectPtr<UYapCharacterComponent>* CharacterComponentPtr = Get()->YapCharacterComponents.Find(CharacterTag);
 
 	if (CharacterComponentPtr && CharacterComponentPtr->IsValid())
 	{

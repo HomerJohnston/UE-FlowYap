@@ -341,7 +341,7 @@ bool FYapFragment::HasAudio() const
 
 bool FYapFragment::HasData() const
 {
-	return Data.IsValid();
+	return Data.Num() > 0;
 }
 
 #if WITH_EDITOR

@@ -82,10 +82,14 @@ friend struct FYapPromptHandle;
 public:
 	UYapSubsystem();
 	
-	// ------------------------------------------
+	// =========================================
 	// STATE
+	// =========================================
+public:
+	TMulticastDelegate<void()> ConversationOpenTrigger;
 	
 protected:
+	
 	static TWeakObjectPtr<UWorld> World;
 	
 	// TODO I should have a queue system???... otherwise I'll have odd race conditions if there are multiple conversation requests!
@@ -131,10 +135,12 @@ protected:
 	static bool bGetGameMaturitySettingWarningIssued;
 
 	static FYapDialogueHandle InvalidHandle;
-	// ------------------------------------------
-	// PUBLIC API - Your game should use these
 	
+	// =========================================
+	// PUBLIC API - Your game should use these
+	// =========================================
 public:
+	
 	/** Register a conversation handler. Conversation handlers will receive yap dialogue events. Must implement IYapConversationHandler either in C++ or BP. */
 	static void RegisterConversationHandler(UObject* NewHandler);
 
@@ -149,16 +155,13 @@ public:
 
 	/** Given a character identity tag, find the character component in the world. */
 	UFUNCTION(BlueprintCallable, Category = "Yap")
-	UYapCharacterComponent* FindCharacterComponent(FGameplayTag CharacterTag);
+	static UYapCharacterComponent* FindCharacterComponent(FGameplayTag CharacterTag);
 
-	// TODO I want a custom K2 node for this with IsValid outputs automatically
-	//UFUNCTION(BlueprintCallable, Category = "Yap")
-	//AActor* FindCharacterActor(FGameplayTag CharacterTag);
-	
-	// ------------------------------------------
+	// =========================================
 	// YAP API - These are called by Yap classes
-	
+	// =========================================
 public:
+
 	static const TWeakObjectPtr<UWorld> GetStaticWorld()
 	{
 		return World;

@@ -3,11 +3,48 @@
 
 #include "Yap/YapDialogueHandle.h"
 
+#include "Yap/YapBlueprintFunctionLibrary.h"
 #include "Yap/Interfaces/IYapHandleReactor.h"
 
 #define LOCTEXT_NAMESPACE "Yap"
 
+// ------------------------------------------------------------------------------------------------
+
 FYapDialogueHandle FYapDialogueHandle::_InvalidHandle;
+
+// ================================================================================================
+// FYapDialogueHandleRef
+// ================================================================================================
+
+bool FYapDialogueHandleRef::SkipDialogue()
+{
+	return UYapBlueprintFunctionLibrary::SkipDialogue(*this);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+void FYapDialogueHandleRef::AddReactor(UObject* Reactor)
+{
+	UYapBlueprintFunctionLibrary::AddReactor(*this, Reactor);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+const TArray<FInstancedStruct>& FYapDialogueHandleRef::GetFragmentData()
+{
+	return UYapBlueprintFunctionLibrary::GetFragmentData(*this);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+bool FYapDialogueHandleRef::operator==(const FYapDialogueHandleRef& Other) const
+{
+	return Guid == Other.Guid;
+}
+
+// ================================================================================================
+// FYapDialogueHandle
+// ================================================================================================
 
 FYapDialogueHandle::FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, uint8 InFragmentIndex)
 {
@@ -16,6 +53,8 @@ FYapDialogueHandle::FYapDialogueHandle(UFlowNode_YapDialogue* InDialogueNode, ui
 
 	Guid = FGuid::NewGuid();
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void FYapDialogueHandle::OnSpeakingEnds() const
 {
@@ -27,6 +66,8 @@ void FYapDialogueHandle::OnSpeakingEnds() const
 		}
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
 
 void FYapDialogueHandle::Invalidate()
 {
@@ -44,16 +85,23 @@ void FYapDialogueHandle::Invalidate()
 	Reactors.Empty();
 }
 
+// ------------------------------------------------------------------------------------------------
+
 void FYapDialogueHandle::AddReactor(UObject* Reactor)
 {
-	if (Reactor->Implements<UYapHandleReactor>())
+	if (ensureMsgf(Reactor->Implements<UYapHandleReactor>(), TEXT("FYapDialogueHandle::AddReactor(...) failed: object does not implement IYapHandleReactor! [%s]"), *Reactor->GetName()))
 	{
 		Reactors.Add(Reactor);
 	}
-	else
-	{
-		
-	}
 }
+
+// ------------------------------------------------------------------------------------------------
+
+bool FYapDialogueHandle::operator==(const FYapDialogueHandle& Other) const
+{
+	return Guid == Other.Guid;
+}
+
+// ------------------------------------------------------------------------------------------------
 
 #undef LOCTEXT_NAMESPACE
