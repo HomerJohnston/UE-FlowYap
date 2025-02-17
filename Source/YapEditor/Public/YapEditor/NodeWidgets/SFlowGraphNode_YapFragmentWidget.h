@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "EditorUndoClient.h"
+#include "Widgets/Notifications/SProgressBar.h"
 #include "Yap/Enums/YapTimeMode.h"
 
 enum class EYapDialogueProgressionFlags : uint8;
@@ -178,62 +179,62 @@ protected:
 	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
 
 
-	TSharedRef<SWidget> BuildDialogueEditors_ExpandedEditor(float Width);
-
-	TSharedRef<SWidget> BuildDialogueEditor_SingleSide(const FText& Title, const FText& DialogueTextHint, const FText& TitleTextHint, float Width, FMargin Padding, FYapBit& Bit);
-
-	TSharedRef<SWidget> BuildCommentEditor(TAttribute<FString> String, FString* StringProperty, FText HintText);
-
-	TSharedRef<SWidget> BuildTimeSettings_ExpandedEditor(float Width);
-
-	TSharedRef<SWidget> BuildTimeSettings_SingleSide(float Width, FMargin Padding, EYapMaturitySetting MaturitySetting);
+	TSharedRef<SWidget> 	BuildDialogueEditors_ExpandedEditor(float Width);
 	
-	TSharedRef<SWidget> BuildPaddingSettings_ExpandedEditor(float Width);
+	TSharedRef<SWidget> 	BuildDialogueEditor_SingleSide(const FText& Title, const FText& DialogueTextHint, const FText& TitleTextHint, float Width, FMargin Padding, FYapBit& Bit);
 	
-	// ------------------------------------------
-
-	FText				FragmentTagPreview_Text() const;
+	TSharedRef<SWidget> 	BuildCommentEditor(TAttribute<FString> String, FString* StringProperty, FText HintText);
+	
+	TSharedRef<SWidget> 	BuildTimeSettings_ExpandedEditor(float Width);
+	
+	TSharedRef<SWidget> 	BuildTimeSettings_SingleSide(float Width, FMargin Padding, EYapMaturitySetting MaturitySetting);
+		
+	TSharedRef<SWidget> 	BuildPaddingSettings_ExpandedEditor(float Width);
+	
 	// ---------------------------------------------------
-	TOptional<float>	FragmentTimePadding_Percent() const;
-	TOptional<float> FragmentTime_Percent() const;
-
-	float				Value_FragmentTimePadding() const;
-	void				OnValueChanged_FragmentTimePadding(float X);
-	FSlateColor			FillColorAndOpacity_FragmentTimePadding() const;
-	FText				ToolTipText_FragmentTimePadding() const;
-
-	FLinearColor BorderBackgroundColor_CharacterImage() const;
-	void OnSetNewSpeakerAsset(const FAssetData& AssetData);
-	void OnSetNewDirectedAtAsset(const FAssetData& AssetData);
+	TSharedRef<SWidget> 	CreateFragmentTimePaddingWidget(int32 TimeSliderSize);
 	
-	TSharedRef<SWidget> PopupContentGetter_SpeakerWidget(const UYapCharacter* Character);
+	TSharedRef<SWidget> 	CreateFragmentTimeProgressBar(EProgressBarFillType::Type FillType, TAttribute<TOptional<float>> PercentAttribute);
+	TOptional<float>		Percent_FragmentTime() const;
+	TOptional<float>		Percent_FragmentTimePadding() const;
+	FSlateColor				FillColorAndOpacity_FragmentTimeProgressBars() const;
 
-	FText Text_SpeakerWidget() const;
-	FText ToolTipText_SpeakerWidget() const;
-	
-
-	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
-	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
-	
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreateSpeakerWidget();
 
 	bool					OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
 	void					OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	FLinearColor			BorderBackgroundColor_CharacterImage() const;
+
+	TSharedRef<SWidget>		CreateSpeakerPopupButton(int32 PortraitSize, int32 BorderSize);
+	TSharedRef<SWidget>		PopupContentGetter_SpeakerWidget(const UYapCharacter* Character);
+	void					OnSetNewSpeakerAsset(const FAssetData& AssetData);
+	void					OnSetNewDirectedAtAsset(const FAssetData& AssetData);
+
+	TSharedRef<SWidget>		CreateLowDetailSpeakerWidget(int32 PortraitSize, int32 BorderSize);
+	
 	const FSlateBrush*		Image_SpeakerImage() const;
+	FText					ToolTipText_SpeakerWidget() const;
+	FText					Text_SpeakerWidget() const;
+
+	float					GetSpeakerWidgetSize(int32 PortraitSize, int32 BorderSize) const;
+	
+	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
+	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	
 
 	FText ToolTipText_MoodTagSelector() const;
 	FSlateColor ForegroundColor_MoodTagSelectorWidget() const;
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateMoodTagSelectorWidget();
+	TSharedRef<SWidget>		CreateMoodTagSelectorWidget();
 
-	const FSlateBrush*	Image_MoodTagSelector() const;
-	FGameplayTag		GetCurrentMoodTag() const;
+	const FSlateBrush*		Image_MoodTagSelector() const;
+	FGameplayTag			GetCurrentMoodTag() const;
 	
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateMoodTagMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
+	TSharedRef<SWidget>		CreateMoodTagMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
 
-	FReply				OnClicked_MoodTagMenuEntry(FGameplayTag NewValue);
+	FReply					OnClicked_MoodTagMenuEntry(FGameplayTag NewValue);
 
 	FText Text_EditedText(FText* Text) const;
 
@@ -265,8 +266,6 @@ protected:
 	TSharedRef<SWidget> CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset);
 
 	bool				OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
-	FText				ObjectPathText_AudioAsset() const;
-	FString				ObjectPath_AudioAsset() const;
 	EVisibility			Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
 
 	FSlateColor			ColorAndOpacity_AudioSettingsButton() const;
@@ -280,7 +279,7 @@ protected:
 protected:
 	const UFlowNode_YapDialogue* GetDialogueNode() const;
 
-	UFlowNode_YapDialogue* GetDialogueNode();
+	UFlowNode_YapDialogue* GetDialogueNodeMutable();
 
 	const FYapFragment& GetFragment() const;
 	
