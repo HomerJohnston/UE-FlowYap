@@ -25,7 +25,7 @@ UFlowGraphNode_YapDialogue::UFlowGraphNode_YapDialogue()
 {
 	AssignedNodeClasses = {UFlowNode_YapDialogue::StaticClass()};
 
-	EventBus << YapEditor::Events::DialogueNode::Test;
+	EventBus << YapEditor::Event::DialogueNode::Test;
 }
 
 TSharedPtr<SGraphNode> UFlowGraphNode_YapDialogue::CreateVisualWidget()

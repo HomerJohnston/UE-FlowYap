@@ -36,6 +36,7 @@
 #include "Framework/MultiBox/SToolBarButtonBlock.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
 #include "Yap/Enums/YapLoadContext.h"
+#include "YapEditor/YapEditorEvents.h"
 #include "YapEditor/YapEditorLog.h"
 #include "YapEditor/Globals/YapEditorFuncs.h"
 #include "YapEditor/GraphNodes/FlowGraphNode_YapDialogue.h"
@@ -495,6 +496,10 @@ EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_FragmentTagWidget() con
 	return GetDialogueNode()->GetDialogueTag().IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
+// ================================================================================================
+// CHILD-SAFE WIDGET
+// ================================================================================================
+
 ECheckBoxState SFlowGraphNode_YapFragmentWidget::IsChecked_ChildSafeSettings() const
 {
 	if (!NeedsChildSafeData())
@@ -572,186 +577,6 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::ColorAndOpacity_ChildSafeSettingsC
 	}
 }
 
-FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage() const
-{
-	const TSoftObjectPtr<UYapCharacter> DirectedAtAsset = GetFragment().GetDirectedAtAsset();
-
-	FLinearColor Color;
-	
-	if (DirectedAtAsset.IsValid())
-	{
-		Color = DirectedAtAsset.Get()->GetEntityColor();
-	}
-	else
-	{
-		Color = YapColor::Transparent;		
-	}
-
-	float A = UYapDeveloperSettings::GetPortraitBorderAlpha();
-	
-	Color.R *= A;
-	Color.G *= A;
-	Color.B *= A;
-
-	return Color;
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return;
-	}
-
-	UObject* Object = AssetDatas[0].GetAsset();
-	
-	if (UYapCharacter* Character = Cast<UYapCharacter>(Object))
-	{
-		FYapTransactions::BeginModify(LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
-
-		GetFragmentMutable().SetDirectedAt(Character);
-
-		FYapTransactions::EndModify();
-	}
-}
-
-bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return false;
-	}
-
-	UClass* Class = AssetDatas[0].GetClass();
-
-	if (Class == UYapCharacter::StaticClass())
-	{
-		return true;
-	}
-
-	return false;
-}
-
-FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget()
-{
-	if (bCtrlPressed)
-	{
-		FYapTransactions::BeginModify(LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
-
-		GetFragmentMutable().SetDirectedAt(nullptr);
-
-		FYapTransactions::EndModify();
-
-		return FReply::Handled();
-	}
-
-	return FReply::Unhandled();
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget()
-{
-	return SNew(SBorder)
-	.Padding(1, 1, 1, 1)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
-	.BorderBackgroundColor(YapColor::DimGray)
-	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.HAlign(HAlign_Center)
-		.Padding(6, 0, 6, 0)
-		[
-			SNew(SBox)
-			.WidthOverride(15) // Rotated widgets are laid out per their original transform, use negative padding and a width override for rotated text
-			.Padding(-80)
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("DirectedAt_PopupLabel", "DIRECTED AT"))
-				.RenderTransformPivot(FVector2D(0.5, 0.5))
-				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
-				.Font(YapFonts.Font_SectionHeader)
-			]
-		]
-		
-		+ SHorizontalBox::Slot()
-		[
-			SNew(SYapPropertyMenuAssetPicker)
-			.AllowedClasses({UYapCharacter::StaticClass()})
-			.AllowClear(true)
-			.InitialObject(GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly))
-			.OnSet(this, &ThisClass::OnSetNewDirectedAtAsset)
-		]
-	];
-}
-
-const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
-{
-	const UYapCharacter* Character = GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly);
-	
-	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Character, FGameplayTag::EmptyTag);
-
-	if (PortraitBrush && PortraitBrush->GetResourceObject())
-	{
-		return PortraitBrush.Get();
-	}
-	else
-	{
-		return FYapEditorStyle::GetImageBrush(YapBrushes.None);
-	}
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
-{
-	int32 PortraitSize = UYapProjectSettings::GetPortraitSize() / 3;
-	
-	return SNew(SBorder)
-	.Cursor(EMouseCursor::Default)
-	.HAlign(HAlign_Center)
-	.VAlign(VAlign_Center)
-	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Panel_Rounded))
-	.BorderBackgroundColor(this, &ThisClass::BorderBackgroundColor_DirectedAtImage)
-	.Padding(2)
-	[
-		SNew(SBox)
-		.WidthOverride(PortraitSize + 2)
-		.HeightOverride(PortraitSize + 2)
-		[
-			SNew(SLevelOfDetailBranchNode)
-			.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
-			.HighDetail()
-			[
-				SNew(SAssetDropTarget)
-				.bSupportsMultiDrop(false)
-				.OnAreAssetsAcceptableForDrop(this, &ThisClass::OnAreAssetsAcceptableForDrop_DirectedAtWidget)
-				.OnAssetsDropped(this, &ThisClass::OnAssetsDropped_DirectedAtWidget)
-				[
-					SNew(SYapButtonPopup)
-					.PopupPlacement(MenuPlacement_BelowAnchor)
-					.OnClicked(this, &ThisClass::OnClicked_DirectedAtWidget)
-					.PopupContentGetter(FPopupContentGetter::CreateSP(this, &ThisClass::PopupContentGetter_DirectedAtWidget))
-					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
-					.ButtonBackgroundColor(YapColor::DarkGray)
-					.ButtonContent()
-					[
-						SNew(SImage)
-						.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-						.Image(this, &ThisClass::Image_DirectedAtWidget)
-					]
-				]
-			]
-			.LowDetail()
-			[
-				SNew(SImage)
-				.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-				.Image(this, &ThisClass::Image_DirectedAtWidget)
-			]
-		]
-	];
-}
-
 bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const
 {
 	return OnAreAssetsAcceptableForDrop_TextWidget(AssetDatas);
@@ -775,7 +600,7 @@ void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_ChildSafeButton(const FDr
 
 // ================================================================================================
 // FRAGMENT WIDGET
-// ------------------------------------------------------------------------------------------------
+// ================================================================================================
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateFragmentWidget()
 {
@@ -1999,48 +1824,7 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::FillColorAndOpacity_FragmentTimePr
 	return YapColor::DimGray_Trans;
 }
 
-FLinearColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterImage() const
-{
-	const TSoftObjectPtr<UYapCharacter> SpeakerAsset = GetFragment().GetSpeakerAsset();
-	
-	FLinearColor Color;
-	
-	if (SpeakerAsset.IsValid())
-	{
-		Color = SpeakerAsset.Get()->GetEntityColor();
-	}
-	else
-	{
-		Color = YapColor::Gray_Glass;		
-	}
-
-	Color.A *= UYapDeveloperSettings::GetPortraitBorderAlpha();
-
-	if (!GetDialogueNode()->IsPlayerPrompt())
-	{
-		Color.A *= 0.75f;
-	}
-
-	return Color;
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnSetNewSpeakerAsset(const FAssetData& AssetData)
-{
-	FYapTransactions::BeginModify(LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNodeMutable());
-
-	GetFragmentMutable().SetSpeaker(AssetData.GetAsset());
-
-	FYapTransactions::EndModify();
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnSetNewDirectedAtAsset(const FAssetData& AssetData)
-{
-	FYapTransactions::BeginModify(LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
-
-	GetFragmentMutable().SetDirectedAt(AssetData.GetAsset());
-
-	FYapTransactions::EndModify();
-}
+// ---------------------------------------------------
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_SpeakerWidget(const UYapCharacter* Character)
 {
@@ -2078,6 +1862,231 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_Speaker
 			.OnSet(this, &ThisClass::OnSetNewSpeakerAsset)
 		]
 	];
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnSetNewSpeakerAsset(const FAssetData& AssetData)
+{
+	FYapTransactions::BeginModify(LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNodeMutable());
+
+	GetFragmentMutable().SetSpeaker(AssetData.GetAsset());
+
+	FYapTransactions::EndModify();
+}
+
+bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return false;
+	}
+
+	UClass* AssetClass = AssetDatas[0].GetClass();
+	
+	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::GetAudioAssetClasses();
+	
+	for (const TSoftClassPtr<UObject>& AllowableClass : AllowableClasses)
+	{
+		if (AssetClass->IsChildOf(AllowableClass.LoadSynchronous())) // TODO return false instead and request an async load
+		{
+			return true;
+		}
+	}  
+
+	return false;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
+	UObject* Object = AssetDatas[0].GetAsset();
+	
+	FYapTransactions::BeginModify(LOCTEXT("SetAudioAsset", "Set audio asset"), GetDialogueNodeMutable());
+
+	GetFragmentMutable().GetMatureBitMutable().SetDialogueAudioAsset(Object);
+
+	FYapTransactions::EndModify();	
+}
+
+// ================================================================================================
+// SPEAKER WIDGET
+// ------------------------------------------------------------------------------------------------
+
+TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
+{
+	int32 PortraitSize = UYapProjectSettings::GetPortraitSize();
+	int32 BorderSize = 2;
+	
+	const UYapCharacter* Character = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
+
+	return SNew(SOverlay)
+	+ SOverlay::Slot()
+	.Padding(0, 0, 0, 0)
+	[
+		SNew(SLevelOfDetailBranchNode)
+		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+		.HighDetail()
+		[
+			SNew(SAssetDropTarget)
+			.bSupportsMultiDrop(false)
+			.OnAreAssetsAcceptableForDrop(this, &ThisClass::IsDroppedAsset_YapCharacter)
+			.OnAssetsDropped(this, &ThisClass::OnAssetsDropped_SpeakerWidget)
+			[
+				SNew(SYapButtonPopup)
+				.PopupPlacement(MenuPlacement_BelowAnchor)
+				.PopupContentGetter(FPopupContentGetter::CreateSP(this, &ThisClass::PopupContentGetter_SpeakerWidget, Character))
+				.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_SpeakerPopup)
+				.ButtonContent()
+				[
+					CreateSpeakerImageWidget(PortraitSize, BorderSize)
+				]
+			]
+		]
+		.LowDetail()
+		[
+			CreateSpeakerImageWidget(PortraitSize, BorderSize)
+		]
+	];
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+
+	UYapCharacter* Character = Cast<UYapCharacter>(AssetDatas[0].GetAsset());
+
+	if (Character)
+	{
+		FYapScopedTransaction Transaction(YapEditor::Event::None, LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNodeMutable());
+		GetFragmentMutable().SetSpeaker(Character);
+	}
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateSpeakerImageWidget(int32 PortraitSize, int32 BorderSize)
+{
+	float SpeakerWidgetSize = GetSpeakerWidgetSize(PortraitSize, BorderSize);
+
+	return SNew(SBox)
+	.WidthOverride(SpeakerWidgetSize)
+	.HeightOverride(SpeakerWidgetSize)
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Fill)
+		[
+			SNew(SBorder)
+			.HAlign(HAlign_Center)
+			.VAlign(VAlign_Center)
+			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
+			.BorderBackgroundColor(this, &ThisClass::BorderBackgroundColor_CharacterImage)
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		.Padding(BorderSize)
+		[
+			SNew(SImage)
+			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+			.Image(this, &ThisClass::Image_SpeakerImage)
+			.ToolTipText(this, &ThisClass::ToolTipText_SpeakerWidget)
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(this, &ThisClass::Text_SpeakerWidget)
+			.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
+			.ColorAndOpacity(YapColor::Red)
+			.Justification(ETextJustify::Center)
+		]
+	];
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_CharacterImage() const
+{
+	const TSoftObjectPtr<UYapCharacter> SpeakerAsset = GetFragment().GetSpeakerAsset();
+	
+	FLinearColor Color;
+	
+	if (SpeakerAsset.IsValid())
+	{
+		Color = SpeakerAsset.Get()->GetEntityColor();
+	}
+	else
+	{
+		Color = YapColor::Gray_Glass;		
+	}
+
+	Color.A *= UYapDeveloperSettings::GetPortraitBorderAlpha();
+
+	if (!GetDialogueNode()->IsPlayerPrompt())
+	{
+		Color.A *= 0.75f;
+	}
+
+	return Color;
+}
+
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
+{
+	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
+	const FGameplayTag& MoodTag = GetFragment().GetMoodTag();
+	
+	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
+
+	if (PortraitBrush && PortraitBrush->GetResourceObject())
+	{
+		return PortraitBrush.Get();
+	}
+	else
+	{
+		return FYapEditorStyle::GetImageBrush(YapBrushes.None);
+	}
+}
+
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_SpeakerWidget() const
+{
+	TSoftObjectPtr<UYapCharacter> SpeakerAsset = GetFragment().GetSpeakerAsset();	
+
+	if (SpeakerAsset.IsNull())
+	{
+		return LOCTEXT("SpeakerUnset_Label","Speaker Unset");
+	}
+	
+	TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetMoodTag());
+	
+	FText CharacterName = SpeakerAsset.IsValid() ? SpeakerAsset.Get()->GetEntityName() : LOCTEXT("Unloaded", "Unloaded");
+	
+	if (CharacterName.IsEmpty())
+	{
+		CharacterName = LOCTEXT("Unnamed", "Unnamed");
+	}
+
+	FText MoodTagLabel;
+	
+	if (GTN.IsValid())
+	{
+		MoodTagLabel = FText::FromName(GTN->GetSimpleTagName());
+	}
+	else
+	{
+		TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::GetDefaultMoodTag());
+
+		FText MoodTagNameAsText = DefaultGTN.IsValid() ? FText::FromName(DefaultGTN->GetSimpleTagName()) : LOCTEXT("MoodTag_None_Label", "None");
+		
+		MoodTagLabel = FText::Format(LOCTEXT("DefaultMoodTag_Label", "{0}(D)"), MoodTagNameAsText);
+	}
+
+	// TODO minor bug this is being reached when it shouldn't be
+	return FText::Format(LOCTEXT("SpeakerMoodImageMissing_Label", "{0}\n\n{1}\n<missing>"), CharacterName, MoodTagLabel);
 }
 
 FText SFlowGraphNode_YapFragmentWidget::Text_SpeakerWidget() const
@@ -2130,245 +2139,159 @@ float SFlowGraphNode_YapFragmentWidget::GetSpeakerWidgetSize(int32 PortraitSize,
 	return FinalHeight;
 }
 
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_SpeakerWidget() const
-{
-	TSoftObjectPtr<UYapCharacter> SpeakerAsset = GetFragment().GetSpeakerAsset();	
-
-	if (SpeakerAsset.IsNull())
-	{
-		return LOCTEXT("SpeakerUnset_Label","Speaker Unset");
-	}
-	
-	TSharedPtr<FGameplayTagNode> GTN = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetMoodTag());
-	
-	FText CharacterName = SpeakerAsset.IsValid() ? SpeakerAsset.Get()->GetEntityName() : LOCTEXT("Unloaded", "Unloaded");
-	
-	if (CharacterName.IsEmpty())
-	{
-		CharacterName = LOCTEXT("Unnamed", "Unnamed");
-	}
-
-	FText MoodTagLabel;
-	
-	if (GTN.IsValid())
-	{
-		MoodTagLabel = FText::FromName(GTN->GetSimpleTagName());
-	}
-	else
-	{
-		TSharedPtr<FGameplayTagNode> DefaultGTN = UGameplayTagsManager::Get().FindTagNode(UYapProjectSettings::GetDefaultMoodTag());
-
-		FText MoodTagNameAsText = DefaultGTN.IsValid() ? FText::FromName(DefaultGTN->GetSimpleTagName()) : LOCTEXT("MoodTag_None_Label", "None");
-		
-		MoodTagLabel = FText::Format(LOCTEXT("DefaultMoodTag_Label", "{0}(D)"), MoodTagNameAsText);
-	}
-	
-	return FText::Format(LOCTEXT("SpeakerMoodImageMissing_Label", "{0}\n\n{1}\n<missing>"), CharacterName, MoodTagLabel);
-}
-
-bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return false;
-	}
-
-	UClass* Class = AssetDatas[0].GetClass();
-	
-	if (Class == UYapCharacter::StaticClass())
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return;
-	}
-
-	UYapCharacter* Character = Cast<UYapCharacter>(AssetDatas[0].GetAsset());
-	
-	FYapTransactions::BeginModify(LOCTEXT("SetSpeakerCharacter", "Set speaker character"), GetDialogueNodeMutable());
-
-	GetFragmentMutable().SetSpeaker(Character);
-
-	FYapTransactions::EndModify();
-}
-
-bool SFlowGraphNode_YapFragmentWidget::OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return false;
-	}
-
-	UClass* AssetClass = AssetDatas[0].GetClass();
-	
-	const TArray<TSoftClassPtr<UObject>>& AllowableClasses = UYapProjectSettings::GetAudioAssetClasses();
-	
-	for (const TSoftClassPtr<UObject>& AllowableClass : AllowableClasses)
-	{
-		if (AssetClass->IsChildOf(AllowableClass.LoadSynchronous())) // TODO return false instead and request an async load
-		{
-			return true;
-		}
-	}  
-
-	return false;
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
-{
-	if (AssetDatas.Num() != 1)
-	{
-		return;
-	}
-
-	UObject* Object = AssetDatas[0].GetAsset();
-	
-	FYapTransactions::BeginModify(LOCTEXT("SetAudioAsset", "Set audio asset"), GetDialogueNodeMutable());
-
-	GetFragmentMutable().GetMatureBitMutable().SetDialogueAudioAsset(Object);
-
-	FYapTransactions::EndModify();	
-}
-
 // ================================================================================================
-// PORTRAIT WIDGET
-// ------------------------------------------------------------------------------------------------
+// DIRECTED AT WIDGET
+// ================================================================================================
 
-TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateDirectedAtWidget()
 {
-	int32 PortraitSize = UYapProjectSettings::GetPortraitSize();
-	int32 BorderSize = 2;
+	int32 PortraitSize = UYapProjectSettings::GetPortraitSize() / 3;
 	
-	return SNew(SOverlay)
-	+ SOverlay::Slot()
-	.Padding(0, 0, 0, 0)
-	[
-		SNew(SLevelOfDetailBranchNode)
-		.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
-		.HighDetail()
-		[
-			SNew(SAssetDropTarget)
-			.bSupportsMultiDrop(false)
-			.OnAreAssetsAcceptableForDrop(this, &ThisClass::OnAreAssetsAcceptableForDrop_SpeakerWidget)
-			.OnAssetsDropped(this, &ThisClass::OnAssetsDropped_SpeakerWidget)
-			[
-				CreateSpeakerPopupButton(PortraitSize, BorderSize)
-			]
-		]
-		.LowDetail()
-		[
-			CreateLowDetailSpeakerWidget(PortraitSize, BorderSize)
-		]
-	];
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateSpeakerPopupButton(int32 PortraitSize, int32 BorderSize)
-{
-	const UYapCharacter* Character = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
-	
-	float SpeakerWidgetSize = GetSpeakerWidgetSize(PortraitSize, BorderSize);
-	
-	return SNew(SYapButtonPopup)
-	.ButtonForegroundColor(this, &ThisClass::BorderBackgroundColor_CharacterImage)
-	.PopupPlacement(MenuPlacement_BelowAnchor)
-	.PopupContentGetter(FPopupContentGetter::CreateSP(this, &ThisClass::PopupContentGetter_SpeakerWidget, Character))
-	.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_SpeakerPopup)
-	.ButtonContent()
+	return SNew(SBorder)
+	.Cursor(EMouseCursor::Default)
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Center)
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Panel_Rounded))
+	.BorderBackgroundColor(this, &ThisClass::BorderBackgroundColor_DirectedAtImage)
+	.Padding(2)
 	[
 		SNew(SBox)
-		.WidthOverride(SpeakerWidgetSize)
-		.HeightOverride(SpeakerWidgetSize)
+		.WidthOverride(PortraitSize + 2)
+		.HeightOverride(PortraitSize + 2)
 		[
-			SNew(SOverlay)
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
+			SNew(SLevelOfDetailBranchNode)
+			.UseLowDetailSlot(Owner, &SFlowGraphNode_YapDialogueWidget::UseLowDetail)
+			.HighDetail()
 			[
-				SNew(SBorder)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
-				.BorderBackgroundColor(FSlateColor::UseForeground())
+				SNew(SAssetDropTarget)
+				.bSupportsMultiDrop(false)
+				.OnAreAssetsAcceptableForDrop(this, &ThisClass::IsDroppedAsset_YapCharacter)
+				.OnAssetsDropped(this, &ThisClass::OnAssetsDropped_DirectedAtWidget)
+				[
+					SNew(SYapButtonPopup)
+					.PopupPlacement(MenuPlacement_BelowAnchor)
+					.OnClicked(this, &ThisClass::OnClicked_DirectedAtWidget)
+					.PopupContentGetter(FPopupContentGetter::CreateSP(this, &ThisClass::PopupContentGetter_DirectedAtWidget))
+					.ButtonStyle(FYapEditorStyle::Get(), YapStyles.ButtonStyle_HoverHintOnly)
+					.ButtonBackgroundColor(YapColor::DarkGray)
+					.ButtonContent()
+					[
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
+						.Image(this, &ThisClass::Image_DirectedAtWidget)
+					]
+				]
 			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.Padding(BorderSize)
+			.LowDetail()
 			[
 				SNew(SImage)
 				.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-				.Image(this, &ThisClass::Image_SpeakerImage)
-				.ToolTipText(this, &ThisClass::ToolTipText_SpeakerWidget)
+				.Image(this, &ThisClass::Image_DirectedAtWidget)
 			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Center)
+		]
+	];
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_DirectedAtImage() const
+{
+	const TSoftObjectPtr<UYapCharacter> DirectedAtAsset = GetFragment().GetDirectedAtAsset();
+
+	FLinearColor Color;
+	
+	if (DirectedAtAsset.IsValid())
+	{
+		Color = DirectedAtAsset.Get()->GetEntityColor();
+	}
+	else
+	{
+		Color = YapColor::Transparent;		
+	}
+
+	float A = UYapDeveloperSettings::GetPortraitBorderAlpha();
+	
+	Color.R *= A;
+	Color.G *= A;
+	Color.B *= A;
+
+	return Color;
+}
+
+void SFlowGraphNode_YapFragmentWidget::OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas)
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return;
+	}
+	
+	UYapCharacter* Character = Cast<UYapCharacter>(AssetDatas[0].GetAsset());
+	
+	if (Character)
+	{
+		FYapScopedTransaction Transaction(YapEditor::Event::None, LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
+		GetFragmentMutable().SetDirectedAt(Character);
+	}
+}
+
+FReply SFlowGraphNode_YapFragmentWidget::OnClicked_DirectedAtWidget()
+{
+	if (bCtrlPressed)
+	{
+		FYapTransactions::BeginModify(LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
+
+		GetFragmentMutable().SetDirectedAt(nullptr);
+
+		FYapTransactions::EndModify();
+
+		return FReply::Handled();
+	}
+
+	return FReply::Unhandled();
+}
+
+TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::PopupContentGetter_DirectedAtWidget()
+{
+	return SNew(SBorder)
+	.Padding(1, 1, 1, 1)
+	.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Box_SolidLightGray_Rounded))
+	.BorderBackgroundColor(YapColor::DimGray)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+		.HAlign(HAlign_Center)
+		.Padding(6, 0, 6, 0)
+		[
+			SNew(SBox)
+			.WidthOverride(15) // Rotated widgets are laid out per their original transform, use negative padding and a width override for rotated text
+			.Padding(-80)
 			.VAlign(VAlign_Center)
+			.HAlign(HAlign_Center)
 			[
 				SNew(STextBlock)
-				.Text(this, &ThisClass::Text_SpeakerWidget)
-				.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
-				.ColorAndOpacity(YapColor::Red)
-				.Justification(ETextJustify::Center)
+				.Text(LOCTEXT("DirectedAt_PopupLabel", "DIRECTED AT"))
+				.RenderTransformPivot(FVector2D(0.5, 0.5))
+				.RenderTransform(FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))))
+				.Font(YapFonts.Font_SectionHeader)
 			]
 		]
-	];
-}
-
-TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateLowDetailSpeakerWidget(int32 PortraitSize, int32 BorderSize)
-{
-	float SpeakerWidgetSize = GetSpeakerWidgetSize(PortraitSize, BorderSize);
-
-	return SNew(SBox)
-	.WidthOverride(SpeakerWidgetSize)
-	.HeightOverride(SpeakerWidgetSize)
-	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Fill)
-		.VAlign(VAlign_Fill)
+		
+		+ SHorizontalBox::Slot()
 		[
-			SNew(SBorder)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			.BorderImage(FYapEditorStyle::GetImageBrush(YapBrushes.Border_Thick_RoundedSquare))
-			.BorderBackgroundColor(FSlateColor::UseForeground())
-		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
-		.Padding(BorderSize)
-		[
-			SNew(SImage)
-			.DesiredSizeOverride(FVector2D(PortraitSize, PortraitSize))
-			.Image(this, &ThisClass::Image_SpeakerImage)
-			.ToolTipText(this, &ThisClass::ToolTipText_SpeakerWidget)
-		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text(this, &ThisClass::Text_SpeakerWidget)
-			.Font(FCoreStyle::GetDefaultFontStyle("Normal", 8))
-			.ColorAndOpacity(YapColor::Red)
-			.Justification(ETextJustify::Center)
+			SNew(SYapPropertyMenuAssetPicker)
+			.AllowedClasses({UYapCharacter::StaticClass()})
+			.AllowClear(true)
+			.InitialObject(GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly))
+			.OnSet(this, &ThisClass::OnSetNewDirectedAtAsset)
 		]
 	];
 }
 
-const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
+const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_DirectedAtWidget() const
 {
-	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
-	const FGameplayTag& MoodTag = GetFragment().GetMoodTag();
+	const UYapCharacter* Character = GetFragmentMutable().GetDirectedAt(EYapLoadContext::AsyncEditorOnly);
 	
-	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
+	TSharedPtr<FSlateImageBrush> PortraitBrush = UYapEditorSubsystem::GetCharacterPortraitBrush(Character, FGameplayTag::EmptyTag);
 
 	if (PortraitBrush && PortraitBrush->GetResourceObject())
 	{
@@ -2380,31 +2303,18 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 	}
 }
 
-FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodTagSelector() const
+void SFlowGraphNode_YapFragmentWidget::OnSetNewDirectedAtAsset(const FAssetData& AssetData)
 {
-	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetMoodTag());
+	FYapTransactions::BeginModify(LOCTEXT("SetDirectedAtCharacter", "Set directed-at character"), GetDialogueNodeMutable());
 
-	if (TagNode.IsValid())
-	{
-		return FText::FromName(TagNode->GetSimpleTagName());
-	}
+	GetFragmentMutable().SetDirectedAt(AssetData.GetAsset());
 
-	return LOCTEXT("Default", "Default");
-}
-
-FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWidget() const
-{
-	if (GetFragment().GetMoodTag() == FGameplayTag::EmptyTag)
-	{
-		return YapColor::Button_Unset();
-	}
-	
-	return YapColor::White_Trans;
+	FYapTransactions::EndModify();
 }
 
 // ================================================================================================
 // TITLE TEXT WIDGET
-// ------------------------------------------------------------------------------------------------
+// ================================================================================================
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateTitleTextDisplayWidget()
 {	
@@ -2928,6 +2838,23 @@ FSlateColor SFlowGraphNode_YapFragmentWidget::BorderBackgroundColor_RowHighlight
 	return YapColor::White_Glass;
 }
 
+bool SFlowGraphNode_YapFragmentWidget::IsDroppedAsset_YapCharacter(TArrayView<FAssetData> AssetDatas) const
+{
+	if (AssetDatas.Num() != 1)
+	{
+		return false;
+	}
+
+	UClass* Class = AssetDatas[0].GetClass();
+	
+	if (Class == UYapCharacter::StaticClass())
+	{
+		return true;
+	}
+	
+	return false;
+}
+
 // ================================================================================================
 // OVERRIDES
 // ================================================================================================
@@ -3164,14 +3091,14 @@ FReply SFlowGraphNode_YapFragmentWidget::OnClicked_EnableOnEndPinButton()
 
 // ================================================================================================
 // MOOD TAG SELECTOR WIDGET
-// ------------------------------------------------------------------------------------------------
+// ================================================================================================
 
 TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidget()
 {
 	FGameplayTag SelectedMoodTag = GetCurrentMoodTag();
 
 	TSharedRef<SUniformWrapPanel> MoodTagSelectorPanel = SNew(SUniformWrapPanel)
-		.NumColumnsOverride(4); // TODO use maff
+		.NumColumnsOverride(4);
 
 	MoodTagSelectorPanel->AddSlot()
 	[
@@ -3218,6 +3145,29 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidge
 			MoodTagSelectorPanel
 		];
 }
+
+FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodTagSelector() const
+{
+	TSharedPtr<FGameplayTagNode> TagNode = UGameplayTagsManager::Get().FindTagNode(GetFragment().GetMoodTag());
+
+	if (TagNode.IsValid())
+	{
+		return FText::FromName(TagNode->GetSimpleTagName());
+	}
+
+	return LOCTEXT("Default", "Default");
+}
+
+FSlateColor SFlowGraphNode_YapFragmentWidget::ForegroundColor_MoodTagSelectorWidget() const
+{
+	if (GetFragment().GetMoodTag() == FGameplayTag::EmptyTag)
+	{
+		return YapColor::Button_Unset();
+	}
+	
+	return YapColor::White_Trans;
+}
+
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodTagSelector() const
 {

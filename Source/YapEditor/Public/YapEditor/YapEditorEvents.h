@@ -7,14 +7,17 @@
 
 #define YAP_EVT_NAME(NAME) inline const FName NAME = "NAME"
 
+// Doesn't do anything right now. Future class to help make UI more event-based and avoid developer bugs with forgetting to refresh UI elements.
+
 namespace YapEditor
 {
-	namespace Events
+	namespace Event
 	{
+		YAP_EVT_NAME(None);
+		
 		namespace DialogueNode
 		{
 			YAP_EVT_NAME(Test);
-			//FName ChangeDialogueNodeSequencing = "ChangeDialogueNodeSequencing";
 		};
 	}
 }

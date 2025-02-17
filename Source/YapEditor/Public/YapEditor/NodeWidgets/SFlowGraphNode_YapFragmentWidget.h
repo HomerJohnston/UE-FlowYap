@@ -141,13 +141,6 @@ protected:
 	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
 	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
 	
-	FSlateColor BorderBackgroundColor_DirectedAtImage() const;
-	void OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
-	bool OnAreAssetsAcceptableForDrop_DirectedAtWidget(TArrayView<FAssetData> AssetDatas) const;
-	FReply OnClicked_DirectedAtWidget();
-	TSharedRef<SWidget> PopupContentGetter_DirectedAtWidget();
-	const FSlateBrush* Image_DirectedAtWidget()const;
-	TSharedRef<SWidget> CreateDirectedAtWidget();
 	
 	bool OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_ChildSafeButton(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
@@ -191,7 +184,7 @@ protected:
 		
 	TSharedRef<SWidget> 	BuildPaddingSettings_ExpandedEditor(float Width);
 	
-	// ---------------------------------------------------
+	// ------------------------------------------
 	TSharedRef<SWidget> 	CreateFragmentTimePaddingWidget(int32 TimeSliderSize);
 	
 	TSharedRef<SWidget> 	CreateFragmentTimeProgressBar(EProgressBarFillType::Type FillType, TAttribute<TOptional<float>> PercentAttribute);
@@ -200,36 +193,51 @@ protected:
 	FSlateColor				FillColorAndOpacity_FragmentTimeProgressBars() const;
 
 	// ------------------------------------------
+	
 	TSharedRef<SOverlay>	CreateSpeakerWidget();
 
-	bool					OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
 	void					OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
-	FLinearColor			BorderBackgroundColor_CharacterImage() const;
 
-	TSharedRef<SWidget>		CreateSpeakerPopupButton(int32 PortraitSize, int32 BorderSize);
-	TSharedRef<SWidget>		PopupContentGetter_SpeakerWidget(const UYapCharacter* Character);
-	void					OnSetNewSpeakerAsset(const FAssetData& AssetData);
-	void					OnSetNewDirectedAtAsset(const FAssetData& AssetData);
-
-	TSharedRef<SWidget>		CreateLowDetailSpeakerWidget(int32 PortraitSize, int32 BorderSize);
-	
+	TSharedRef<SWidget>		CreateSpeakerImageWidget(int32 PortraitSize, int32 BorderSize);
+	FSlateColor				BorderBackgroundColor_CharacterImage() const;
 	const FSlateBrush*		Image_SpeakerImage() const;
 	FText					ToolTipText_SpeakerWidget() const;
 	FText					Text_SpeakerWidget() const;
 
 	float					GetSpeakerWidgetSize(int32 PortraitSize, int32 BorderSize) const;
+
+	// ------------------------------------------
+
+	TSharedRef<SWidget>		CreateDirectedAtWidget();
+
+	void					OnAssetsDropped_DirectedAtWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	
+	FSlateColor				BorderBackgroundColor_DirectedAtImage() const;
+	FReply					OnClicked_DirectedAtWidget();
+	TSharedRef<SWidget>		PopupContentGetter_DirectedAtWidget();
+	const FSlateBrush*		Image_DirectedAtWidget()const;
+	void					OnSetNewDirectedAtAsset(const FAssetData& AssetData);
+	
+	// ------------------------------------------
+	
+	TSharedRef<SWidget>		PopupContentGetter_SpeakerWidget(const UYapCharacter* Character);
+	void					OnSetNewSpeakerAsset(const FAssetData& AssetData);
+
+	// ------------------------------------------
+
 	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	
+	// ------------------------------------------
 
-	FText ToolTipText_MoodTagSelector() const;
-	FSlateColor ForegroundColor_MoodTagSelectorWidget() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>		CreateMoodTagSelectorWidget();
 
-	const FSlateBrush*		Image_MoodTagSelector() const;
 	FGameplayTag			GetCurrentMoodTag() const;
+	
+	FText					ToolTipText_MoodTagSelector() const;
+	FSlateColor				ForegroundColor_MoodTagSelectorWidget() const;
+	const FSlateBrush*		Image_MoodTagSelector() const;
 	
 	// ------------------------------------------
 	TSharedRef<SWidget>		CreateMoodTagMenuEntryWidget(FGameplayTag InIconName, bool bSelected = false, const FText& InLabel = FText::GetEmpty(), FName InTextStyle = TEXT("ButtonText"));
@@ -291,6 +299,8 @@ protected:
 
 	EVisibility			Visibility_RowHighlight() const;
 	FSlateColor			BorderBackgroundColor_RowHighlight() const;
+
+	bool IsDroppedAsset_YapCharacter(TArrayView<FAssetData> AssetDatas) const;
 
 	// ------------------------------------------
 	// OVERRIDES
