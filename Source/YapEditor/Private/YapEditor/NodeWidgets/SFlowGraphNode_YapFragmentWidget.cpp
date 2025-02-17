@@ -2371,21 +2371,6 @@ TSharedRef<SOverlay> SFlowGraphNode_YapFragmentWidget::CreateSpeakerWidget()
 	];
 }
 
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_PortraitImage() const
-{	
-	if (IsFragmentFocused())
-	{
-		return EVisibility::Collapsed;
-	}
-	
-	if (!Owner->GetIsSelected())
-	{
-		return EVisibility::Visible;
-	}
-
-	return EVisibility::Visible;
-}
-
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 {
 	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
@@ -2401,40 +2386,6 @@ const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_SpeakerImage() const
 	{
 		return FYapEditorStyle::GetImageBrush(YapBrushes.None);
 	}
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MissingPortraitWarning() const
-{
-	const UYapCharacter* Speaker = GetFragmentMutable().GetSpeaker(EYapLoadContext::AsyncEditorOnly);
-	const FGameplayTag& MoodTag = GetFragment().GetMoodTag();
-	
-	const TSharedPtr<FSlateImageBrush> Brush = UYapEditorSubsystem::GetCharacterPortraitBrush(Speaker, MoodTag);
-
-	if (!Brush.IsValid())
-	{
-		return EVisibility::Visible;
-	}
-
-	return (Brush->GetResourceObject()) ? EVisibility::Hidden : EVisibility::Visible;
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_CharacterSelect() const
-{
-	return IsHovered() ? EVisibility::Visible : EVisibility::Collapsed;
-}
-
-FString SFlowGraphNode_YapFragmentWidget::ObjectPath_CharacterSelect() const
-{	
-	const TSoftObjectPtr<UYapCharacter> Asset = GetFragment().GetSpeakerAsset();
-
-	if (Asset.IsPending())
-	{
-		(void)Asset.LoadSynchronous();
-	}
-	
-	if (!Asset) { return ""; }
-
-	return Asset.ToString();
 }
 
 FText SFlowGraphNode_YapFragmentWidget::ToolTipText_MoodTagSelector() const
@@ -3019,7 +2970,6 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	
 	if (bOwnerSelected && !MoveFragmentControls.IsValid())
 	{
-		UE_LOG(LogYap, Verbose, TEXT("Making)))"));
 		MoveFragmentControls = CreateFragmentControlsWidget();
 		MoveFragmentControls->SetCursor(EMouseCursor::Default);
 		FragmentWidgetOverlay->AddSlot()
@@ -3032,8 +2982,6 @@ void SFlowGraphNode_YapFragmentWidget::Tick(const FGeometry& AllottedGeometry, c
 	}
 	else if (MoveFragmentControls.IsValid() && (!bOwnerSelected))
 	{
-		UE_LOG(LogYap, Verbose, TEXT("Removinging)))"));
-
 		FragmentWidgetOverlay->RemoveSlot(MoveFragmentControls.ToSharedRef());
 		MoveFragmentControls = nullptr;
 	}
@@ -3274,7 +3222,7 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidge
 		//.ButtonColorAndOpacity(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.5f)))
 		.HAlign(HAlign_Center)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-		.OnMenuOpenChanged(this, &ThisClass::OnMenuOpenChanged_MoodTagSelector)
+		//.OnMenuOpenChanged(this, &ThisClass::OnMenuOpenChanged_MoodTagSelector)
 		.ToolTipText(this, &ThisClass::ToolTipText_MoodTagSelector)
 		.ForegroundColor(this, &ThisClass::ForegroundColor_MoodTagSelectorWidget)
 		.ButtonContent()
@@ -3287,16 +3235,6 @@ TSharedRef<SWidget> SFlowGraphNode_YapFragmentWidget::CreateMoodTagSelectorWidge
 		[
 			MoodTagSelectorPanel
 		];
-}
-
-EVisibility SFlowGraphNode_YapFragmentWidget::Visibility_MoodTagSelector() const
-{
-	return IsHovered() || MoodTagSelectorMenuOpen ? EVisibility::Visible : EVisibility::Collapsed;
-}
-
-void SFlowGraphNode_YapFragmentWidget::OnMenuOpenChanged_MoodTagSelector(bool bMenuOpen)
-{
-	MoodTagSelectorMenuOpen = bMenuOpen;
 }
 
 const FSlateBrush* SFlowGraphNode_YapFragmentWidget::Image_MoodTagSelector() const

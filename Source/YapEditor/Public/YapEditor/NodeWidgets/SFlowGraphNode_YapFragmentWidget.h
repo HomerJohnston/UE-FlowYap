@@ -40,66 +40,73 @@ enum class EYapFragmentControlsDirection : uint8
 
 class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 {
+	// ==========================================
+	// CONSTRUCTION
+	// ==========================================
 	SLATE_DECLARE_WIDGET(SFlowGraphNode_YapFragmentWidget, SCompoundWidget)
 
 	SLATE_BEGIN_ARGS(SFlowGraphNode_YapFragmentWidget)
-	{
+	{}
 		
-	}
-		SLATE_END_ARGS()
-	// ------------------------------------------
+	SLATE_END_ARGS()
+	
+	// ==========================================
 	// SETTINGS
+	// ==========================================
+public:
+	
 	TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
 	
-	// ------------------------------------------
+	// ==========================================
 	// STATE
+	// ==========================================
 protected:
+
+	// Owner of this fragment
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
-
-	TSharedPtr<SEditableTextBox> TitleTextBox;
-
-	TSharedPtr<SWidget> DirectedAtWidget;
 	
-	bool bCursorContained = false;
+	// Container for speech ending output pin
+	TSharedPtr<SBox>	EndPinBox;
+	
+	// Container for speech starting output pin
+	TSharedPtr<SBox>	StartPinBox;
+
+	// Container for chosen prompt output pin
+	TSharedPtr<SBox>	PromptOutPinBox;
+
 	bool MoodTagSelectorMenuOpen = false;
 
 	uint8 FragmentIndex = 0;
 
 	bool bCtrlPressed = false;
 
-	float Opacity = 0;
+	TSharedPtr<SOverlay> FragmentWidgetOverlay;
 
-	double InitTime = -1;
+	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
 	
-	uint64 LastBitReplacementCacheFrame = 0;
-	FYapBitReplacement* CachedBitReplacement = nullptr;
-
+	EYapMaturitySetting GetDisplayMaturitySetting() const;
+	
 	bool NeedsChildSafeData() const;
+
 	bool HasAnyChildSafeData() const;
+	
 	bool HasCompleteChildSafeData() const;
 	
-	TSharedPtr<SOverlay> FragmentWidgetOverlay;
-	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
 	TSharedRef<SWidget> CreateCentreTextDisplayWidget();
 
 	TSharedPtr<SOverlay> FragmentOverlay;
 
 	TSharedPtr<SButton> TitleTextEditButtonWidget;
+	
 	TSharedPtr<SButton> DialogueEditButtonWidget;
+	
 	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
 
-	TSharedPtr<SBox> SpeakerSelectionContainer;
-	
 	TSharedPtr<SWidget> ChildSafeCheckBox;
 
 	bool bChildSafeCheckBoxHovered = false;
 
-	EYapMaturitySetting GetDisplayMaturitySetting() const;
-
 	static FSlateFontInfo DialogueTextFont;
-
-	float CachedAudioTime = -1;
-	TWeakObjectPtr<UObject> CachedAudioAssetPtr = nullptr;
 
 public:
 	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
@@ -204,8 +211,6 @@ protected:
 	FText Text_SpeakerWidget() const;
 	FText ToolTipText_SpeakerWidget() const;
 	
-	bool OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
-	void OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 
 	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
 	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
@@ -213,19 +218,15 @@ protected:
 	// ------------------------------------------
 	TSharedRef<SOverlay>	CreateSpeakerWidget();
 
-	EVisibility			Visibility_PortraitImage() const;
-	const FSlateBrush*	Image_SpeakerImage() const;
-	EVisibility			Visibility_MissingPortraitWarning() const;
-	EVisibility			Visibility_CharacterSelect() const;
-	FString				ObjectPath_CharacterSelect() const;
+	bool					OnAreAssetsAcceptableForDrop_SpeakerWidget(TArrayView<FAssetData> AssetDatas) const;
+	void					OnAssetsDropped_SpeakerWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	const FSlateBrush*		Image_SpeakerImage() const;
 
 	FText ToolTipText_MoodTagSelector() const;
 	FSlateColor ForegroundColor_MoodTagSelectorWidget() const;
 	// ------------------------------------------
 	TSharedRef<SWidget>	CreateMoodTagSelectorWidget();
 
-	EVisibility			Visibility_MoodTagSelector() const;
-	void				OnMenuOpenChanged_MoodTagSelector(bool bMenuOpen);
 	const FSlateBrush*	Image_MoodTagSelector() const;
 	FGameplayTag		GetCurrentMoodTag() const;
 	
@@ -260,10 +261,10 @@ protected:
 	FSlateColor			ButtonColorAndOpacity_PaddingButton() const;
 	FSlateColor			ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 
-	bool OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
 	// ------------------------------------------
 	TSharedRef<SWidget> CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset);
 
+	bool				OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
 	FText				ObjectPathText_AudioAsset() const;
 	FString				ObjectPath_AudioAsset() const;
 	EVisibility			Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
@@ -302,9 +303,6 @@ public:
 	FSlateColor ColorAndOpacity_FragmentDataIcon() const;
 	TSharedRef<SWidget>	CreateRightFragmentPane();
 
-	TSharedPtr<SBox>	EndPinBox;
-	TSharedPtr<SBox>	StartPinBox;
-	TSharedPtr<SBox>	PromptOutPinBox;
 	
 	TSharedPtr<SBox> GetPinContainer(const FFlowPin& Pin);
 	
