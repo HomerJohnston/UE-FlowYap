@@ -44,6 +44,7 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 	// ==========================================
 	// CONSTRUCTION
 	// ==========================================
+private:
 	SLATE_DECLARE_WIDGET(SFlowGraphNode_YapFragmentWidget, SCompoundWidget)
 
 	SLATE_BEGIN_ARGS(SFlowGraphNode_YapFragmentWidget)
@@ -51,125 +52,113 @@ class SFlowGraphNode_YapFragmentWidget : public SCompoundWidget
 		
 	SLATE_END_ARGS()
 	
-	// ==========================================
-	// SETTINGS
-	// ==========================================
 public:
-	
-	TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
-	
+	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
+		
 	// ==========================================
 	// STATE
 	// ==========================================
 protected:
-
+	
 	// Owner of this fragment
 	SFlowGraphNode_YapDialogueWidget* Owner = nullptr;
-	
-	// Container for speech ending output pin
-	TSharedPtr<SBox>	EndPinBox;
-	
-	// Container for speech starting output pin
-	TSharedPtr<SBox>	StartPinBox;
 
-	// Container for chosen prompt output pin
-	TSharedPtr<SBox>	PromptOutPinBox;
-
-	bool MoodTagSelectorMenuOpen = false;
-
+	// Index of this fragment inside the dialogue node
 	uint8 FragmentIndex = 0;
 
+	// Color lookup table for buttons and indicators
+	static TMap<EYapTimeMode, FLinearColor> TimeModeButtonColors;
+	
+	// Container for speech ending output pin
+	TSharedPtr<SBox>	EndPinBox = nullptr;
+	
+	// Container for speech starting output pin
+	TSharedPtr<SBox>	StartPinBox = nullptr;
+
+	// Container for chosen prompt output pin
+	TSharedPtr<SBox>	PromptOutPinBox = nullptr;
+
+	// Used to change the click-behavior of some buttons
 	bool bCtrlPressed = false;
 
-	TSharedPtr<SOverlay> FragmentWidgetOverlay;
+	// Used to hold temporary overlay widgets such as the fragment up-delete-down controls  
+	TSharedPtr<SOverlay> FragmentWidgetOverlay = nullptr;
 
+	// Holds the fragment up-delete-down controls
 	TSharedPtr<SWidget> MoveFragmentControls = nullptr;
-	
-	EYapMaturitySetting GetDisplayMaturitySetting() const;
-	
-	bool NeedsChildSafeData() const;
 
-	bool HasAnyChildSafeData() const;
-	
-	bool HasCompleteChildSafeData() const;
-	
-	TSharedRef<SWidget> CreateCentreTextDisplayWidget();
+	// Holds the dialogue text, title text, and time indicators - hover state can be used to change the color of some elements when hovered
+	TSharedPtr<SOverlay> FragmentTextOverlay = nullptr;
 
-	TSharedPtr<SOverlay> FragmentOverlay;
-
-	TSharedPtr<SButton> TitleTextEditButtonWidget;
-	
-	TSharedPtr<SButton> DialogueEditButtonWidget;
-	
-	TSharedPtr<SYapConditionsScrollBox> ConditionsScrollBox;
-
-	TSharedPtr<SWidget> ChildSafeCheckBox;
+	TSharedPtr<SWidget> ChildSafeCheckBox = nullptr;
 
 	bool bChildSafeCheckBoxHovered = false;
 
 	static FSlateFontInfo DialogueTextFont;
 
 public:
-	TSharedPtr<SYapConditionsScrollBox> GetConditionsScrollBox() { return ConditionsScrollBox; }
-
-	// ------------------------------------------
-	// CONSTRUCTION
-public:
-	void Construct(const FArguments& InArgs, SFlowGraphNode_YapDialogueWidget* InOwner, uint8 InFragmentIndex); // non-virtual override
-	
-	// ------------------------------------------
+	// ================================================================================================
 	// WIDGETS
+	// ================================================================================================
 protected:
-	int32 GetFragmentActivationCount() const;
-	int32 GetFragmentActivationLimit() const;
-	EVisibility Visibility_FragmentControlsWidget() const;
-	EVisibility Visibility_FragmentShiftWidget(EYapFragmentControlsDirection YapFragmentControlsDirection) const;
-	FReply OnClicked_FragmentShift(EYapFragmentControlsDirection YapFragmentControlsDirection);
-	FReply OnClicked_FragmentDelete();
-	TSharedRef<SWidget> CreateFragmentControlsWidget();
-	bool Enabled_AudioPreviewButton(const TSoftObjectPtr<UObject>* Object) const;
-	FReply OnClicked_AudioPreviewWidget(const TSoftObjectPtr<UObject>* Object);
-	TSharedRef<SWidget> CreateAudioPreviewWidget(const TSoftObjectPtr<UObject>* AudioAsset, TAttribute<EVisibility> VisibilityAtt);
+	
+	int32					GetFragmentActivationCount() const;
+	int32					GetFragmentActivationLimit() const;
+	EVisibility				Visibility_FragmentControlsWidget() const;
+	EVisibility				Visibility_FragmentShiftWidget(EYapFragmentControlsDirection YapFragmentControlsDirection) const;
+	FReply					OnClicked_FragmentShift(EYapFragmentControlsDirection YapFragmentControlsDirection);
+	FReply					OnClicked_FragmentDelete();
+	TSharedRef<SWidget>		CreateFragmentControlsWidget();
+	bool					Enabled_AudioPreviewButton(const TSoftObjectPtr<UObject>* Object) const;
+	FReply					OnClicked_AudioPreviewWidget(const TSoftObjectPtr<UObject>* Object);
+	TSharedRef<SWidget>		CreateAudioPreviewWidget(const TSoftObjectPtr<UObject>* AudioAsset, TAttribute<EVisibility> VisibilityAtt);
 
-	TSharedRef<SWidget> CreateFragmentHighlightWidget();
-	void OnTextCommitted_FragmentActivationLimit(const FText& Text, ETextCommit::Type Arg);
-
-	TSharedRef<SWidget> CreateUpperFragmentBar();
-	EVisibility Visibility_FragmentTagWidget() const;
-	
-	ECheckBoxState		IsChecked_ChildSafeSettings() const;
-	void				OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
-	FSlateColor			ColorAndOpacity_ChildSafeSettingsCheckBox() const;
-	
-	
-	bool OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const;
-	void OnAssetsDropped_ChildSafeButton(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateFragmentWidget();
 
-	EVisibility Visibility_DialogueEdit() const;
-	EVisibility Visibility_EmptyTextIndicator(const FText* Text) const;
-	TOptional<float> Value_TimeSetting_AudioTime(EYapMaturitySetting MaturitySetting) const;
-	TOptional<float> Value_TimeSetting_TextTime(EYapMaturitySetting MaturitySetting) const;
-	TOptional<float> Value_TimeSetting_ManualTime(EYapMaturitySetting MaturitySetting) const;
-
-	TSharedRef<SWidget>	MakeTimeSettingRow(EYapTimeMode TimeMode, EYapMaturitySetting MaturitySetting);
-
-	FSlateColor ButtonColor_TimeSettingButton() const;
-	EVisibility Visibility_AudioSettingsButton() const;
-	EVisibility Visibility_DialogueErrorState() const;
-	FSlateColor ColorAndOpacity_AudioID() const;
-	// ------------------------------------------
-	TSharedRef<SWidget>	CreateDialogueDisplayWidget();
-
-	FVector2D			DialogueScrollBar_Thickness() const;
-	FOptionalSize		Dialogue_MaxDesiredHeight() const;
-	FText				Text_TextDisplayWidget(const FText* MatureText, const FText* SafeText) const;
+	TSharedRef<SWidget> 	CreateFragmentHighlightWidget();
+	EVisibility				Visibility_FragmentHighlight() const;
+	FSlateColor				BorderBackgroundColor_FragmentHighlight() const;
 	
-	EVisibility			Visibility_DialogueBackground() const;
-	FSlateColor			BorderBackgroundColor_Dialogue() const;
+	// ------------------------------------------
 
-	TSharedRef<SWidget> PopupContentGetter_ExpandedEditor();
+	void					OnTextCommitted_FragmentActivationLimit(const FText& Text, ETextCommit::Type Arg);
+
+	TSharedRef<SWidget> 	CreateUpperFragmentBar();
+	EVisibility				Visibility_FragmentTagWidget() const;
+		
+	ECheckBoxState			IsChecked_ChildSafeSettings() const;
+	void					OnCheckStateChanged_MaturitySettings(ECheckBoxState CheckBoxState);
+	FSlateColor				ColorAndOpacity_ChildSafeSettingsCheckBox() const;
+	
+	bool 					OnAreAssetsAcceptableForDrop_ChildSafeButton(TArrayView<FAssetData> AssetDatas) const;
+	void 					OnAssetsDropped_ChildSafeButton(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	// ------------------------------------------
+	
+	TSharedRef<SWidget>		CreateFragmentWidget();
+
+	// ------------------------------------------
+
+	TOptional<float> 		Value_TimeSetting_AudioTime(EYapMaturitySetting MaturitySetting) const;
+	TOptional<float> 		Value_TimeSetting_TextTime(EYapMaturitySetting MaturitySetting) const;
+	TOptional<float> 		Value_TimeSetting_ManualTime(EYapMaturitySetting MaturitySetting) const;
+
+	TSharedRef<SWidget>		MakeTimeSettingRow(EYapTimeMode TimeMode, EYapMaturitySetting MaturitySetting);
+
+	EVisibility 			Visibility_AudioSettingsButton() const;
+	EVisibility 			Visibility_DialogueErrorState() const;
+	FSlateColor 			ColorAndOpacity_AudioID() const;
+	
+	// ------------------------------------------
+	
+	TSharedRef<SWidget>		CreateDialogueDisplayWidget();
+	
+	FText					Text_TextDisplayWidget(const FText* MatureText, const FText* SafeText) const;
+	
+	EVisibility				Visibility_DialogueBackground() const;
+	FSlateColor				BorderBackgroundColor_Dialogue() const;
+
+	TSharedRef<SWidget>		CreateCentreTextDisplayWidget();
+	TSharedRef<SWidget>		PopupContentGetter_ExpandedEditor();
 
 
 	TSharedRef<SWidget> 	BuildDialogueEditors_ExpandedEditor(float Width);
@@ -185,12 +174,13 @@ protected:
 	TSharedRef<SWidget> 	BuildPaddingSettings_ExpandedEditor(float Width);
 	
 	// ------------------------------------------
-	TSharedRef<SWidget> 	CreateFragmentTimePaddingWidget(int32 TimeSliderSize);
+	TSharedRef<SWidget> 	CreateFragmentTimeIndicatorWidget(int32 TimeSliderSize);
 	
 	TSharedRef<SWidget> 	CreateFragmentTimeProgressBar(EProgressBarFillType::Type FillType, TAttribute<TOptional<float>> PercentAttribute);
 	TOptional<float>		Percent_FragmentTime() const;
 	TOptional<float>		Percent_FragmentTimePadding() const;
-	FSlateColor				FillColorAndOpacity_FragmentTimeProgressBars() const;
+	FSlateColor				FillColorAndOpacity_FragmentTimeIndicatorBars() const;
+	FSlateColor 			ColorAndOpacity_FragmentTimeIndicator() const;
 
 	// ------------------------------------------
 	
@@ -225,12 +215,13 @@ protected:
 
 	// ------------------------------------------
 
-	bool OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
-	void OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
+	bool					OnAreAssetsAcceptableForDrop_TextWidget(TArrayView<FAssetData> AssetDatas) const;
+	void					OnAssetsDropped_TextWidget(const FDragDropEvent& DragDropEvent, TArrayView<FAssetData> AssetDatas);
 	
 	// ------------------------------------------
 
 	// ------------------------------------------
+	
 	TSharedRef<SWidget>		CreateMoodTagSelectorWidget();
 
 	FGameplayTag			GetCurrentMoodTag() const;
@@ -244,47 +235,49 @@ protected:
 
 	FReply					OnClicked_MoodTagMenuEntry(FGameplayTag NewValue);
 
-	FText Text_EditedText(FText* Text) const;
-
-	FSlateColor ColorAndOpacity_TextDisplayWidget(FLinearColor BaseColor) const;
-
-	EVisibility Visibility_TitleTextErrorState() const;
-	// ------------------------------------------
-	TSharedRef<SWidget> CreateTitleTextDisplayWidget();
-
-	EVisibility			Visibility_TitleText() const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget>	CreateFragmentTagWidget();
+	TSharedRef<SWidget>		CreateTitleTextDisplayWidget();
+
+	EVisibility				Visibility_TitleTextWidgets() const;
+	EVisibility				Visibility_TitleTextErrorState() const;
+
+	// ------------------------------------------
+	TSharedRef<SWidget>		CreateFragmentTagWidget();
 	
-	FGameplayTag		Value_FragmentTag() const;
-	void				OnTagChanged_FragmentTag(FGameplayTag GameplayTag);
+	FGameplayTag			Value_FragmentTag() const;
+	void					OnTagChanged_FragmentTag(FGameplayTag GameplayTag);
 
 	// ------------------------------------------
 
-	FReply				OnClicked_SetTimeModeButton(EYapTimeMode TimeMode);
+	FReply					OnClicked_SetTimeModeButton(EYapTimeMode TimeMode);
 
-	void				OnValueUpdated_ManualTime(float NewValue, EYapMaturitySetting MaturitySetting);
-	void				OnValueCommitted_ManualTime(float NewValue, ETextCommit::Type CommitType, EYapMaturitySetting MaturitySetting);
-	FSlateColor			ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint, EYapMaturitySetting MaturitySetting) const;
-	FSlateColor			ButtonColorAndOpacity_PaddingButton() const;
-	FSlateColor			ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
+	void					OnValueUpdated_ManualTime(float NewValue, EYapMaturitySetting MaturitySetting);
+	void					OnValueCommitted_ManualTime(float NewValue, ETextCommit::Type CommitType, EYapMaturitySetting MaturitySetting);
+	FSlateColor				ButtonColorAndOpacity_UseTimeMode(EYapTimeMode TimeMode, FLinearColor ColorTint, EYapMaturitySetting MaturitySetting) const;
+	FSlateColor				ButtonColorAndOpacity_PaddingButton() const;
+	FSlateColor				ForegroundColor_TimeSettingButton(EYapTimeMode TimeMode, FLinearColor ColorTint) const;
 
 	// ------------------------------------------
-	TSharedRef<SWidget> CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset);
-
-	bool				OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
-	EVisibility			Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
-
-	FSlateColor			ColorAndOpacity_AudioSettingsButton() const;
-	EYapErrorLevel		GetFragmentAudioErrorLevel() const;
-
-	FSlateColor			ColorAndOpacity_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
-	EYapErrorLevel		GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const;
 	
-	// ------------------------------------------
+	TSharedRef<SWidget> 	CreateAudioAssetWidget(const TSoftObjectPtr<UObject>& Asset);
+
+	bool					OnShouldFilterAsset_AudioAssetWidget(const FAssetData& AssetData) const;
+	EVisibility				Visibility_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
+
+	FSlateColor				ColorAndOpacity_AudioSettingsButton() const;
+	EYapErrorLevel			GetFragmentAudioErrorLevel() const;
+
+	FSlateColor				ColorAndOpacity_AudioAssetErrorState(const TSoftObjectPtr<UObject>* Asset) const;
+	EYapErrorLevel			GetAudioAssetErrorLevel(const TSoftObjectPtr<UObject>& Asset) const;
+	
+	// ================================================================================================
 	// HELPERS
+	// ================================================================================================
 protected:
+
+	// ------------
+	// TODO oh my god can I reduce this cruft at all
 	const UFlowNode_YapDialogue* GetDialogueNode() const;
 
 	UFlowNode_YapDialogue* GetDialogueNodeMutable();
@@ -294,16 +287,27 @@ protected:
 	FYapFragment& GetFragmentMutable();
 
 	FYapFragment& GetFragmentMutable() const;
+	
+	// ------------
+	EYapMaturitySetting GetDisplayMaturitySetting() const;
+	
+	bool NeedsChildSafeData() const;
 
-	bool IsFragmentFocused() const;
+	bool HasAnyChildSafeData() const;
+	
+	bool HasCompleteChildSafeData() const;
 
-	EVisibility			Visibility_RowHighlight() const;
-	FSlateColor			BorderBackgroundColor_RowHighlight() const;
-
+	bool FragmentIsRunning() const;
+	
+	// ------------
 	bool IsDroppedAsset_YapCharacter(TArrayView<FAssetData> AssetDatas) const;
 
-	// ------------------------------------------
+	// ------------
+	FSlateColor	GetColorAndOpacityForFragmentText(FLinearColor BaseColor) const;
+	
+	// ================================================================================================
 	// OVERRIDES
+	// ================================================================================================
 public:
 	FSlateColor GetNodeTitleColor() const; // non-virtual override
 

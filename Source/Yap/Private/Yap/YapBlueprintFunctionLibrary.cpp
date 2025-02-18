@@ -60,6 +60,25 @@ bool UYapBlueprintFunctionLibrary::SkipDialogue(const FYapDialogueHandleRef& Han
 
 // ------------------------------------------------------------------------------------------------
 
+bool UYapBlueprintFunctionLibrary::CanSkipCurrently(const FYapDialogueHandleRef& Handle)
+{
+	if (!Handle.IsValid())
+	{
+		return false;
+	}
+
+	UFlowNode_YapDialogue* DialogueNode = UYapSubsystem::GetDialogueHandle(Handle).GetDialogueNode();
+
+	if (DialogueNode)
+	{
+		return DialogueNode->CanSkipCurrentFragment();
+	}
+
+	return false;
+}
+
+// ------------------------------------------------------------------------------------------------
+
 bool UYapBlueprintFunctionLibrary::RunPrompt(const FYapPromptHandle& Handle)
 {
 	return UYapSubsystem::RunPrompt(Handle);

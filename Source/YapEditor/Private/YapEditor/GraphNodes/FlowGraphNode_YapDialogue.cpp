@@ -216,7 +216,7 @@ void UFlowGraphNode_YapDialogue::AutoAssignAudioOnAllFragments()
 		Args.UseGrouping = false;
 		Args.MinimumIntegralDigits = 3; // TODO magic number move this to project settings or some other constant
 		
-		FString AudioID = GetYapDialogueNode()->GetAudioID() + "-" + (FText::AsNumber(FragmentIndex + 1, &Args)).ToString();
+		FString AudioID = GetYapDialogueNode()->GetAudioID() + "-" + (FText::AsNumber(FragmentIndex, &Args)).ToString();
 
 		TArray<FAssetData>* Datas = AudioAssetData.Find(AudioID);
 

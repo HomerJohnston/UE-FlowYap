@@ -154,10 +154,14 @@ protected:
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.1, UIMin = 0.1, UIMax = 5.0, Delta = 0.01))
 	float MinimumSpeakingTime = 0.25;
 
-	/** When dialogue is set to audo-advance, skip requests will be ignored if the total remaining playback time (speech time + padding time) is less than this. */
+	/** When dialogue is set to audo-advance, skip requests will be ignored if the total remaining playback time (speech time + padding time) is less than this. This should normally be left at zero.*/
 	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 2.0, Delta = 0.01))
-	float MinimumSkipTime = 0.15;
+	float MinimumTimeRemainingToAllowSkip = 0.0;
 
+	/** Skip requests will be ignored if the total elapsed time (speech time + padding time) is less than this. This should normally be a small number. */
+	UPROPERTY(Config, EditAnywhere, Category = "Dialogue Playback", meta = (ClampMin = 0.0, UIMin = 0.0, UIMax = 2.0, Delta = 0.01))
+	float MinimumTimeElapsedToAllowSkip = 0.25;
+	
 	// - - - - - EDITOR - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	
 	/** Normally, when assigning dialogue text, Yap will parse the text and attempt to cache a word count to use for determine text time length. Set this to prevent that. */
@@ -299,7 +303,9 @@ public:
 	
 	static float GetMinimumFragmentTime() { return Get().MinimumSpeakingTime; }
 
-	static float GetMinimumSkipTime() { return Get().MinimumSkipTime; }
+	static float GetMinimumTimeRemainingToAllowSkip() { return Get().MinimumTimeRemainingToAllowSkip; }
+
+	static float GetMinimumTimeElapsedToAllowSkip() { return Get().MinimumTimeElapsedToAllowSkip; }
 
 	static bool GetOpenConversationRequiresTrigger() { return Get().bOpenConversationRequiresTrigger; }
 	

@@ -25,15 +25,6 @@ enum class EYapDialogueTalkSequencing : uint8
 	COUNT				UMETA(Hidden)
 };
 
-UENUM()
-enum class EYapFragmentState : uint8
-{
-	Undefined,
-	Idle,
-	Running,
-	InPadding,
-};
-
 // ------------------------------------------------------------------------------------------------
 /**
  * Node type. Freestyle talking or player prompt. Changes the execution flow of dialogue.
@@ -137,20 +128,6 @@ protected:
 	UPROPERTY(Transient)
 	FYapPromptHandle PromptHandle;
 	
-#if WITH_EDITORONLY_DATA
-	/** When was the current running fragment started? */ 
-	double FragmentStartedTime = -1;
-
-	/** When did the most recently ran fragment finish? */
-	double FragmentEndedTime = -1;
-
-	/** Helper to make it easier for slate widgets to determine if their fragment is running. */
-	FYapFragment* RunningFragment = nullptr;
-
-	/** Helper to make it easier for slate widgets to know which fragments have finished running. */
-	TSet<FYapFragment*> FinishedFragments;
-#endif
-
 	static FName OutputPinName;
 	
 	static FName BypassPinName;
@@ -189,6 +166,8 @@ public:
 
 	bool SkipCurrent();
 	
+	bool CanSkipCurrentFragment() const;
+
 	FString GetAudioID() const { return AudioID; }
 
 	FYapDialogueHandle& GetDialogueHandle() { return DialogueHandle; }
@@ -238,11 +217,11 @@ protected:
 
 	bool RunFragment(uint8 FragmentIndex);
 
-	void OnSpeakingComplete(uint8 FragmentIndex);
+	void OnSpeakingComplete();
 
-	void OnPaddingComplete(uint8 FragmentIndex);
+	void OnPaddingComplete();
 
-	void AdvanceToNextFragment(uint8 CurrentFragmentIndex);
+	void AdvanceFromFragment(uint8 FragmentIndex);
 	
 	bool IsBypassPinRequired() const;
 
@@ -252,7 +231,7 @@ protected:
 	bool TryBroadcastFragment(uint8 FragmentIndex);
 	
 	const FYapFragment& GetFragmentByIndex(uint8 Index) const;
-
+	
 #if WITH_EDITOR
 public:
 	TArray<FYapFragment>& GetFragmentsMutable();
@@ -289,10 +268,8 @@ private:
 	void SwapFragments(uint8 IndexA, uint8 IndexB);
 	
 public:
-	const FYapFragment* GetRunningFragment() const { return RunningFragment; }
+	const int32 GetRunningFragmentIndex() const { return RunningFragmentIndex; }
 
-	const TSet<FYapFragment*> GetFinishedFragments() const { return FinishedFragments; }
-	
 	FString GetNodeDescription() const override;
 
 	const FGameplayTag& GetDialogueTag() const { return DialogueTag; }

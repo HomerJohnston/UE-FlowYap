@@ -38,6 +38,9 @@ public:
 	static bool SkipDialogue(const FYapDialogueHandleRef& Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")
+	static bool CanSkipCurrently(const FYapDialogueHandleRef& Handle);
+	
+	UFUNCTION(BlueprintCallable, Category = "Yap")
 	static bool RunPrompt(const FYapPromptHandle& Handle);
 
 	UFUNCTION(BlueprintCallable, Category = "Yap")

@@ -16,6 +16,39 @@ class UFlowNode_YapDialogue;
 struct FFlowPin;
 enum class EYapMaturitySetting : uint8;
 
+// ================================================================================================
+
+UENUM()
+enum class EYapFragmentRunState : uint8
+{
+	Idle		= 0,
+	Running		= 1,
+	InPadding	= 2,
+};
+
+// ================================================================================================
+
+UENUM()
+enum class EYapFragmentCurrentStateFlags : uint8
+{
+	NeverRan =	0,
+	Failed =	1 << 0,
+	Success =	1 << 1,
+	Skipped =	1 << 2,
+};
+
+inline EYapFragmentCurrentStateFlags operator|(EYapFragmentCurrentStateFlags Left, EYapFragmentCurrentStateFlags Right)
+{
+	return static_cast<EYapFragmentCurrentStateFlags>(static_cast<uint8>(Left) | static_cast<uint8>(Right));
+}
+
+// ================================================================================================
+
+/**
+ * Fragments contain all of the actual data and settings required for a segment of speech to run.
+ * 
+ * Fragment settings override any defaults provided by the parent node.
+ */
 USTRUCT(NotBlueprintType)
 struct YAP_API FYapFragment
 {
@@ -107,7 +140,7 @@ protected:
 
 	UPROPERTY(Transient)
 	int32 ActivationCount = 0;
-
+	
 	UPROPERTY()
 	FFlowPin PromptPin;
 
@@ -117,6 +150,20 @@ protected:
 	UPROPERTY()
 	FFlowPin EndPin;
 
+	UPROPERTY()
+	EYapFragmentRunState RunState = EYapFragmentRunState::Idle;
+
+	UPROPERTY()
+	EYapFragmentCurrentStateFlags LastCompletionState = EYapFragmentCurrentStateFlags::NeverRan;
+
+	/** When was the current running fragment started? */
+	UPROPERTY() 
+	double StartTime = -1;
+
+	/** When did the most recently ran fragment finish? */
+	UPROPERTY()
+	double EndTime = -1;
+	
 	// ASSET LOADING
 protected:
 	TSharedPtr<FStreamableHandle> SpeakerHandle;
@@ -138,6 +185,14 @@ public:
 	uint8 GetIndexInDialogue() const { return IndexInDialogue; }
 	
 	int32 GetActivationCount() const { return ActivationCount; }
+
+	void SetRunState(EYapFragmentRunState NewState) { RunState = NewState; }
+	
+	EYapFragmentRunState GetRunState() const { return RunState; }
+
+	void SetCompletionState(EYapFragmentCurrentStateFlags NewStateFlags) { LastCompletionState = (EYapFragmentCurrentStateFlags)NewStateFlags; }
+	
+	EYapFragmentCurrentStateFlags GetLastCompletionState() const { return LastCompletionState; }
 	
 	int32 GetActivationLimit() const { return ActivationLimit; }
 
@@ -163,6 +218,14 @@ public:
 
 	TOptional<float> GetTime() const;
 
+	double GetStartTime() const { return StartTime; }
+
+	void SetStartTime(double InTime) { StartTime = InTime; }
+
+	double GetEndTime() const { return EndTime; }
+
+	void SetEndTime(double InTime) { EndTime = InTime; }
+	
 protected:
 	TOptional<float> GetTime(EYapMaturitySetting MaturitySetting, EYapLoadContext LoadContext) const;
 
